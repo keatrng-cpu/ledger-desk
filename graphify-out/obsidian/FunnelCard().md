@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/funnel-card.tsx"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # FunnelCard()
@@ -20,4 +20,4 @@ tags:
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[workedMonth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

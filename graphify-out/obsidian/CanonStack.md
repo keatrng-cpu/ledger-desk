@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 9"
-location: "L310"
+community: "veteran-brain.ts"
+location: "L311"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # CanonStack
@@ -25,4 +25,4 @@ tags:
 - [[smc-playbook.tsx]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

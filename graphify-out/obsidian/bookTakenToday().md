@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 8"
+community: "paper-manager.ts"
 location: "L492"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # bookTakenToday()
@@ -23,4 +23,4 @@ tags:
 - [[pricePathVerdict()]] - `calls` [EXTRACTED]
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

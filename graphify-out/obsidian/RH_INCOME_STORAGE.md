@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 153"
+community: "options-swing-panel.tsx"
 location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # RH_INCOME_STORAGE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[rh-income.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

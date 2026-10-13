@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/check-research-sources.mjs"
+source_file: "scripts/capture-invest-universe.mjs"
 type: "code"
-community: "Community 70"
-location: "L30"
+community: "capture-invest-universe.mjs"
+location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/capture-invest-universemjs
 ---
 
 # args
 
 ## Connections
-- [[check-research-sources.mjs]] - `contains` [EXTRACTED]
+- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/capture-invest-universemjs

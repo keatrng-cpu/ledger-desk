@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # scanSide()
@@ -18,10 +18,10 @@ tags:
 - [[inactivesDue()]] - `calls` [EXTRACTED]
 - [[lateUnderdog()]] - `calls` [EXTRACTED]
 - [[limitPriceFor()]] - `calls` [EXTRACTED]
-- [[pc()_3]] - `calls` [EXTRACTED]
+- [[pc()_2]] - `calls` [EXTRACTED]
 - [[predictscanner.ts]] - `contains` [EXTRACTED]
 - [[qbFlag()]] - `calls` [EXTRACTED]
 - [[sc()_2]] - `calls` [EXTRACTED]
 - [[scanBoard()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-income-target.mjs"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # verify-income-target.mjs
 
 ## Connections
-- [[check()_67]] - `contains` [EXTRACTED]
-- [[config.ts]] - `dynamic_import` [EXTRACTED]
+- [[aplusconfig.ts]] - `dynamic_import` [EXTRACTED]
+- [[check()_55]] - `contains` [EXTRACTED]
 - [[income-target.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

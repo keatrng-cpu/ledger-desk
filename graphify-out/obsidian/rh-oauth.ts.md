@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-oauth.ts"
 type: "code"
-community: "Community 65"
+community: "rh-oauth.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/rh-oauthts
 ---
 
 # rh-oauth.ts
@@ -31,7 +31,7 @@ tags:
 - [[dropOauth()]] - `contains` [EXTRACTED]
 - [[ensureAccess()]] - `contains` [EXTRACTED]
 - [[exchangeCode()]] - `contains` [EXTRACTED]
-- [[handle()_5]] - `imports_from` [EXTRACTED]
+- [[handle()_6]] - `imports_from` [EXTRACTED]
 - [[packPkce()]] - `contains` [EXTRACTED]
 - [[pkcePair()]] - `contains` [EXTRACTED]
 - [[postToken()]] - `contains` [EXTRACTED]
@@ -49,4 +49,4 @@ tags:
 - [[verify-rh-oauth.mjs]] - `dynamic_import` [EXTRACTED]
 - [[writeOauth()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

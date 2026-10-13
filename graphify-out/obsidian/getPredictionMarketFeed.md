@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 7"
+community: "predict-server.ts"
 location: "L503"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/predict-serverts
 ---
 
 # getPredictionMarketFeed
@@ -18,4 +18,4 @@ tags:
 - [[predict-server.ts]] - `contains` [EXTRACTED]
 - [[useMeadFeed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_opt.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # floor_opt.py
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[_inside()]] - `contains` [EXTRACTED]
 - [[_mesh_key()]] - `contains` [EXTRACTED]
-- [[_newell()]] - `contains` [EXTRACTED]
+- [[_newell()_1]] - `contains` [EXTRACTED]
 - [[bmesh]] - `imports` [EXTRACTED]
 - [[bpy]] - `imports` [EXTRACTED]
 - [[dedupe_meshes()]] - `contains` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[merge_screen_materials()]] - `contains` [EXTRACTED]
 - [[numpy]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

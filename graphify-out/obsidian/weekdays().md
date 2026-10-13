@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-apex-sim.mjs"
 type: "code"
-community: "Community 243"
+community: "verify-apex-sim.mjs"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_243
+  - community/verify-apex-simmjs
 ---
 
 # weekdays()
@@ -15,4 +15,4 @@ tags:
 - [[fixture()]] - `calls` [EXTRACTED]
 - [[verify-apex-sim.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_243
+#graphify/code #graphify/EXTRACTED #community/verify-apex-simmjs

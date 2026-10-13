@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/quotes.py"
 type: "code"
-community: "Community 226"
+community: "json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # quotes.py
@@ -19,4 +19,4 @@ tags:
 - [[parse_quote()]] - `contains` [EXTRACTED]
 - [[selfcheck.py]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/json

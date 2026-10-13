@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/smc_ref.py"
 type: "code"
-community: "Community 296"
+community: "smc_ref.py"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_296
+  - community/smc_refpy
 ---
 
 # _library()
@@ -18,4 +18,4 @@ tags:
 - [[library_fvgs()]] - `calls` [EXTRACTED]
 - [[smc_ref.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_296
+#graphify/code #graphify/EXTRACTED #community/smc_refpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 162"
+community: "live-world.ts"
 location: "L294"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-worldts
 ---
 
 # RoomState
@@ -28,4 +28,4 @@ tags:
 - [[floorProps]] - `references` [EXTRACTED]
 - [[room-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-worldts

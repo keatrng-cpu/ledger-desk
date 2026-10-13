@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 158"
+community: "manager-feed.ts"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # OwnerHold
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[manager-room-feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

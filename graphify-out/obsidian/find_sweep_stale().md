@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "code"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L618"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # find_sweep_stale()
@@ -18,4 +18,4 @@ tags:
 - [[ny_am()]] - `calls` [EXTRACTED]
 - [[raid_at()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/build-learn-figurespy

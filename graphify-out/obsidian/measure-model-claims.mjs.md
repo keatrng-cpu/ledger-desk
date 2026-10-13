@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-model-claims.mjs"
 type: "code"
-community: "Community 117"
+community: "measure-model-claims.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_117
+  - community/measure-model-claimsmjs
 ---
 
 # measure-model-claims.mjs
@@ -32,7 +32,7 @@ tags:
 - [[r3()]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[result]] - `contains` [EXTRACTED]
-- [[rows_1]] - `contains` [EXTRACTED]
+- [[rows]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[show()]] - `contains` [EXTRACTED]
 - [[sim()]] - `contains` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[withSweep]] - `contains` [EXTRACTED]
 - [[yearOf()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_117
+#graphify/code #graphify/EXTRACTED #community/measure-model-claimsmjs

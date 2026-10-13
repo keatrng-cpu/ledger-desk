@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/journal/analytics-server.ts"
 type: "code"
-community: "Community 195"
+community: "analytics-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_195
+  - community/analytics-paneltsx
 ---
 
 # analytics-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[ANALYTICS_RISK_PCT]] - `contains` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[AnalyticsPayload]] - `contains` [EXTRACTED]
@@ -21,14 +21,14 @@ tags:
 - [[CSV_COLUMNS]] - `contains` [EXTRACTED]
 - [[DisciplineStats]] - `contains` [EXTRACTED]
 - [[RFC-4180]] - `cites` [EXTRACTED]
-- [[Row]] - `contains` [EXTRACTED]
+- [[Row_1]] - `contains` [EXTRACTED]
 - [[Sql]] - `imports` [EXTRACTED]
 - [[analytics-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[analyticsInput]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[authMiddleware]] - `imports` [EXTRACTED]
 - [[buildAnalytics()]] - `imports` [EXTRACTED]
 - [[claude-server.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[csvCell()]] - `contains` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[discretion-server.ts]] - `imports_from` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[toAnalyticsTrade()]] - `contains` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_195
+#graphify/code #graphify/EXTRACTED #community/analytics-paneltsx

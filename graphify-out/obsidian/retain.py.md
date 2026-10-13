@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/retain.py"
 type: "code"
-community: "Community 226"
+community: "retain.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/retainpy
 ---
 
 # retain.py
@@ -18,9 +18,9 @@ tags:
 - [[_px()]] - `contains` [EXTRACTED]
 - [[classify()_2]] - `contains` [EXTRACTED]
 - [[json_1]] - `imports` [EXTRACTED]
-- [[main()_7]] - `contains` [EXTRACTED]
+- [[main()_8]] - `contains` [EXTRACTED]
 - [[pathlib]] - `imports_from` [EXTRACTED]
 - [[pydantic]] - `imports_from` [EXTRACTED]
 - [[write_note()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/retainpy

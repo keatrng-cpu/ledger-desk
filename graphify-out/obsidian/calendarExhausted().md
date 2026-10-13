@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # calendarExhausted()
@@ -15,4 +15,4 @@ tags:
 - [[news.ts]] - `contains` [EXTRACTED]
 - [[newsRead]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

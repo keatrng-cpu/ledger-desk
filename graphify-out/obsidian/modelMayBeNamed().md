@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
-location: "L482"
+community: "smc-canon.ts"
+location: "L488"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # modelMayBeNamed()
@@ -19,4 +19,4 @@ tags:
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 - [[strategies.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

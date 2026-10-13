@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 217"
+community: "desk-atlas.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/desk-atlasts
 ---
 
 # AtlasPrior
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

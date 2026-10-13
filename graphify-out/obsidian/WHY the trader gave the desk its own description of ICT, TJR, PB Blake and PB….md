@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-school-brief.mjs"
 type: "rationale"
-community: "Community 217"
+community: "verify-entry-alarm.mjs"
 location: "L6"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/verify-entry-alarmmjs
 ---
 
 # WHY: the trader gave the desk its own description of ICT, TJR, PB Blake and PB…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-school-brief.mjs]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_217
+#graphify/rationale #graphify/EXTRACTED #community/verify-entry-alarmmjs

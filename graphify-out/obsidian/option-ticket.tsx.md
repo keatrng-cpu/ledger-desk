@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/option-ticket.tsx"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # option-ticket.tsx
@@ -22,7 +22,7 @@ tags:
 - [[RH_MAX_DEBIT_TOTAL]] - `imports` [EXTRACTED]
 - [[RH_MIN_DEBIT_TOTAL]] - `imports` [EXTRACTED]
 - [[RhStrategyCard]] - `imports` [EXTRACTED]
-- [[Row()_3]] - `contains` [EXTRACTED]
+- [[Row()_5]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `imports` [EXTRACTED]
@@ -34,13 +34,13 @@ tags:
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[options-sleeve.ts]] - `imports_from` [EXTRACTED]
 - [[pickCard()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[school-ticket.ts]] - `imports_from` [EXTRACTED]
 - [[schoolTicket()]] - `imports` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[ticketHolds()]] - `imports` [EXTRACTED]
-- [[usd()_1]] - `contains` [EXTRACTED]
+- [[usd()_5]] - `contains` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

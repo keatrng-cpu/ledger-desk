@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/journal/log-setup-dialog.tsx"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # LogSetupDialog()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
-- [[What shipped]] - `references` [INFERRED]
+- [[What shipped_1]] - `references` [INFERRED]
 - [[buildPaperLevels()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[defaultsFrom()]] - `calls` [EXTRACTED]
@@ -26,4 +26,4 @@ tags:
 - [[riskGradeFromScore()]] - `calls` [EXTRACTED]
 - [[riskPctForScore()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

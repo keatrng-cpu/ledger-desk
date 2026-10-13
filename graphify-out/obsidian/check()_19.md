@@ -1,17 +1,17 @@
 ---
-source_file: "brainlab/selfcheck.py"
+source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 146"
+community: "verify-room-exec.mjs"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/verify-room-execmjs
 ---
 
 # check()
 
 ## Connections
-- [[selfcheck.py]] - `contains` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

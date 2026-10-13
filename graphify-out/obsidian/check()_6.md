@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-curriculum.mjs"
+source_file: "scripts/verify-news-ipo.mjs"
 type: "code"
-community: "Community 118"
-location: "L35"
+community: "verify-news-ipo.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/verify-news-ipomjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
+- [[ok()_2]] - `calls` [EXTRACTED]
+- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/verify-news-ipomjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 31"
-location: "L606"
+community: "send-server.ts"
+location: "L607"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/send-serverts
 ---
 
 # raiseDeskAlerts()
@@ -20,4 +20,4 @@ tags:
 - [[raiseNewsBlackoutAlert]] - `calls` [EXTRACTED]
 - [[raiseSetupArmedAlert]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/send-serverts

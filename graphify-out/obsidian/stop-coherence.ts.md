@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/stop-coherence.ts"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # stop-coherence.ts
@@ -25,4 +25,4 @@ tags:
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

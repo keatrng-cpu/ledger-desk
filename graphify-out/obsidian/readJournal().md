@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/journal.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L133"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # readJournal()
@@ -25,4 +25,4 @@ tags:
 - [[readHallRecord()]] - `calls` [EXTRACTED]
 - [[tradePnl()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

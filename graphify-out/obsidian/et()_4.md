@@ -1,24 +1,17 @@
 ---
-source_file: "scripts/build-learn-figures.py"
+source_file: "scripts/verify-ai-sync.mjs"
 type: "code"
-community: "Community 64"
-location: "L28"
+community: "verify-ai-sync.mjs"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/verify-ai-syncmjs
 ---
 
 # et()
 
 ## Connections
-- [[build-learn-figures.py]] - `contains` [EXTRACTED]
-- [[datetime_2]] - `references` [EXTRACTED]
-- [[find_fvg()]] - `calls` [EXTRACTED]
-- [[find_raid()]] - `calls` [EXTRACTED]
-- [[find_session()]] - `calls` [EXTRACTED]
-- [[ny_am()]] - `calls` [EXTRACTED]
-- [[ny_rth()]] - `calls` [EXTRACTED]
-- [[stamp()_1]] - `calls` [EXTRACTED]
+- [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/verify-ai-syncmjs

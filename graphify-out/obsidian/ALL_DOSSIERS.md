@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/dossiers.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L456"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # ALL_DOSSIERS
@@ -25,4 +25,4 @@ tags:
 - [[schedule.ts]] - `imports` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

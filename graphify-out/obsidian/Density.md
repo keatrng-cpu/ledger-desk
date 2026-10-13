@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 284"
+community: "invest-office.ts"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # Density
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[schedule.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_284
+#graphify/code #graphify/EXTRACTED #community/invest-officets

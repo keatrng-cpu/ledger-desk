@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 112"
+community: "build_floor.py"
 location: "L404"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_112
+  - community/build_floorpy
 ---
 
 # Torus (or arc of one) around local Z in the XY plane.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[torus()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_112
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
-location: "L460"
+community: "smc-canon.ts"
+location: "L466"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # OTE_SIZE_CUT_EVIDENCE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

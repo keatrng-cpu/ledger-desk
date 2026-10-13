@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-board-rank.mjs"
+source_file: "scripts/verify-rh-dispatch.mjs"
 type: "code"
-community: "Community 29"
-location: "L33"
+community: "verify-rh-desk-job.mjs"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/verify-rh-desk-jobmjs
 ---
 
 # card()
 
 ## Connections
-- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
+- [[frame()]] - `calls` [EXTRACTED]
+- [[manager()_1]] - `calls` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-hi-alert-brain.mjs"
 type: "code"
-community: "Community 236"
+community: "verify-hi-alert-brain.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_236
+  - community/verify-hi-alert-brainmjs
 ---
 
 # verify-hi-alert-brain.mjs
 
 ## Connections
 - [[WHY the trader asked that the characters journal the setups (taken or passed),…]] - `rationale_for` [EXTRACTED]
-- [[check()_53]] - `contains` [EXTRACTED]
+- [[check()_43]] - `contains` [EXTRACTED]
 - [[conf()]] - `contains` [EXTRACTED]
 - [[desk-atlas.ts]] - `dynamic_import` [EXTRACTED]
 - [[entryId()]] - `contains` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[spoken-check.mjs]] - `dynamic_import` [EXTRACTED]
 - [[store_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_236
+#graphify/code #graphify/EXTRACTED #community/verify-hi-alert-brainmjs

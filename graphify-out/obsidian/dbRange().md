@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/live-ladder.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # dbRange()
@@ -15,4 +15,4 @@ tags:
 - [[live-ladder.ts]] - `contains` [EXTRACTED]
 - [[loadStructureSeries()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

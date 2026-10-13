@@ -1,19 +1,22 @@
 ---
-source_file: "src/components/room/floor-mead.ts"
+source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 41"
-location: "L178"
+community: "FloorOverhaul"
+location: "L469"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_41
+  - graphify/EXTRACTED
+  - community/FloorOverhaul
 ---
 
 # .update()
 
 ## Connections
+- [[dot-drawPitBase()]] - `calls` [EXTRACTED]
+- [[dot-resetDrop()]] - `calls` [EXTRACTED]
 - [[dot-tick()_2]] - `calls` [INFERRED]
-- [[dot-update()_10]] - `calls` [INFERRED]
-- [[FloorMead]] - `method` [EXTRACTED]
+- [[FloorOverhaul]] - `method` [EXTRACTED]
+- [[armLeverDisplay()]] - `calls` [EXTRACTED]
+- [[sessionDial]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

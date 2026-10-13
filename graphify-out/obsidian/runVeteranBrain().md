@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L136"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # runVeteranBrain()
@@ -24,7 +24,7 @@ tags:
 - [[clamp01()_2]] - `calls` [EXTRACTED]
 - [[countersFromMemory()]] - `calls` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports` [EXTRACTED]
-- [[fmtR()_1]] - `calls` [EXTRACTED]
+- [[fmtR()_2]] - `calls` [EXTRACTED]
 - [[getAllShadows()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[isBlakeLongDemoted()]] - `calls` [EXTRACTED]
@@ -48,4 +48,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 - [[weekAheadFocusLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

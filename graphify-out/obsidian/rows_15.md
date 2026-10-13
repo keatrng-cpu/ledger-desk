@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/code-index.mjs"
 type: "code"
-community: "Community 36"
-location: "L258"
+community: "code-index.mjs"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/code-indexmjs
 ---
 
 # rows
 
 ## Connections
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[code-index.mjs]] - `contains` [EXTRACTED]
+- [[exportsOf()]] - `calls` [EXTRACTED]
+- [[purpose()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/code-indexmjs

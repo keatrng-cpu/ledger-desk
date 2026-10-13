@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/storage-health.ts"
 type: "code"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # getStorageHealth
@@ -16,4 +16,4 @@ tags:
 - [[storage-banner.tsx]] - `imports` [EXTRACTED]
 - [[storage-health.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/auth/clientts

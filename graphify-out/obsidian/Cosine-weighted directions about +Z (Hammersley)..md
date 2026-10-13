@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_ao.py"
 type: "rationale"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L151"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # Cosine-weighted directions about +Z (Hammersley).
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[_hemisphere()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_140
+#graphify/rationale #graphify/EXTRACTED #community/floor_aopy

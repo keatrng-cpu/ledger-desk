@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/bt-seed.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # bt-seed.ts
@@ -25,4 +25,4 @@ tags:
 - [[saveDeskMemory()]] - `imports` [EXTRACTED]
 - [[toBucket()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

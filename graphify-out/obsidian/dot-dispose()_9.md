@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/mead/mead-feed.ts"
+source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 41"
-location: "L26"
+community: "manager-feed.ts"
+location: "L357"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/manager-feedts
 ---
 
 # .dispose()
 
 ## Connections
-- [[MeadFeed]] - `method` [EXTRACTED]
+- [[roomManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

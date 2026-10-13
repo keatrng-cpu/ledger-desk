@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 180"
+community: "build_floor.py"
 location: "L449"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # make_obj()
@@ -18,9 +18,9 @@ tags:
 - [[build_furniture()]] - `calls` [EXTRACTED]
 - [[build_rooms()]] - `calls` [EXTRACTED]
 - [[build_screens()]] - `calls` [EXTRACTED]
-- [[build_walls()_1]] - `calls` [EXTRACTED]
+- [[build_walls()]] - `calls` [EXTRACTED]
 - [[bust()]] - `calls` [EXTRACTED]
 - [[pendant()]] - `calls` [EXTRACTED]
 - [[shell()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_180
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

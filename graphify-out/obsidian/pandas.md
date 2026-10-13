@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 146"
+community: "selfcheck.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # pandas
@@ -13,11 +13,11 @@ tags:
 ## Connections
 - [[bars.py]] - `imports` [EXTRACTED]
 - [[desk_bars()]] - `calls` [EXTRACTED]
-- [[frame()]] - `calls` [EXTRACTED]
+- [[frame()_1]] - `calls` [EXTRACTED]
 - [[legs()]] - `calls` [EXTRACTED]
 - [[legs.py]] - `imports` [EXTRACTED]
 - [[mt5_bars()]] - `calls` [EXTRACTED]
 - [[selfcheck.py]] - `imports` [EXTRACTED]
 - [[smc_ref.py]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_146
+#graphify/concept #graphify/EXTRACTED #community/selfcheckpy

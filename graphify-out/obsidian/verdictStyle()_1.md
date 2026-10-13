@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/veteran-brain.tsx"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # verdictStyle()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[veteran-brain.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-fuel.mjs"
+source_file: "scripts/verify-live-gateway.mjs"
 type: "code"
-community: "Community 241"
-location: "L14"
+community: "verify-rh-desk-job.mjs"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_241
+  - community/verify-rh-desk-jobmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-brain-fuel.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-gateway.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_241
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

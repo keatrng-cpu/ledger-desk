@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
-community: "Community 9"
-location: "L91"
+community: "react"
+location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/react
 ---
 
 # DeskPayload
@@ -40,6 +40,7 @@ tags:
 - [[ghost-book.ts]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports` [EXTRACTED]
+- [[learning-live.ts]] - `imports` [EXTRACTED]
 - [[liquidity-panel.tsx]] - `imports` [EXTRACTED]
 - [[live-example.tsx]] - `imports` [EXTRACTED]
 - [[live-lesson.ts]] - `imports` [EXTRACTED]
@@ -75,4 +76,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 - [[word-hysteresis.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/react

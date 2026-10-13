@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-D.md"
 type: "document"
-community: "Community 240"
+community: "journal/analytics.ts"
 location: "L22"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/journal/analyticsts
 ---
 
 # The one thing that matters
@@ -15,4 +15,4 @@ tags:
 - [[INTEGRATION-D — Phase C (evidence)]] - `contains` [EXTRACTED]
 - [[buildAnalytics()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_240
+#graphify/document #graphify/EXTRACTED #community/journal/analyticsts

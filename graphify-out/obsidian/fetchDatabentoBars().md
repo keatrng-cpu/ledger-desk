@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/databento.ts"
 type: "code"
-community: "Community 98"
+community: "databento.ts"
 location: "L331"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/databentots
 ---
 
 # fetchDatabentoBars()
@@ -21,11 +21,11 @@ tags:
 - [[effectiveDelayMin()]] - `calls` [EXTRACTED]
 - [[getRangeOnce()]] - `calls` [EXTRACTED]
 - [[live-ladder.ts]] - `imports` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
+- [[load()_1]] - `calls` [EXTRACTED]
 - [[loadStructureSeries()]] - `calls` [EXTRACTED]
 - [[parseCsv()]] - `calls` [EXTRACTED]
 - [[parseMaxEnd()]] - `calls` [EXTRACTED]
 - [[rangeIso()]] - `calls` [EXTRACTED]
 - [[readApiKey()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/databentots

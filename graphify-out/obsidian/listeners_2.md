@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/live/keep-live.ts"
+source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 71"
-location: "L23"
+community: "react"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/react
 ---
 
 # listeners
 
 ## Connections
-- [[keep-live.ts]] - `contains` [EXTRACTED]
+- [[path-alarm.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/react

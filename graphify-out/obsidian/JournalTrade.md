@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 23"
+community: "tradovate-orders.ts"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/tradovate-ordersts
 ---
 
 # JournalTrade
@@ -21,4 +21,4 @@ tags:
 - [[log-setup-dialog.tsx]] - `imports` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

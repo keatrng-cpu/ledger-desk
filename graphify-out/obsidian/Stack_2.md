@@ -1,12 +1,12 @@
 ---
 source_file: "README.md"
 type: "document"
-community: "Community 327"
+community: "Ledger Masterplace"
 location: "L20"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_327
+  - community/Ledger_Masterplace
 ---
 
 # Stack
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Ledger Masterplace]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_327
+#graphify/document #graphify/EXTRACTED #community/Ledger_Masterplace

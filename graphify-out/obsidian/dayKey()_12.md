@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/measure-news-bias.mjs"
+source_file: "scripts/build-hit-odds.mjs"
 type: "code"
-community: "Community 228"
-location: "L53"
+community: "build-hit-odds.mjs"
+location: "L93"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/build-hit-oddsmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure()]] - `calls` [EXTRACTED]
-- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
+- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/build-hit-oddsmjs

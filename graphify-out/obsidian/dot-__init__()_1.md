@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/blender/build_floor.py"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 180"
-location: "L258"
+community: "crew-year-backtest.py"
+location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/crew-year-backtestpy
 ---
 
 # .__init__()
 
 ## Connections
-- [[Geo]] - `method` [EXTRACTED]
+- [[Book]] - `method` [EXTRACTED]
+- [[day_key()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_180
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/factors.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L348"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # earningsYield
@@ -20,4 +20,4 @@ tags:
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[screen-table.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

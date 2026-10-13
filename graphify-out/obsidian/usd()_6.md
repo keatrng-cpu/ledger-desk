@@ -1,29 +1,20 @@
 ---
-source_file: "src/components/invest/format.ts"
+source_file: "src/components/desk/options-swing-panel.tsx"
 type: "code"
-community: "Community 34"
-location: "L16"
+community: "options-swing-panel.tsx"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/options-swing-paneltsx
 ---
 
 # usd()
 
 ## Connections
-- [[Activity()]] - `calls` [EXTRACTED]
-- [[BookCard()]] - `calls` [EXTRACTED]
-- [[BuyForm()]] - `calls` [EXTRACTED]
-- [[DividendForm()]] - `calls` [EXTRACTED]
-- [[ExposureCard()]] - `calls` [EXTRACTED]
-- [[HabitCard()]] - `calls` [EXTRACTED]
-- [[SellForm()]] - `calls` [EXTRACTED]
-- [[SweepCard()]] - `calls` [EXTRACTED]
-- [[book-card.tsx]] - `imports` [EXTRACTED]
-- [[exposure-card.tsx]] - `imports` [EXTRACTED]
-- [[habit-card.tsx]] - `imports` [EXTRACTED]
-- [[investformat.ts]] - `contains` [EXTRACTED]
-- [[sweep-card.tsx]] - `imports` [EXTRACTED]
+- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
+- [[QuoteSheet()]] - `calls` [EXTRACTED]
+- [[SleeveBudgetBar()]] - `calls` [EXTRACTED]
+- [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

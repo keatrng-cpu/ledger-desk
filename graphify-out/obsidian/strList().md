@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # strList()
@@ -17,4 +17,4 @@ tags:
 - [[arr()_4]] - `calls` [EXTRACTED]
 - [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-desk-cadence.mjs"
+source_file: "scripts/verify-floor-locomotion.mjs"
 type: "code"
-community: "Community 248"
-location: "L19"
+community: "verify-floor-locomotion.mjs"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_248
+  - community/verify-floor-locomotionmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_23]] - `calls` [EXTRACTED]
-- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-locomotion.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_248
+#graphify/code #graphify/EXTRACTED #community/verify-floor-locomotionmjs

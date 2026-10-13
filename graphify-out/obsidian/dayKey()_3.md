@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/trading/take-moments.ts"
+source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 145"
-location: "L77"
+community: "measure-inducement-news.mjs"
+location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/measure-inducement-newsmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[etWallParts]] - `calls` [EXTRACTED]
-- [[observeTakeMoments()]] - `calls` [EXTRACTED]
-- [[take-moments.ts]] - `contains` [EXTRACTED]
+- [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/measure-inducement-newsmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 330"
+community: "floor-voice.ts"
 location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_330
+  - community/floor-voicets
 ---
 
 # voiceGender()
@@ -19,4 +19,4 @@ tags:
 - [[tokens()_2]] - `calls` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_330
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

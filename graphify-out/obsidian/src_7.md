@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-brain-nerve.mjs"
 type: "code"
-community: "Community 251"
+community: "verify-brain-nerve.mjs"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_251
+  - community/verify-brain-nervemjs
 ---
 
 # src
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-brain-nerve.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_251
+#graphify/code #graphify/EXTRACTED #community/verify-brain-nervemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-live-loop.ts"
 type: "code"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # manager-live-loop.ts
@@ -68,4 +68,4 @@ tags:
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L891"
+community: "index.tsx"
+location: "L900"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # MasterplacePage()
@@ -20,7 +20,7 @@ tags:
 - [[BrainWord()]] - `calls` [EXTRACTED]
 - [[BridgeStatus()]] - `calls` [EXTRACTED]
 - [[BuildingDesk()]] - `calls` [EXTRACTED]
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CalibrationPanel()]] - `calls` [EXTRACTED]
 - [[ChartMarks()]] - `calls` [EXTRACTED]
 - [[Code map]] - `references` [INFERRED]
@@ -76,6 +76,7 @@ tags:
 - [[TradingCoach()]] - `calls` [EXTRACTED]
 - [[TradingFloorTab]] - `calls` [EXTRACTED]
 - [[VeteranBrainPanel()]] - `calls` [EXTRACTED]
+- [[WatcherTab()]] - `calls` [EXTRACTED]
 - [[applyWordHysteresis()]] - `calls` [EXTRACTED]
 - [[autoPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[brainLiveRisk]] - `calls` [EXTRACTED]
@@ -148,4 +149,4 @@ tags:
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 - [[withClientTimeout()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,18 +1,18 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 32"
+community: "package.json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # package.json
 
 ## Connections
-- [[@electric-sqlpglite_1]] - `imports` [EXTRACTED]
+- [[@electric-sqlpglite]] - `imports` [EXTRACTED]
 - [[@eslintjs_1]] - `imports` [EXTRACTED]
 - [[@hookformresolvers]] - `imports` [EXTRACTED]
 - [[@radix-uireact-accordion]] - `imports` [EXTRACTED]
@@ -39,7 +39,7 @@ tags:
 - [[@tailwindcssvite]] - `imports` [EXTRACTED]
 - [[@tanstackreact-query]] - `imports` [EXTRACTED]
 - [[@tanstackreact-router_3]] - `imports` [EXTRACTED]
-- [[@tanstackreact-start_2]] - `imports` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports` [EXTRACTED]
 - [[@tanstackreact-table]] - `imports` [EXTRACTED]
 - [[@tanstackrouter-plugin]] - `imports` [EXTRACTED]
 - [[@typesnode_1]] - `imports` [EXTRACTED]
@@ -68,11 +68,11 @@ tags:
 - [[name_1]] - `contains` [EXTRACTED]
 - [[nitro_1]] - `imports` [EXTRACTED]
 - [[overrides]] - `contains` [EXTRACTED]
-- [[pg_1]] - `imports` [EXTRACTED]
+- [[pg]] - `imports` [EXTRACTED]
 - [[playwright_1]] - `imports` [EXTRACTED]
 - [[prettier_1]] - `imports` [EXTRACTED]
 - [[private_1]] - `contains` [EXTRACTED]
-- [[react]] - `imports` [EXTRACTED]
+- [[react_2]] - `imports` [EXTRACTED]
 - [[react-day-picker]] - `imports` [EXTRACTED]
 - [[react-dom_1]] - `imports` [EXTRACTED]
 - [[react-hook-form]] - `imports` [EXTRACTED]
@@ -94,4 +94,4 @@ tags:
 - [[zod]] - `imports` [EXTRACTED]
 - [[zustand]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_32
+#graphify/code #graphify/EXTRACTED #community/packagejson

@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/desk/shadow-book-panel.tsx"
 type: "code"
-community: "Community 111"
+community: "shadow-book-panel.tsx"
 location: "L187"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/shadow-book-paneltsx
 ---
 
 # ReasonRow()
 
 ## Connections
 - [[ShadowBookPanel()]] - `calls` [EXTRACTED]
-- [[fmtR()_1]] - `calls` [EXTRACTED]
-- [[fmtUsd()]] - `calls` [EXTRACTED]
+- [[fmtR()_2]] - `calls` [EXTRACTED]
+- [[fmtUsd()_1]] - `calls` [EXTRACTED]
 - [[shadow-book-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/shadow-book-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 316"
+community: "replay-drill.ts"
 location: "L394"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_316
+  - community/replay-drillts
 ---
 
 # scoreProcess()
@@ -24,4 +24,4 @@ tags:
 - [[riskAtrBucket()]] - `calls` [EXTRACTED]
 - [[tickOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_316
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

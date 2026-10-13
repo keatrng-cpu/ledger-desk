@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot-sync.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # backupRoom()
@@ -23,4 +23,4 @@ tags:
 - [[snapshot-sync.ts]] - `contains` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

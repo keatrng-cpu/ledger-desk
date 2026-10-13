@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-path-fire.mjs"
-type: "code"
-community: "Community 298"
-location: "L29"
+source_file: "ai/NOW.md"
+type: "document"
+community: "Log"
+location: "L1"
 tags:
-  - graphify/code
+  - graphify/document
   - graphify/EXTRACTED
-  - community/Community_298
+  - community/Log
 ---
 
-# NOW
+# NOW.md
 
 ## Connections
-- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
+- [[NOW — ledger-desk current truth]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_298
+#graphify/document #graphify/EXTRACTED #community/Log

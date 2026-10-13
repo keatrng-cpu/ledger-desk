@@ -1,20 +1,23 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
-location: "L1347"
+community: "floor-scene.ts"
+location: "L1137"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # .update()
 
 ## Connections
-- [[dot-tick()_2]] - `calls` [EXTRACTED]
-- [[Cat]] - `method` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
 - [[angleLerp()]] - `calls` [EXTRACTED]
 - [[damp()]] - `calls` [EXTRACTED]
+- [[poseFor()]] - `calls` [EXTRACTED]
+- [[presenceOf()]] - `calls` [EXTRACTED]
+- [[visemeScale()]] - `calls` [EXTRACTED]
+- [[yawTo()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 69"
+community: "ghost-book.ts"
 location: "L938"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/ghost-bookts
 ---
 
 # subscribeGhosts()
@@ -18,4 +18,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[useGhost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

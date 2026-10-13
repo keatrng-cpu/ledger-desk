@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "rationale"
-community: "Community 268"
+community: "memory.py"
 location: "L106"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # Notes that read like this card. SIMILARITY, not evidence: each hit says so, and…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[recall_like()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_268
+#graphify/rationale #graphify/EXTRACTED #community/memorypy

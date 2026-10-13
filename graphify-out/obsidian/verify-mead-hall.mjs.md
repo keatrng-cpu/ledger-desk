@@ -1,25 +1,25 @@
 ---
 source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 186"
+community: "verify-mead-hall.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/verify-mead-hallmjs
 ---
 
 # verify-mead-hall.mjs
 
 ## Connections
-- [[ROOT_3]] - `contains` [EXTRACTED]
+- [[ROOT_4]] - `contains` [EXTRACTED]
 - [[hx0, hz0]] - `contains` [EXTRACTED]
 - [[hx1, hz1]] - `contains` [EXTRACTED]
 - [[acts]] - `contains` [EXTRACTED]
 - [[all_3]] - `contains` [EXTRACTED]
 - [[build-mead-plan.mjs]] - `dynamic_import` [EXTRACTED]
 - [[cams]] - `contains` [EXTRACTED]
-- [[check()_33]] - `contains` [EXTRACTED]
+- [[check()_24]] - `contains` [EXTRACTED]
 - [[clear]] - `contains` [EXTRACTED]
 - [[crowd]] - `contains` [EXTRACTED]
 - [[east_1]] - `contains` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[planScreens]] - `contains` [EXTRACTED]
 - [[planText]] - `contains` [EXTRACTED]
 - [[reach()_1]] - `contains` [EXTRACTED]
-- [[read()_5]] - `contains` [EXTRACTED]
+- [[read()_3]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rnd]] - `contains` [EXTRACTED]
 - [[src_5]] - `contains` [EXTRACTED]
@@ -53,4 +53,4 @@ tags:
 - [[walled]] - `contains` [EXTRACTED]
 - [[windows]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

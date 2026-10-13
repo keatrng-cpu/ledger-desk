@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L260"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # blocked()
@@ -22,7 +22,7 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[patternWarning()]] - `calls` [EXTRACTED]
 - [[printLine()]] - `calls` [EXTRACTED]
-- [[px()_10]] - `calls` [EXTRACTED]
+- [[px()_8]] - `calls` [EXTRACTED]
 - [[say()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

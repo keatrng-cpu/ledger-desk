@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L376"
+community: "veteran-brain.ts"
+location: "L377"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/veteran-braints
 ---
 
 # noteFuturesSession()
@@ -21,4 +21,4 @@ tags:
 - [[remember()_2]] - `calls` [EXTRACTED]
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

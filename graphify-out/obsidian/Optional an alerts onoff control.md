@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-C.md"
 type: "document"
-community: "Community 235"
+community: "verify-audit.mjs"
 location: "L65"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_235
+  - community/verify-auditmjs
 ---
 
 # Optional: an alerts on/off control
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[1. Mount the snapshot review (B6) — `srcroutesindex.tsx`]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_235
+#graphify/document #graphify/EXTRACTED #community/verify-auditmjs

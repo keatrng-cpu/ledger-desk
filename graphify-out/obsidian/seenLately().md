@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L852"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # seenLately()
@@ -15,4 +15,4 @@ tags:
 - [[agents.ts]] - `contains` [EXTRACTED]
 - [[recordEvents()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 25"
-location: "L177"
+community: "floor-overhaul-war.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-overhaul-warts
 ---
 
 # Ctx
 
 ## Connections
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

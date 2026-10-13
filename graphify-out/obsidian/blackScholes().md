@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # blackScholes()
@@ -22,4 +22,4 @@ tags:
 - [[quant.ts]] - `imports` [EXTRACTED]
 - [[quoteOption()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

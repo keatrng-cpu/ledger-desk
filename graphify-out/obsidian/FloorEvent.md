@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 113"
+community: "floor-sound.ts"
 location: "L1460"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/floor-soundts
 ---
 
 # FloorEvent
@@ -17,4 +17,4 @@ tags:
 - [[floor-sound.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/floor-soundts

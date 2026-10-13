@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ticket-facts.ts"
 type: "code"
-community: "Community 187"
+community: "OhlcBar"
 location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/OhlcBar
 ---
 
 # FactCondition
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[ticket-facts.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

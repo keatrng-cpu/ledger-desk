@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
-community: "Community 39"
+community: "cn"
 location: "L253"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # CanonBadge()
@@ -16,4 +16,4 @@ tags:
 - [[cn()]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

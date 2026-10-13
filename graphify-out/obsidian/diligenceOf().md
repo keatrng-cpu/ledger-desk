@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L174"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # diligenceOf()
@@ -18,4 +18,4 @@ tags:
 - [[killQueries()]] - `calls` [EXTRACTED]
 - [[trippedFrom()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

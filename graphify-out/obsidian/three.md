@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L108"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # three
@@ -25,4 +25,4 @@ tags:
 - [[package.json]] - `imports` [EXTRACTED]
 - [[verify-floor-ik.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_41
+#graphify/concept #graphify/EXTRACTED #community/mead-hall-buildts

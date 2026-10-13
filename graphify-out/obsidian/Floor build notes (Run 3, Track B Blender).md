@@ -1,12 +1,12 @@
 ---
 source_file: "docs/FLOOR_BUILD_NOTES.md"
 type: "document"
-community: "Community 318"
+community: "Floor build notes (Run 3, Track B: Blender)"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_318
+  - community/Floor_build_notes_Run_3_Track_B_Blender
 ---
 
 # Floor build notes (Run 3, Track B: Blender)
@@ -20,4 +20,4 @@ tags:
 - [[Rebuild]] - `contains` [EXTRACTED]
 - [[What was built]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_318
+#graphify/document #graphify/EXTRACTED #community/Floor_build_notes_Run_3_Track_B_Blender

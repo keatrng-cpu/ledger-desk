@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # DEFAULT_FEES
@@ -21,4 +21,4 @@ tags:
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 - [[sizing.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

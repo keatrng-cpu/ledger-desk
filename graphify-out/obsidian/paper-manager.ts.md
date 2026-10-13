@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # paper-manager.ts
@@ -21,12 +21,13 @@ tags:
 - [[DeferredExit]] - `contains` [EXTRACTED]
 - [[DrawRead]] - `imports` [EXTRACTED]
 - [[FAILED_HOLD_ENABLED]] - `imports` [EXTRACTED]
+- [[JUDAS_BLOCKS]] - `imports` [EXTRACTED]
 - [[MAX_CLOSE_MOVE]] - `contains` [EXTRACTED]
 - [[MAX_RISK_PTS]] - `imports` [EXTRACTED]
 - [[ManageContext]] - `contains` [EXTRACTED]
 - [[ManagePrice]] - `contains` [EXTRACTED]
 - [[NewsEvent]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PAPER_START_EQUITY]] - `imports` [EXTRACTED]
 - [[PROGRESS_R]] - `imports` [EXTRACTED]
 - [[PaperStatus]] - `contains` [EXTRACTED]
@@ -36,6 +37,7 @@ tags:
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[TradeDebrief]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
 - [[bookRoot()]] - `contains` [EXTRACTED]
 - [[bookTakenToday()]] - `contains` [EXTRACTED]
@@ -46,7 +48,6 @@ tags:
 - [[closeOpenAtStructureLevel()]] - `contains` [EXTRACTED]
 - [[closePaperTrade()]] - `contains` [EXTRACTED]
 - [[commission()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[debriefPaper()]] - `imports` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
@@ -110,4 +111,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[zoneMid()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

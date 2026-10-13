@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L354"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # clampRel()
@@ -15,4 +15,4 @@ tags:
 - [[agents.ts]] - `contains` [EXTRACTED]
 - [[nudge()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

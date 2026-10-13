@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 76"
+community: "apex-sim.ts"
 location: "L833"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_76
+  - community/apex-simts
 ---
 
 # DEFAULT_RISK_USD
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[apex-sim.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_76
+#graphify/code #graphify/EXTRACTED #community/apex-simts

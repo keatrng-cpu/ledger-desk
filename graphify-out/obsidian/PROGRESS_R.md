@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # PROGRESS_R
@@ -15,4 +15,4 @@ tags:
 - [[management.ts]] - `contains` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

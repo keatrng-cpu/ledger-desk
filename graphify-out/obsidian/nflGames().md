@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 129"
+community: "predict-server.ts"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/predict-serverts
 ---
 
 # nflGames()
@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[americanToProb()]] - `calls` [EXTRACTED]
 - [[build()]] - `calls` [EXTRACTED]
-- [[etTime()_2]] - `calls` [EXTRACTED]
+- [[etTime()_4]] - `calls` [EXTRACTED]
 - [[noVig()]] - `calls` [EXTRACTED]
 - [[parseEspnScoreboard()]] - `calls` [EXTRACTED]
-- [[pct()_1]] - `calls` [EXTRACTED]
+- [[pct()_16]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

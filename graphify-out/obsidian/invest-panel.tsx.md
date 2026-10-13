@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/invest-panel.tsx"
 type: "code"
-community: "Community 100"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-paneltsx
 ---
 
 # invest-panel.tsx
@@ -64,7 +64,7 @@ tags:
 - [[nextBuy]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[rateLadder]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readMarksCache()]] - `contains` [EXTRACTED]
 - [[rebalanceCheck()]] - `imports` [EXTRACTED]
 - [[research-card.tsx]] - `imports_from` [EXTRACTED]
@@ -84,4 +84,4 @@ tags:
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[writeMarksCache()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

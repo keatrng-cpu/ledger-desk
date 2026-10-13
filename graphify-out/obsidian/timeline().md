@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 109"
+community: "invest-office.ts"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/invest-officets
 ---
 
 # timeline()
@@ -26,4 +26,4 @@ tags:
 - [[schedule.ts]] - `contains` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/invest-officets

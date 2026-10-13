@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 267"
+community: "floor-feet.ts"
 location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_267
+  - community/floor-feetts
 ---
 
 # footPlan
@@ -17,4 +17,4 @@ tags:
 - [[footstepsBetween()]] - `calls` [EXTRACTED]
 - [[hipHeight()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_267
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

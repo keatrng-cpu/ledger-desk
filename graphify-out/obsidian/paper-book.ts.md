@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # paper-book.ts
 
 ## Connections
-- [[Attribution]] - `imports` [EXTRACTED]
+- [[Attribution_1]] - `imports` [EXTRACTED]
 - [[ExitWatch]] - `imports` [EXTRACTED]
 - [[GoalSpec]] - `imports` [EXTRACTED]
 - [[OptionType]] - `imports` [EXTRACTED]
@@ -30,7 +30,7 @@ tags:
 - [[RoomInput]] - `imports` [EXTRACTED]
 - [[RoomLab]] - `imports` [EXTRACTED]
 - [[RoomLedger]] - `imports` [EXTRACTED]
-- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[StrikeOffset_1]] - `imports` [EXTRACTED]
 - [[Underlier]] - `imports` [EXTRACTED]
 - [[UnderlierTape]] - `imports` [EXTRACTED]
 - [[applyCycle()]] - `contains` [EXTRACTED]
@@ -45,7 +45,7 @@ tags:
 - [[emptyCounters()]] - `imports` [EXTRACTED]
 - [[ensureSeats()]] - `imports` [EXTRACTED]
 - [[equityOf()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exitWatchOf()]] - `contains` [EXTRACTED]
 - [[expiryMs()]] - `imports` [EXTRACTED]
@@ -61,7 +61,7 @@ tags:
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
 - [[loadRoomBook()]] - `contains` [EXTRACTED]
 - [[markBook()]] - `contains` [EXTRACTED]
-- [[money()_9]] - `contains` [EXTRACTED]
+- [[money()_10]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
 - [[planKey()]] - `imports` [EXTRACTED]
@@ -87,4 +87,4 @@ tags:
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 - [[voidPosition()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

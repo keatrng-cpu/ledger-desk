@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L141"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .meshRoot()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[FloorMead]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

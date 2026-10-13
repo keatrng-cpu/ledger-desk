@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
-location: "L272"
+community: "rh-autofire.ts"
+location: "L274"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # RhPathBand
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

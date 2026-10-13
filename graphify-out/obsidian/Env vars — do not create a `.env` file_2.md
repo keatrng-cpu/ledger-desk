@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/auth/SKILL.md"
 type: "document"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L67"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # Env vars — do **not** create a `.env` file
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Auth_2]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_79
+#graphify/document #graphify/EXTRACTED #community/auth/clientts

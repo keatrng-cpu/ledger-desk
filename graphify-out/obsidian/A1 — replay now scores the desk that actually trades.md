@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L25"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # A1 — replay now scores the desk that actually trades
@@ -15,4 +15,4 @@ tags:
 - [[INTEGRATION-A — Phase A one scoring path]] - `contains` [EXTRACTED]
 - [[⚠️ Every prior replaycalibration number is void]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_40
+#graphify/document #graphify/EXTRACTED #community/trading/scannerts

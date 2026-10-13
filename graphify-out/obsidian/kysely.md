@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 190"
+community: "LazyPGliteDriver"
 location: "L95"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/LazyPGliteDriver
 ---
 
 # kysely
@@ -15,4 +15,4 @@ tags:
 - [[package.json]] - `imports` [EXTRACTED]
 - [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_190
+#graphify/concept #graphify/EXTRACTED #community/LazyPGliteDriver

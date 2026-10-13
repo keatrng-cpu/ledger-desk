@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/tradezella-server.ts"
 type: "code"
-community: "Community 46"
+community: "tradezella-analyze.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/tradezella-analyzets
 ---
 
 # tradezella-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[DayBacktestRow]] - `imports` [EXTRACTED]
 - [[TradezellaAnalysis]] - `imports` [EXTRACTED]
 - [[TradezellaChatResult]] - `contains` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[tradezella-chat.tsx]] - `imports_from` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

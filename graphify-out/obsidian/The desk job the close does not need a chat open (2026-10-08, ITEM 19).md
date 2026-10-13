@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 94"
+community: "rh-dispatch.ts"
 location: "L195"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # The desk job: the close does not need a chat open (2026-10-08, ITEM 19)
@@ -23,4 +23,4 @@ tags:
 - [[What was wrong]] - `contains` [EXTRACTED]
 - [[Where the Robinhood refresh token actually lives]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_94
+#graphify/document #graphify/EXTRACTED #community/rh-dispatchts

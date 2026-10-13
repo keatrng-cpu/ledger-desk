@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-board-rank.mjs"
+source_file: "scripts/verify-floor-ik.mjs"
 type: "code"
-community: "Community 29"
-location: "L27"
+community: "verify-floor-ik.mjs"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/verify-floor-ikmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-ik.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/verify-floor-ikmjs

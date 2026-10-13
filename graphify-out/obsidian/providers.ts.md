@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/providers.ts"
 type: "code"
-community: "Community 105"
+community: "auth/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/auth/serverts
 ---
 
 # providers.ts
@@ -17,4 +17,4 @@ tags:
 - [[authclient.ts]] - `re_exports` [EXTRACTED]
 - [[authserver.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/browser-guard.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # browser-guard.mjs
@@ -19,4 +19,4 @@ tags:
 - [[fail()_1]] - `contains` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-mead-hall.mjs"
+source_file: "scripts/verify-rh-autofire-gates.mjs"
 type: "code"
-community: "Community 186"
-location: "L15"
+community: "rh-autofire.ts"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/rh-autofirets
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

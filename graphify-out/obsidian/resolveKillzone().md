@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 115"
+community: "news.ts"
 location: "L174"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/newsts
 ---
 
 # resolveKillzone()
@@ -25,4 +25,4 @@ tags:
 - [[sessions.ts]] - `contains` [EXTRACTED]
 - [[setup-chart.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/newsts

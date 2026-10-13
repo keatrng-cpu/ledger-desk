@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-ai-sync.mjs"
+source_file: "scripts/verify-source-check.mjs"
 type: "code"
-community: "Community 247"
-location: "L10"
+community: "source-check.ts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_247
+  - community/source-checkts
 ---
 
 # check()
 
 ## Connections
-- [[ok()_22]] - `calls` [EXTRACTED]
-- [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
+- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_247
+#graphify/code #graphify/EXTRACTED #community/source-checkts

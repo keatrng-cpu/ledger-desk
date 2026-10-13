@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/state-words.ts"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # displayWord
@@ -16,4 +16,4 @@ tags:
 - [[state-word.tsx]] - `imports` [EXTRACTED]
 - [[state-words.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

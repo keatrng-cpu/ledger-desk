@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 56"
+community: "manager-live-loop.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # src_lib_execution_rh_autofire_rhautofirecandidate
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[manager-live-loop.ts]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_56
+#graphify/concept #graphify/EXTRACTED #community/manager-live-loopts

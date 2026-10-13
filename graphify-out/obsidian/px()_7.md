@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/desk/month-ahead-panel.tsx"
+source_file: "src/lib/trading/entry-ticket.ts"
 type: "code"
-community: "Community 152"
-location: "L10"
+community: "aplus/config.ts"
+location: "L67"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/aplus/configts
 ---
 
 # px()
 
 ## Connections
-- [[BookCol()_1]] - `calls` [EXTRACTED]
-- [[month-ahead-panel.tsx]] - `contains` [EXTRACTED]
+- [[buildEntryTicket()]] - `calls` [EXTRACTED]
+- [[entry-ticket.ts]] - `contains` [EXTRACTED]
+- [[ticketHeadline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/said-memory.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # heardBefore()
@@ -18,4 +18,4 @@ tags:
 - [[speechExact()]] - `calls` [EXTRACTED]
 - [[speechGist()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

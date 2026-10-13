@@ -1,12 +1,12 @@
 ---
 source_file: "PROGRAM.md"
 type: "document"
-community: "Community 303"
+community: "Program Definition — DRAFT, NOT YET IN FORCE"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_303
+  - community/Program_Definition__DRAFT_NOT_YET_IN_FORCE
 ---
 
 # Program Definition — DRAFT, NOT YET IN FORCE
@@ -23,4 +23,4 @@ tags:
 - [[The decision this document forces first]] - `contains` [EXTRACTED]
 - [[Why this document exists, and why it is dated before the returns]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_303
+#graphify/document #graphify/EXTRACTED #community/Program_Definition__DRAFT_NOT_YET_IN_FORCE

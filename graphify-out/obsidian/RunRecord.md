@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 59"
+community: "apex-sim-panel.tsx"
 location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/apex-sim-paneltsx
 ---
 
 # RunRecord
@@ -15,4 +15,4 @@ tags:
 - [[ApexSimResult]] - `references` [EXTRACTED]
 - [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-mead-hall.mjs"
+source_file: "scripts/verify-sponsored-gap.mjs"
 type: "code"
-community: "Community 186"
-location: "L16"
+community: "SmcArray"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/SmcArray
 ---
 
 # read()
 
 ## Connections
-- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/SmcArray

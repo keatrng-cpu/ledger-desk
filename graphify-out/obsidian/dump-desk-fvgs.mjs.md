@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/dump-desk-fvgs.mjs"
 type: "code"
-community: "Community 143"
+community: "ref_node_fs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/ref_node_fs
 ---
 
 # dump-desk-fvgs.mjs
@@ -15,9 +15,9 @@ tags:
 - [[bars_4]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[fvgs]] - `contains` [EXTRACTED]
-- [[hist_2]] - `contains` [EXTRACTED]
+- [[hist_1]] - `contains` [EXTRACTED]
 - [[n]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[symbol]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

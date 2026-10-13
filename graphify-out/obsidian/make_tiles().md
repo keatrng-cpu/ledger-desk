@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_tex.py"
 type: "code"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # make_tiles()
@@ -18,4 +18,4 @@ tags:
 - [[name - float array (N, N) in 0..1, as the bytes will be (sRGB-encoded grey).]] - `rationale_for` [EXTRACTED]
 - [[numpy]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/floor_packpy

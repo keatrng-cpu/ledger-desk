@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L250"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # pick()
@@ -19,4 +19,4 @@ tags:
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[restamp()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,17 +1,23 @@
 ---
-source_file: "scripts/verify-mead-talk.mjs"
+source_file: "scripts/lib/mead-fixture.mjs"
 type: "code"
-community: "Community 210"
-location: "L51"
+community: "verify-mead-talk.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/verify-mead-talkmjs
 ---
 
 # iso()
 
 ## Connections
-- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
+- [[buildBoard()]] - `calls` [EXTRACTED]
+- [[driftHistory()]] - `calls` [EXTRACTED]
+- [[hallAt()]] - `calls` [EXTRACTED]
+- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
+- [[predictBoardAt()]] - `calls` [EXTRACTED]
+- [[shiftIso()]] - `calls` [EXTRACTED]
+- [[signalsAt()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

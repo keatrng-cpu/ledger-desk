@@ -1,12 +1,12 @@
 ---
 source_file: "netlify/functions/room-step.mjs"
 type: "code"
-community: "Community 259"
+community: "room-step.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_259
+  - community/room-stepmjs
 ---
 
 # room-step.mjs
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[config_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_259
+#graphify/code #graphify/EXTRACTED #community/room-stepmjs

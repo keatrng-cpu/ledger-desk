@@ -1,24 +1,25 @@
 ---
-source_file: "src/routes/api/rh/connect.ts"
+source_file: "src/routes/api/rh/callback.ts"
 type: "code"
-community: "Community 65"
-location: "L20"
+community: "rh-oauth.ts"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/rh-oauthts
 ---
 
 # handle()
 
 ## Connections
-- [[authorizeUrl()]] - `calls` [EXTRACTED]
+- [[callback.ts]] - `indirect_call` [INFERRED]
 - [[clientIdFor()]] - `calls` [EXTRACTED]
-- [[connect.ts]] - `indirect_call` [INFERRED]
+- [[cookieValue()]] - `calls` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
+- [[exchangeCode()]] - `calls` [EXTRACTED]
 - [[getSessionUser()]] - `calls` [EXTRACTED]
-- [[packPkce()]] - `calls` [EXTRACTED]
-- [[page()_1]] - `calls` [EXTRACTED]
-- [[pkcePair()]] - `calls` [EXTRACTED]
+- [[page()]] - `calls` [EXTRACTED]
+- [[rh-oauth.ts]] - `imports_from` [EXTRACTED]
+- [[unpackPkce()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

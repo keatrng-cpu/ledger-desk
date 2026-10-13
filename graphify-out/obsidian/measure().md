@@ -1,20 +1,20 @@
 ---
 source_file: "scripts/measure-news-bias.mjs"
 type: "code"
-community: "Community 228"
+community: "measure-news-bias.mjs"
 location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/measure-news-biasmjs
 ---
 
 # measure()
 
 ## Connections
-- [[dayKey()_12]] - `calls` [EXTRACTED]
+- [[dayKey()_10]] - `calls` [EXTRACTED]
 - [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
 - [[weekday()_2]] - `calls` [EXTRACTED]
 - [[windowMove()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/measure-news-biasmjs

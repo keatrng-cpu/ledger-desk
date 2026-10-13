@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 26"
+community: "curriculum.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/curriculumts
 ---
 
 # MAX_CONSEC_LOSSES
@@ -16,4 +16,4 @@ tags:
 - [[orchestrator.ts]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/curriculumts

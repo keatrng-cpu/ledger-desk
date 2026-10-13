@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/server.ts"
 type: "code"
-community: "Community 301"
+community: "CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_301
+  - community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace
 ---
 
 # previewAuthSecret()
@@ -15,4 +15,4 @@ tags:
 - [[Env (`.env.example`)]] - `references` [INFERRED]
 - [[authserver.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_301
+#graphify/code #graphify/EXTRACTED #community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L247"
+community: "evaluateOptionsDesk"
+location: "L249"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # sideFromFutures()
@@ -18,4 +18,4 @@ tags:
 - [[pathContinuation()]] - `calls` [EXTRACTED]
 - [[smtLead()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

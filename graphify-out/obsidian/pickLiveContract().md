@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L720"
+community: "options-desk.ts"
+location: "L724"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # pickLiveContract()
@@ -18,4 +18,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[scoreLeg()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

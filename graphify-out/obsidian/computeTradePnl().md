@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/pnl.ts"
 type: "code"
-community: "Community 87"
+community: "order-intent.ts"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/order-intentts
 ---
 
 # computeTradePnl()
@@ -21,6 +21,6 @@ tags:
 - [[paper-mirror.ts]] - `imports` [EXTRACTED]
 - [[pnl.ts]] - `contains` [EXTRACTED]
 - [[recordRealFill]] - `calls` [EXTRACTED]
-- [[round2()_11]] - `calls` [EXTRACTED]
+- [[round2()_13]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/order-intentts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_doors.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # floor_doors.py
@@ -18,4 +18,4 @@ tags:
 - [[math]] - `imports` [EXTRACTED]
 - [[mathutils]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

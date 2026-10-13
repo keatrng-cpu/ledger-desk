@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/room/exec/gates.ts"
+source_file: "src/lib/smc/day-context.ts"
 type: "code"
-community: "Community 150"
-location: "L250"
+community: "day-context.ts"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/day-contextts
 ---
 
 # median()
 
 ## Connections
-- [[evidenceOf()]] - `calls` [EXTRACTED]
-- [[gates.ts]] - `contains` [EXTRACTED]
+- [[day-context.ts]] - `contains` [EXTRACTED]
+- [[stopRun()]] - `calls` [EXTRACTED]
+- [[triggerTf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/day-contextts

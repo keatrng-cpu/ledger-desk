@@ -1,21 +1,24 @@
 ---
 source_file: "src/lib/trading/raid-pair.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # raid-pair.ts
 
 ## Connections
 - [[DisplacementEvent]] - `imports` [EXTRACTED]
-- [[GATE_4]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
+- [[MM_SWING_WIDTH]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
+- [[SWEEP_DECAY]] - `contains` [EXTRACTED]
 - [[SweepEvent]] - `imports` [EXTRACTED]
+- [[barSpanMs()]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[cisdThroughSeries()]] - `contains` [EXTRACTED]
 - [[detectDisplacements()]] - `imports` [EXTRACTED]
@@ -25,6 +28,7 @@ tags:
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[displacementLeftArray()]] - `contains` [EXTRACTED]
 - [[extensionAllows()]] - `contains` [EXTRACTED]
+- [[fractalSwings()]] - `imports` [EXTRACTED]
 - [[gate-tuning.ts]] - `imports_from` [EXTRACTED]
 - [[htf-invalidation.ts]] - `imports_from` [EXTRACTED]
 - [[live-lesson.ts]] - `imports_from` [EXTRACTED]
@@ -35,12 +39,17 @@ tags:
 - [[namingSweep()]] - `contains` [EXTRACTED]
 - [[pairedDisplacement()]] - `contains` [EXTRACTED]
 - [[polaritySweep()]] - `contains` [EXTRACTED]
+- [[provisionalRaid]] - `contains` [EXTRACTED]
 - [[recentRealSweeps()]] - `contains` [EXTRACTED]
 - [[reversalInside()]] - `contains` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[strongExtension()]] - `contains` [EXTRACTED]
+- [[sweepAgeWeight()]] - `contains` [EXTRACTED]
+- [[sweepInvalidated()]] - `contains` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-detectors.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

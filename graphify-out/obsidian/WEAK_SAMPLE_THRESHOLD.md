@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 14"
+community: "profit-path.ts"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/profit-pathts
 ---
 
 # WEAK_SAMPLE_THRESHOLD
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[aplusanalytics.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

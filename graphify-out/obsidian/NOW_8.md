@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-mead-talk.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 210"
-location: "L153"
+community: "verify-options-live-ticket.mjs"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/verify-options-live-ticketmjs
 ---
 
 # NOW
 
 ## Connections
-- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

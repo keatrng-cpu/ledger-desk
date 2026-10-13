@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L273"
+community: "paper-manager.ts"
+location: "L274"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # futuresPaperShouldTake()
@@ -23,7 +23,7 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
 - [[listOpenPaperTrades()]] - `calls` [EXTRACTED]
-- [[load()_6]] - `calls` [EXTRACTED]
+- [[load()_10]] - `calls` [EXTRACTED]
 - [[loadDeskMemory()]] - `calls` [EXTRACTED]
 - [[paperTradeHistory()]] - `calls` [EXTRACTED]
 - [[pathTakeGate()]] - `calls` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 - [[weekDayFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

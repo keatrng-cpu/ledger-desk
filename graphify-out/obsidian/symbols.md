@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-target-odds.mjs"
+source_file: "scripts/capture-1m-history.mjs"
 type: "code"
-community: "Community 143"
-location: "L20"
+community: "capture-1m-history.mjs"
+location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/capture-1m-historymjs
 ---
 
 # symbols
 
 ## Connections
-- [[measure-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/capture-1m-historymjs

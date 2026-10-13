@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_pack.py"
 type: "code"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # accessor_bytes()
@@ -18,4 +18,4 @@ tags:
 - [[floor_pack.py]] - `contains` [EXTRACTED]
 - [[prune_flat()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/floor_packpy

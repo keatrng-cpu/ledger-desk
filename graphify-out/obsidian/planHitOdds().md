@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hit-odds-model.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # planHitOdds()
@@ -22,4 +22,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[worthLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

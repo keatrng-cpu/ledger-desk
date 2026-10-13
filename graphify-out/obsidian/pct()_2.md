@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/lab/replay-report.tsx"
+source_file: "src/components/desk/trade-debrief-panel.tsx"
 type: "code"
-community: "Community 14"
-location: "L18"
+community: "ghost-book.ts"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/ghost-bookts
 ---
 
 # pct()
 
 ## Connections
-- [[ReplayReport()]] - `calls` [EXTRACTED]
-- [[replay-report.tsx]] - `contains` [EXTRACTED]
+- [[DebriefBody()]] - `calls` [EXTRACTED]
+- [[trade-debrief-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

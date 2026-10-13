@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 205"
+community: "verify-live-lesson.mjs"
 location: "L57"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_205
+  - community/verify-live-lessonmjs
 ---
 
 # head()
@@ -17,4 +17,4 @@ tags:
 - [[Share cards, favicon, and app icons]] - `references` [INFERRED]
 - [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_205
+#graphify/code #graphify/INFERRED #community/verify-live-lessonmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/types.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # alerts/types.ts
@@ -25,4 +25,4 @@ tags:
 - [[send-server.ts]] - `imports_from` [EXTRACTED]
 - [[store-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

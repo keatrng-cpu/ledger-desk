@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # predict-parts.tsx
@@ -18,7 +18,7 @@ tags:
 - [[FeeModel]] - `imports` [EXTRACTED]
 - [[GameCard()]] - `contains` [EXTRACTED]
 - [[H3]] - `contains` [EXTRACTED]
-- [[INPUT_1]] - `contains` [EXTRACTED]
+- [[INPUT]] - `contains` [EXTRACTED]
 - [[JournalCard()]] - `contains` [EXTRACTED]
 - [[LONGSHOT_BELOW]] - `imports` [EXTRACTED]
 - [[LogSeed]] - `contains` [EXTRACTED]
@@ -30,8 +30,8 @@ tags:
 - [[VenueId]] - `imports` [EXTRACTED]
 - [[VenuePicker()]] - `contains` [EXTRACTED]
 - [[board.ts]] - `imports_from` [EXTRACTED]
-- [[c()_2]] - `contains` [EXTRACTED]
-- [[cents()_2]] - `contains` [EXTRACTED]
+- [[c()]] - `contains` [EXTRACTED]
+- [[cents()_1]] - `contains` [EXTRACTED]
 - [[closeTrade()]] - `imports` [EXTRACTED]
 - [[deleteTrade()]] - `imports` [EXTRACTED]
 - [[disagreement()]] - `imports` [EXTRACTED]
@@ -47,12 +47,12 @@ tags:
 - [[logEntry()]] - `imports` [EXTRACTED]
 - [[makerFee()]] - `imports` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
-- [[pc()_1]] - `contains` [EXTRACTED]
+- [[pc()]] - `contains` [EXTRACTED]
 - [[predict-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[predictjournal.ts]] - `imports_from` [EXTRACTED]
 - [[qbFlag()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readJournal()]] - `imports` [EXTRACTED]
 - [[roundTrip]] - `imports` [EXTRACTED]
 - [[sideEdge()]] - `imports` [EXTRACTED]
@@ -63,4 +63,4 @@ tags:
 - [[vol()]] - `contains` [EXTRACTED]
 - [[weatherFlag()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

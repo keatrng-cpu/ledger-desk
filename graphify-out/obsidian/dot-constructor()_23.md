@@ -1,17 +1,19 @@
 ---
-source_file: "src/lib/predict/predict-server.ts"
+source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 7"
-location: "L262"
+community: "mead-hall-build.ts"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/mead-hall-buildts
 ---
 
 # .constructor()
 
 ## Connections
-- [[FeedDeadlineError]] - `method` [EXTRACTED]
+- [[dot-buildDoorSign()]] - `calls` [EXTRACTED]
+- [[FloorMead]] - `method` [EXTRACTED]
+- [[MeadHall]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

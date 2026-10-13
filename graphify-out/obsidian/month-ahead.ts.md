@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/month-ahead.ts"
 type: "code"
-community: "Community 152"
+community: "month-ahead.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/month-aheadts
 ---
 
 # month-ahead.ts
@@ -20,7 +20,7 @@ tags:
 - [[MonthPhase]] - `contains` [EXTRACTED]
 - [[MonthPhaseId]] - `contains` [EXTRACTED]
 - [[MonthPlan]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PLANS_1]] - `contains` [EXTRACTED]
 - [[addDays()_4]] - `contains` [EXTRACTED]
 - [[barDateKey()_1]] - `contains` [EXTRACTED]
@@ -45,4 +45,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/month-aheadts

@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 2"
-location: "L67"
+community: "mead-screens.ts"
+location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # MONTHS
 
 ## Connections
-- [[board.ts]] - `contains` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

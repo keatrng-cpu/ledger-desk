@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/execution/rh-http.ts"
 type: "code"
-community: "Community 94"
+community: "rh-dispatch.ts"
 location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # readJson()
 
 ## Connections
-- [[get()_3]] - `calls` [EXTRACTED]
+- [[get()_5]] - `calls` [EXTRACTED]
 - [[rh-http.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

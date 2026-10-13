@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/render-setup-chart.mjs"
 type: "code"
-community: "Community 233"
+community: "render-setup-chart.mjs"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_233
+  - community/render-setup-chartmjs
 ---
 
 # bars
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[render-setup-chart.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_233
+#graphify/code #graphify/EXTRACTED #community/render-setup-chartmjs

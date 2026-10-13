@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/gap-direction.ts"
 type: "code"
-community: "Community 250"
+community: "gap-direction.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_250
+  - community/gap-directionts
 ---
 
 # GapSide
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[gap-direction.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_250
+#graphify/code #graphify/EXTRACTED #community/gap-directionts

@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L564"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # SnapshotDetail()
 
 ## Connections
 - [[BiasSection()]] - `calls` [EXTRACTED]
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[DrawsSection()]] - `calls` [EXTRACTED]
 - [[LevelsSection()]] - `calls` [EXTRACTED]
 - [[NewsSection()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[obj()]] - `calls` [EXTRACTED]
 - [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

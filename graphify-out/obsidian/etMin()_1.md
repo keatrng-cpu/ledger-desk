@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/capture-1m-history.mjs"
+source_file: "scripts/measure-micro-entry.mjs"
 type: "code"
-community: "Community 207"
-location: "L89"
+community: "measure-micro-entry.mjs"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_207
+  - community/measure-micro-entrymjs
 ---
 
 # etMin()
 
 ## Connections
-- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
-- [[parse()]] - `calls` [EXTRACTED]
+- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
+- [[simulate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_207
+#graphify/code #graphify/EXTRACTED #community/measure-micro-entrymjs

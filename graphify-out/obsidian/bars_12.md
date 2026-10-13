@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-1m-history.mjs"
 type: "code"
-community: "Community 207"
+community: "capture-1m-history.mjs"
 location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_207
+  - community/capture-1m-historymjs
 ---
 
 # bars
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_207
+#graphify/code #graphify/EXTRACTED #community/capture-1m-historymjs

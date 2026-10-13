@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/research-card.tsx"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # ResearchCard()
@@ -25,7 +25,7 @@ tags:
 - [[impliedGrowth]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[oldestAsOf()]] - `calls` [EXTRACTED]
-- [[pct()_15]] - `calls` [EXTRACTED]
+- [[pct()_14]] - `calls` [EXTRACTED]
 - [[qualityRead]] - `calls` [EXTRACTED]
 - [[requiredVsDelivered]] - `calls` [EXTRACTED]
 - [[research-card.tsx]] - `contains` [EXTRACTED]
@@ -35,4 +35,4 @@ tags:
 - [[verdictFor()_1]] - `calls` [EXTRACTED]
 - [[weightInFund()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-news-coverage.mjs"
+source_file: "scripts/verify-prediction-market-feed.mjs"
 type: "code"
-community: "Community 179"
-location: "L35"
+community: "verify-prediction-market-feed.mjs"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/verify-prediction-market-feedmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-news-coverage.mjs]] - `contains` [EXTRACTED]
+- [[ok()_14]] - `calls` [EXTRACTED]
+- [[verify-prediction-market-feed.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/verify-prediction-market-feedmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 37"
+community: "MeadScene"
 location: "L835"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .ticketFor()
@@ -18,4 +18,4 @@ tags:
 - [[MeadHall]] - `method` [EXTRACTED]
 - [[jumboHit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_37
+#graphify/code #graphify/INFERRED #community/MeadScene

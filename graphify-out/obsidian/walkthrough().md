@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-steps.ts"
 type: "code"
-community: "Community 229"
+community: "SmcMasterBook"
 location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/SmcMasterBook
 ---
 
 # walkthrough()
@@ -17,4 +17,4 @@ tags:
 - [[setup-steps.ts]] - `contains` [EXTRACTED]
 - [[statusFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/SmcMasterBook

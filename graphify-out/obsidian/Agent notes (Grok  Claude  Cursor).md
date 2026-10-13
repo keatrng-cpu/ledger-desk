@@ -1,12 +1,12 @@
 ---
 source_file: "AGENTS.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # Agent notes (Grok / Claude / Cursor)
@@ -15,4 +15,4 @@ tags:
 - [[AGENTS]] - `contains` [EXTRACTED]
 - [[The shared gate (added 2026-10-08, after measuring what the tree actually cost us)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

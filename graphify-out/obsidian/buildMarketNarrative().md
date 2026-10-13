@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 20"
-location: "L428"
+community: "detectors.ts"
+location: "L437"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # buildMarketNarrative()
@@ -22,7 +22,8 @@ tags:
 - [[market-narrative.ts]] - `contains` [EXTRACTED]
 - [[polaritySweep()]] - `calls` [EXTRACTED]
 - [[preferredFor()]] - `calls` [EXTRACTED]
+- [[provisionalRaid]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
 - [[withEmpiricalTarget()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

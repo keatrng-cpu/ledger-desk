@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/bars.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # _flatten()
@@ -18,4 +18,4 @@ tags:
 - [[mt5_bars()]] - `calls` [EXTRACTED]
 - [[yahoo_bars()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

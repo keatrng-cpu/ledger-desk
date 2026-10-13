@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/journal/discipline.ts"
 type: "code"
-community: "Community 23"
+community: "journal/server.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # Split
 
 ## Connections
 - [[discipline-panel.tsx]] - `imports` [EXTRACTED]
-- [[discipline.ts]] - `contains` [EXTRACTED]
+- [[journaldiscipline.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/measure-judas.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 160"
-location: "L59"
+community: "news.ts"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/newsts
 ---
 
 # dayKey()
 
 ## Connections
-- [[measure-judas.mjs]] - `contains` [EXTRACTED]
+- [[dayChangePct()]] - `calls` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/newsts

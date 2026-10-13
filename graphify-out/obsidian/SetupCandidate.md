@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 9"
-location: "L78"
+community: "veteran-brain.ts"
+location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # SetupCandidate
@@ -22,7 +22,7 @@ tags:
 - [[StrategyId]] - `references` [EXTRACTED]
 - [[StrategyMarketGrade]] - `references` [EXTRACTED]
 - [[VeteranBrief]] - `references` [EXTRACTED]
-- [[What shipped]] - `references` [INFERRED]
+- [[What shipped_1]] - `references` [INFERRED]
 - [[analysis-to-candidate.ts]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports` [EXTRACTED]
 - [[auto-paper.ts]] - `imports` [EXTRACTED]
@@ -58,4 +58,4 @@ tags:
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

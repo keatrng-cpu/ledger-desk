@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # executor.ts
@@ -39,7 +39,7 @@ tags:
 - [[checkExit()]] - `imports` [EXTRACTED]
 - [[checkRun()]] - `imports` [EXTRACTED]
 - [[clientOrderId()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[evidenceOf()]] - `imports` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports_from` [EXTRACTED]
@@ -64,4 +64,4 @@ tags:
 - [[rowPatchFromBroker()]] - `contains` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

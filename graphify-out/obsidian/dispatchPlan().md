@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-cycle.mjs"
 type: "code"
-community: "Community 83"
+community: "verify-rh-cycle.mjs"
 location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/verify-rh-cyclemjs
 ---
 
 # dispatchPlan()
@@ -15,4 +15,4 @@ tags:
 - [[held()]] - `calls` [EXTRACTED]
 - [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/verify-rh-cyclemjs

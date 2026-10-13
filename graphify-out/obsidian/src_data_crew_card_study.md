@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 253"
+community: "crew-years.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_253
+  - community/crew-yearsts
 ---
 
 # src_data_crew_card_study
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[crew-years.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_253
+#graphify/concept #graphify/EXTRACTED #community/crew-yearsts

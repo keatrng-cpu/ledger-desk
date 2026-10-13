@@ -1,21 +1,16 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 268"
+community: "retain.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/retainpy
 ---
 
 # Path
 
 ## Connections
-- [[_chroma()]] - `references` [EXTRACTED]
-- [[index_ledger()]] - `references` [EXTRACTED]
-- [[index_notes()]] - `references` [EXTRACTED]
-- [[recall()_1]] - `references` [EXTRACTED]
-- [[recall_like()]] - `references` [EXTRACTED]
-- [[remember()_1]] - `references` [EXTRACTED]
+- [[write_note()_1]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_268
+#graphify/code #graphify/EXTRACTED #community/retainpy

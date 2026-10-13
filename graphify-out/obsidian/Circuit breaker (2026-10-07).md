@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L68"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # Circuit breaker (2026-10-07)
@@ -15,4 +15,4 @@ tags:
 - [[Robinhood live options routine (live-when-armed)]] - `contains` [EXTRACTED]
 - [[evaluateRhCircuitBreaker()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_56
+#graphify/document #graphify/EXTRACTED #community/manager-live-loopts

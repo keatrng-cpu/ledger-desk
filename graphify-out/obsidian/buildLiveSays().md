@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/live-says.ts"
 type: "code"
-community: "Community 164"
+community: "index.tsx"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/indextsx
 ---
 
 # buildLiveSays()
@@ -21,4 +21,4 @@ tags:
 - [[patchDeskQuotes()]] - `calls` [EXTRACTED]
 - [[printOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/indextsx

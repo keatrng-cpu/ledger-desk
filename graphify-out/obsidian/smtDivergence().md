@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 58"
+community: "structure.ts"
 location: "L798"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # smtDivergence()
@@ -21,4 +21,4 @@ tags:
 - [[structure.ts]] - `contains` [EXTRACTED]
 - [[swingPoints()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/structurets

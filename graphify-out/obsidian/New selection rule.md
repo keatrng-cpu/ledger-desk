@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 326"
+community: "A2 — the mechanical sequence can now die"
 location: "L139"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_326
+  - community/A2__the_mechanical_sequence_can_now_die
 ---
 
 # New selection rule
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[A2 — the mechanical sequence can now die]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_326
+#graphify/document #graphify/EXTRACTED #community/A2__the_mechanical_sequence_can_now_die

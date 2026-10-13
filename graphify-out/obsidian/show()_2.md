@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/blender/glb-stats.mjs"
+source_file: "scripts/measure-inducement-news.mjs"
 type: "code"
-community: "Community 143"
-location: "L89"
+community: "measure-inducement-news.mjs"
+location: "L346"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/measure-inducement-newsmjs
 ---
 
 # show()
 
 ## Connections
-- [[glb-stats.mjs]] - `contains` [EXTRACTED]
+- [[measure-inducement-news.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/measure-inducement-newsmjs

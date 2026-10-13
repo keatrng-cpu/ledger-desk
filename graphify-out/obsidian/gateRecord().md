@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # gateRecord()
@@ -16,4 +16,4 @@ tags:
 - [[debate.ts]] - `contains` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

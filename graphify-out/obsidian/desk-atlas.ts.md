@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 217"
+community: "desk-atlas.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/desk-atlasts
 ---
 
 # desk-atlas.ts
@@ -21,7 +21,7 @@ tags:
 - [[AtlasPulse]] - `contains` [EXTRACTED]
 - [[AtlasRecall]] - `contains` [EXTRACTED]
 - [[AtlasShelf]] - `contains` [EXTRACTED]
-- [[BOOK_4]] - `imports` [EXTRACTED]
+- [[BOOK_5]] - `imports` [EXTRACTED]
 - [[BRAIN_CREW]] - `contains` [EXTRACTED]
 - [[BrainOffer]] - `contains` [EXTRACTED]
 - [[BrainWho]] - `contains` [EXTRACTED]
@@ -53,7 +53,7 @@ tags:
 - [[brain-feed.ts]] - `imports_from` [EXTRACTED]
 - [[brain-fuel.ts]] - `imports_from` [EXTRACTED]
 - [[brain-traffic.ts]] - `imports_from` [EXTRACTED]
-- [[clamp()_5]] - `contains` [EXTRACTED]
+- [[clamp()_4]] - `contains` [EXTRACTED]
 - [[cloneSeed()]] - `contains` [EXTRACTED]
 - [[collectiveLogic()]] - `contains` [EXTRACTED]
 - [[crew-years.ts]] - `imports_from` [EXTRACTED]
@@ -77,7 +77,7 @@ tags:
 - [[recall()]] - `contains` [EXTRACTED]
 - [[rewrite()]] - `contains` [EXTRACTED]
 - [[saveAtlas()]] - `contains` [EXTRACTED]
-- [[savePeople()]] - `contains` [EXTRACTED]
+- [[savePeople()_1]] - `contains` [EXTRACTED]
 - [[school-brief.ts]] - `imports_from` [EXTRACTED]
 - [[schoolEdges()]] - `contains` [EXTRACTED]
 - [[schoolNodeId()]] - `contains` [EXTRACTED]
@@ -92,4 +92,4 @@ tags:
 - [[verify-hi-alert-brain.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-school-brief.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

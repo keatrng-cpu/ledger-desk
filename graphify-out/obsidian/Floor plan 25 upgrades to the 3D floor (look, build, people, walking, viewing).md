@@ -1,12 +1,12 @@
 ---
 source_file: "docs/FLOOR_PLAN.md"
 type: "document"
-community: "Community 289"
+community: "Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_289
+  - community/Floor_plan_25_upgrades_to_the_3D_floor_look_build_people_walking_viewing
 ---
 
 # Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)
@@ -26,4 +26,4 @@ tags:
 - [[Status (2026-10-07, end of the first working session on this plan)]] - `contains` [EXTRACTED]
 - [[What exists today (checked in the code, so nothing below re-does it)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_289
+#graphify/document #graphify/EXTRACTED #community/Floor_plan_25_upgrades_to_the_3D_floor_look_build_people_walking_viewing

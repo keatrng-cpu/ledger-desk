@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-floor-cues.mjs"
+source_file: "scripts/verify-trade-plan.mjs"
 type: "code"
-community: "Community 25"
-location: "L9"
+community: "verify-trade-plan.mjs"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/verify-trade-planmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
+- [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/verify-trade-planmjs

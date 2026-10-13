@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-sources.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # OtherIncome
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[invest-sources.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

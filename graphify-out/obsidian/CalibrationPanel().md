@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/calibration-panel.tsx"
 type: "code"
-community: "Community 174"
+community: "calibration-panel.tsx"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/calibration-paneltsx
 ---
 
 # CalibrationPanel()
@@ -23,4 +23,4 @@ tags:
 - [[reliability]] - `calls` [EXTRACTED]
 - [[useShadowBook()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 301"
+community: "build-desk.ts"
 location: "L49"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_301
+  - community/build-deskts
 ---
 
 # Hard rules (do not drift)
@@ -19,4 +19,4 @@ tags:
 - [[smtRead()]] - `references` [INFERRED]
 - [[tickOrCached()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_301
+#graphify/document #graphify/INFERRED #community/build-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "rationale"
-community: "Community 268"
+community: "memory.py"
 location: "L91"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # Index a ledger export. Returns how many graded cards were stored.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[index_ledger()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_268
+#graphify/rationale #graphify/EXTRACTED #community/memorypy

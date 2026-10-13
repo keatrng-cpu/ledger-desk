@@ -1,25 +1,24 @@
 ---
 source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L248"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # replay()
 
 ## Connections
-- [[2. Engine upload is already mounted]] - `references` [INFERRED]
 - [[isLongTerm()]] - `calls` [EXTRACTED]
 - [[ledger.ts]] - `contains` [EXTRACTED]
 - [[loadLedger()]] - `calls` [EXTRACTED]
-- [[order()_1]] - `indirect_call` [INFERRED]
+- [[order()]] - `indirect_call` [INFERRED]
 - [[previewSale()]] - `calls` [EXTRACTED]
-- [[round2()_6]] - `calls` [EXTRACTED]
+- [[round2()_10]] - `calls` [EXTRACTED]
 - [[store.ts]] - `imports` [EXTRACTED]
 - [[washFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

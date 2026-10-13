@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/check-research-sources.mjs"
 type: "code"
-community: "Community 70"
+community: "check-research-sources.mjs"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/check-research-sourcesmjs
 ---
 
 # ROOT
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[check-research-sources.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/check-research-sourcesmjs

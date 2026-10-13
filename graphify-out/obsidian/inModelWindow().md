@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
-location: "L468"
+community: "strategy-grade.ts"
+location: "L474"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/strategy-gradets
 ---
 
 # inModelWindow()
@@ -17,4 +17,4 @@ tags:
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

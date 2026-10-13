@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-news-coverage.mjs"
 type: "code"
-community: "Community 175"
-location: "L44"
+community: "news.ts"
+location: "L150"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/newsts
 ---
 
 # live
 
 ## Connections
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[verify-news-coverage.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/newsts

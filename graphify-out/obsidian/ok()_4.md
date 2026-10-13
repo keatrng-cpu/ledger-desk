@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-target-odds.mjs"
+source_file: "scripts/verify-cases.mjs"
 type: "code"
-community: "Community 138"
-location: "L27"
+community: "ref_node_fs"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_138
+  - community/ref_node_fs
 ---
 
 # ok()
 
 ## Connections
-- [[check()_13]] - `calls` [EXTRACTED]
-- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

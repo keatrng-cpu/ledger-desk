@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L159"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # applyQuoteToLastBar()
@@ -19,4 +19,4 @@ tags:
 - [[intervalMs()]] - `calls` [EXTRACTED]
 - [[patchDeskQuotes()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

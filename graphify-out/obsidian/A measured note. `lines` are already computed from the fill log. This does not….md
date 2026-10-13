@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gitnote.py"
 type: "rationale"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L36"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # A measured note. `lines` are already computed from the fill log. This does not…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[write_note()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_146
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 99"
+community: "trading/evidence.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/trading/evidencets
 ---
 
 # src_data_evidence_pack
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_99
+#graphify/concept #graphify/EXTRACTED #community/trading/evidencets

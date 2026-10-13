@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/selfcheck.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # selfcheck.py
@@ -16,7 +16,7 @@ tags:
 - [[_fake_login()]] - `indirect_call` [INFERRED]
 - [[_raises()]] - `contains` [EXTRACTED]
 - [[bars.py]] - `imports_from` [EXTRACTED]
-- [[check()_19]] - `contains` [EXTRACTED]
+- [[check()_12]] - `contains` [EXTRACTED]
 - [[fills.py]] - `imports_from` [EXTRACTED]
 - [[git]] - `imports` [EXTRACTED]
 - [[gitnote.py]] - `imports_from` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[tempfile]] - `imports` [EXTRACTED]
 - [[types_2]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

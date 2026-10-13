@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # BALCONY
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

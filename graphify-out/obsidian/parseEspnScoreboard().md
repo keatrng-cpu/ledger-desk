@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 2"
+community: "predict-server.ts"
 location: "L144"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-serverts
 ---
 
 # parseEspnScoreboard()
@@ -16,9 +16,9 @@ tags:
 - [[etDate()_1]] - `calls` [EXTRACTED]
 - [[getPredictBoard]] - `calls` [EXTRACTED]
 - [[nflGames()]] - `calls` [EXTRACTED]
-- [[num()_16]] - `calls` [EXTRACTED]
+- [[num()_18]] - `calls` [EXTRACTED]
 - [[parseAmerican()]] - `calls` [EXTRACTED]
 - [[predict-server.ts]] - `imports` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

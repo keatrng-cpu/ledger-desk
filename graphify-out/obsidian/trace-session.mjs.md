@@ -1,22 +1,22 @@
 ---
 source_file: "scripts/trace-session.mjs"
 type: "code"
-community: "Community 20"
+community: "news.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # trace-session.mjs
 
 ## Connections
-- [[dayChangePct()_5]] - `contains` [EXTRACTED]
-- [[dayKey()_10]] - `contains` [EXTRACTED]
+- [[dayChangePct()_1]] - `contains` [EXTRACTED]
+- [[dayKey()_6]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[history_5]] - `contains` [EXTRACTED]
+- [[history_1]] - `contains` [EXTRACTED]
 - [[hm()]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `dynamic_import` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[structure.ts]] - `dynamic_import` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

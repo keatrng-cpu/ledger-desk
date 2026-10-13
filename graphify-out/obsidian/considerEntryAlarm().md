@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 48"
-location: "L378"
+community: "react"
+location: "L379"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # considerEntryAlarm()
@@ -15,12 +15,12 @@ tags:
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[bookRungs()]] - `calls` [EXTRACTED]
 - [[buildEntryTicket()]] - `calls` [EXTRACTED]
-- [[etDay()_1]] - `calls` [EXTRACTED]
+- [[etDay()_2]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[isJudasWindow()]] - `calls` [EXTRACTED]
 - [[isWatchable()]] - `calls` [EXTRACTED]
-- [[load()_5]] - `calls` [EXTRACTED]
+- [[load()_9]] - `calls` [EXTRACTED]
 - [[path-alarm.ts]] - `contains` [EXTRACTED]
 - [[playAlarmTone()]] - `calls` [EXTRACTED]
 - [[readEntry()]] - `calls` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[ticketHeadline()]] - `calls` [EXTRACTED]
 - [[touchKey()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

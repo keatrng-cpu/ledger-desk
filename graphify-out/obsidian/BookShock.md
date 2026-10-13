@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 160"
-location: "L100"
+community: "shock.ts"
+location: "L156"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/shockts
 ---
 
 # BookShock
 
 ## Connections
-- [[OhlcBar]] - `references` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
 - [[shock.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/shockts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 254"
-location: "L550"
+community: "smc-master.ts"
+location: "L584"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/smc-masterts
 ---
 
 # cardRisk
@@ -18,4 +18,4 @@ tags:
 - [[r2()_5]] - `calls` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

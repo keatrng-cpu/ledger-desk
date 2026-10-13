@@ -1,21 +1,21 @@
 ---
 source_file: "scripts/verify-all.mjs"
 type: "code"
-community: "Community 191"
+community: "verify-all.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-allmjs
 ---
 
 # verify-all.mjs
 
 ## Connections
 - [[BASELINE]] - `contains` [EXTRACTED]
-- [[ROOT_6]] - `contains` [EXTRACTED]
+- [[ROOT_5]] - `contains` [EXTRACTED]
 - [[SCRIPTS]] - `contains` [EXTRACTED]
-- [[SKIP]] - `contains` [EXTRACTED]
+- [[SKIP_1]] - `contains` [EXTRACTED]
 - [[WHY a gate nobody can pass is a gate nobody runs. Eight verifiers were red on…]] - `rationale_for` [EXTRACTED]
 - [[failed]] - `contains` [EXTRACTED]
 - [[files]] - `contains` [EXTRACTED]
@@ -28,7 +28,7 @@ tags:
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 - [[ref_node_url]] - `imports_from` [EXTRACTED]
 - [[seen]] - `contains` [EXTRACTED]
-- [[t0_7]] - `contains` [EXTRACTED]
+- [[t0_3]] - `contains` [EXTRACTED]
 - [[writeBaseline]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-allmjs

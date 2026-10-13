@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 50"
+community: "goal.ts"
 location: "L747"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/goalts
 ---
 
 # pct1()
@@ -15,4 +15,4 @@ tags:
 - [[collisions()]] - `calls` [EXTRACTED]
 - [[goal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/goalts

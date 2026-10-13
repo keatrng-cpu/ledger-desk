@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 44"
+community: "veteran-brain.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/veteran-braints
 ---
 
 # emptyBookCounters()
@@ -21,4 +21,4 @@ tags:
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

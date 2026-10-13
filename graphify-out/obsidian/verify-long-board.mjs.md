@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-long-board.mjs"
 type: "code"
-community: "Community 143"
+community: "ref_node_fs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/ref_node_fs
 ---
 
 # verify-long-board.mjs
@@ -18,4 +18,4 @@ tags:
 - [[ui]] - `contains` [EXTRACTED]
 - [[want]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-vault.mjs"
+source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 143"
-location: "L10"
+community: "spot-cross.ts"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/spot-crossts
 ---
 
 # check()
 
 ## Connections
-- [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
+- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

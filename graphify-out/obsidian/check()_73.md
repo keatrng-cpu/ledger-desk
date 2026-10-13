@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-research-retain.mjs"
+source_file: "scripts/verify-freshness-gate.mjs"
 type: "code"
-community: "Community 297"
-location: "L17"
+community: "verify-freshness-gate.mjs"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_297
+  - community/verify-freshness-gatemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-research-retain.mjs]] - `contains` [EXTRACTED]
+- [[verify-freshness-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_297
+#graphify/code #graphify/EXTRACTED #community/verify-freshness-gatemjs

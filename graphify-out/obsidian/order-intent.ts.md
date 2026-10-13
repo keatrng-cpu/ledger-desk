@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 77"
+community: "order-intent.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/order-intentts
 ---
 
 # order-intent.ts
@@ -29,9 +29,9 @@ tags:
 - [[PaperTrade]] - `imports` [EXTRACTED]
 - [[TimeInForce]] - `contains` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[buildOrderIntent()]] - `contains` [EXTRACTED]
 - [[buildTargets()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contractKeys]] - `contains` [EXTRACTED]
 - [[contractSpec()]] - `imports` [EXTRACTED]
 - [[describeOrderIntent()]] - `contains` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[orderIntentSchema]] - `contains` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[pnl.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_10]] - `contains` [EXTRACTED]
+- [[round2()_12]] - `contains` [EXTRACTED]
 - [[round4()_4]] - `contains` [EXTRACTED]
 - [[shadow.ts]] - `imports_from` [EXTRACTED]
 - [[toIso()_1]] - `contains` [EXTRACTED]
@@ -54,4 +54,4 @@ tags:
 - [[validateOrderIntent()]] - `contains` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/order-intentts

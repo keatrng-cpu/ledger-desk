@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
-location: "L1663"
+community: "trading/scanner.ts"
+location: "L1687"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_40
+  - graphify/INFERRED
+  - community/trading/scannerts
 ---
 
 # scanSetups()
@@ -21,6 +21,7 @@ tags:
 - [[INTEGRATION-P0 — Truth & safety (branch agentsphase-p0)]] - `references` [INFERRED]
 - [[Locator_1]] - `references` [INFERRED]
 - [[Snapshot]] - `calls` [EXTRACTED]
+- [[Where each one decides]] - `references` [INFERRED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[buildTradingDesk()]] - `calls` [EXTRACTED]
 - [[cases.ts]] - `imports` [EXTRACTED]
@@ -29,4 +30,4 @@ tags:
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/INFERRED #community/trading/scannerts

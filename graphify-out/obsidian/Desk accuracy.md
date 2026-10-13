@@ -1,12 +1,12 @@
 ---
 source_file: ".claude/skills/desk-accuracy/SKILL.md"
 type: "document"
-community: "Community 312"
+community: "policy.ts"
 location: "L6"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_312
+  - community/policyts
 ---
 
 # Desk accuracy
@@ -21,4 +21,4 @@ tags:
 - [[7. Skills installed on this machine what each may do here]] - `contains` [EXTRACTED]
 - [[desk-accuracySKILL]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_312
+#graphify/document #graphify/EXTRACTED #community/policyts

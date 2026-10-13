@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 131"
+community: "direction-book.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # collections
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[direction-book.py]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_131
+#graphify/concept #graphify/EXTRACTED #community/direction-bookpy

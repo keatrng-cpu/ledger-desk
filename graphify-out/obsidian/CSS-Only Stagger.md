@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/animations.md"
 type: "document"
-community: "Community 290"
+community: "Animations"
 location: "L97"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_290
+  - community/Animations
 ---
 
 # CSS-Only Stagger
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Enter Animations Split and Stagger]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_290
+#graphify/document #graphify/EXTRACTED #community/Animations

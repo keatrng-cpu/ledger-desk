@@ -1,25 +1,19 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 41"
-location: "L215"
+community: "use-entry-state.ts"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/use-entry-statets
 ---
 
 # fit()
 
 ## Connections
-- [[drawBooth()]] - `calls` [EXTRACTED]
-- [[drawBubble()_1]] - `calls` [EXTRACTED]
-- [[drawJumbotron()]] - `calls` [EXTRACTED]
-- [[drawLectern()]] - `calls` [EXTRACTED]
-- [[drawLedger()_1]] - `calls` [EXTRACTED]
-- [[drawRuneBoard()]] - `calls` [EXTRACTED]
-- [[drawTabletop()]] - `calls` [EXTRACTED]
-- [[drawTv()]] - `calls` [EXTRACTED]
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[cardPhrase()]] - `calls` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

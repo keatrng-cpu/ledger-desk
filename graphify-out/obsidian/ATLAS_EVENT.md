@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 300"
+community: "desk-atlas.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_300
+  - community/desk-atlasts
 ---
 
 # ATLAS_EVENT
@@ -16,4 +16,4 @@ tags:
 - [[desk-atlas.ts]] - `contains` [EXTRACTED]
 - [[floor-brains.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_300
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

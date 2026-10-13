@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 129"
+community: "thesis-server.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/thesis-serverts
 ---
 
 # runClaude()
@@ -16,4 +16,4 @@ tags:
 - [[parseThesis()]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/thesis-serverts

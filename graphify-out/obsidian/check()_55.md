@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-overnight.mjs"
+source_file: "scripts/verify-income-target.mjs"
 type: "code"
-community: "Community 238"
-location: "L18"
+community: "aplus/config.ts"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_238
+  - community/aplus/configts
 ---
 
 # check()
 
 ## Connections
-- [[verify-overnight.mjs]] - `contains` [EXTRACTED]
+- [[verify-income-target.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_238
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

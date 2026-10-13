@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 342"
+community: "applyM"
 location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_342
+  - community/applyM
 ---
 
 # armElbow()
@@ -16,4 +16,4 @@ tags:
 - [[floor-ik.ts]] - `contains` [EXTRACTED]
 - [[rotXYZ()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_342
+#graphify/code #graphify/EXTRACTED #community/applyM

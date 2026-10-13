@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L812"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # managementLine()
@@ -15,8 +15,8 @@ tags:
 - [[ExpectedPath()]] - `calls` [EXTRACTED]
 - [[PaperBookPanel()]] - `calls` [EXTRACTED]
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
-- [[fmtR()_1]] - `calls` [EXTRACTED]
+- [[fmtR()_2]] - `calls` [EXTRACTED]
 - [[paper-book-panel.tsx]] - `imports` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 186"
+community: "verify-mead-hall.mjs"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/verify-mead-hallmjs
 ---
 
 # lost
@@ -15,4 +15,4 @@ tags:
 - [[reach()_1]] - `calls` [EXTRACTED]
 - [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

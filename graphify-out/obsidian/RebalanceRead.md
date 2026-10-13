@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # RebalanceRead
@@ -17,4 +17,4 @@ tags:
 - [[book.ts]] - `contains` [EXTRACTED]
 - [[invest-office.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

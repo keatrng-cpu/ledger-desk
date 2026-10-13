@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-link.ts"
 type: "code"
-community: "Community 16"
+community: "trading-floor-tab.tsx"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/trading-floor-tabtsx
 ---
 
 # openPredictAt()
@@ -17,4 +17,4 @@ tags:
 - [[floor-link.ts]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

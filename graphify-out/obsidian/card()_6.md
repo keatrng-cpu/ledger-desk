@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-hi-alert.mjs"
+source_file: "scripts/smc-shared.test.mjs"
 type: "code"
-community: "Community 308"
-location: "L39"
+community: "smc-shared.test.mjs"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_308
+  - community/smc-sharedtestmjs
 ---
 
 # card()
 
 ## Connections
-- [[verify-hi-alert.mjs]] - `contains` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_308
+#graphify/code #graphify/EXTRACTED #community/smc-sharedtestmjs

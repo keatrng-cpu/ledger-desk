@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/screen-flash.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # useFlashOn()
@@ -19,4 +19,4 @@ tags:
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[subscribeFlash()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

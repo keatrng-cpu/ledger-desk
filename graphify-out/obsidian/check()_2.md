@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-sponsored-gap.mjs"
+source_file: "scripts/verify-propfirm-score.mjs"
 type: "code"
-community: "Community 102"
-location: "L24"
+community: "propfirm-panel.tsx"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/propfirm-paneltsx
 ---
 
 # check()
 
 ## Connections
-- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
+- [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-cycle.mjs"
+source_file: "scripts/build-replay-drills.mjs"
 type: "code"
-community: "Community 83"
-location: "L58"
+community: "build-replay-drills.mjs"
+location: "L345"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/build-replay-drillsmjs
 ---
 
 # refused
 
 ## Connections
-- [[verify-rh-cycle.mjs]] - `contains` [EXTRACTED]
+- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/build-replay-drillsmjs

@@ -1,17 +1,22 @@
 ---
-source_file: "src/lib/auth/verify.server.ts"
+source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 65"
-location: "L38"
+community: "mead-hall-build.ts"
+location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/mead-hall-buildts
 ---
 
 # .constructor()
 
 ## Connections
-- [[UnauthorizedError]] - `method` [EXTRACTED]
+- [[dot-canvasTex()]] - `calls` [INFERRED]
+- [[dot-mat()]] - `calls` [INFERRED]
+- [[dot-own()]] - `calls` [INFERRED]
+- [[Kit]] - `references` [EXTRACTED]
+- [[Person]] - `method` [EXTRACTED]
+- [[bakeLocal()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

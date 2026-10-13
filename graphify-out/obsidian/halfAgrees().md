@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/gate-tuning.ts"
 type: "code"
-community: "Community 40"
+community: "detectors.ts"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/detectorsts
 ---
 
 # halfAgrees()
@@ -15,4 +15,4 @@ tags:
 - [[gate-tuning.ts]] - `contains` [EXTRACTED]
 - [[preferZone()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/detectorsts

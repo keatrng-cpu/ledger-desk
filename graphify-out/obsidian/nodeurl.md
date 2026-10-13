@@ -1,11 +1,11 @@
 ---
 source_file: "node:url"
 type: "code"
-community: "Community 308"
+community: "verify-entry-alarm.mjs"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_308
+  - community/verify-entry-alarmmjs
 ---
 
 # node:url
@@ -14,4 +14,4 @@ tags:
 - [[verify-entry-alarm.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-hi-alert.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_308
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

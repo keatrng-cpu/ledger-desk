@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 52"
+community: "time-odds.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/time-oddsts
 ---
 
 # src_data_room_time_odds
@@ -14,4 +14,4 @@ tags:
 - [[goal.ts]] - `imports_from` [EXTRACTED]
 - [[time-odds.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_52
+#graphify/concept #graphify/EXTRACTED #community/time-oddsts

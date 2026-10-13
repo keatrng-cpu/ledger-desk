@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/intent.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # DesiredPosition
@@ -16,4 +16,4 @@ tags:
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[intent.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

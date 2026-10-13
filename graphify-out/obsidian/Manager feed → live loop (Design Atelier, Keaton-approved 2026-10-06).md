@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 158"
+community: "manager-feed.ts"
 location: "L50"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # Manager feed → live loop (Design Atelier, Keaton-approved 2026-10-06)
@@ -21,4 +21,4 @@ tags:
 - [[proposeRhLiveOption()]] - `references` [INFERRED]
 - [[runRhDesk()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_158
+#graphify/document #graphify/INFERRED #community/manager-feedts

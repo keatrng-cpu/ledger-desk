@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 20"
+community: "OhlcBar"
 location: "L192"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/OhlcBar
 ---
 
 # mergeCoincident()
@@ -15,4 +15,4 @@ tags:
 - [[draw.ts]] - `contains` [EXTRACTED]
 - [[drawOnLiquidity()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

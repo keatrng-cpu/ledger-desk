@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/rh-bridge.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # rh-bridge.ts
@@ -35,4 +35,4 @@ tags:
 - [[verify-invest-book.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

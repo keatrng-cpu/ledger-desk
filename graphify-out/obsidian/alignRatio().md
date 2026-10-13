@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/spot-cross.ts"
 type: "code"
-community: "Community 160"
+community: "spot-cross.ts"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/spot-crossts
 ---
 
 # alignRatio()
@@ -16,4 +16,4 @@ tags:
 - [[futAt()]] - `calls` [EXTRACTED]
 - [[spot-cross.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

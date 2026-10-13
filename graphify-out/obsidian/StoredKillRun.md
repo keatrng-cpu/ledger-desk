@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-store.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # StoredKillRun
@@ -20,4 +20,4 @@ tags:
 - [[kill-store.ts]] - `contains` [EXTRACTED]
 - [[kill-watch-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

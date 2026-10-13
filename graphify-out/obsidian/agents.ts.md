@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # agents.ts
@@ -20,7 +20,7 @@ tags:
 - [[AgentAct]] - `contains` [EXTRACTED]
 - [[AgentPlan]] - `contains` [EXTRACTED]
 - [[Beat]] - `imports` [EXTRACTED]
-- [[CREW_3]] - `contains` [EXTRACTED]
+- [[CREW_2]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[DESK_1]] - `contains` [EXTRACTED]
 - [[DIRECTOR]] - `contains` [EXTRACTED]
@@ -73,7 +73,7 @@ tags:
 - [[gamesOn()]] - `imports` [EXTRACTED]
 - [[hallSpotOf()]] - `contains` [EXTRACTED]
 - [[hash01()_1]] - `contains` [EXTRACTED]
-- [[hhmm()_4]] - `contains` [EXTRACTED]
+- [[hhmm()_3]] - `contains` [EXTRACTED]
 - [[improveAtlas()]] - `imports` [EXTRACTED]
 - [[ivFor()]] - `imports` [EXTRACTED]
 - [[jobsFor()]] - `imports` [EXTRACTED]
@@ -110,4 +110,4 @@ tags:
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[zoneFor()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

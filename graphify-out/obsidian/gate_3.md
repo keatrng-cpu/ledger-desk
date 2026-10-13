@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-lab-constants.mjs"
+source_file: "scripts/measure-exit-plan.mjs"
 type: "code"
-community: "Community 335"
-location: "L13"
+community: "measure-exit-plan.mjs"
+location: "L293"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_335
+  - community/measure-exit-planmjs
 ---
 
 # gate
 
 ## Connections
-- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
+- [[measure-exit-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_335
+#graphify/code #graphify/EXTRACTED #community/measure-exit-planmjs

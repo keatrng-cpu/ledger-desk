@@ -1,22 +1,22 @@
 ---
-source_file: "src/components/mead/mead-people.ts"
+source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 41"
-location: "L43"
+community: "MeadScene"
+location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/MeadScene
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-canvasTex()]] - `calls` [INFERRED]
-- [[dot-mat()]] - `calls` [INFERRED]
-- [[dot-own()]] - `calls` [INFERRED]
-- [[Kit]] - `references` [EXTRACTED]
-- [[Person]] - `method` [EXTRACTED]
-- [[bakeLocal()]] - `calls` [EXTRACTED]
+- [[dot-loop()_2]] - `calls` [EXTRACTED]
+- [[dot-resize()_1]] - `calls` [EXTRACTED]
+- [[dot-retag()]] - `calls` [EXTRACTED]
+- [[MeadHall]] - `calls` [EXTRACTED]
+- [[MeadScene]] - `method` [EXTRACTED]
+- [[OwnerAvatar]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/MeadScene

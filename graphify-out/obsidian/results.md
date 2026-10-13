@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-judas.mjs"
 type: "code"
-community: "Community 160"
+community: "measure-judas.mjs"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/measure-judasmjs
 ---
 
 # results
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[measure-judas.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/measure-judasmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-trade-plan.mjs"
 type: "code"
-community: "Community 295"
+community: "verify-trade-plan.mjs"
 location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_295
+  - community/verify-trade-planmjs
 ---
 
 # farScale
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_295
+#graphify/code #graphify/EXTRACTED #community/verify-trade-planmjs

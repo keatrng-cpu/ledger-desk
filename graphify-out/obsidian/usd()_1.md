@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/option-ticket.tsx"
+source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 14"
-location: "L35"
+community: "meeting.ts"
+location: "L139"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/meetingts
 ---
 
 # usd()
 
 ## Connections
-- [[OptionTicket()]] - `calls` [EXTRACTED]
-- [[option-ticket.tsx]] - `contains` [EXTRACTED]
+- [[challengeFor()]] - `calls` [EXTRACTED]
+- [[debate.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/meetingts

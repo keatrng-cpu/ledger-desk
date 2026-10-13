@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 162"
+community: "live-voices.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-voicests
 ---
 
 # lead()
@@ -17,4 +17,4 @@ tags:
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 - [[recentSpeaks()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-voicests

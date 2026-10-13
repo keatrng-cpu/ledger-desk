@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 25"
-location: "L1301"
+community: "use-entry-state.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/use-entry-statets
 ---
 
 # px()
 
 ## Connections
-- [[drawScanner()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[fmt()_4]] - `calls` [EXTRACTED]
+- [[deriveEntryState()]] - `calls` [EXTRACTED]
+- [[detectConflicts()]] - `calls` [EXTRACTED]
+- [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

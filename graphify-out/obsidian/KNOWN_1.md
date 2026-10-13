@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/ui/feed-tone.ts"
+source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 69"
-location: "L29"
+community: "live-voices-mead.ts"
+location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/live-voices-meadts
 ---
 
 # KNOWN
 
 ## Connections
-- [[feed-tone.ts]] - `contains` [EXTRACTED]
+- [[live-voices-mead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

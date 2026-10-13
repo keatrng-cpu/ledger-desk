@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/install-netlify-cron.mjs"
+source_file: "scripts/lab.mjs"
 type: "code"
-community: "Community 277"
-location: "L11"
+community: "ref_node_path"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # root
 
 ## Connections
-- [[install-netlify-cron.mjs]] - `contains` [EXTRACTED]
+- [[lab.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

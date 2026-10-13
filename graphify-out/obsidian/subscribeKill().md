@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-store.ts"
 type: "code"
-community: "Community 100"
+community: "kill-watch.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/kill-watchts
 ---
 
 # subscribeKill()
@@ -20,4 +20,4 @@ tags:
 - [[kill-watch-panel.tsx]] - `imports` [EXTRACTED]
 - [[wire()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

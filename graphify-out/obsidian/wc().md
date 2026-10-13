@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 275"
+community: "spoken-form.ts"
 location: "L402"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_275
+  - community/spoken-formts
 ---
 
 # wc()
@@ -15,4 +15,4 @@ tags:
 - [[chunkSpoken()]] - `calls` [EXTRACTED]
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_275
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

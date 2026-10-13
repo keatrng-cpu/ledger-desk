@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/autofire-gates.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # autofire-gates.ts
@@ -24,4 +24,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

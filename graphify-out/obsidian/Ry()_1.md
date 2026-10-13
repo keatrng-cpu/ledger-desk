@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 269"
+community: "json"
 location: "L509"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_269
+  - community/json
 ---
 
 # Ry()
@@ -16,4 +16,4 @@ tags:
 - [[floor_dress.py]] - `contains` [EXTRACTED]
 - [[math]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_269
+#graphify/code #graphify/EXTRACTED #community/json

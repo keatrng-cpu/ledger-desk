@@ -1,21 +1,18 @@
 ---
-source_file: "src/components/desk/premarket-panel.tsx"
+source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 14"
-location: "L24"
+community: "session-brief.ts"
+location: "L199"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/session-briefts
 ---
 
 # fmt()
 
 ## Connections
-- [[ArrayRow()]] - `calls` [EXTRACTED]
-- [[LevelRow()]] - `calls` [EXTRACTED]
-- [[PathCard()]] - `calls` [EXTRACTED]
-- [[PremarketPanel()]] - `calls` [EXTRACTED]
-- [[premarket-panel.tsx]] - `contains` [EXTRACTED]
+- [[buildPath()]] - `calls` [EXTRACTED]
+- [[session-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/session-briefts

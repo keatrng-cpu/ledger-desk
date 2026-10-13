@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-engine.ts"
 type: "code"
-community: "Community 12"
+community: "signal-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/signal-enginets
 ---
 
 # signal-engine.ts
@@ -44,7 +44,7 @@ tags:
 - [[SIGNAL_GRADES]] - `contains` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
 - [[SettlementRead]] - `contains` [EXTRACTED]
-- [[Side_2]] - `contains` [EXTRACTED]
+- [[Side_5]] - `contains` [EXTRACTED]
 - [[SignalBoard]] - `contains` [EXTRACTED]
 - [[SignalGrade]] - `contains` [EXTRACTED]
 - [[SignalOptions]] - `contains` [EXTRACTED]
@@ -56,9 +56,9 @@ tags:
 - [[VenueId]] - `imports` [EXTRACTED]
 - [[better()]] - `contains` [EXTRACTED]
 - [[buildSignalBoard()]] - `contains` [EXTRACTED]
-- [[c()]] - `contains` [EXTRACTED]
+- [[c()_1]] - `contains` [EXTRACTED]
 - [[capTo()]] - `contains` [EXTRACTED]
-- [[clamp()_1]] - `contains` [EXTRACTED]
+- [[clamp()]] - `contains` [EXTRACTED]
 - [[computeSignal()]] - `contains` [EXTRACTED]
 - [[crowdFrom()]] - `contains` [EXTRACTED]
 - [[durationWords()]] - `contains` [EXTRACTED]
@@ -104,4 +104,4 @@ tags:
 - [[signals.ts]] - `re_exports` [EXTRACTED]
 - [[unitPrice()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/signal-enginets

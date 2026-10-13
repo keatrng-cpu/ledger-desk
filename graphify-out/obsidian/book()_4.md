@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/entry-state.test.mjs"
+source_file: "scripts/verify-rnd.mjs"
 type: "code"
-community: "Community 78"
-location: "L20"
+community: "verify-rnd.mjs"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/verify-rndmjs
 ---
 
 # book()
 
 ## Connections
-- [[desk()_4]] - `calls` [EXTRACTED]
-- [[entry-state.test.mjs]] - `contains` [EXTRACTED]
+- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/verify-rndmjs

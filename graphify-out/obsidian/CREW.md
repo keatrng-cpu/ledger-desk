@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/debate.ts"
+source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 104"
-location: "L58"
+community: "floor-voice.ts"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/floor-voicets
 ---
 
 # CREW
 
 ## Connections
-- [[debate.ts]] - `contains` [EXTRACTED]
+- [[floor-voice.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

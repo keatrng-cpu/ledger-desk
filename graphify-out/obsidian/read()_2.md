@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/verify-tooling-guards.mjs"
+source_file: "scripts/verify-hit-odds.mjs"
 type: "code"
-community: "Community 143"
-location: "L12"
+community: "verify-hit-odds.mjs"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-hit-oddsmjs
 ---
 
 # read()
 
 ## Connections
-- [[liveWf()]] - `calls` [EXTRACTED]
-- [[verify-tooling-guards.mjs]] - `contains` [EXTRACTED]
-- [[wf()]] - `calls` [EXTRACTED]
+- [[code()]] - `calls` [EXTRACTED]
+- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-hit-oddsmjs

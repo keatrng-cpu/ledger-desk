@@ -1,19 +1,19 @@
 ---
 source_file: "brainlab/memory.py"
 type: "code"
-community: "Community 268"
+community: "memory.py"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # remember()
 
 ## Connections
-- [[Path_3]] - `references` [EXTRACTED]
+- [[Path_1]] - `references` [EXTRACTED]
 - [[_chroma()]] - `calls` [EXTRACTED]
 - [[memory.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_268
+#graphify/code #graphify/EXTRACTED #community/memorypy

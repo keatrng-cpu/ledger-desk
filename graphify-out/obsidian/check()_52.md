@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-school-gate.mjs"
+source_file: "scripts/verify-brain-nerve.mjs"
 type: "code"
-community: "Community 231"
-location: "L12"
+community: "verify-brain-nerve.mjs"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/verify-brain-nervemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-nerve.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/verify-brain-nervemjs

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-tape-trust.mjs"
+source_file: "scripts/verify-mead-hall.mjs"
 type: "code"
-community: "Community 164"
-location: "L26"
+community: "verify-mead-hall.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/verify-mead-hallmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-tape-trust.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/verify-mead-hallmjs

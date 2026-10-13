@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 18"
+community: "orchestrator.ts"
 location: "L189"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/orchestratorts
 ---
 
 # EntryTier
@@ -17,4 +17,4 @@ tags:
 - [[live-types.ts]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

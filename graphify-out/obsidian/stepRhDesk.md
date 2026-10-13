@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-server.ts"
 type: "code"
-community: "Community 94"
+community: "getSql"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/getSql
 ---
 
 # stepRhDesk
@@ -26,4 +26,4 @@ tags:
 - [[runRhDesk()]] - `calls` [EXTRACTED]
 - [[sendRh()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/getSql

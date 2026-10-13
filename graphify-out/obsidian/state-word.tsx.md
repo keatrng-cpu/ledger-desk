@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/state-word.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # state-word.tsx
@@ -24,4 +24,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[wordTitle()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

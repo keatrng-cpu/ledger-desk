@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-detectors.mjs"
+source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 348"
-location: "L40"
+community: "verify-options-live-ticket.mjs"
+location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_348
+  - community/verify-options-live-ticketmjs
 ---
 
 # eq()
 
 ## Connections
-- [[check()_83]] - `calls` [EXTRACTED]
-- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
+- [[check()_45]] - `calls` [EXTRACTED]
+- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_348
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

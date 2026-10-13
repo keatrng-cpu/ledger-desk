@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/cron/weekly.ts"
+source_file: "src/routes/api/desk/card.ts"
 type: "code"
-community: "Community 54"
-location: "L138"
+community: "routeTree.gen.ts"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
+- [[card.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
-- [[weekly.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L532"
+community: "options-desk.ts"
+location: "L536"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # CHAIN_MAX_AGE_MS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

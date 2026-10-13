@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-history.mjs"
 type: "code"
-community: "Community 71"
+community: "capture-history.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/capture-historymjs
 ---
 
 # capture-history.mjs
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[INTERVAL_MIN]] - `contains` [EXTRACTED]
 - [[KEY_1]] - `contains` [EXTRACTED]
-- [[OUT_12]] - `contains` [EXTRACTED]
+- [[OUT_14]] - `contains` [EXTRACTED]
 - [[SYMBOLS_6]] - `contains` [EXTRACTED]
 - [[YEARS_2]] - `contains` [EXTRACTED]
 - [[apiKey()]] - `contains` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[start()]] - `indirect_call` [INFERRED]
 - [[thin_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-all.mjs"
+source_file: "scripts/verify-replay-drills.mjs"
 type: "code"
-community: "Community 191"
-location: "L25"
+community: "verify-replay-drills.mjs"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-replay-drillsmjs
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-all.mjs]] - `contains` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-replay-drillsmjs

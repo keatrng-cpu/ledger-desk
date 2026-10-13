@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/blender/glb-stats.mjs"
+source_file: "scripts/sweep-gates.mjs"
 type: "code"
-community: "Community 143"
-location: "L104"
+community: "cases.ts"
+location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/casests
 ---
 
 # argv
 
 ## Connections
-- [[glb-stats.mjs]] - `contains` [EXTRACTED]
+- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/casests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-store.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L107"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # trippedFrom()
@@ -17,4 +17,4 @@ tags:
 - [[kill-store.ts]] - `contains` [EXTRACTED]
 - [[trippedTickers()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

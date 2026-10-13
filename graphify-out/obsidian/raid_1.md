@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-floor-voice.mjs"
 type: "code"
-community: "Community 75"
+community: "verify-floor-voice.mjs"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_75
+  - community/verify-floor-voicemjs
 ---
 
 # raid
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-floor-voice.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_75
+#graphify/code #graphify/EXTRACTED #community/verify-floor-voicemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 311"
+community: "replay-drill.ts"
 location: "L577"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_311
+  - community/replay-drillts
 ---
 
 # simulateOrder()
@@ -20,4 +20,4 @@ tags:
 - [[replay-drill.tsx]] - `imports` [EXTRACTED]
 - [[traderOutcome()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_311
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

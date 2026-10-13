@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 270"
+community: "replay-drill.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_270
+  - community/replay-drillts
 ---
 
 # replay-drill.ts
@@ -42,13 +42,13 @@ tags:
 - [[PAST_BARS]] - `contains` [EXTRACTED]
 - [[ProcessItem]] - `contains` [EXTRACTED]
 - [[REPEAT_EVERY]] - `contains` [EXTRACTED]
-- [[RULES_2]] - `contains` [EXTRACTED]
+- [[RULES_3]] - `contains` [EXTRACTED]
 - [[RULE_IDS]] - `contains` [EXTRACTED]
 - [[RuleCurve]] - `contains` [EXTRACTED]
 - [[RuleId]] - `contains` [EXTRACTED]
 - [[STATUSES_1]] - `contains` [EXTRACTED]
 - [[STORE_KEY]] - `contains` [EXTRACTED]
-- [[Side_1]] - `contains` [EXTRACTED]
+- [[Side_7]] - `contains` [EXTRACTED]
 - [[SimBar]] - `contains` [EXTRACTED]
 - [[SimOrder]] - `contains` [EXTRACTED]
 - [[SimResult_1]] - `contains` [EXTRACTED]
@@ -57,12 +57,12 @@ tags:
 - [[TradePlan]] - `imports` [EXTRACTED]
 - [[WORDS_1]] - `contains` [EXTRACTED]
 - [[Word]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[barTime()]] - `contains` [EXTRACTED]
 - [[blockerLabel()]] - `contains` [EXTRACTED]
 - [[build-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[caseBars()]] - `contains` [EXTRACTED]
 - [[caseTags()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
 - [[deskOrder()]] - `contains` [EXTRACTED]
 - [[deskOutcome()]] - `contains` [EXTRACTED]
@@ -100,4 +100,4 @@ tags:
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weakestRule()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_270
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

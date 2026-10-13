@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/cron/exec-flatten.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # exec-flatten.ts
@@ -24,7 +24,7 @@ tags:
 - [[execStep()]] - `imports` [EXTRACTED]
 - [[executor.ts]] - `imports_from` [EXTRACTED]
 - [[getSql()]] - `imports` [EXTRACTED]
-- [[handle()_1]] - `indirect_call` [INFERRED]
+- [[handle()_2]] - `indirect_call` [INFERRED]
 - [[isForced()]] - `imports` [EXTRACTED]
 - [[jsonResponse()]] - `imports` [EXTRACTED]
 - [[rh-autofire.ts]] - `imports_from` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[safetyNetDue()]] - `imports` [EXTRACTED]
 - [[src_lib_alerts_cron_jsonresponse]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/lib/mead-world.mjs"
 type: "code"
-community: "Community 142"
+community: "verify-live-talk.mjs"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-live-talkmjs
 ---
 
 # mkWorld()
@@ -18,4 +18,4 @@ tags:
 - [[mead-world.mjs]] - `contains` [EXTRACTED]
 - [[mkMinds()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

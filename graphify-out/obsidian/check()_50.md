@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-replay-drills.mjs"
+source_file: "scripts/verify-desk-cadence.mjs"
 type: "code"
-community: "Community 227"
-location: "L45"
+community: "verify-desk-cadence.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/verify-desk-cadencemjs
 ---
 
 # check()
 
 ## Connections
-- [[all()]] - `calls` [EXTRACTED]
-- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[ok()_21]] - `calls` [EXTRACTED]
+- [[verify-desk-cadence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/verify-desk-cadencemjs

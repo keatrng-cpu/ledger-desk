@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-engine.ts"
 type: "code"
-community: "Community 7"
+community: "signal-engine.ts"
 location: "L824"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/signal-enginets
 ---
 
 # buildSignalBoard()
@@ -20,4 +20,4 @@ tags:
 - [[rankSignals()]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/signal-enginets

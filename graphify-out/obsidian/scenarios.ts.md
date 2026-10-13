@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/scenarios.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # scenarios.ts
@@ -30,7 +30,7 @@ tags:
 - [[retraceScenarios()]] - `contains` [EXTRACTED]
 - [[scenariosFor()]] - `contains` [EXTRACTED]
 - [[shiftScenarios()]] - `contains` [EXTRACTED]
-- [[structureOf()_1]] - `contains` [EXTRACTED]
+- [[structureOf()_2]] - `contains` [EXTRACTED]
 - [[sweepScenarios()]] - `contains` [EXTRACTED]
 - [[swingMarks()]] - `contains` [EXTRACTED]
 - [[swingPoints()]] - `contains` [EXTRACTED]
@@ -39,4 +39,4 @@ tags:
 - [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

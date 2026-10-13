@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # news.ts
@@ -30,7 +30,7 @@ tags:
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[diagnose-sequence.mjs]] - `dynamic_import` [EXTRACTED]
 - [[effectiveCalendar()]] - `contains` [EXTRACTED]
-- [[etDateOf()_1]] - `contains` [EXTRACTED]
+- [[etDateOf()]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[isNewsEvent()]] - `indirect_call` [INFERRED]
@@ -58,4 +58,4 @@ tags:
 - [[verify-session-event.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

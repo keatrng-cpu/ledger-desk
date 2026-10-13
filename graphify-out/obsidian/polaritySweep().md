@@ -1,19 +1,21 @@
 ---
 source_file: "src/lib/trading/raid-pair.ts"
 type: "code"
-community: "Community 40"
-location: "L47"
+community: "trading/scanner.ts"
+location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # polaritySweep()
 
 ## Connections
+- [[Concept table (✗ = disagreement before this branch)]] - `references` [INFERRED]
 - [[ConfirmationState]] - `calls` [EXTRACTED]
 - [[Locator_1]] - `references` [INFERRED]
+- [[armingRaid]] - `calls` [EXTRACTED]
 - [[buildMarketNarrative()]] - `calls` [EXTRACTED]
 - [[displacementRead()]] - `calls` [EXTRACTED]
 - [[impulseZone()]] - `calls` [EXTRACTED]
@@ -23,6 +25,7 @@ tags:
 - [[recentRealSweeps()]] - `calls` [EXTRACTED]
 - [[reversalInside()]] - `calls` [EXTRACTED]
 - [[scoreDirection()]] - `calls` [EXTRACTED]
+- [[shared.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

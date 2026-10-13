@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 193"
+community: "floor-proto-avatars.ts"
 location: "L294"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/floor-proto-avatarsts
 ---
 
 # .getRules()
@@ -15,4 +15,4 @@ tags:
 - [[dot-applyManagerFeed()]] - `calls` [INFERRED]
 - [[ManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/floor-proto-avatarsts

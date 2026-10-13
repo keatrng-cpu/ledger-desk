@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/detectors.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # detectors.ts
@@ -34,7 +34,7 @@ tags:
 - [[FvgFill]] - `contains` [EXTRACTED]
 - [[FvgResult]] - `contains` [EXTRACTED]
 - [[GAP_CLOSE_SCAN_BARS]] - `contains` [EXTRACTED]
-- [[GATE_4]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
 - [[INDUCEMENT_WINDOW_BARS]] - `contains` [EXTRACTED]
 - [[InducementArmRead]] - `contains` [EXTRACTED]
 - [[InducementRead]] - `contains` [EXTRACTED]
@@ -57,7 +57,7 @@ tags:
 - [[NO_INDUCEMENT]] - `contains` [EXTRACTED]
 - [[NO_MITIGATION]] - `contains` [EXTRACTED]
 - [[OB_SCAN_BACK]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OrderBlock]] - `contains` [EXTRACTED]
 - [[RECENT_DISPLACEMENT_BARS]] - `contains` [EXTRACTED]
 - [[RECENT_SWEEP_BARS]] - `contains` [EXTRACTED]
@@ -78,6 +78,7 @@ tags:
 - [[cases.ts]] - `imports_from` [EXTRACTED]
 - [[confirmSweepOnTape()]] - `contains` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
+- [[day-context.ts]] - `imports_from` [EXTRACTED]
 - [[detectAccumulation()]] - `contains` [EXTRACTED]
 - [[detectBlakeSwing()]] - `contains` [EXTRACTED]
 - [[detectDisplacements()]] - `contains` [EXTRACTED]
@@ -90,6 +91,9 @@ tags:
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[diagnose-sequence.mjs]] - `dynamic_import` [EXTRACTED]
 - [[dump-desk-fvgs.mjs]] - `dynamic_import` [EXTRACTED]
+- [[dump-loss-features.mts]] - `imports_from` [EXTRACTED]
+- [[engine.ts]] - `imports_from` [EXTRACTED]
+- [[exec-context.ts]] - `imports_from` [EXTRACTED]
 - [[fractalSwings()]] - `contains` [EXTRACTED]
 - [[gapLeftBy()]] - `contains` [EXTRACTED]
 - [[gate-tuning.ts]] - `imports_from` [EXTRACTED]
@@ -97,6 +101,8 @@ tags:
 - [[gradeSweepQuality()]] - `contains` [EXTRACTED]
 - [[htf-invalidation.ts]] - `imports_from` [EXTRACTED]
 - [[judas-window.ts]] - `imports_from` [EXTRACTED]
+- [[kill-tune.mts]] - `imports_from` [EXTRACTED]
+- [[learning-backfill.mts]] - `imports_from` [EXTRACTED]
 - [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[ltf-reaction.ts]] - `imports_from` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
@@ -107,6 +113,8 @@ tags:
 - [[measure-judas.mjs]] - `dynamic_import` [EXTRACTED]
 - [[measure-model-claims.mjs]] - `dynamic_import` [EXTRACTED]
 - [[mechanicalWindowBars()]] - `contains` [EXTRACTED]
+- [[mtf-arrays.ts]] - `imports_from` [EXTRACTED]
+- [[mtf-context.ts]] - `imports_from` [EXTRACTED]
 - [[probe-closest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[raid-pair.ts]] - `imports_from` [EXTRACTED]
 - [[readArmingSweep()]] - `contains` [EXTRACTED]
@@ -114,8 +122,12 @@ tags:
 - [[rollingAtr()]] - `contains` [EXTRACTED]
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
+- [[setups.ts]] - `imports_from` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
 - [[shock.ts]] - `imports_from` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
+- [[smcdiscipline.ts]] - `imports_from` [EXTRACTED]
 - [[summarizeDetectors()]] - `contains` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[trace-session.mjs]] - `dynamic_import` [EXTRACTED]
@@ -129,4 +141,4 @@ tags:
 - [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

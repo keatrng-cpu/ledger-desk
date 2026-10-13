@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-sources.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # invest-sources.ts
@@ -51,4 +51,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[wire()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

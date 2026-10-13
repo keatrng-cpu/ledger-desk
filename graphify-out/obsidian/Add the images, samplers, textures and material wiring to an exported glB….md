@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_tex.py"
 type: "rationale"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L197"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # Add the images, samplers, textures and material wiring to an exported glB…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[embed()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/floor_packpy

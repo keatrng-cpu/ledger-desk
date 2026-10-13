@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-server.ts"
 type: "code"
-community: "Community 222"
+community: "getSql"
 location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/getSql
 ---
 
 # rhLinkStatus
@@ -22,4 +22,4 @@ tags:
 - [[rh-oauth.ts]] - `imports_from` [EXTRACTED]
 - [[rh-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/getSql

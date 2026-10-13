@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
+community: "live-types.ts"
 location: "L663"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/live-typests
 ---
 
 # FirmPolicy
@@ -15,4 +15,4 @@ tags:
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/live-typests

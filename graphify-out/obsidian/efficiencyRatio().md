@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/conditions.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # efficiencyRatio()
@@ -15,4 +15,4 @@ tags:
 - [[assessConditions()]] - `calls` [EXTRACTED]
 - [[conditions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

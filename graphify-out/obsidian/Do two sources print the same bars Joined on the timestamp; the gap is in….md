@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/bars.py"
 type: "rationale"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L59"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # Do two sources print the same bars? Joined on the timestamp; the gap is in…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[compare_bars()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_146
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

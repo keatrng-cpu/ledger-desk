@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L905"
+community: "evaluateOptionsDesk"
+location: "L909"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # orderPlanFor()
@@ -15,4 +15,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[toTicket()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

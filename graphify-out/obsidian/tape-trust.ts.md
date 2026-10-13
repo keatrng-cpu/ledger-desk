@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/market/tape-trust.ts"
 type: "code"
-community: "Community 164"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/build-deskts
 ---
 
 # tape-trust.ts
 
 ## Connections
 - [[MarketSource_1]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[TAPE_MAX_BARS_BEHIND]] - `contains` [EXTRACTED]
 - [[TapeGatedCard]] - `contains` [EXTRACTED]
 - [[TapeTrustInput]] - `contains` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-tape-trust.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/build-deskts

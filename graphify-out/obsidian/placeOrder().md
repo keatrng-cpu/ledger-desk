@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-dispatch.ts"
 type: "code"
-community: "Community 94"
-location: "L170"
+community: "rh-dispatch.ts"
+location: "L172"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # placeOrder()
@@ -24,4 +24,4 @@ tags:
 - [[runRhDesk()]] - `calls` [EXTRACTED]
 - [[sendClose()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_94
+#graphify/code #graphify/INFERRED #community/rh-dispatchts

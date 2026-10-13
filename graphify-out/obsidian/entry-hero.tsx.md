@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/desk/entry-hero.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # entry-hero.tsx
 
 ## Connections
 - [[ConflictChip()]] - `imports` [EXTRACTED]
-- [[Countdown()]] - `contains` [EXTRACTED]
+- [[Countdown()_1]] - `contains` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
 - [[EntryHero()]] - `contains` [EXTRACTED]
 - [[Plain()]] - `imports` [EXTRACTED]
@@ -26,11 +26,11 @@ tags:
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[plain-text.tsx]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[rh-account-strip.tsx]] - `imports_from` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[useAutomation()]] - `imports` [EXTRACTED]
 - [[useEntryState()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

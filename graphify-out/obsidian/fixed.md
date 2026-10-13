@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-all.mjs"
 type: "code"
-community: "Community 191"
+community: "verify-all.mjs"
 location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-allmjs
 ---
 
 # fixed
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-all.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-allmjs

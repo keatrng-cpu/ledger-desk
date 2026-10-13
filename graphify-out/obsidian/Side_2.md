@@ -1,20 +1,17 @@
 ---
-source_file: "src/lib/predict/signal-engine.ts"
+source_file: "src/lib/smc/setups.ts"
 type: "code"
-community: "Community 63"
-location: "L55"
+community: "buildTradingDesk"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/buildTradingDesk
 ---
 
 # Side
 
 ## Connections
-- [[PaperTicket]] - `references` [EXTRACTED]
-- [[paper-scorer.ts]] - `imports` [EXTRACTED]
-- [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
-- [[signal-engine.ts]] - `contains` [EXTRACTED]
+- [[setups.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

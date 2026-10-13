@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/market-narrative-panel.tsx"
 type: "code"
-community: "Community 69"
+community: "veteran-brain.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/veteran-braints
 ---
 
 # BookCard()
@@ -19,4 +19,4 @@ tags:
 - [[market-narrative-panel.tsx]] - `contains` [EXTRACTED]
 - [[narrativeCoachLines()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

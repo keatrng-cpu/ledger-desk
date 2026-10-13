@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 10"
+community: "FloorOverhaul"
 location: "L437"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/FloorOverhaul
 ---
 
 # .setProps()
@@ -17,4 +17,4 @@ tags:
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 - [[floorProps]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

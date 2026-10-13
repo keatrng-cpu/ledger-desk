@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 115"
+community: "cases.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/casests
 ---
 
 # cases.ts
@@ -22,13 +22,14 @@ tags:
 - [[EntryMode]] - `contains` [EXTRACTED]
 - [[LearnCase]] - `contains` [EXTRACTED]
 - [[LossKind]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SessionClock]] - `imports` [EXTRACTED]
 - [[SimResult]] - `contains` [EXTRACTED]
 - [[SmcLayer]] - `imports` [EXTRACTED]
 - [[Snapshot]] - `contains` [EXTRACTED]
 - [[TradePlan]] - `imports` [EXTRACTED]
 - [[analyzeStructure()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-learn-cases.mjs]] - `dynamic_import` [EXTRACTED]
 - [[buildCases()]] - `contains` [EXTRACTED]
 - [[buildMarketNarrative()]] - `imports` [EXTRACTED]
@@ -36,14 +37,13 @@ tags:
 - [[buildSteps()]] - `contains` [EXTRACTED]
 - [[chasePlan()]] - `contains` [EXTRACTED]
 - [[classifyLoss()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
-- [[dayChangePct()]] - `contains` [EXTRACTED]
+- [[dayChangePct()_2]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
 - [[drawOnLiquidity()]] - `imports` [EXTRACTED]
 - [[etDayKey()_1]] - `contains` [EXTRACTED]
 - [[etStamp()]] - `contains` [EXTRACTED]
-- [[etTime()]] - `contains` [EXTRACTED]
+- [[etTime()_1]] - `contains` [EXTRACTED]
 - [[getSessionClock()]] - `imports` [EXTRACTED]
 - [[gradeSmcMaster()]] - `imports` [EXTRACTED]
 - [[isJudasWindow()]] - `imports` [EXTRACTED]
@@ -52,14 +52,14 @@ tags:
 - [[news.ts]] - `imports_from` [EXTRACTED]
 - [[newsRead]] - `imports` [EXTRACTED]
 - [[probe-closest.mjs]] - `dynamic_import` [EXTRACTED]
-- [[px()_2]] - `contains` [EXTRACTED]
-- [[r2()_1]] - `contains` [EXTRACTED]
+- [[px()_4]] - `contains` [EXTRACTED]
+- [[r2()_4]] - `contains` [EXTRACTED]
 - [[readSession()]] - `imports` [EXTRACTED]
 - [[scanSetups()]] - `imports` [EXTRACTED]
 - [[selectForTeaching()]] - `contains` [EXTRACTED]
 - [[session-event.ts]] - `imports_from` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
-- [[simulate()]] - `contains` [EXTRACTED]
+- [[simulate()_1]] - `contains` [EXTRACTED]
 - [[simulateMarket()]] - `contains` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
@@ -73,4 +73,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/casests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 164"
+community: "index.tsx"
 location: "L272"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/indextsx
 ---
 
 # NY_AM_LIVE_LABEL
@@ -16,4 +16,4 @@ tags:
 - [[live-says.ts]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 9"
+community: "smc-master.ts"
 location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/smc-masterts
 ---
 
 # SWING_SPANS
@@ -15,4 +15,4 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

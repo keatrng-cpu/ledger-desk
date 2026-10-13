@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 51"
+community: "room-engine.ts"
 location: "L697"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/room-enginets
 ---
 
 # frameIsEvent()
@@ -17,4 +17,4 @@ tags:
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/room-enginets

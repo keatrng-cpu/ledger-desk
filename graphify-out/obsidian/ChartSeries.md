@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 160"
+community: "floor-screens.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/floor-screensts
 ---
 
 # ChartSeries
 
 ## Connections
-- [[OhlcBar]] - `references` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

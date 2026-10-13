@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/exec/exec-server.ts"
 type: "code"
-community: "Community 122"
+community: "exec-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/exec-serverts
 ---
 
 # exec-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[AuditRow]] - `imports` [EXTRACTED]
 - [[EXEC_FLAGS]] - `imports` [EXTRACTED]
 - [[EXEC_LIMITS]] - `imports` [EXTRACTED]
@@ -26,7 +26,7 @@ tags:
 - [[StepResult]] - `imports` [EXTRACTED]
 - [[authMiddleware]] - `imports` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[evidenceOf()]] - `imports` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exec-schema.ts]] - `imports_from` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[storeFor()]] - `contains` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/exec-serverts

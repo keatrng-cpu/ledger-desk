@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/long-board.ts"
 type: "code"
-community: "Community 128"
+community: "invest-office.ts"
 location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/invest-officets
 ---
 
 # CAPTURE_MAX_DAYS
@@ -16,4 +16,4 @@ tags:
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[long-board.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/invest-officets

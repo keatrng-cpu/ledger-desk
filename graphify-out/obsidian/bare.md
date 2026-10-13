@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-smc-master.mjs"
+source_file: "scripts/verify-school-gate.mjs"
 type: "code"
-community: "Community 119"
-location: "L237"
+community: "school-brief.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/school-briefts
 ---
 
 # bare
 
 ## Connections
-- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
+- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/school-briefts

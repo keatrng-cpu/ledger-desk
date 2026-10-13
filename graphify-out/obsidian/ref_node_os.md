@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 297"
+community: "verify-research-retain.mjs"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_297
+  - community/verify-research-retainmjs
 ---
 
 # ref_node_os
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[verify-research-retain.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_297
+#graphify/concept #graphify/EXTRACTED #community/verify-research-retainmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/providers.ts"
 type: "code"
-community: "Community 105"
+community: "auth/server.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/auth/serverts
 ---
 
 # GrokProvider
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[providers.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

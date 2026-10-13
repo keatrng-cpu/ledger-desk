@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 location: "L457"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # main()
@@ -15,9 +15,9 @@ tags:
 - [[collect()]] - `calls` [EXTRACTED]
 - [[direction-book.py]] - `contains` [EXTRACTED]
 - [[json_1]] - `calls` [EXTRACTED]
-- [[load()_2]] - `calls` [EXTRACTED]
+- [[load()_4]] - `calls` [EXTRACTED]
 - [[pack()]] - `calls` [EXTRACTED]
-- [[row()_2]] - `contains` [EXTRACTED]
+- [[row()]] - `contains` [EXTRACTED]
 - [[take_two()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

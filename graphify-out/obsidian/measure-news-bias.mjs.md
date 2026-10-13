@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-news-bias.mjs"
 type: "code"
-community: "Community 228"
+community: "measure-news-bias.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/measure-news-biasmjs
 ---
 
 # measure-news-bias.mjs
@@ -15,8 +15,8 @@ tags:
 - [[H_11]] - `contains` [EXTRACTED]
 - [[agree()_1]] - `contains` [EXTRACTED]
 - [[atrAt()_1]] - `contains` [EXTRACTED]
-- [[dayKey()_12]] - `contains` [EXTRACTED]
-- [[etMin()_2]] - `contains` [EXTRACTED]
+- [[dayKey()_10]] - `contains` [EXTRACTED]
+- [[etMin()_3]] - `contains` [EXTRACTED]
 - [[line()_1]] - `contains` [EXTRACTED]
 - [[measure()]] - `contains` [EXTRACTED]
 - [[pct()_8]] - `contains` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[weekday()_2]] - `contains` [EXTRACTED]
 - [[windowMove()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/measure-news-biasmjs

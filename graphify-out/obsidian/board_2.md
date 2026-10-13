@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/pm-analyzer.test.mjs"
+source_file: "scripts/verify-pm-signal-engine.mjs"
 type: "code"
-community: "Community 63"
-location: "L23"
+community: "verify-pm-signal-engine.mjs"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/verify-pm-signal-enginemjs
 ---
 
 # board
 
 ## Connections
-- [[pm-analyzer.test.mjs]] - `contains` [EXTRACTED]
+- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/verify-pm-signal-enginemjs

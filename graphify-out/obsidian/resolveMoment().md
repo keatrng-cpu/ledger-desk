@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L193"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # resolveMoment()
@@ -15,4 +15,4 @@ tags:
 - [[take-moments.ts]] - `contains` [EXTRACTED]
 - [[tickMomentOutcomes()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

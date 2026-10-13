@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/claude-server.ts"
 type: "code"
-community: "Community 123"
+community: "claude-server.ts"
 location: "L373"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_123
+  - community/claude-serverts
 ---
 
 # buildLoopContext()
@@ -24,4 +24,4 @@ tags:
 - [[readClosed()]] - `calls` [EXTRACTED]
 - [[recentStats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_123
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 120"
+community: "build_floor.py"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # hexrgb()
@@ -17,4 +17,4 @@ tags:
 - [[new_mat()]] - `calls` [EXTRACTED]
 - [[portrait_rig()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_120
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

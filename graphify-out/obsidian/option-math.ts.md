@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/option-math.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # option-math.ts
@@ -17,7 +17,7 @@ tags:
 - [[IV]] - `imports` [EXTRACTED]
 - [[OptionQuote]] - `contains` [EXTRACTED]
 - [[OptionType]] - `contains` [EXTRACTED]
-- [[StrikeOffset]] - `contains` [EXTRACTED]
+- [[StrikeOffset_1]] - `contains` [EXTRACTED]
 - [[Underlier]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
 - [[blackScholes()]] - `contains` [EXTRACTED]
@@ -26,7 +26,7 @@ tags:
 - [[counters.ts]] - `imports_from` [EXTRACTED]
 - [[decayToStop()]] - `contains` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
-- [[etDateOf()]] - `contains` [EXTRACTED]
+- [[etDateOf()_1]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[exec-server.ts]] - `imports_from` [EXTRACTED]
@@ -80,4 +80,4 @@ tags:
 - [[weekendMsBetween()]] - `contains` [EXTRACTED]
 - [[yearsToExpiry()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

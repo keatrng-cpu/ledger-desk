@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 37"
+community: "MeadScene"
 location: "L149"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # .tapFor()
@@ -16,4 +16,4 @@ tags:
 - [[dot-ticketFor()]] - `calls` [INFERRED]
 - [[FloorMead]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_37
+#graphify/code #graphify/INFERRED #community/MeadScene

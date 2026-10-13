@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/claude-handoff.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # claude-handoff.ts
@@ -15,9 +15,9 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
 - [[LIVE_PULSE_CONTRACT]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildClaudeHandoff()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[context.ts]] - `imports_from` [EXTRACTED]
 - [[copy-claude-handoff.tsx]] - `imports_from` [EXTRACTED]
 - [[discretion-memory.ts]] - `imports_from` [EXTRACTED]
@@ -41,4 +41,4 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-store.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

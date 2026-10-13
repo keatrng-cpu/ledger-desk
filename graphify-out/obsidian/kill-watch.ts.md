@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-watch.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # kill-watch.ts
@@ -39,4 +39,4 @@ tags:
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-kill-watch.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

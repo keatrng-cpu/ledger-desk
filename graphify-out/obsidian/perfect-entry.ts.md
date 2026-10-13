@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/perfect-entry.ts"
 type: "code"
-community: "Community 253"
+community: "crew-years.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_253
+  - community/crew-yearsts
 ---
 
 # perfect-entry.ts
@@ -18,4 +18,4 @@ tags:
 - [[crew-years.ts]] - `imports_from` [EXTRACTED]
 - [[gradePerfect()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_253
+#graphify/code #graphify/EXTRACTED #community/crew-yearsts

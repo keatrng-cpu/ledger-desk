@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/risk-panel.tsx"
 type: "code"
-community: "Community 44"
+community: "aplus/config.ts"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/aplus/configts
 ---
 
 # RiskPanel()
@@ -18,9 +18,9 @@ tags:
 - [[getPaperAccount()]] - `calls` [EXTRACTED]
 - [[getRiskState]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
+- [[load()_1]] - `calls` [EXTRACTED]
 - [[resetPaperAccount()]] - `calls` [EXTRACTED]
 - [[risk-panel.tsx]] - `contains` [EXTRACTED]
 - [[useDeskSynapse]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

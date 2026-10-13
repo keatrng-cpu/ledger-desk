@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/score-drivers.ts"
 type: "code"
-community: "Community 84"
+community: "strategy-grade.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/strategy-gradets
 ---
 
 # score-drivers.ts
@@ -25,7 +25,7 @@ tags:
 - [[PlanMark]] - `contains` [EXTRACTED]
 - [[SMC_STRUCTURE_KEYS]] - `imports` [EXTRACTED]
 - [[ScoreDriver]] - `contains` [EXTRACTED]
-- [[WEIGHTS]] - `imports` [EXTRACTED]
+- [[WEIGHTS_1]] - `imports` [EXTRACTED]
 - [[WHAT]] - `contains` [EXTRACTED]
 - [[card-plan.ts]] - `imports_from` [EXTRACTED]
 - [[engine-weights.ts]] - `imports_from` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-score-drivers.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

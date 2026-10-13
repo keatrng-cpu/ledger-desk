@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-entry-ticket.mjs"
+source_file: "scripts/verify-rh-oauth.mjs"
 type: "code"
-community: "Community 48"
-location: "L24"
+community: "rh-oauth.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/rh-oauthts
 ---
 
 # check()
 
 ## Connections
-- [[verify-entry-ticket.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-oauth.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

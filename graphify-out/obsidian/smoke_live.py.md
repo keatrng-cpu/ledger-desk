@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/smoke_live.py"
 type: "code"
-community: "Community 225"
+community: "smoke_live.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/smoke_livepy
 ---
 
 # smoke_live.py
@@ -22,4 +22,4 @@ tags:
 - [[sys]] - `imports` [EXTRACTED]
 - [[time]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_225
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

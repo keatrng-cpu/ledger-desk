@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/evidence-tiles.tsx"
 type: "code"
-community: "Community 9"
+community: "cn"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/cn
 ---
 
 # MiniBar()
@@ -15,6 +15,6 @@ tags:
 - [[EvidenceTiles()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[evidence-tiles.tsx]] - `contains` [EXTRACTED]
-- [[signedR()_3]] - `calls` [EXTRACTED]
+- [[signedR()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/cn

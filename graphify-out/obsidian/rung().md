@@ -1,18 +1,24 @@
 ---
-source_file: "src/lib/trading/school-brief.ts"
+source_file: "src/lib/smc/mtf-arrays.ts"
 type: "code"
-community: "Community 102"
-location: "L83"
+community: "buildTradingDesk"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/buildTradingDesk
 ---
 
 # rung()
 
 ## Connections
-- [[school-brief.ts]] - `contains` [EXTRACTED]
-- [[schoolBias()]] - `calls` [EXTRACTED]
+- [[RungRead]] - `calls` [EXTRACTED]
+- [[buildMtfContext()]] - `calls` [EXTRACTED]
+- [[continuationArray]] - `calls` [EXTRACTED]
+- [[detectFvgs()]] - `calls` [EXTRACTED]
+- [[mtf-arrays.ts]] - `contains` [EXTRACTED]
+- [[mtf-context.ts]] - `imports` [EXTRACTED]
+- [[mtfArrays()]] - `calls` [EXTRACTED]
+- [[resampleMs()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

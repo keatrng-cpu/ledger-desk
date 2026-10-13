@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 113"
+community: "FloorSound"
 location: "L281"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/FloorSound
 ---
 
 # .castSummary()
@@ -19,4 +19,4 @@ tags:
 - [[FloorSound]] - `method` [EXTRACTED]
 - [[isNaturalVoice()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/FloorSound

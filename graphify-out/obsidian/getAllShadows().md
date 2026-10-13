@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-store.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # getAllShadows()
@@ -19,4 +19,4 @@ tags:
 - [[shadow-store.ts]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

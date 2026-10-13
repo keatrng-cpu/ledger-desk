@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/learn/cases.ts"
+source_file: "src/components/desk/week-ahead-panel.tsx"
 type: "code"
-community: "Community 115"
-location: "L170"
+community: "week-ahead.ts"
+location: "L5"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/week-aheadts
 ---
 
 # px()
 
 ## Connections
-- [[Snapshot]] - `calls` [EXTRACTED]
-- [[buildSteps()]] - `calls` [EXTRACTED]
-- [[cases.ts]] - `contains` [EXTRACTED]
-- [[simulate()]] - `calls` [EXTRACTED]
-- [[simulateMarket()]] - `calls` [EXTRACTED]
+- [[BookCol()]] - `calls` [EXTRACTED]
+- [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

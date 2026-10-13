@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/live-lessons.tsx"
 type: "code"
-community: "Community 14"
+community: "live-lesson.ts"
 location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/live-lessonts
 ---
 
 # LiveLessonBoard()
@@ -19,4 +19,4 @@ tags:
 - [[readDone()]] - `calls` [EXTRACTED]
 - [[readLiveLessons()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

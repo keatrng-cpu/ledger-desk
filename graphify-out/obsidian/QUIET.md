@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 142"
+community: "verify-live-talk.mjs"
 location: "L598"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-live-talkmjs
 ---
 
 # QUIET
@@ -19,4 +19,4 @@ tags:
 - [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 - [[walker()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

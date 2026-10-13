@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/room/invest-office.ts"
+source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 100"
-location: "L52"
+community: "journal/analytics.ts"
+location: "L925"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/journal/analyticsts
 ---
 
 # round2()
 
 ## Connections
-- [[buildInvest()]] - `calls` [EXTRACTED]
-- [[invest-office.ts]] - `contains` [EXTRACTED]
+- [[bucketOf()]] - `calls` [EXTRACTED]
+- [[buildEquityCurve()]] - `calls` [EXTRACTED]
+- [[journalanalytics.ts]] - `contains` [EXTRACTED]
+- [[strategyVerdict]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/journal/analyticsts

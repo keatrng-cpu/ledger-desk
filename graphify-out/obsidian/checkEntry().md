@@ -1,26 +1,26 @@
 ---
 source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 150"
+community: "gates.ts"
 location: "L91"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/gatests
 ---
 
 # checkEntry()
 
 ## Connections
 - [[clockOf()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[execStep()]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[gates.ts]] - `contains` [EXTRACTED]
-- [[hhmm()_2]] - `calls` [EXTRACTED]
+- [[hhmm()_4]] - `calls` [EXTRACTED]
 - [[nextWeekday()]] - `calls` [EXTRACTED]
-- [[pct()_3]] - `calls` [EXTRACTED]
-- [[r2()_3]] - `calls` [EXTRACTED]
-- [[symbolOf()]] - `calls` [EXTRACTED]
+- [[pct()_12]] - `calls` [EXTRACTED]
+- [[r2()_6]] - `calls` [EXTRACTED]
+- [[symbolOf()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/gatests

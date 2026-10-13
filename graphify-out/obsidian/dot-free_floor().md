@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 269"
+community: "json"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_269
+  - community/json
 ---
 
 # .free_floor()
@@ -16,4 +16,4 @@ tags:
 - [[Dress]] - `method` [EXTRACTED]
 - [[True if a disc of radius r at three (x, z) touches no furniture footprint.]] - `rationale_for` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_269
+#graphify/code #graphify/EXTRACTED #community/json

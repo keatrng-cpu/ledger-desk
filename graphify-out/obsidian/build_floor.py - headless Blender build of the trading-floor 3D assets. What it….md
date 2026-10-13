@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 120"
+community: "build_floor.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # build_floor.py - headless Blender build of the trading-floor 3D assets. What it…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build_floor.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_120
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

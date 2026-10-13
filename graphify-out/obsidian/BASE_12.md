@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 298"
+community: "verify-rh-path-fire.mjs"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_298
+  - community/verify-rh-path-firemjs
 ---
 
 # BASE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_298
+#graphify/code #graphify/EXTRACTED #community/verify-rh-path-firemjs

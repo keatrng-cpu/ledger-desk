@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # pm-analyzer.tsx
@@ -30,12 +30,12 @@ tags:
 - [[PmAnalyzer]] - `imports_from` [EXTRACTED]
 - [[PmAnalyzer()]] - `contains` [EXTRACTED]
 - [[PredictTab()]] - `imports` [EXTRACTED]
-- [[REACT_COLOR]] - `contains` [EXTRACTED]
+- [[REACT_COLOR_1]] - `contains` [EXTRACTED]
 - [[Reaction]] - `imports` [EXTRACTED]
 - [[Record()]] - `contains` [EXTRACTED]
-- [[Ring()]] - `contains` [EXTRACTED]
+- [[Ring()_1]] - `contains` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
-- [[Side_2]] - `imports` [EXTRACTED]
+- [[Side_5]] - `imports` [EXTRACTED]
 - [[SignalBoard]] - `imports` [EXTRACTED]
 - [[SignalHallFeed]] - `imports` [EXTRACTED]
 - [[Stat()_1]] - `contains` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[addPaper()]] - `imports` [EXTRACTED]
 - [[calibrationScore()]] - `contains` [EXTRACTED]
 - [[categoryLabel()]] - `imports` [EXTRACTED]
-- [[cents()_1]] - `contains` [EXTRACTED]
+- [[cents()_4]] - `contains` [EXTRACTED]
 - [[clock()]] - `contains` [EXTRACTED]
 - [[createSignalHallFeed()]] - `imports` [EXTRACTED]
 - [[crowdLabel()]] - `imports` [EXTRACTED]
@@ -69,7 +69,7 @@ tags:
 - [[predict-server.ts]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readHallRecord()_1]] - `imports` [EXTRACTED]
 - [[scorePaper()]] - `imports` [EXTRACTED]
 - [[signalToHallMarket()]] - `imports` [EXTRACTED]
@@ -98,4 +98,4 @@ tags:
 - [[useSignalHall()]] - `contains` [EXTRACTED]
 - [[walkForward()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 108"
+community: "propfirm-panel.tsx"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/propfirm-paneltsx
 ---
 
 # CONTRACTS
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[apex-sim-panel.tsx]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `imports` [EXTRACTED]
-- [[config.ts]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `contains` [EXTRACTED]
 - [[journalserver.ts]] - `imports` [EXTRACTED]
 - [[log-setup-dialog.tsx]] - `imports` [EXTRACTED]
 - [[order-intent.ts]] - `imports` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[simulate-path-trade.ts]] - `imports` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

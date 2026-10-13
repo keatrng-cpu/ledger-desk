@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L323"
+community: "evaluateOptionsDesk"
+location: "L326"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # estimateSpot()
@@ -24,4 +24,4 @@ tags:
 - [[smtLead()_1]] - `calls` [EXTRACTED]
 - [[swingSpanCards()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

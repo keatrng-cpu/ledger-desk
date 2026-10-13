@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/use-current-user.ts"
 type: "code"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # useCurrentUser()
@@ -19,4 +19,4 @@ tags:
 - [[use-current-user.ts]] - `contains` [EXTRACTED]
 - [[useCurrentUserState()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/auth/clientts

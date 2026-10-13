@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 10"
+community: "manager-feed.ts"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/manager-feedts
 ---
 
 # ManagerCall
@@ -17,4 +17,4 @@ tags:
 - [[manager-feed.ts]] - `contains` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

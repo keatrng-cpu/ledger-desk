@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/agent-sync.mjs"
+source_file: "scripts/verify-trade-plan.mjs"
 type: "code"
-community: "Community 282"
-location: "L49"
+community: "verify-trade-plan.mjs"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_282
+  - community/verify-trade-planmjs
 ---
 
 # short
 
 ## Connections
-- [[agent-sync.mjs]] - `contains` [EXTRACTED]
+- [[verify-trade-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_282
+#graphify/code #graphify/EXTRACTED #community/verify-trade-planmjs

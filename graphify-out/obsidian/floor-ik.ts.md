@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 288"
+community: "floor-ik.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_288
+  - community/floor-ikts
 ---
 
 # floor-ik.ts
@@ -22,7 +22,7 @@ tags:
 - [[armElbow()]] - `contains` [EXTRACTED]
 - [[armHand()]] - `contains` [EXTRACTED]
 - [[armLengths()]] - `contains` [EXTRACTED]
-- [[clamp()_9]] - `contains` [EXTRACTED]
+- [[clamp()_8]] - `contains` [EXTRACTED]
 - [[cross()]] - `contains` [EXTRACTED]
 - [[dot()]] - `contains` [EXTRACTED]
 - [[eulerXYZ()]] - `contains` [EXTRACTED]
@@ -35,4 +35,4 @@ tags:
 - [[verify-floor-ik.mjs]] - `dynamic_import` [EXTRACTED]
 - [[wrapNear()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_288
+#graphify/code #graphify/EXTRACTED #community/floor-ikts

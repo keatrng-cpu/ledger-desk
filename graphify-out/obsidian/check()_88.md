@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-attestation.mjs"
+source_file: "scripts/verify-pm-signal-engine.mjs"
 type: "code"
-community: "Community 61"
-location: "L28"
+community: "verify-pm-signal-engine.mjs"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_61
+  - community/verify-pm-signal-enginemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-attestation.mjs]] - `contains` [EXTRACTED]
+- [[ok()_28]] - `calls` [EXTRACTED]
+- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_61
+#graphify/code #graphify/EXTRACTED #community/verify-pm-signal-enginemjs

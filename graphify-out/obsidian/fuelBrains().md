@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-fuel.ts"
 type: "code"
-community: "Community 300"
+community: "desk-atlas.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_300
+  - community/desk-atlasts
 ---
 
 # fuelBrains()
@@ -22,6 +22,6 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[saveAtlas()]] - `calls` [EXTRACTED]
-- [[savePeople()_1]] - `calls` [EXTRACTED]
+- [[savePeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_300
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

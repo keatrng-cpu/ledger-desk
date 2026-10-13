@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/engine/ingest.ts"
 type: "code"
-community: "Community 14"
+community: "ingest.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/ingestts
 ---
 
 # JsonValue
@@ -15,4 +15,4 @@ tags:
 - [[aplus-ops.tsx]] - `imports` [EXTRACTED]
 - [[ingest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/ingestts

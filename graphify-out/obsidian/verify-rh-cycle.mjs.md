@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-cycle.mjs"
 type: "code"
-community: "Community 83"
+community: "verify-rh-cycle.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_83
+  - community/verify-rh-cyclemjs
 ---
 
 # verify-rh-cycle.mjs
@@ -18,11 +18,11 @@ tags:
 - [[armed_1]] - `contains` [EXTRACTED]
 - [[armedCall]] - `contains` [EXTRACTED]
 - [[armedSideOf()]] - `imports` [EXTRACTED]
-- [[at()_13]] - `contains` [EXTRACTED]
+- [[at()_14]] - `contains` [EXTRACTED]
 - [[beAfter]] - `contains` [EXTRACTED]
 - [[beBefore]] - `contains` [EXTRACTED]
 - [[beRunning]] - `contains` [EXTRACTED]
-- [[check()_95]] - `contains` [EXTRACTED]
+- [[check()_94]] - `contains` [EXTRACTED]
 - [[closedThroughStop()]] - `imports` [EXTRACTED]
 - [[decideRhCycle()]] - `imports` [EXTRACTED]
 - [[dispatchIntact]] - `contains` [EXTRACTED]
@@ -61,7 +61,7 @@ tags:
 - [[pastEleven]] - `contains` [EXTRACTED]
 - [[pastElevenFlat]] - `contains` [EXTRACTED]
 - [[placed]] - `contains` [EXTRACTED]
-- [[refused_1]] - `contains` [EXTRACTED]
+- [[refused_2]] - `contains` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
 - [[sameSide]] - `contains` [EXTRACTED]
 - [[shapeOf()]] - `contains` [EXTRACTED]
@@ -71,4 +71,4 @@ tags:
 - [[wickOnly_1]] - `contains` [EXTRACTED]
 - [[wickRest]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_83
+#graphify/code #graphify/EXTRACTED #community/verify-rh-cyclemjs

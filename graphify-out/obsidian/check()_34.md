@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/floor-checks.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 189"
-location: "L38"
+community: "verify-exit-rules.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/verify-exit-rulesmjs
 ---
 
 # check()
 
 ## Connections
-- [[floor-checks.mjs]] - `contains` [EXTRACTED]
+- [[ok()_17]] - `calls` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_189
+#graphify/code #graphify/EXTRACTED #community/verify-exit-rulesmjs

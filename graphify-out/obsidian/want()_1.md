@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/blender/floor_pack.py"
+source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 202"
-location: "L129"
+community: "verify-room-exec.mjs"
+location: "L414"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/verify-room-execmjs
 ---
 
 # want()
 
 ## Connections
-- [[compact()_1]] - `contains` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-hit-odds.mjs"
+source_file: "scripts/verify-chart-timeframes.mjs"
 type: "code"
-community: "Community 151"
-location: "L32"
+community: "chart-timeframes.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_151
+  - community/chart-timeframests
 ---
 
 # ok()
 
 ## Connections
-- [[check()_21]] - `calls` [EXTRACTED]
-- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-chart-timeframes.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_151
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

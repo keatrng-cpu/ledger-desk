@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-cycle.ts"
 type: "code"
-community: "Community 56"
+community: "2. SHARED CONTRACTS"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/2_SHARED_CONTRACTS
 ---
 
 # RhHeld
@@ -18,4 +18,4 @@ tags:
 - [[rh-cycle.ts]] - `contains` [EXTRACTED]
 - [[rh-dispatch.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/2_SHARED_CONTRACTS

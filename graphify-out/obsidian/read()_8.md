@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-desk-job.mjs"
+source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 278"
-location: "L31"
+community: "verify-rh-path-fire.mjs"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_278
+  - community/verify-rh-path-firemjs
 ---
 
 # read()
 
 ## Connections
-- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_278
+#graphify/code #graphify/EXTRACTED #community/verify-rh-path-firemjs

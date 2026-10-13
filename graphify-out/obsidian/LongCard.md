@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/long-board.ts"
 type: "code"
-community: "Community 86"
+community: "invest-panel.tsx"
 location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-paneltsx
 ---
 
 # LongCard
@@ -17,4 +17,4 @@ tags:
 - [[long-board.ts]] - `contains` [EXTRACTED]
 - [[long-board.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

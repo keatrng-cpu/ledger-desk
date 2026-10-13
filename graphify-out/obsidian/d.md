@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-setup-memory.mjs"
+source_file: "scripts/dump-loss-features.mts"
 type: "code"
-community: "Community 144"
-location: "L191"
+community: "buildTradingDesk"
+location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_144
+  - community/buildTradingDesk
 ---
 
 # d
 
 ## Connections
-- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
+- [[dump-loss-features.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_144
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

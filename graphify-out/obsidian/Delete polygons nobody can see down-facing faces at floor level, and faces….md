@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_opt.py"
 type: "rationale"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L51"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # Delete polygons nobody can see: down-facing faces at floor level, and faces…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[hidden_faces()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_140
+#graphify/rationale #graphify/EXTRACTED #community/floor_aopy

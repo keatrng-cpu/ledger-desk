@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # place()
@@ -25,4 +25,4 @@ tags:
 - [[exMead()_1]] - `calls` [EXTRACTED]
 - [[live-voices-mead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

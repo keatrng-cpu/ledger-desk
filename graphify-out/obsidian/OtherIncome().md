@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/invest-office-panel.tsx"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # OtherIncome()
@@ -21,4 +21,4 @@ tags:
 - [[refreshInvestScreens()]] - `calls` [EXTRACTED]
 - [[saveOtherIncome()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

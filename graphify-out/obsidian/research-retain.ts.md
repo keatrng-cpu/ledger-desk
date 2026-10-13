@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/research-retain.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # research-retain.ts
@@ -18,8 +18,8 @@ tags:
 - [[FACTOR_FLOOR]] - `imports` [EXTRACTED]
 - [[QUOTE_EXECUTION_MAX_LAG_SEC]] - `imports` [EXTRACTED]
 - [[ResearchFacts_1]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
 - [[discretion.ts]] - `imports_from` [EXTRACTED]
 - [[discretionClause()]] - `contains` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

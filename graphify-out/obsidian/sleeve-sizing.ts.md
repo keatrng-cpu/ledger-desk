@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sleeve-sizing.ts"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # sleeve-sizing.ts
@@ -29,7 +29,7 @@ tags:
 - [[minDteFor()]] - `contains` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[orchestrator.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_12]] - `contains` [EXTRACTED]
+- [[round2()_14]] - `contains` [EXTRACTED]
 - [[sizeFromLiveContract()]] - `contains` [EXTRACTED]
 - [[sizeFromStop()]] - `contains` [EXTRACTED]
 - [[sleeveViolations()]] - `contains` [EXTRACTED]
@@ -41,4 +41,4 @@ tags:
 - [[verify-sleeve-sizing.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-trade-plan.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

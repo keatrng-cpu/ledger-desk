@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/xai-api/SKILL.md"
 type: "document"
-community: "Community 325"
+community: "xAI API (Grok)"
 location: "L15"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_325
+  - community/xAI_API_Grok
 ---
 
 # xAI API (Grok)
@@ -19,4 +19,4 @@ tags:
 - [[Voice — text-to-speech (server-only)]] - `contains` [EXTRACTED]
 - [[xai-apiSKILL]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_325
+#graphify/document #graphify/EXTRACTED #community/xAI_API_Grok

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/must-ring.tsx"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # arc()
@@ -15,4 +15,4 @@ tags:
 - [[MustRing()]] - `calls` [EXTRACTED]
 - [[must-ring.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

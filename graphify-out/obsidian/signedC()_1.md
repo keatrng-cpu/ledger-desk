@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # signedC()
@@ -16,4 +16,4 @@ tags:
 - [[Record()]] - `calls` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

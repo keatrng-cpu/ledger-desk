@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 105"
+community: "getSql"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/getSql
 ---
 
 # RUNTIME_URL_VARS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[db.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/getSql

@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/ticket-facts.ts"
 type: "code"
-community: "Community 187"
+community: "OhlcBar"
 location: "L171"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/OhlcBar
 ---
 
 # fourFacts
 
 ## Connections
 - [[BrainWord()]] - `calls` [EXTRACTED]
-- [[EntryRead]] - `references` [EXTRACTED]
+- [[EntryRead_1]] - `references` [EXTRACTED]
 - [[LtfReaction]] - `references` [EXTRACTED]
 - [[OptionTicket()]] - `calls` [EXTRACTED]
 - [[SmcMasterBook]] - `references` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[readLtfReaction()]] - `calls` [EXTRACTED]
 - [[ticket-facts.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

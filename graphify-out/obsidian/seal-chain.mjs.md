@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/seal-chain.mjs"
 type: "code"
-community: "Community 11"
+community: "ref_node_url"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_url
 ---
 
 # seal-chain.mjs
@@ -17,7 +17,7 @@ tags:
 - [[attest.ts]] - `dynamic_import` [EXTRACTED]
 - [[checkOnly]] - `contains` [EXTRACTED]
 - [[here]] - `contains` [EXTRACTED]
-- [[pg_1]] - `imports_from` [EXTRACTED]
+- [[pg]] - `imports_from` [EXTRACTED]
 - [[pool]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[sealPath]] - `contains` [EXTRACTED]
 - [[userIdx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

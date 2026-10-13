@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rh-desk-job.mjs"
+source_file: "scripts/verify-option-math-oracle.mjs"
 type: "code"
-community: "Community 278"
-location: "L25"
+community: "verify-option-math-oracle.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_278
+  - community/verify-option-math-oraclemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
+- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_278
+#graphify/code #graphify/EXTRACTED #community/verify-option-math-oraclemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/take-moments-panel.tsx"
 type: "code"
-community: "Community 145"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/indextsx
 ---
 
 # take-moments-panel.tsx
@@ -16,13 +16,13 @@ tags:
 - [[TakeMoment]] - `imports` [EXTRACTED]
 - [[TakeMomentsPanel()]] - `contains` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[etTime()_3]] - `contains` [EXTRACTED]
+- [[etTime()_5]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[loadMoments()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[subscribeMoments()]] - `imports` [EXTRACTED]
 - [[summarizeMoments()]] - `imports` [EXTRACTED]
 - [[take-moments.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/indextsx

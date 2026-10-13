@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-E.md"
 type: "document"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L91"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # Contract notes (D1)
@@ -15,4 +15,4 @@ tags:
 - [[D1 — what was actually broken]] - `contains` [EXTRACTED]
 - [[syncPaperBookToDb()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_87
+#graphify/document #graphify/EXTRACTED #community/paper-backfillts

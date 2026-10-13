@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 267"
+community: "floor-feet.ts"
 location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_267
+  - community/floor-feetts
 ---
 
 # Ankle
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-feet.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_267
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

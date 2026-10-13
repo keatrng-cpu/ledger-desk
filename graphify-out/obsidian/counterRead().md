@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/live-lesson.ts"
 type: "code"
-community: "Community 187"
+community: "live-lesson.ts"
 location: "L414"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/live-lessonts
 ---
 
 # counterRead()
@@ -17,4 +17,4 @@ tags:
 - [[readLiveLessons()]] - `calls` [EXTRACTED]
 - [[strongExtension()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

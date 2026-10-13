@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/drill.ts"
 type: "code"
-community: "Community 0"
+community: "live-world.ts"
 location: "L601"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/live-worldts
 ---
 
 # DrillStep
@@ -19,4 +19,4 @@ tags:
 - [[RoomInput]] - `references` [EXTRACTED]
 - [[roomdrill.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/live-worldts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 137"
-location: "L321"
+community: "day-context.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/day-contextts
 ---
 
 # all
 
 ## Connections
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/day-contextts

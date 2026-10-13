@@ -1,20 +1,20 @@
 ---
 source_file: "scripts/render-mead-attachments.mjs"
 type: "code"
-community: "Community 173"
+community: "render-mead-attachments.mjs"
 location: "L196"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_173
+  - community/render-mead-attachmentsmjs
 ---
 
 # tv()
 
 ## Connections
-- [[bar()_5]] - `calls` [EXTRACTED]
+- [[bar()_3]] - `calls` [EXTRACTED]
 - [[ironFrame()]] - `calls` [EXTRACTED]
 - [[render-mead-attachments.mjs]] - `contains` [EXTRACTED]
 - [[text()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_173
+#graphify/code #graphify/EXTRACTED #community/render-mead-attachmentsmjs

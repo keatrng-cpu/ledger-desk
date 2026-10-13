@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L453"
+community: "options-desk.ts"
+location: "L456"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # contractsWithinRisk()
@@ -16,4 +16,4 @@ tags:
 - [[sizeProduct()]] - `calls` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

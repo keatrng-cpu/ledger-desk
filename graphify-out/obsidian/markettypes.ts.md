@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/types.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # market/types.ts
@@ -18,7 +18,7 @@ tags:
 - [[LiveQuote]] - `contains` [EXTRACTED]
 - [[LiveQuotesPayload]] - `contains` [EXTRACTED]
 - [[MarketSource_1]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `contains` [EXTRACTED]
+- [[OhlcBar_1]] - `contains` [EXTRACTED]
 - [[QUOTE_EXECUTION_MAX_LAG_SEC]] - `contains` [EXTRACTED]
 - [[SymbolSeries]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
@@ -28,10 +28,12 @@ tags:
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
 - [[conditions.ts]] - `imports_from` [EXTRACTED]
 - [[databento.ts]] - `imports_from` [EXTRACTED]
+- [[day-context.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
 - [[dual-index-charts.tsx]] - `imports_from` [EXTRACTED]
+- [[exec-context.ts]] - `imports_from` [EXTRACTED]
 - [[exit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[fetch-dual.ts]] - `imports_from` [EXTRACTED]
 - [[fib.ts]] - `imports_from` [EXTRACTED]
@@ -41,14 +43,20 @@ tags:
 - [[hi-alert.ts]] - `imports_from` [EXTRACTED]
 - [[htf-invalidation.ts]] - `imports_from` [EXTRACTED]
 - [[judas-window.ts]] - `imports_from` [EXTRACTED]
+- [[learning.ts]] - `imports_from` [EXTRACTED]
 - [[live-gateway.ts]] - `imports_from` [EXTRACTED]
 - [[live-ladder.ts]] - `imports_from` [EXTRACTED]
 - [[live-lesson.ts]] - `imports_from` [EXTRACTED]
 - [[live-says.ts]] - `imports_from` [EXTRACTED]
+- [[loss-guards.ts]] - `imports_from` [EXTRACTED]
 - [[ltf-lead.ts]] - `imports_from` [EXTRACTED]
 - [[ltf-reaction.ts]] - `imports_from` [EXTRACTED]
+- [[macro.ts]] - `imports_from` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
 - [[month-ahead.ts]] - `imports_from` [EXTRACTED]
+- [[mtf-arrays.ts]] - `imports_from` [EXTRACTED]
+- [[mtf-context.ts]] - `imports_from` [EXTRACTED]
+- [[overnight.ts]] - `imports_from` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[pending-order.ts]] - `imports_from` [EXTRACTED]
 - [[print-bars.ts]] - `imports_from` [EXTRACTED]
@@ -61,11 +69,14 @@ tags:
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-mini-chart.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
+- [[setups.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
 - [[shock.ts]] - `imports_from` [EXTRACTED]
 - [[simulate-path-trade.ts]] - `imports_from` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
+- [[smcdiscipline.ts]] - `imports_from` [EXTRACTED]
 - [[smt-level.ts]] - `imports_from` [EXTRACTED]
 - [[spot-cross.ts]] - `imports_from` [EXTRACTED]
 - [[structure.ts]] - `imports_from` [EXTRACTED]
@@ -82,4 +93,4 @@ tags:
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

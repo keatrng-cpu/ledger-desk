@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/funnel.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # funnel.ts
@@ -30,9 +30,9 @@ tags:
 - [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[nextInSleeve()]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_13]] - `contains` [EXTRACTED]
+- [[round2()_8]] - `contains` [EXTRACTED]
 - [[splitSweep()]] - `contains` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[workedMonth()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

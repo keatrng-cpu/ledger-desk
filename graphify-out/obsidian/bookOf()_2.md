@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 137"
-location: "L275"
+community: "verify-race-talk.mjs"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/verify-race-talkmjs
 ---
 
 # bookOf()
 
 ## Connections
-- [[mkWorld()]] - `calls` [EXTRACTED]
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[mkWorld()_3]] - `calls` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/verify-race-talkmjs

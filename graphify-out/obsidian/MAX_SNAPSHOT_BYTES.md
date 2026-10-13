@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # MAX_SNAPSHOT_BYTES
@@ -16,4 +16,4 @@ tags:
 - [[snapshot-server.ts]] - `imports` [EXTRACTED]
 - [[snapshot.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

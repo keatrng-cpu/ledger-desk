@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-office.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # invest-office.ts
@@ -55,10 +55,10 @@ tags:
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[rateLadder]] - `imports` [EXTRACTED]
 - [[rh-income.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_1]] - `contains` [EXTRACTED]
+- [[round2()_3]] - `contains` [EXTRACTED]
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 - [[timeline()]] - `imports` [EXTRACTED]
 - [[usableThemes()]] - `imports` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

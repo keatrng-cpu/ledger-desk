@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/cron/exec-flatten.ts"
 type: "code"
-community: "Community 54"
+community: "routeTree.gen.ts"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # Route
@@ -16,4 +16,4 @@ tags:
 - [[exec-flatten.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/month-contract.ts"
 type: "code"
-community: "Community 159"
+community: "month-contract.ts"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_159
+  - community/month-contractts
 ---
 
 # CLOSES_PER_MONTH
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[month-contract.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_159
+#graphify/code #graphify/EXTRACTED #community/month-contractts

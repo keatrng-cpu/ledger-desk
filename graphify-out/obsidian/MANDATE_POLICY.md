@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exits.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # MANDATE_POLICY
@@ -15,4 +15,4 @@ tags:
 - [[exits.ts]] - `contains` [EXTRACTED]
 - [[lab.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # jaxMemory()
@@ -17,4 +17,4 @@ tags:
 - [[meeting.ts]] - `contains` [EXTRACTED]
 - [[triggerWait()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

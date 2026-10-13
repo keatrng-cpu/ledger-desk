@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/journal/discretion.ts"
+source_file: "src/lib/room/invest-office.ts"
 type: "code"
-community: "Community 155"
-location: "L109"
+community: "invest-office.ts"
+location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/invest-officets
 ---
 
 # round2()
 
 ## Connections
-- [[computeDiscretion()]] - `calls` [EXTRACTED]
-- [[discretion.ts]] - `contains` [EXTRACTED]
+- [[buildInvest()]] - `calls` [EXTRACTED]
+- [[invest-office.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/invest-officets

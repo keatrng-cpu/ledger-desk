@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 40"
+community: "smc-master.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # SmcTape
@@ -19,4 +19,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

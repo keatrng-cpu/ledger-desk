@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-D.md"
 type: "document"
-community: "Community 240"
+community: "journal/analytics.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_240
+  - community/journal/analyticsts
 ---
 
 # INTEGRATION-D — Phase C (evidence)
@@ -23,4 +23,4 @@ tags:
 - [[INTEGRATION-D]] - `contains` [EXTRACTED]
 - [[The one thing that matters]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_240
+#graphify/document #graphify/EXTRACTED #community/journal/analyticsts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 49"
+community: "live-talk.ts"
 location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-talkts
 ---
 
 # freshCatalysts()
@@ -25,4 +25,4 @@ tags:
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 - [[studyPack]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-talkts

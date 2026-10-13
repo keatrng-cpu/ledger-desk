@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/evidence.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # invest/evidence.ts
@@ -30,4 +30,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

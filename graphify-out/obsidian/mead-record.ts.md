@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-record.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # mead-record.ts
@@ -26,4 +26,4 @@ tags:
 - [[readJournal()]] - `imports` [EXTRACTED]
 - [[scorePaper()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

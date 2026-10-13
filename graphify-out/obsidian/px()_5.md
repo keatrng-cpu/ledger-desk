@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/ui/entry-state.ts"
+source_file: "src/lib/trading/sponsored-gap.ts"
 type: "code"
-community: "Community 130"
-location: "L61"
+community: "SmcArray"
+location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/SmcArray
 ---
 
 # px()
 
 ## Connections
-- [[deriveEntryState()]] - `calls` [EXTRACTED]
-- [[detectConflicts()]] - `calls` [EXTRACTED]
-- [[entry-state.ts]] - `contains` [EXTRACTED]
+- [[sponsored-gap.ts]] - `contains` [EXTRACTED]
+- [[sponsoredRead]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/SmcArray

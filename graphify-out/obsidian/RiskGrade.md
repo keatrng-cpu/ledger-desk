@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 26"
+community: "veteran-brain.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/veteran-braints
 ---
 
 # RiskGrade
@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[BuiltPaperLevels]] - `references` [EXTRACTED]
 - [[PathGateResult]] - `references` [EXTRACTED]
-- [[config.ts]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `contains` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `imports` [EXTRACTED]
 - [[simulate-path-trade.ts]] - `imports` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

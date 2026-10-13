@@ -1,12 +1,12 @@
 ---
 source_file: "ai/NOW.md"
 type: "document"
-community: "Community 158"
+community: "Log"
 location: "L56"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Log
 ---
 
 # Open questions (from plan §5 / HANDOFF; Keaton or named owner decides)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[NOW — ledger-desk current truth]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_158
+#graphify/document #graphify/EXTRACTED #community/Log

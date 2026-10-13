@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "scripts/verify-autofire-gates.mjs"
 type: "code"
-community: "Community 2"
-location: "L335"
+community: "ref_node_path"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/ref_node_path
 ---
 
 # read()
 
 ## Connections
-- [[board.ts]] - `contains` [EXTRACTED]
-- [[buildBoard()]] - `calls` [EXTRACTED]
-- [[entryEdge()]] - `calls` [EXTRACTED]
+- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

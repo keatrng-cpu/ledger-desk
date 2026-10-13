@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # asLab()
@@ -16,7 +16,7 @@ tags:
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[emptyLab()]] - `calls` [EXTRACTED]
 - [[exitWatchOf()]] - `calls` [EXTRACTED]
-- [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[lab.ts]] - `contains` [EXTRACTED]
 - [[paper-book.ts]] - `imports` [EXTRACTED]
 - [[race.ts]] - `imports` [EXTRACTED]
@@ -28,4 +28,4 @@ tags:
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

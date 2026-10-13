@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 51"
+community: "trading-floor-tab.tsx"
 location: "L1060"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/trading-floor-tabtsx
 ---
 
 # VotePanel()
@@ -17,4 +17,4 @@ tags:
 - [[pc()_5]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

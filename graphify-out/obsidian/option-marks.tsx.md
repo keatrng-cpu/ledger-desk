@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/option-marks.tsx"
 type: "code"
-community: "Community 315"
+community: "rh-dispatch.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_315
+  - community/rh-dispatchts
 ---
 
 # option-marks.tsx
@@ -18,4 +18,4 @@ tags:
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_315
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

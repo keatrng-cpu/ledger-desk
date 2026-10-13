@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/cron/rh-manage.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L176"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # run()
@@ -20,7 +20,7 @@ tags:
 - [[deskTrusted()]] - `calls` [EXTRACTED]
 - [[etWindow_1]] - `calls` [EXTRACTED]
 - [[exec-sql.ts]] - `imports_from` [EXTRACTED]
-- [[handle()_2]] - `calls` [EXTRACTED]
+- [[handle()_3]] - `calls` [EXTRACTED]
 - [[isForced()]] - `calls` [EXTRACTED]
 - [[rh-dispatch.ts]] - `imports_from` [EXTRACTED]
 - [[rh-ledger.ts]] - `imports_from` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[rhManageDue()]] - `calls` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

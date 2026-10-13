@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 123"
+community: "claude-server.ts"
 location: "L211"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_123
+  - community/claude-serverts
 ---
 
 # neutralDiscretion()
@@ -18,4 +18,4 @@ tags:
 - [[discretion.ts]] - `contains` [EXTRACTED]
 - [[discretionFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_123
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

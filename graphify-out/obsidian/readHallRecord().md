@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/hall-read.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # readHallRecord()
@@ -22,4 +22,4 @@ tags:
 - [[recordLiteFrom()]] - `calls` [EXTRACTED]
 - [[scorePaper()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

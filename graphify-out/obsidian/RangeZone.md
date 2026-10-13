@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-cues.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # RangeZone
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-cues.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

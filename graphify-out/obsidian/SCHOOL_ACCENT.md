@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/school-contract.ts"
 type: "code"
-community: "Community 10"
+community: "floor-overhaul.ts"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-overhaults
 ---
 
 # SCHOOL_ACCENT
@@ -16,4 +16,4 @@ tags:
 - [[floor-race-replay.ts]] - `imports` [EXTRACTED]
 - [[school-contract.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

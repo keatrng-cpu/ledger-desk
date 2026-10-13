@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_pack.py"
 type: "rationale"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L54"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # The accessor's elements as tightly packed bytes (stride removed). Sparse…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[accessor_bytes()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/floor_packpy

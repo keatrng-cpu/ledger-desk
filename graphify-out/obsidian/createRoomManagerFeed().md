@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 158"
+community: "manager-feed.ts"
 location: "L372"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # createRoomManagerFeed()
@@ -20,4 +20,4 @@ tags:
 - [[managerStateWaiting()]] - `calls` [EXTRACTED]
 - [[roomManagerFeed]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

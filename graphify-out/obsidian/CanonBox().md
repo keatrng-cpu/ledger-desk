@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/canon-box.tsx"
 type: "code"
-community: "Community 305"
+community: "canon.ts"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_305
+  - community/canonts
 ---
 
 # CanonBox()
@@ -18,4 +18,4 @@ tags:
 - [[statusStyle()]] - `calls` [EXTRACTED]
 - [[whoColor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_305
+#graphify/code #graphify/EXTRACTED #community/canonts

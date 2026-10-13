@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-word-hold.mjs"
+source_file: "scripts/verify-overnight.mjs"
 type: "code"
-community: "Community 8"
-location: "L39"
+community: "options-swing-panel.tsx"
+location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/options-swing-paneltsx
 ---
 
 # desk()
 
 ## Connections
-- [[book()_6]] - `calls` [EXTRACTED]
-- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
+- [[verify-overnight.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

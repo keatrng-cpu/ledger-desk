@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 321"
+community: "replay-drill.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_321
+  - community/replay-drillts
 ---
 
 # src_data_replay_drills
@@ -14,4 +14,4 @@ tags:
 - [[ReplayDrill()]] - `imports_from` [EXTRACTED]
 - [[replay-drill.tsx]] - `dynamic_import` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_321
+#graphify/concept #graphify/EXTRACTED #community/replay-drillts

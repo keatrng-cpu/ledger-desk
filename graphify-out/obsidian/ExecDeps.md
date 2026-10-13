@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # ExecDeps
@@ -17,4 +17,4 @@ tags:
 - [[OptionsBroker]] - `references` [EXTRACTED]
 - [[executor.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

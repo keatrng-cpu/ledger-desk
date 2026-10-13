@@ -1,20 +1,23 @@
 ---
-source_file: "src/lib/trading/shadow-book.ts"
+source_file: "src/lib/desk/card-journal.ts"
 type: "code"
-community: "Community 111"
-location: "L149"
+community: "card-journal.ts"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/card-journalts
 ---
 
 # etDayKey()
 
 ## Connections
-- [[ShadowBookPanel()]] - `calls` [EXTRACTED]
-- [[openShadows()]] - `calls` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
-- [[shadow-book.ts]] - `contains` [EXTRACTED]
+- [[card-journal.ts]] - `contains` [EXTRACTED]
+- [[journalCards()]] - `calls` [EXTRACTED]
+- [[journalReport()]] - `calls` [EXTRACTED]
+- [[learning.ts]] - `imports` [EXTRACTED]
+- [[learningReport()]] - `indirect_call` [INFERRED]
+- [[resolveJournal()]] - `calls` [EXTRACTED]
+- [[snapshotCards()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/card-journalts

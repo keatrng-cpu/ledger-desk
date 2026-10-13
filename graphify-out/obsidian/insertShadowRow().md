@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/shadow.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # insertShadowRow()
@@ -18,4 +18,4 @@ tags:
 - [[shadow.ts]] - `contains` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

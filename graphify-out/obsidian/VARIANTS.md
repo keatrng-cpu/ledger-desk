@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/measure-entry-location.mjs"
 type: "code"
-community: "Community 115"
-location: "L31"
+community: "measure-entry-location.mjs"
+location: "L231"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/measure-entry-locationmjs
 ---
 
 # VARIANTS
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[measure-entry-location.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/measure-entry-locationmjs

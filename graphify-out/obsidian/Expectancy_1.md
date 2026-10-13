@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/target-odds.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L217"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # Expectancy
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[target-odds.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/room/spoken-form.ts"
+source_file: "src/lib/execution/rh-http.ts"
 type: "code"
-community: "Community 96"
-location: "L126"
+community: "rh-dispatch.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/rh-dispatchts
 ---
 
 # num()
 
 ## Connections
-- [[moneyWords()]] - `calls` [EXTRACTED]
-- [[numbersOf()_3]] - `calls` [EXTRACTED]
-- [[plural()_4]] - `calls` [EXTRACTED]
-- [[spoken-form.ts]] - `contains` [EXTRACTED]
-- [[units()]] - `calls` [EXTRACTED]
+- [[rh-http.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

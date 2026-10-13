@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-fetch-guard.ts"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L141"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # riskEntryAllowed()
@@ -17,4 +17,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[riskHalted()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

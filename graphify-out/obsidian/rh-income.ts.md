@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 153"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # rh-income.ts
@@ -38,7 +38,7 @@ tags:
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[overnight-board.tsx]] - `imports_from` [EXTRACTED]
 - [[overnight-swing.ts]] - `imports_from` [EXTRACTED]
-- [[persist()]] - `contains` [EXTRACTED]
+- [[persist()_1]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `re_exports` [EXTRACTED]
 - [[readRhIncome()]] - `contains` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports_from` [EXTRACTED]
@@ -46,4 +46,4 @@ tags:
 - [[subscribeRhIncome()]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

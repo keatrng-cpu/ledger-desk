@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 284"
+community: "invest-office.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # schedule.ts
@@ -15,7 +15,7 @@ tags:
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[BLACKOUT_MIN]] - `contains` [EXTRACTED]
 - [[CAL]] - `contains` [EXTRACTED]
-- [[CalEvent_1]] - `contains` [EXTRACTED]
+- [[CalEvent]] - `contains` [EXTRACTED]
 - [[Density]] - `contains` [EXTRACTED]
 - [[EARN]] - `contains` [EXTRACTED]
 - [[EarningsDoc]] - `contains` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[timeline()]] - `contains` [EXTRACTED]
 - [[verify-news-ipo.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_284
+#graphify/code #graphify/EXTRACTED #community/invest-officets

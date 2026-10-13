@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-shadow-replay.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 20"
-location: "L140"
+community: "verify-exit-rules.mjs"
+location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/verify-exit-rulesmjs
 ---
 
 # card
 
 ## Connections
-- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/verify-exit-rulesmjs

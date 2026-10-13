@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/research-card.tsx"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # research-card.tsx
@@ -41,9 +41,9 @@ tags:
 - [[investformat.ts]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[oldestAsOf()]] - `imports` [EXTRACTED]
-- [[pct()_15]] - `imports` [EXTRACTED]
+- [[pct()_14]] - `imports` [EXTRACTED]
 - [[qualityRead]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[requiredVsDelivered]] - `imports` [EXTRACTED]
 - [[sensitivity()]] - `imports` [EXTRACTED]
 - [[snapshotCapturedAt()]] - `imports` [EXTRACTED]
@@ -53,4 +53,4 @@ tags:
 - [[verdictFor()_1]] - `imports` [EXTRACTED]
 - [[weightInFund()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/client.ts"
 type: "code"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # signIn()
@@ -21,4 +21,4 @@ tags:
 - [[signOut()]] - `calls` [EXTRACTED]
 - [[waitForPopupToken()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/auth/clientts

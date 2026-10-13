@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 0"
+community: "live-world.ts"
 location: "L307"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/live-worldts
 ---
 
 # Beat
 
 ## Connections
-- [[Facts]] - `references` [EXTRACTED]
+- [[Facts_1]] - `references` [EXTRACTED]
 - [[Situation]] - `references` [EXTRACTED]
 - [[TalkWorld]] - `references` [EXTRACTED]
 - [[WorldInput]] - `references` [EXTRACTED]
@@ -22,4 +22,4 @@ tags:
 - [[meeting.ts]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/live-worldts

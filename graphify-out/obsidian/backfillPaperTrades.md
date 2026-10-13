@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/paper-backfill.ts"
 type: "code"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # backfillPaperTrades
@@ -18,4 +18,4 @@ tags:
 - [[paper-backfill.ts]] - `contains` [EXTRACTED]
 - [[syncPaperBookToDb()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/paper-backfillts

@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/rh/connect.ts"
+source_file: "src/routes/api/rh/callback.ts"
 type: "code"
-community: "Community 65"
-location: "L47"
+community: "rh-oauth.ts"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/rh-oauthts
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[connect.ts]] - `contains` [EXTRACTED]
+- [[callback.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

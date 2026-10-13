@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 20"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/orchestratorts
 ---
 
 # sessions.ts
@@ -136,4 +136,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

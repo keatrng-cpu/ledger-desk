@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-source-check.mjs"
+source_file: "scripts/verify-word-hold.mjs"
 type: "code"
-community: "Community 286"
-location: "L16"
+community: "word-hysteresis.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_286
+  - community/word-hysteresists
 ---
 
 # check()
 
 ## Connections
-- [[verify-source-check.mjs]] - `contains` [EXTRACTED]
+- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_286
+#graphify/code #graphify/EXTRACTED #community/word-hysteresists

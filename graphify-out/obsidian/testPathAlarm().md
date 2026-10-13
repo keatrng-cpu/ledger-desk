@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 48"
-location: "L496"
+community: "react"
+location: "L498"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # testPathAlarm()
@@ -18,4 +18,4 @@ tags:
 - [[playAlarmTone()]] - `calls` [EXTRACTED]
 - [[showOsNote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

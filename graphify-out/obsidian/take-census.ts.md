@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-census.ts"
 type: "code"
-community: "Community 229"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/indextsx
 ---
 
 # take-census.ts
@@ -23,11 +23,11 @@ tags:
 - [[census]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[loadCensus()]] - `contains` [EXTRACTED]
-- [[median()_3]] - `contains` [EXTRACTED]
+- [[median()_4]] - `contains` [EXTRACTED]
 - [[recordPoll()]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[take-census-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[verify-take-census.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/news.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L229"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # newsRead
@@ -21,7 +21,7 @@ tags:
 - [[calendarExhausted()]] - `calls` [EXTRACTED]
 - [[cases.ts]] - `imports` [EXTRACTED]
 - [[effectiveCalendar()]] - `calls` [EXTRACTED]
-- [[etDateOf()_1]] - `calls` [EXTRACTED]
+- [[etDateOf()]] - `calls` [EXTRACTED]
 - [[etWallToEpochMs()]] - `calls` [EXTRACTED]
 - [[management.ts]] - `imports` [EXTRACTED]
 - [[news-chip.tsx]] - `imports` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[shouldFlatten()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

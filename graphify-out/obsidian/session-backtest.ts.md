@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 46"
+community: "session-backtest.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/session-backtestts
 ---
 
 # session-backtest.ts
@@ -20,10 +20,10 @@ tags:
 - [[DayBacktestRow]] - `contains` [EXTRACTED]
 - [[IndexSymbol]] - `imports` [EXTRACTED]
 - [[MAX_BACKTEST_FETCH_DAYS]] - `contains` [EXTRACTED]
-- [[MONTHS_3]] - `contains` [EXTRACTED]
+- [[MONTHS_2]] - `contains` [EXTRACTED]
 - [[NY_LOAD_END]] - `contains` [EXTRACTED]
 - [[NY_LOAD_START]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PAPER_START_EQUITY]] - `imports` [EXTRACTED]
 - [[PATH_MONTH_CAP]] - `imports` [EXTRACTED]
 - [[PROFIT_ACTION_FLOOR]] - `imports` [EXTRACTED]
@@ -37,6 +37,7 @@ tags:
 - [[analysisToMarkdown()]] - `imports` [EXTRACTED]
 - [[analyzeStructure()]] - `imports` [EXTRACTED]
 - [[analyzeTradezella()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[assertCausal()]] - `contains` [EXTRACTED]
 - [[assessConditions()]] - `imports` [EXTRACTED]
 - [[bestDays]] - `contains` [EXTRACTED]
@@ -46,7 +47,6 @@ tags:
 - [[causalOneMinute()]] - `contains` [EXTRACTED]
 - [[clampWindow()]] - `contains` [EXTRACTED]
 - [[conditions.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[databento.ts]] - `imports_from` [EXTRACTED]
 - [[dateKeyEt()]] - `contains` [EXTRACTED]
 - [[dead_1]] - `contains` [EXTRACTED]
@@ -56,7 +56,7 @@ tags:
 - [[describeProfitRules()]] - `imports` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[emptyBookCounters()]] - `imports` [EXTRACTED]
-- [[etParts()_2]] - `contains` [EXTRACTED]
+- [[etParts()_1]] - `contains` [EXTRACTED]
 - [[fetchBacktestLayers()]] - `imports` [EXTRACTED]
 - [[formatSkipAsProcessWin()]] - `imports` [EXTRACTED]
 - [[getPaperAccount()]] - `imports` [EXTRACTED]
@@ -67,7 +67,7 @@ tags:
 - [[isGoldStandardSetup()]] - `imports` [EXTRACTED]
 - [[isPathTake()]] - `imports` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
-- [[md_1]] - `contains` [EXTRACTED]
+- [[md_2]] - `contains` [EXTRACTED]
 - [[monthKeyFromMs()]] - `imports` [EXTRACTED]
 - [[normalizeBacktestQuery()]] - `contains` [EXTRACTED]
 - [[nySessionWindowBars()]] - `contains` [EXTRACTED]
@@ -104,11 +104,11 @@ tags:
 - [[symbols()]] - `indirect_call` [INFERRED]
 - [[synth]] - `contains` [EXTRACTED]
 - [[takePathTrade()]] - `contains` [EXTRACTED]
-- [[trades]] - `contains` [EXTRACTED]
+- [[trades_1]] - `contains` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `imports_from` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `imports_from` [EXTRACTED]
 - [[tradezella-server.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[tradingDaysInWindow()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

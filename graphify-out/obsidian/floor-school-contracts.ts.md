@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-school-contracts.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # floor-school-contracts.ts
@@ -25,7 +25,7 @@ tags:
 - [[FLOOR_SCHOOL_AVATAR]] - `contains` [EXTRACTED]
 - [[FLOOR_SCHOOL_FIELD_INVENTORY]] - `contains` [EXTRACTED]
 - [[FLOOR_SCHOOL_SEAT_IDS]] - `contains` [EXTRACTED]
-- [[Facts]] - `imports` [EXTRACTED]
+- [[Facts_1]] - `imports` [EXTRACTED]
 - [[FieldStatus]] - `contains` [EXTRACTED]
 - [[FloorSchoolDebateBriefing]] - `contains` [EXTRACTED]
 - [[FloorSchoolHitRateRank]] - `contains` [EXTRACTED]
@@ -98,4 +98,4 @@ tags:
 - [[widenMustFromSmcLayers()]] - `contains` [EXTRACTED]
 - [[widenSignatureFromSmc()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

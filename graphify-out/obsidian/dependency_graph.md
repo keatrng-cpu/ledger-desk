@@ -1,12 +1,12 @@
 ---
 source_file: ".ai/dependency_graph.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # dependency_graph.md
@@ -15,4 +15,4 @@ tags:
 - [[CLAUDE]] - `references` [EXTRACTED]
 - [[Dependency graph]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

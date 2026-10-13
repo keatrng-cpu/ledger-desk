@@ -1,17 +1,23 @@
 ---
-source_file: "src/lib/room/invest-themes.ts"
+source_file: "src/lib/trading/evidence.ts"
 type: "code"
-community: "Community 128"
-location: "L62"
+community: "cn"
+location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/cn
 ---
 
 # EVIDENCE
 
 ## Connections
-- [[invest-themes.ts]] - `contains` [EXTRACTED]
+- [[apex-sim.ts]] - `imports` [EXTRACTED]
+- [[debate.ts]] - `imports` [EXTRACTED]
+- [[evidence-table.tsx]] - `imports` [EXTRACTED]
+- [[evidence-tiles.tsx]] - `imports` [EXTRACTED]
+- [[profit-path.tsx]] - `imports` [EXTRACTED]
+- [[research.ts]] - `imports` [EXTRACTED]
+- [[tradingevidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/cn

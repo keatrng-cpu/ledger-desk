@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
+community: "FloorScene"
 location: "L3431"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # .setPov()
@@ -17,4 +17,4 @@ tags:
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[TradingFloorTab()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/brand-check.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # MAX_CARD_BYTES
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[brand-check.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

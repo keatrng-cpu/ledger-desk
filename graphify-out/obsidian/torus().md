@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 112"
+community: "build_floor.py"
 location: "L403"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_112
+  - community/build_floorpy
 ---
 
 # torus()
@@ -24,4 +24,4 @@ tags:
 - [[f_headset_stand()]] - `calls` [EXTRACTED]
 - [[f_punching_bag()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_112
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

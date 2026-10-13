@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 138"
+community: "verify-target-odds.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_138
+  - community/verify-target-oddsmjs
 ---
 
 # verify-target-odds.mjs
@@ -15,20 +15,20 @@ tags:
 - [[allDown]] - `contains` [EXTRACTED]
 - [[allUp]] - `contains` [EXTRACTED]
 - [[bad]] - `contains` [EXTRACTED]
-- [[bar()_1]] - `contains` [EXTRACTED]
-- [[check()_13]] - `contains` [EXTRACTED]
+- [[bar()]] - `contains` [EXTRACTED]
+- [[check()_8]] - `contains` [EXTRACTED]
 - [[down()]] - `contains` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
 - [[e]] - `contains` [EXTRACTED]
 - [[es]] - `contains` [EXTRACTED]
 - [[few]] - `contains` [EXTRACTED]
 - [[flat]] - `contains` [EXTRACTED]
-- [[hist_1]] - `contains` [EXTRACTED]
+- [[hist]] - `contains` [EXTRACTED]
 - [[noT1]] - `contains` [EXTRACTED]
 - [[noT2]] - `contains` [EXTRACTED]
 - [[none]] - `contains` [EXTRACTED]
 - [[odds]] - `contains` [EXTRACTED]
-- [[ok()_4]] - `contains` [EXTRACTED]
+- [[ok()_3]] - `contains` [EXTRACTED]
 - [[r1_1]] - `contains` [EXTRACTED]
 - [[r2]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
@@ -42,4 +42,4 @@ tags:
 - [[up()_1]] - `contains` [EXTRACTED]
 - [[withRunner]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/EXTRACTED #community/verify-target-oddsmjs

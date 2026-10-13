@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # rh-autofire-gates.ts
@@ -42,9 +42,9 @@ tags:
 - [[RhPathBand]] - `contains` [EXTRACTED]
 - [[RhStrikeOffset]] - `contains` [EXTRACTED]
 - [[RhTicketEnvelope]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[confidenceFloorFor()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contractsAfterEvent()]] - `contains` [EXTRACTED]
 - [[contractsForScore()]] - `contains` [EXTRACTED]
 - [[evaluateRhAutofireGates()]] - `contains` [EXTRACTED]
@@ -80,6 +80,8 @@ tags:
 - [[rhLinkStatus]] - `imports_from` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `contains` [EXTRACTED]
 - [[rhSpendable()]] - `contains` [EXTRACTED]
+- [[rules-parity.test.mjs]] - `imports_from` [EXTRACTED]
+- [[shared_desk_rules]] - `imports_from` [EXTRACTED]
 - [[verify-lab-constants.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
@@ -88,4 +90,4 @@ tags:
 - [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

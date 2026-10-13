@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 26"
+community: "veteran-brain.ts"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/veteran-braints
 ---
 
 # BuiltPaperLevels
@@ -17,4 +17,4 @@ tags:
 - [[order-intent.ts]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

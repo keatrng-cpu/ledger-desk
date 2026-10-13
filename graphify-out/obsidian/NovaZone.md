@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # NovaZone
@@ -16,4 +16,4 @@ tags:
 - [[agents.ts]] - `imports` [EXTRACTED]
 - [[orchestrator.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

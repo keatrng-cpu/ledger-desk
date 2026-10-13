@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-feed.ts"
 type: "code"
-community: "Community 162"
+community: "live-voices.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-voicests
 ---
 
 # jobsFor()
@@ -18,4 +18,4 @@ tags:
 - [[live-voices.ts]] - `imports` [EXTRACTED]
 - [[recordEvents()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-voicests

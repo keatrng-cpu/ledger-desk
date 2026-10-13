@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/market/fetch-dual.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # fetch-dual.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[DualIndexError]] - `imports` [EXTRACTED]
 - [[DualIndexPayload]] - `imports` [EXTRACTED]
 - [[DualRangeKey]] - `contains` [EXTRACTED]
@@ -41,4 +41,4 @@ tags:
 - [[rebaseQuote()]] - `imports` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

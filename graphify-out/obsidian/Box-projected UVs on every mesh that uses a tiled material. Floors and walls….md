@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_tex.py"
 type: "rationale"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L132"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # Box-projected UVs on every mesh that uses a tiled material. Floors and walls…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[add_uvs()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/floor_packpy

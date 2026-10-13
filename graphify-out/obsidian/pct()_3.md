@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/exec/gates.ts"
+source_file: "src/components/lab/replay-report.tsx"
 type: "code"
-community: "Community 150"
-location: "L22"
+community: "dual-index-charts.tsx"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/dual-index-chartstsx
 ---
 
 # pct()
 
 ## Connections
-- [[checkEntry()]] - `calls` [EXTRACTED]
-- [[gates.ts]] - `contains` [EXTRACTED]
+- [[ReplayReport()]] - `calls` [EXTRACTED]
+- [[replay-report.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/entry-state.ts"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L256"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # Conflict
@@ -15,4 +15,4 @@ tags:
 - [[conflict-chip.tsx]] - `imports` [EXTRACTED]
 - [[entry-state.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

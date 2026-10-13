@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-repo-guards.mjs"
 type: "code"
-community: "Community 314"
+community: "ref_node_url"
 location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_314
+  - community/ref_node_url
 ---
 
 # STUB_MARKERS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_314
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

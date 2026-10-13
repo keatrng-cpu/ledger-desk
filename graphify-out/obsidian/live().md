@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-sleeve-sizing.mjs"
 type: "code"
-community: "Community 301"
+community: "verify-sleeve-sizing.mjs"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_301
+  - community/verify-sleeve-sizingmjs
 ---
 
 # live()
@@ -15,4 +15,4 @@ tags:
 - [[Hard rules (do not drift)]] - `references` [INFERRED]
 - [[verify-sleeve-sizing.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_301
+#graphify/code #graphify/EXTRACTED #community/verify-sleeve-sizingmjs

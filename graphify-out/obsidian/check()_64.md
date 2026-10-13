@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-geometry.mjs"
+source_file: "scripts/verify-research-retain.mjs"
 type: "code"
-community: "Community 250"
-location: "L21"
+community: "verify-research-retain.mjs"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_250
+  - community/verify-research-retainmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
+- [[verify-research-retain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_250
+#graphify/code #graphify/EXTRACTED #community/verify-research-retainmjs

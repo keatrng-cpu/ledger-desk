@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 26"
+community: "trade-log.ts"
 location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/trade-logts
 ---
 
 # APLUS_FULL_SIZE_MIN_N
@@ -16,4 +16,4 @@ tags:
 - [[override-log.ts]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/trade-logts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
-location: "L466"
+community: "trading/scanner.ts"
+location: "L484"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # scoreDirection()
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[0b. UNOWNED  MULTI-CLAIMED FILES — ONE AGENT EACH]] - `references` [INFERRED]
 - [[6. THE SMALLEST SAFE FIRST WAVE]] - `references` [INFERRED]
+- [[armingRaid]] - `calls` [EXTRACTED]
 - [[buildImpulseLeg()]] - `calls` [EXTRACTED]
 - [[cisdThroughSeries()]] - `calls` [EXTRACTED]
 - [[classify()]] - `calls` [EXTRACTED]
@@ -27,9 +28,10 @@ tags:
 - [[impulseZone()]] - `calls` [EXTRACTED]
 - [[inOte()]] - `calls` [EXTRACTED]
 - [[openingBiasFrom()]] - `calls` [EXTRACTED]
-- [[openingRange()]] - `calls` [EXTRACTED]
+- [[openingRange()_1]] - `calls` [EXTRACTED]
 - [[oteZoneOverlap()]] - `calls` [EXTRACTED]
 - [[overnightRange()]] - `calls` [EXTRACTED]
+- [[ownTemplateMissing()]] - `calls` [EXTRACTED]
 - [[pairedDisplacement()]] - `calls` [EXTRACTED]
 - [[polaritySweep()]] - `calls` [EXTRACTED]
 - [[preferZone()]] - `calls` [EXTRACTED]
@@ -45,7 +47,8 @@ tags:
 - [[strategyLabel()]] - `calls` [EXTRACTED]
 - [[structureLayerScore()]] - `calls` [EXTRACTED]
 - [[tapeHitsForSide()]] - `calls` [EXTRACTED]
+- [[templateFor()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 - [[weeklyPdBias()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

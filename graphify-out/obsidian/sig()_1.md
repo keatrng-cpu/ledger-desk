@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-hit-odds.mjs"
 type: "code"
-community: "Community 45"
+community: "build-hit-odds.mjs"
 location: "L268"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/build-hit-oddsmjs
 ---
 
 # sig()
@@ -17,4 +17,4 @@ tags:
 - [[fit()_8]] - `calls` [EXTRACTED]
 - [[predict()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/build-hit-oddsmjs

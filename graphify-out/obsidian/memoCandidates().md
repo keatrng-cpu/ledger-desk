@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L302"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # memoCandidates()
@@ -16,4 +16,4 @@ tags:
 - [[invest-firm.ts]] - `contains` [EXTRACTED]
 - [[memoPick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

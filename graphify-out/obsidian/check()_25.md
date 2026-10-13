@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "scripts/floor-checks.mjs"
 type: "code"
-community: "Community 166"
-location: "L20"
+community: "preview-glb.mjs"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/preview-glbmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_10]] - `calls` [EXTRACTED]
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[floor-checks.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

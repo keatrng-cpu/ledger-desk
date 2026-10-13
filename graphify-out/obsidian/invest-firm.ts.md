@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # invest-firm.ts
@@ -79,7 +79,7 @@ tags:
 - [[durabilityCapturedAt()]] - `imports` [EXTRACTED]
 - [[earningsYield]] - `imports` [EXTRACTED]
 - [[effectiveWeight()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[evidenceFor()_1]] - `imports` [EXTRACTED]
 - [[exposure.ts]] - `imports_from` [EXTRACTED]
 - [[factors.ts]] - `imports_from` [EXTRACTED]
@@ -147,4 +147,4 @@ tags:
 - [[upcomingIpos()]] - `imports` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

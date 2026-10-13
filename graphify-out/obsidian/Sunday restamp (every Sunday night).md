@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 336"
+community: "CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)"
 location: "L97"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_336
+  - community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace
 ---
 
 # Sunday restamp (every Sunday night)
@@ -15,4 +15,4 @@ tags:
 - [[Live session loop (trader sits AmericaChicago)]] - `contains` [EXTRACTED]
 - [[MonthPlan]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_336
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace

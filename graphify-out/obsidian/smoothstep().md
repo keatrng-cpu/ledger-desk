@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 214"
+community: "floor-scene.ts"
 location: "L1562"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/floor-scenets
 ---
 
 # smoothstep()
@@ -15,4 +15,4 @@ tags:
 - [[dot-tick()_2]] - `calls` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

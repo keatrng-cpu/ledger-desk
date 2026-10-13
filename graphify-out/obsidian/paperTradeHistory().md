@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 8"
+community: "paper-manager.ts"
 location: "L1433"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # paperTradeHistory()
@@ -18,4 +18,4 @@ tags:
 - [[noteFuturesSession()]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

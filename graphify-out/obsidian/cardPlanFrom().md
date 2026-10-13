@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 254"
-location: "L346"
+community: "smc-master.ts"
+location: "L380"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/smc-masterts
 ---
 
 # cardPlanFrom()
@@ -17,4 +17,4 @@ tags:
 - [[deskLevelsOf()]] - `calls` [EXTRACTED]
 - [[r2()_5]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

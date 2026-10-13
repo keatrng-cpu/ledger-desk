@@ -1,25 +1,25 @@
 ---
 source_file: "src/lib/alerts/trigger-server.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # trigger-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[SessionJobResult]] - `contains` [EXTRACTED]
 - [[authMiddleware]] - `imports` [EXTRACTED]
 - [[checkScheduledJobs]] - `contains` [EXTRACTED]
 - [[cron-stats-server.ts]] - `imports_from` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
 - [[etWindow_1]] - `imports` [EXTRACTED]
-- [[fmtR()_2]] - `imports` [EXTRACTED]
+- [[fmtR()_1]] - `imports` [EXTRACTED]
 - [[fmtWr()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[windowStats]] - `imports` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

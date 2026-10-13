@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/live-example.tsx"
 type: "code"
-community: "Community 280"
+community: "learn-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_280
+  - community/learn-tabtsx
 ---
 
 # live-example.tsx
@@ -17,4 +17,4 @@ tags:
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_280
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

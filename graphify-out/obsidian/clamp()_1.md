@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/predict/signal-engine.ts"
+source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 12"
-location: "L289"
+community: "claude-server.ts"
+location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/claude-serverts
 ---
 
 # clamp()
 
 ## Connections
-- [[computeSignal()]] - `calls` [EXTRACTED]
-- [[crowdFrom()]] - `calls` [EXTRACTED]
-- [[liquidityFor()]] - `calls` [EXTRACTED]
-- [[logScore()]] - `calls` [EXTRACTED]
-- [[signal-engine.ts]] - `contains` [EXTRACTED]
+- [[computeDiscretion()]] - `calls` [EXTRACTED]
+- [[discretion.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

@@ -1,20 +1,17 @@
 ---
-source_file: "scripts/verify-detectors.mjs"
+source_file: "scripts/verify-shadow-book.mjs"
 type: "code"
-community: "Community 340"
-location: "L44"
+community: "verify-shadow-book.mjs"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_340
+  - community/verify-shadow-bookmjs
 ---
 
 # bar()
 
 ## Connections
-- [[oneMin()]] - `calls` [EXTRACTED]
-- [[quiet()_1]] - `calls` [EXTRACTED]
-- [[underTail]] - `calls` [EXTRACTED]
-- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
+- [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_340
+#graphify/code #graphify/EXTRACTED #community/verify-shadow-bookmjs

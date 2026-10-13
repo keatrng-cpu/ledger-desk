@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 105"
+community: "getSql"
 location: "L349"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/getSql
 ---
 
 # globalBoot
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[db.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/getSql

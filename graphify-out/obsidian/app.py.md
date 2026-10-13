@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/app.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # app.py
@@ -24,4 +24,4 @@ tags:
 - [[streamlit]] - `imports` [EXTRACTED]
 - [[tempfile]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 113"
+community: "FloorSound"
 location: "L224"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/FloorSound
 ---
 
 # .unlock()
@@ -16,4 +16,4 @@ tags:
 - [[dot-ensure()]] - `calls` [EXTRACTED]
 - [[FloorSound]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/FloorSound

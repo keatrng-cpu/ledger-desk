@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-mini-chart.tsx"
 type: "code"
-community: "Community 163"
+community: "chart-timeframes.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/chart-timeframests
 ---
 
 # setup-mini-chart.tsx
@@ -17,7 +17,7 @@ tags:
 - [[MARK_PRIORITY]] - `contains` [EXTRACTED]
 - [[MINI_BARS]] - `contains` [EXTRACTED]
 - [[MarkKind]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[STATE_GLYPH]] - `contains` [EXTRACTED]
 - [[STATE_INK]] - `contains` [EXTRACTED]
 - [[Scale_1]] - `contains` [EXTRACTED]
@@ -37,7 +37,7 @@ tags:
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[marksFor()]] - `imports` [EXTRACTED]
 - [[pickRows()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[score-drivers.ts]] - `imports_from` [EXTRACTED]
 - [[setup-anticipation.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
@@ -45,4 +45,4 @@ tags:
 - [[showsContext()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

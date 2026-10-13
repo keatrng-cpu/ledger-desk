@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 134"
+community: "week-ahead.ts"
 location: "L524"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # barInWeek()
@@ -17,4 +17,4 @@ tags:
 - [[week-ahead.ts]] - `contains` [EXTRACTED]
 - [[weekRangeFromBars()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

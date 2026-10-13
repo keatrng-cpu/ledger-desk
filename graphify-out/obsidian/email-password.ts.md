@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/email-password.ts"
 type: "code"
-community: "Community 105"
+community: "auth/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/auth/serverts
 ---
 
 # email-password.ts
@@ -17,4 +17,4 @@ tags:
 - [[emailAndPasswordOptions]] - `contains` [EXTRACTED]
 - [[signUpOpen]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

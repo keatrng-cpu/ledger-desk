@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_opt.py"
 type: "rationale"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L183"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # Share one mesh datablock between objects with identical geometry. Returns…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[dedupe_meshes()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_140
+#graphify/rationale #graphify/EXTRACTED #community/floor_aopy

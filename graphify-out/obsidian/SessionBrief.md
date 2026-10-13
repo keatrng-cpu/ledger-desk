@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-brief.ts"
 type: "code"
-community: "Community 10"
+community: "session-brief.ts"
 location: "L78"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/session-briefts
 ---
 
 # SessionBrief
@@ -20,4 +20,4 @@ tags:
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 - [[session-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/session-briefts

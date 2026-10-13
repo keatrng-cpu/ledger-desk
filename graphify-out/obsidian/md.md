@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/agent-sync.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 282"
-location: "L156"
+community: "day-context.ts"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_282
+  - community/day-contextts
 ---
 
 # md
 
 ## Connections
-- [[agent-sync.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_282
+#graphify/code #graphify/EXTRACTED #community/day-contextts

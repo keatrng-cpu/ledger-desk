@@ -1,19 +1,25 @@
 ---
-source_file: "src/lib/ui/entry-state.ts"
+source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 130"
-location: "L62"
+community: "floor-overhaul.ts"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/floor-overhaults
 ---
 
 # fit()
 
 ## Connections
-- [[cardPhrase()]] - `calls` [EXTRACTED]
-- [[deriveEntryState()]] - `calls` [EXTRACTED]
-- [[entry-state.ts]] - `contains` [EXTRACTED]
+- [[drawKillzoneClock()]] - `calls` [EXTRACTED]
+- [[drawManagerBook()]] - `calls` [EXTRACTED]
+- [[drawManagerCall()]] - `calls` [EXTRACTED]
+- [[drawScars()]] - `calls` [EXTRACTED]
+- [[drawTickerWall()]] - `calls` [EXTRACTED]
+- [[drawTrack()]] - `calls` [EXTRACTED]
+- [[drawTrophies()]] - `calls` [EXTRACTED]
+- [[floor-overhaul.ts]] - `contains` [EXTRACTED]
+- [[wrap()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

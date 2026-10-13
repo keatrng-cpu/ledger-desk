@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # off-hours-study.ts
@@ -57,4 +57,4 @@ tags:
 - [[watchSlice()]] - `contains` [EXTRACTED]
 - [[yesCentsOf()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

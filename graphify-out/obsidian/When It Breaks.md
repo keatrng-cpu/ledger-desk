@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/animations.md"
 type: "document"
-community: "Community 290"
+community: "Animations"
 location: "L366"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_290
+  - community/Animations
 ---
 
 # When It Breaks
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Skip Animation on Page Load]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_290
+#graphify/document #graphify/EXTRACTED #community/Animations

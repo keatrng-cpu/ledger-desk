@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/floor-overhaul.test.mjs"
+source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 78"
-location: "L40"
+community: "FloorOverhaul"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/FloorOverhaul
 ---
 
 # inSeg()
 
 ## Connections
-- [[floor-overhaul.test.mjs]] - `contains` [EXTRACTED]
+- [[floor-props.ts]] - `contains` [EXTRACTED]
+- [[sessionDial]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

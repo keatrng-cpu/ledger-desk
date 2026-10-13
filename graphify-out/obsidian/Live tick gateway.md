@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/README.md"
 type: "document"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # Live tick gateway
@@ -22,4 +22,4 @@ tags:
 - [[What it does]] - `contains` [EXTRACTED]
 - [[gatewayREADME]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_74
+#graphify/document #graphify/EXTRACTED #community/databento_live_gatewaypy

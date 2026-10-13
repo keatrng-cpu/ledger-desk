@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/types.ts"
 type: "code"
-community: "Community 9"
+community: "build-desk.ts"
 location: "L123"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/build-deskts
 ---
 
 # QUOTE_EXECUTION_MAX_LAG_SEC
@@ -18,4 +18,4 @@ tags:
 - [[pending-order.ts]] - `imports` [EXTRACTED]
 - [[research-retain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/build-deskts

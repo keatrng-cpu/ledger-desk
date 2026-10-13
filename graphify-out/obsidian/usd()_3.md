@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/rnd.ts"
+source_file: "src/components/desk/rh-account-strip.tsx"
 type: "code"
-community: "Community 194"
-location: "L95"
+community: "use-entry-state.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/use-entry-statets
 ---
 
 # usd()
 
 ## Connections
-- [[rnd.ts]] - `contains` [EXTRACTED]
-- [[rndRead]] - `calls` [EXTRACTED]
+- [[RhAccountStrip()]] - `calls` [EXTRACTED]
+- [[rh-account-strip.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

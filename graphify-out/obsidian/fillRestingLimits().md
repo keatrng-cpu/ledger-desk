@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L530"
+community: "entry-trigger.ts"
+location: "L531"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/entry-triggerts
 ---
 
 # fillRestingLimits()
@@ -25,4 +25,4 @@ tags:
 - [[tickPending()]] - `calls` [EXTRACTED]
 - [[withOrderLevels()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

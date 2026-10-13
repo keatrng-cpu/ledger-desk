@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-store.ts"
 type: "code"
-community: "Community 149"
+community: "shadow-store.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/shadow-storets
 ---
 
 # shadow-store.ts
@@ -30,9 +30,9 @@ tags:
 - [[mergeShadows()]] - `imports` [EXTRACTED]
 - [[observeShadowBook()]] - `contains` [EXTRACTED]
 - [[observeShadows()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[replayRows]] - `contains` [EXTRACTED]
-- [[rows_4]] - `contains` [EXTRACTED]
+- [[rows_3]] - `contains` [EXTRACTED]
 - [[saveShadowsLocal()]] - `imports` [EXTRACTED]
 - [[scheduleFlush()]] - `contains` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
@@ -46,4 +46,4 @@ tags:
 - [[useShadowBook()]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/shadow-storets

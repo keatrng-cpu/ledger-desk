@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/four-facts-board.tsx"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # BookFacts()
@@ -19,4 +19,4 @@ tags:
 - [[four-facts-board.tsx]] - `contains` [EXTRACTED]
 - [[wordClass()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

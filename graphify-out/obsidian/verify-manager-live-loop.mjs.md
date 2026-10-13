@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-manager-live-loop.mjs"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # verify-manager-live-loop.mjs
@@ -23,4 +23,4 @@ tags:
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

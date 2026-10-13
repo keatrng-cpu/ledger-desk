@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 40"
+community: "entry-trigger.ts"
 location: "L330"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/entry-triggerts
 ---
 
 # reachTier
@@ -16,4 +16,4 @@ tags:
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

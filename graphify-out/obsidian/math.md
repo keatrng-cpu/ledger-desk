@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 226"
+community: "json"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # math
@@ -27,4 +27,4 @@ tags:
 - [[ncdf()]] - `calls` [EXTRACTED]
 - [[npdf()]] - `calls` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_226
+#graphify/concept #graphify/EXTRACTED #community/json

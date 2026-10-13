@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/long-board.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # gradeLongCard()
@@ -24,4 +24,4 @@ tags:
 - [[snapshotCapturedAt()]] - `calls` [EXTRACTED]
 - [[washSaleBan()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

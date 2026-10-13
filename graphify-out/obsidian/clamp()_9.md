@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/room/floor-ik.ts"
+source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 288"
-location: "L60"
+community: "meeting.ts"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_288
+  - community/meetingts
 ---
 
 # clamp()
 
 ## Connections
-- [[armAngles]] - `calls` [EXTRACTED]
-- [[eulerXYZ()]] - `calls` [EXTRACTED]
-- [[floor-ik.ts]] - `contains` [EXTRACTED]
+- [[debate.ts]] - `contains` [EXTRACTED]
+- [[lensesFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_288
+#graphify/code #graphify/EXTRACTED #community/meetingts

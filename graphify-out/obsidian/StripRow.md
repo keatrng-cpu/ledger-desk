@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/bar-strip.tsx"
 type: "code"
-community: "Community 111"
+community: "shadow-book-panel.tsx"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/shadow-book-paneltsx
 ---
 
 # StripRow
@@ -15,4 +15,4 @@ tags:
 - [[bar-strip.tsx]] - `contains` [EXTRACTED]
 - [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/shadow-book-paneltsx

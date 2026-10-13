@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul-school.ts"
 type: "code"
-community: "Community 24"
+community: "floor-overhaul.ts"
 location: "L245"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/floor-overhaults
 ---
 
 # drawBriefing()
@@ -18,4 +18,4 @@ tags:
 - [[floor-overhaul.ts]] - `imports` [EXTRACTED]
 - [[wrap()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

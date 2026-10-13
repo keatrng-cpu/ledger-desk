@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 214"
+community: "live-world.ts"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/live-worldts
 ---
 
 # FloorFrame
@@ -31,4 +31,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/live-worldts

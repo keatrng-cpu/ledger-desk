@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
+community: "options-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # options-desk.ts
@@ -120,6 +120,7 @@ tags:
 - [[planForUnderlier()]] - `contains` [EXTRACTED]
 - [[proxyPair()]] - `contains` [EXTRACTED]
 - [[qtyInBand()]] - `contains` [EXTRACTED]
+- [[restampWorkingStop()]] - `contains` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[rh-income.ts]] - `imports_from` [EXTRACTED]
 - [[rhLine()]] - `contains` [EXTRACTED]
@@ -132,15 +133,18 @@ tags:
 - [[room-step.ts]] - `imports_from` [EXTRACTED]
 - [[roundStrike()]] - `contains` [EXTRACTED]
 - [[roundTripCost()]] - `contains` [EXTRACTED]
+- [[rules-parity.test.mjs]] - `imports_from` [EXTRACTED]
 - [[scoreLeg()]] - `contains` [EXTRACTED]
 - [[sessionLive()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
+- [[shared_desk_rules]] - `imports_from` [EXTRACTED]
 - [[shrinkTicket()]] - `contains` [EXTRACTED]
 - [[sideFromFutures()]] - `contains` [EXTRACTED]
 - [[sizeFromLiveContract()]] - `imports` [EXTRACTED]
 - [[sizeFromStop()]] - `imports` [EXTRACTED]
 - [[sizeProduct()]] - `contains` [EXTRACTED]
 - [[sleeve-sizing.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[smtLead()_1]] - `contains` [EXTRACTED]
 - [[spot-cross.ts]] - `imports_from` [EXTRACTED]
 - [[spotSource()]] - `contains` [EXTRACTED]
@@ -159,4 +163,4 @@ tags:
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 - [[weekDayFor()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

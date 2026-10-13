@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-room-feed.ts"
 type: "code"
-community: "Community 158"
+community: "manager-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # manager-room-feed.ts
@@ -17,7 +17,7 @@ tags:
 - [[CallAction]] - `imports` [EXTRACTED]
 - [[DEFAULT_MANAGER_ROOM_ACCOUNT]] - `imports` [EXTRACTED]
 - [[DiscretionRule]] - `imports` [EXTRACTED]
-- [[Gate]] - `imports` [EXTRACTED]
+- [[Gate_1]] - `imports` [EXTRACTED]
 - [[Lens5]] - `contains` [EXTRACTED]
 - [[ManagerCall]] - `imports` [EXTRACTED]
 - [[ManagerFeed]] - `imports` [EXTRACTED]
@@ -39,7 +39,7 @@ tags:
 - [[RoomOutput]] - `imports` [EXTRACTED]
 - [[RoomPushContext]] - `contains` [EXTRACTED]
 - [[RoomTrace]] - `imports` [EXTRACTED]
-- [[STEER_LINES]] - `contains` [EXTRACTED]
+- [[STEER_LINES_1]] - `contains` [EXTRACTED]
 - [[SteerMove]] - `imports` [EXTRACTED]
 - [[actionFor()]] - `contains` [EXTRACTED]
 - [[createRoomManagerFeed()]] - `contains` [EXTRACTED]
@@ -48,7 +48,7 @@ tags:
 - [[evaluateRhBplusGate()]] - `imports` [EXTRACTED]
 - [[evaluateRhTicketEnvelope()]] - `imports` [EXTRACTED]
 - [[gateFailed()]] - `contains` [EXTRACTED]
-- [[handle()_3]] - `imports_from` [EXTRACTED]
+- [[handle()_4]] - `imports_from` [EXTRACTED]
 - [[isBplusBand()]] - `imports` [EXTRACTED]
 - [[isRoomManagerFeed()]] - `contains` [EXTRACTED]
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
@@ -75,4 +75,4 @@ tags:
 - [[verify-rh-dispatch.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

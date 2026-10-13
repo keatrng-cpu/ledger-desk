@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 122"
+community: "@tanstack/react-start"
 location: "L111"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/tanstack/react-start
 ---
 
 # zod
@@ -39,4 +39,4 @@ tags:
 - [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
 - [[trigger-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_122
+#graphify/concept #graphify/EXTRACTED #community/tanstack/react-start

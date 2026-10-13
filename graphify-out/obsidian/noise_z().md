@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "code"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # noise_z()
@@ -18,4 +18,4 @@ tags:
 - [[numpy]] - `calls` [EXTRACTED]
 - [[z of the last return against the ones before it. Too few prints, or a flat…]] - `rationale_for` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

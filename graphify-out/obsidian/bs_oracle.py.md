@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/oracle/bs_oracle.py"
 type: "code"
-community: "Community 226"
+community: "json"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # bs_oracle.py
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[Black-Scholes from first principles — the independent oracle for…]] - `rationale_for` [EXTRACTED]
 - [[bs()]] - `contains` [EXTRACTED]
-- [[build()_3]] - `contains` [EXTRACTED]
+- [[build()_4]] - `contains` [EXTRACTED]
 - [[json_1]] - `imports` [EXTRACTED]
 - [[math]] - `imports` [EXTRACTED]
 - [[ncdf()]] - `contains` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[statistics]] - `imports_from` [EXTRACTED]
 - [[sys]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/json

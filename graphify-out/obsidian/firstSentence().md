@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # firstSentence()
@@ -18,4 +18,4 @@ tags:
 - [[policyOf()_1]] - `calls` [EXTRACTED]
 - [[sentences()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

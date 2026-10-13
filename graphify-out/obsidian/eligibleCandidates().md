@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 40"
-location: "L244"
+community: "smc-master.ts"
+location: "L258"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # eligibleCandidates()
@@ -18,4 +18,4 @@ tags:
 - [[sequenceComplete()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

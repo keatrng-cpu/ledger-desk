@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/run-local.ps1"
 type: "code"
-community: "Community 257"
+community: "run-local.ps1"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_257
+  - community/run-localps1
 ---
 
 # run-local.ps1
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Log-Line()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_257
+#graphify/code #graphify/EXTRACTED #community/run-localps1

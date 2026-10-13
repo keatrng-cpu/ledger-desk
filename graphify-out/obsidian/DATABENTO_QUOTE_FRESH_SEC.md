@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # DATABENTO_QUOTE_FRESH_SEC
@@ -15,4 +15,4 @@ tags:
 - [[freshest.ts]] - `contains` [EXTRACTED]
 - [[live-ladder.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exits.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # exitFor()
@@ -20,6 +20,6 @@ tags:
 - [[quoteOption()]] - `calls` [EXTRACTED]
 - [[signedPct()]] - `calls` [EXTRACTED]
 - [[stepGhost()]] - `calls` [EXTRACTED]
-- [[usd()_4]] - `calls` [EXTRACTED]
+- [[usd()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 126"
+community: "curriculum.ts"
 location: "L135"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/curriculumts
 ---
 
 # MAX_HOLD_BARS
@@ -16,4 +16,4 @@ tags:
 - [[replay-drill.ts]] - `imports` [EXTRACTED]
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/curriculumts

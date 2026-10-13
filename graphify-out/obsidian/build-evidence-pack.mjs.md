@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-evidence-pack.mjs"
 type: "code"
-community: "Community 181"
+community: "build-evidence-pack.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_181
+  - community/build-evidence-packmjs
 ---
 
 # build-evidence-pack.mjs
@@ -30,10 +30,10 @@ tags:
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[rows_8]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
-- [[show()_6]] - `contains` [EXTRACTED]
-- [[sim()_6]] - `contains` [EXTRACTED]
+- [[show()_5]] - `contains` [EXTRACTED]
+- [[sim()_7]] - `contains` [EXTRACTED]
 - [[sims_4]] - `contains` [EXTRACTED]
 - [[within()_1]] - `contains` [EXTRACTED]
 - [[yearOf()_5]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_181
+#graphify/code #graphify/EXTRACTED #community/build-evidence-packmjs

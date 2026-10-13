@@ -1,12 +1,12 @@
 ---
 source_file: "docs/DESK_25_BUILD_PLAN.md"
 type: "document"
-community: "Community 35"
+community: "trading/scanner.ts"
 location: "L73"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/trading/scannerts
 ---
 
 # WAVE 5 — re-fit, same agent as Wave 4.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[1. BUILD ORDER]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_35
+#graphify/document #graphify/EXTRACTED #community/trading/scannerts

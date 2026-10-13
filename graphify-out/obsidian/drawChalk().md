@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L781"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # drawChalk()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[drawScreen()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[wrap()_4]] - `calls` [EXTRACTED]
+- [[wrap()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

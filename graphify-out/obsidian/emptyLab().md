@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 52"
+community: "room-engine.ts"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/room-enginets
 ---
 
 # emptyLab()
@@ -15,4 +15,4 @@ tags:
 - [[asLab()]] - `calls` [EXTRACTED]
 - [[lab.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/room-enginets

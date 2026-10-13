@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/discuss-tab.tsx"
 type: "code"
-community: "Community 161"
+community: "discuss-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_161
+  - community/discuss-tabtsx
 ---
 
 # discuss-tab.tsx
@@ -41,9 +41,9 @@ tags:
 - [[nextCheckpoint()]] - `contains` [EXTRACTED]
 - [[offline.ts]] - `imports_from` [EXTRACTED]
 - [[parseDiscussRead()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readLast()]] - `contains` [EXTRACTED]
 - [[scrubEnv()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_161
+#graphify/code #graphify/EXTRACTED #community/discuss-tabtsx

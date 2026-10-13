@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # path-alarm.ts
@@ -15,7 +15,8 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
 - [[HIGH_PROB]] - `contains` [EXTRACTED]
-- [[Listener]] - `contains` [EXTRACTED]
+- [[JUDAS_BLOCKS]] - `imports` [EXTRACTED]
+- [[Listener_1]] - `contains` [EXTRACTED]
 - [[PATH_ALARM_EVENT]] - `contains` [EXTRACTED]
 - [[PATH_ALARM_STORAGE]] - `contains` [EXTRACTED]
 - [[PATH_FIRE_BANDS]] - `contains` [EXTRACTED]
@@ -27,23 +28,23 @@ tags:
 - [[SmcMasterBook]] - `imports` [EXTRACTED]
 - [[alarmKey()]] - `contains` [EXTRACTED]
 - [[allSeries()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[armPathAlarm()]] - `contains` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
 - [[bookRungs()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildEntryTicket()]] - `imports` [EXTRACTED]
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[considerEntryAlarm()]] - `contains` [EXTRACTED]
 - [[considerPathAlarm()]] - `contains` [EXTRACTED]
-- [[ctx()_2]] - `contains` [EXTRACTED]
+- [[ctx()_4]] - `contains` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[disarmPathAlarm()]] - `contains` [EXTRACTED]
 - [[entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[entry-ticket.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
-- [[etDay()_1]] - `contains` [EXTRACTED]
+- [[etDay()_2]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[fireBand()]] - `contains` [EXTRACTED]
 - [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
@@ -55,9 +56,9 @@ tags:
 - [[isPathFire()]] - `contains` [EXTRACTED]
 - [[isWatchable()]] - `imports` [EXTRACTED]
 - [[judas-window.ts]] - `imports_from` [EXTRACTED]
-- [[listeners]] - `contains` [EXTRACTED]
+- [[listeners_2]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports_from` [EXTRACTED]
-- [[load()_5]] - `contains` [EXTRACTED]
+- [[load()_9]] - `contains` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[mutePathAlarm()]] - `contains` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
@@ -83,4 +84,4 @@ tags:
 - [[verify-entry-alarm.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-path-fire.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/shadow.ts"
 type: "code"
-community: "Community 43"
+community: "@tanstack/react-start"
 location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tanstack/react-start
 ---
 
 # ShadowSource
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[shadow.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

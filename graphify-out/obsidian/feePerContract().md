@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # feePerContract()
@@ -28,4 +28,4 @@ tags:
 - [[sideFee()]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

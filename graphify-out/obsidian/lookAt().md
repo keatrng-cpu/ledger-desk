@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 100"
+community: "floor-screens.ts"
 location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/floor-screensts
 ---
 
 # lookAt()
@@ -21,4 +21,4 @@ tags:
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 - [[studyPack]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

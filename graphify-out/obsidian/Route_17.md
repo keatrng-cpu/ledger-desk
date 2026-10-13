@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/login.tsx"
+source_file: "src/routes/api/rh/connect.ts"
 type: "code"
-community: "Community 79"
-location: "L22"
+community: "rh-oauth.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_79
+  - community/rh-oauthts
 ---
 
 # Route
 
 ## Connections
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[login.tsx]] - `contains` [EXTRACTED]
+- [[connect.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_79
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

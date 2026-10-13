@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L104"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # recharts
@@ -16,4 +16,4 @@ tags:
 - [[dual-index-charts.tsx]] - `imports_from` [EXTRACTED]
 - [[package.json]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_14
+#graphify/concept #graphify/EXTRACTED #community/dual-index-chartstsx

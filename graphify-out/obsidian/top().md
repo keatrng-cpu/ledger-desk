@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/diagnose-path.mjs"
 type: "code"
-community: "Community 90"
+community: "Transition Only What Changes"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Transition_Only_What_Changes
 ---
 
 # top()
@@ -15,4 +15,4 @@ tags:
 - [[Useful Properties]] - `references` [INFERRED]
 - [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_90
+#graphify/code #graphify/EXTRACTED #community/Transition_Only_What_Changes

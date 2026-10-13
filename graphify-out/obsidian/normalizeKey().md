@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 106"
+community: "journal/analytics.ts"
 location: "L302"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_106
+  - community/journal/analyticsts
 ---
 
 # normalizeKey()
@@ -23,4 +23,4 @@ tags:
 - [[journalanalytics.ts]] - `contains` [EXTRACTED]
 - [[strategyVerdicts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_106
+#graphify/code #graphify/EXTRACTED #community/journal/analyticsts

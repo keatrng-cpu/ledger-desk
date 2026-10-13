@@ -1,12 +1,12 @@
 ---
 source_file: "docs/code-index.md"
 type: "document"
-community: "Community 42"
+community: "Code index"
 location: "L1311"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Code_index
 ---
 
 # src\lib\room\invest-read.ts
@@ -15,4 +15,4 @@ tags:
 - [[Code index_1]] - `contains` [EXTRACTED]
 - [[InvestLite]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_42
+#graphify/document #graphify/EXTRACTED #community/Code_index

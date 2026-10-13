@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/render-mead-attachments.mjs"
 type: "code"
-community: "Community 173"
+community: "render-mead-attachments.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_173
+  - community/render-mead-attachmentsmjs
 ---
 
 # render-mead-attachments.mjs
@@ -15,7 +15,7 @@ tags:
 - [[C_1]] - `contains` [EXTRACTED]
 - [[MARKETS]] - `contains` [EXTRACTED]
 - [[SHOTS]] - `contains` [EXTRACTED]
-- [[bar()_5]] - `contains` [EXTRACTED]
+- [[bar()_3]] - `contains` [EXTRACTED]
 - [[hailBanner()]] - `contains` [EXTRACTED]
 - [[helm()]] - `contains` [EXTRACTED]
 - [[here_2]] - `contains` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[ticket()]] - `contains` [EXTRACTED]
 - [[tv()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_173
+#graphify/code #graphify/EXTRACTED #community/render-mead-attachmentsmjs

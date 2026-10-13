@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/verify-floor-ik.mjs"
 type: "code"
-community: "Community 329"
+community: "verify-floor-ik.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_329
+  - community/verify-floor-ikmjs
 ---
 
 # verify-floor-ik.mjs
 
 ## Connections
-- [[check()_80]] - `contains` [EXTRACTED]
+- [[check()_71]] - `contains` [EXTRACTED]
 - [[floor-ik.ts]] - `dynamic_import` [EXTRACTED]
 - [[good()]] - `contains` [EXTRACTED]
 - [[miss()]] - `contains` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[three]] - `imports_from` [EXTRACTED]
 - [[{ upper, fore }]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_329
+#graphify/code #graphify/EXTRACTED #community/verify-floor-ikmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
+community: "FloorScene"
 location: "L2814"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # .chaseRide()
@@ -19,4 +19,4 @@ tags:
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[damp()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

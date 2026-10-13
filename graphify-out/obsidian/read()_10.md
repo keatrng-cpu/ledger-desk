@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-repo-guards.mjs"
+source_file: "scripts/verify-tooling-guards.mjs"
 type: "code"
-community: "Community 314"
-location: "L49"
+community: "verify-tooling-guards.mjs"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_314
+  - community/verify-tooling-guardsmjs
 ---
 
 # read()
 
 ## Connections
-- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
+- [[liveWf()]] - `calls` [EXTRACTED]
+- [[verify-tooling-guards.mjs]] - `contains` [EXTRACTED]
+- [[wf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_314
+#graphify/code #graphify/EXTRACTED #community/verify-tooling-guardsmjs

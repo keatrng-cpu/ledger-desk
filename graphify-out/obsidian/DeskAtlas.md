@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 81"
+community: "hi-alert.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/hi-alertts
 ---
 
 # DeskAtlas
@@ -20,4 +20,4 @@ tags:
 - [[desk-memory.ts]] - `imports` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

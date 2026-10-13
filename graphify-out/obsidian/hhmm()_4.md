@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/agents.ts"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 21"
-location: "L366"
+community: "gates.ts"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/gatests
 ---
 
 # hhmm()
 
 ## Connections
-- [[agents.ts]] - `contains` [EXTRACTED]
-- [[recordEvents()]] - `calls` [EXTRACTED]
+- [[checkEntry()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/gatests

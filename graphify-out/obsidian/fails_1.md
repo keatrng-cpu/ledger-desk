@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-calibration.mjs"
+source_file: "scripts/verify-chart-timeframes.mjs"
 type: "code"
-community: "Community 174"
-location: "L31"
+community: "chart-timeframes.ts"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/chart-timeframests
 ---
 
 # fails
 
 ## Connections
-- [[verify-calibration.mjs]] - `contains` [EXTRACTED]
+- [[verify-chart-timeframes.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

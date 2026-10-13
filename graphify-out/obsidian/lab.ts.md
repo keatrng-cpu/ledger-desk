@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # lab.ts
 
 ## Connections
-- [[CREW_2]] - `contains` [EXTRACTED]
+- [[CREW_3]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[ExitPolicy]] - `imports` [EXTRACTED]
 - [[ExitWatch]] - `imports` [EXTRACTED]
@@ -32,7 +32,7 @@ tags:
 - [[RoomLab]] - `contains` [EXTRACTED]
 - [[RoomPositionIn]] - `imports` [EXTRACTED]
 - [[SeatBook]] - `imports` [EXTRACTED]
-- [[StrikeOffset]] - `imports` [EXTRACTED]
+- [[StrikeOffset_1]] - `imports` [EXTRACTED]
 - [[TrackRecord]] - `contains` [EXTRACTED]
 - [[Underlier]] - `imports` [EXTRACTED]
 - [[UnderlierTape]] - `imports` [EXTRACTED]
@@ -41,7 +41,7 @@ tags:
 - [[debate.ts]] - `imports_from` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
 - [[emptyLab()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[exitFor()]] - `imports` [EXTRACTED]
@@ -82,4 +82,4 @@ tags:
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

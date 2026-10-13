@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
+community: "smc-canon.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # smc-canon.ts
@@ -34,7 +34,7 @@ tags:
 - [[PdArrayKind]] - `contains` [EXTRACTED]
 - [[SCHOOLS]] - `contains` [EXTRACTED]
 - [[SILVER_BULLET_EVIDENCE]] - `contains` [EXTRACTED]
-- [[SMT_TRADES_THE_LEADER]] - `contains` [EXTRACTED]
+- [[SMT_CREDITS_THE_HOLDER]] - `contains` [EXTRACTED]
 - [[STRATEGY_SCHOOL]] - `contains` [EXTRACTED]
 - [[SchoolCanon]] - `contains` [EXTRACTED]
 - [[SchoolId]] - `contains` [EXTRACTED]
@@ -55,13 +55,16 @@ tags:
 - [[meeting.ts]] - `imports_from` [EXTRACTED]
 - [[modelMayBeNamed()]] - `contains` [EXTRACTED]
 - [[pdArraysFromComponents()]] - `contains` [EXTRACTED]
+- [[raidReadForCard()]] - `imports` [EXTRACTED]
 - [[school-brief.ts]] - `imports_from` [EXTRACTED]
 - [[schoolForStrategy()]] - `contains` [EXTRACTED]
 - [[scoreCanonStack()]] - `contains` [EXTRACTED]
 - [[setup-anticipation.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[smc-playbook.tsx]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[strategies.ts]] - `imports_from` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports_from` [EXTRACTED]
 - [[structure.ts]] - `imports_from` [EXTRACTED]
@@ -69,4 +72,4 @@ tags:
 - [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

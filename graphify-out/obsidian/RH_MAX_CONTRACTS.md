@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 158"
-location: "L140"
+community: "manager-feed.ts"
+location: "L142"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # RH_MAX_CONTRACTS
@@ -17,4 +17,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

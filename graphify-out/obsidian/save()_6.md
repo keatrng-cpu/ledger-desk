@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L55"
+community: "index.tsx"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # save()
@@ -18,4 +18,4 @@ tags:
 - [[rememberAutoPaperKey()]] - `calls` [EXTRACTED]
 - [[setAutoPaper()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

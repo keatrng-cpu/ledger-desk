@@ -1,0 +1,221 @@
+---
+type: community
+cohesion: 0.04
+members: 131
+---
+
+# veteran-brain.ts
+
+**Cohesion:** 0.04 - loosely connected
+**Members:** 131 nodes
+
+## Members
+- [[AnticipationInput]] - code - src/lib/trading/setup-anticipation.ts
+- [[AtlasEdge]] - code - src/lib/room/desk-atlas.ts
+- [[AtlasNode]] - code - src/lib/room/desk-atlas.ts
+- [[BacktestFillRecord]] - code - src/lib/trading/desk-memory.ts
+- [[BookCard()_1]] - code - src/components/desk/market-narrative-panel.tsx
+- [[BookCounters]] - code - src/lib/trading/profit-rules.ts
+- [[BrainLayer]] - code - src/lib/trading/veteran-brain.ts
+- [[BuiltPaperLevels]] - code - src/lib/trading/paper-manager.ts
+- [[CALL_TEXT]] - code - src/components/desk/hi-alert-panel.tsx
+- [[CALL_TONE]] - code - src/components/desk/hi-alert-panel.tsx
+- [[CanonStack]] - code - src/lib/trading/smc-canon.ts
+- [[DEMOTED_LONG_STRATEGIES]] - code - src/lib/trading/profit-rules.ts
+- [[DeskMemoryState]] - code - src/lib/trading/desk-memory.ts
+- [[DeskSynapseState]] - code - src/lib/trading/desk-synapse.ts
+- [[DiscretionVerdict_1]] - code - src/lib/trading/veteran-brain.ts
+- [[FACTOR_CEILING]] - code - src/lib/journal/discretion.ts
+- [[FusedSetupView]] - code - src/lib/trading/desk-synapse.ts
+- [[HiAlertPanel()]] - code - src/components/desk/hi-alert-panel.tsx
+- [[LayerTone]] - code - src/lib/trading/veteran-brain.ts
+- [[MarketNarrativePanel()]] - code - src/components/desk/market-narrative-panel.tsx
+- [[MemoryItem]] - code - src/lib/trading/desk-memory.ts
+- [[MemoryKind_1]] - code - src/lib/trading/desk-memory.ts
+- [[OptionMarksStrip()]] - code - src/components/desk/option-marks.tsx
+- [[PATH_BANDS_1]] - code - src/lib/trading/profit-rules.ts
+- [[PRIMARY_STRATEGIES]] - code - src/lib/trading/profit-rules.ts
+- [[PathGateReason]] - code - src/lib/trading/profit-rules.ts
+- [[PathGateResult]] - code - src/lib/trading/profit-rules.ts
+- [[PoolRead]] - code - src/lib/trading/desk-memory.ts
+- [[PoolRecord]] - code - src/lib/trading/desk-memory.ts
+- [[RateBucket]] - code - src/lib/trading/desk-memory.ts
+- [[ResearchFacts_1]] - code - src/lib/trading/research-retain.ts
+- [[RiskGrade]] - code - src/lib/aplus/config.ts
+- [[SessionTradeStory]] - code - src/lib/trading/desk-memory.ts
+- [[SetupCandidate]] - code - src/lib/trading/scanner.ts
+- [[SmcPlaybook()]] - code - src/components/desk/smc-playbook.tsx
+- [[StrategyBoost]] - code - src/lib/trading/desk-synapse.ts
+- [[StrategyId]] - code - src/lib/trading/strategies.ts
+- [[StrategyMarketGrade]] - code - src/lib/trading/strategy-grade.ts
+- [[StrategyRead]] - code - src/lib/trading/veteran-brain.ts
+- [[TabRead]] - code - src/lib/trading/veteran-brain.ts
+- [[VeteranBrainPanel()]] - code - src/components/desk/veteran-brain.tsx
+- [[VeteranBrief]] - code - src/lib/trading/veteran-brain.ts
+- [[YearStudySeed]] - code - src/lib/trading/bt-seed.ts
+- [[aPlusFullSizeUnlocked()]] - code - src/lib/trading/profit-rules.ts
+- [[aPlusRiskPct()]] - code - src/lib/trading/profit-rules.ts
+- [[allowedAfterCap()]] - code - src/lib/trading/profit-rules.ts
+- [[answerVeteranQuestion()]] - code - src/lib/trading/veteran-brain.ts
+- [[applySessionTrade()]] - code - src/lib/trading/desk-memory.ts
+- [[blakeLongRecovered()]] - code - src/lib/trading/profit-rules.ts
+- [[bookWr()]] - code - src/lib/trading/veteran-brain.ts
+- [[bt-seed.ts]] - code - src/lib/trading/bt-seed.ts
+- [[bucketExpectancy()]] - code - src/lib/trading/desk-memory.ts
+- [[bucketWr()]] - code - src/lib/trading/desk-memory.ts
+- [[buildBoosts()]] - code - src/lib/trading/desk-synapse.ts
+- [[buildFeeds()]] - code - src/lib/trading/desk-synapse.ts
+- [[buildPosture()]] - code - src/lib/trading/desk-synapse.ts
+- [[bump()]] - code - src/lib/trading/desk-memory.ts
+- [[clamp01()_2]] - code - src/lib/trading/veteran-brain.ts
+- [[classTone()]] - code - src/components/desk/market-narrative-panel.tsx
+- [[clearPins()]] - code - src/lib/trading/desk-memory.ts
+- [[confTone()]] - code - src/components/desk/market-narrative-panel.tsx
+- [[countersFromMemory()]] - code - src/lib/trading/profit-rules.ts
+- [[describeProfitRules()]] - code - src/lib/trading/profit-rules.ts
+- [[desk-memory.ts]] - code - src/lib/trading/desk-memory.ts
+- [[desk-synapse.ts]] - code - src/lib/trading/desk-synapse.ts
+- [[discretionClause()]] - code - src/lib/trading/research-retain.ts
+- [[empty()_1]] - code - src/lib/trading/desk-memory.ts
+- [[emptyBookCounters()]] - code - src/lib/trading/profit-rules.ts
+- [[emptyBucket()_2]] - code - src/lib/trading/desk-memory.ts
+- [[evaluateOptionsSwing()]] - code - src/lib/trading/options-swing.ts
+- [[fuseSetups()]] - code - src/lib/trading/desk-synapse.ts
+- [[hi-alert-panel.tsx]] - code - src/components/desk/hi-alert-panel.tsx
+- [[hydrateFromYearStudy()]] - code - src/lib/trading/bt-seed.ts
+- [[ingestBacktestResult()]] - code - src/lib/trading/desk-memory.ts
+- [[ingestPaperFill()]] - code - src/lib/trading/desk-memory.ts
+- [[isBlakeLongDemoted()]] - code - src/lib/trading/profit-rules.ts
+- [[isGoldStandardSetup()]] - code - src/lib/trading/profit-rules.ts
+- [[ledgerStats]] - code - src/lib/trading/hi-alert.ts
+- [[loadDeskMemory()]] - code - src/lib/trading/desk-memory.ts
+- [[loadHiAlerts()]] - code - src/lib/trading/hi-alert.ts
+- [[market-narrative-panel.tsx]] - code - src/components/desk/market-narrative-panel.tsx
+- [[memoryDigest()]] - code - src/lib/trading/desk-memory.ts
+- [[mergeBucket()]] - code - src/lib/trading/desk-memory.ts
+- [[monthKeyFromMs()]] - code - src/lib/trading/profit-rules.ts
+- [[narrativeCoachLines()]] - code - src/lib/trading/market-narrative.ts
+- [[noteFuturesSession()]] - code - src/lib/trading/auto-paper.ts
+- [[onBeat()]] - code - src/lib/live/keep-live.ts
+- [[paperAPlusCounters()]] - code - src/lib/trading/paper-manager.ts
+- [[paperFillsForMonth()]] - code - src/lib/trading/profit-rules.ts
+- [[pickOneBookPerDay()]] - code - src/lib/trading/profit-rules.ts
+- [[pinNote()]] - code - src/lib/trading/desk-memory.ts
+- [[poolId()]] - code - src/lib/trading/desk-memory.ts
+- [[poolLedger()]] - code - src/lib/trading/desk-memory.ts
+- [[poolLine()]] - code - src/lib/trading/desk-memory.ts
+- [[poolTaken()]] - code - src/lib/trading/desk-memory.ts
+- [[profit-rules.ts]] - code - src/lib/trading/profit-rules.ts
+- [[px()_14]] - code - src/lib/trading/desk-memory.ts
+- [[px()_15]] - code - src/lib/trading/research-retain.ts
+- [[rateCardForSetup()]] - code - src/lib/trading/desk-memory.ts
+- [[readBookCounters()]] - code - src/lib/journal/server.ts
+- [[recentByKind()]] - code - src/lib/trading/desk-memory.ts
+- [[recordedBand()]] - code - src/lib/trading/profit-rules.ts
+- [[remember()_2]] - code - src/lib/trading/desk-memory.ts
+- [[rememberLiveSetup()]] - code - src/lib/trading/desk-memory.ts
+- [[rememberPaperOpen()]] - code - src/lib/trading/desk-memory.ts
+- [[rememberResearch()]] - code - src/lib/trading/research-retain.ts
+- [[rememberSessionTrade()]] - code - src/lib/trading/desk-memory.ts
+- [[research-retain.ts]] - code - src/lib/trading/research-retain.ts
+- [[researchLine()]] - code - src/lib/trading/research-retain.ts
+- [[researchRead]] - code - src/lib/trading/research-retain.ts
+- [[resolvePublishedRisk()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[resolveRiskGradeForTake()]] - code - src/lib/trading/profit-rules.ts
+- [[runVeteranBrain()]] - code - src/lib/trading/veteran-brain.ts
+- [[saveDeskMemory()]] - code - src/lib/trading/desk-memory.ts
+- [[sessionTradeLine()]] - code - src/lib/trading/desk-memory.ts
+- [[sessionTradeNodeId()]] - code - src/lib/trading/desk-memory.ts
+- [[sessionTradeNodes()]] - code - src/lib/trading/desk-memory.ts
+- [[slug()]] - code - src/lib/trading/desk-memory.ts
+- [[stratStatusClass()]] - code - src/components/desk/veteran-brain.tsx
+- [[strategyPriority()]] - code - src/lib/trading/profit-rules.ts
+- [[synapseDigest()]] - code - src/lib/trading/desk-synapse.ts
+- [[tabStatusClass()]] - code - src/components/desk/veteran-brain.tsx
+- [[toBucket()]] - code - src/lib/trading/bt-seed.ts
+- [[toneDot()]] - code - src/components/desk/veteran-brain.tsx
+- [[topStrategyRates()]] - code - src/lib/trading/desk-memory.ts
+- [[uid()_1]] - code - src/lib/trading/desk-memory.ts
+- [[updateBookFromBacktest()]] - code - src/lib/trading/desk-memory.ts
+- [[useDeskSynapse]] - code - src/lib/trading/desk-synapse.ts
+- [[verdictStyle()_1]] - code - src/components/desk/veteran-brain.tsx
+- [[veteran-brain.ts]] - code - src/lib/trading/veteran-brain.ts
+- [[veteran-brain.tsx]] - code - src/components/desk/veteran-brain.tsx
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/veteran-braints
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 50 edges to [[_COMMUNITY_index.tsx]]
+- 40 edges to [[_COMMUNITY_paper-manager.ts]]
+- 27 edges to [[_COMMUNITY_aplusconfig.ts]]
+- 26 edges to [[_COMMUNITY_cn]]
+- 23 edges to [[_COMMUNITY_react]]
+- 19 edges to [[_COMMUNITY_ghost-book.ts]]
+- 16 edges to [[_COMMUNITY_journalserver.ts]]
+- 15 edges to [[_COMMUNITY_smc-canon.ts]]
+- 14 edges to [[_COMMUNITY_session-backtest.ts]]
+- 12 edges to [[_COMMUNITY_smc-master.ts]]
+- 11 edges to [[_COMMUNITY_profit-path.ts]]
+- 9 edges to [[_COMMUNITY_jsonResponse]]
+- 9 edges to [[_COMMUNITY_tradingscanner.ts]]
+- 9 edges to [[_COMMUNITY_desk-atlas.ts]]
+- 9 edges to [[_COMMUNITY_hi-alert.ts]]
+- 8 edges to [[_COMMUNITY_options-swing-panel.tsx]]
+- 7 edges to [[_COMMUNITY_floor-school-contracts.ts]]
+- 7 edges to [[_COMMUNITY_strategy-grade.ts]]
+- 6 edges to [[_COMMUNITY_claude-server.ts]]
+- 6 edges to [[_COMMUNITY_build-desk.ts]]
+- 5 edges to [[_COMMUNITY_tradezella-analyze.ts]]
+- 5 edges to [[_COMMUNITY_detectors.ts]]
+- 5 edges to [[_COMMUNITY_week-ahead.ts]]
+- 5 edges to [[_COMMUNITY_curriculum.ts]]
+- 4 edges to [[_COMMUNITY_options-desk.ts]]
+- 4 edges to [[_COMMUNITY_live-world.ts]]
+- 3 edges to [[_COMMUNITY_OhlcBar]]
+- 3 edges to [[_COMMUNITY_rh-dispatch.ts]]
+- 3 edges to [[_COMMUNITY_chart-timeframes.ts]]
+- 3 edges to [[_COMMUNITY_discretion-memory.ts]]
+- 3 edges to [[_COMMUNITY_capture-history.mjs]]
+- 2 edges to [[_COMMUNITY_simulate-path-trade.ts]]
+- 2 edges to [[_COMMUNITY_tradovate-orders.ts]]
+- 2 edges to [[_COMMUNITY_shadow-book.ts]]
+- 2 edges to [[_COMMUNITY_buildTradingDesk]]
+- 2 edges to [[_COMMUNITY_shadow-book-panel.tsx]]
+- 2 edges to [[_COMMUNITY_room-engine.ts]]
+- 2 edges to [[_COMMUNITY_trade-log.ts]]
+- 2 edges to [[_COMMUNITY_orchestrator.ts]]
+- 1 edge to [[_COMMUNITY_hit-odds.ts]]
+- 1 edge to [[_COMMUNITY_SmcMasterBook]]
+- 1 edge to [[_COMMUNITY_apex-sim.ts]]
+- 1 edge to [[_COMMUNITY_order-intent.ts]]
+- 1 edge to [[_COMMUNITY_propfirm-panel.tsx]]
+- 1 edge to [[_COMMUNITY_setup-chart-panel.tsx]]
+- 1 edge to [[_COMMUNITY_manager-live-loop.ts]]
+- 1 edge to [[_COMMUNITY_school-brief.ts]]
+- 1 edge to [[_COMMUNITY_use-entry-state.ts]]
+- 1 edge to [[_COMMUNITY_card-journal.ts]]
+- 1 edge to [[_COMMUNITY_evaluateOptionsDesk]]
+- 1 edge to [[_COMMUNITY_entry-trigger.ts]]
+- 1 edge to [[_COMMUNITY_analytics-panel.tsx]]
+- 1 edge to [[_COMMUNITY_verify-curriculum.mjs]]
+- 1 edge to [[_COMMUNITY_verify-live-talk.mjs]]
+- 1 edge to [[_COMMUNITY_shadow-store.ts]]
+- 1 edge to [[_COMMUNITY_month-ahead.ts]]
+- 1 edge to [[_COMMUNITY_live-voices.ts]]
+- 1 edge to [[_COMMUNITY_verify-goal.mjs]]
+- 1 edge to [[_COMMUNITY_verify-research-retain.mjs]]
+- 1 edge to [[_COMMUNITY_package.json]]
+- 1 edge to [[_COMMUNITY_verify-desk-session.mjs]]
+- 1 edge to [[_COMMUNITY_goal.ts]]
+
+## Top bridge nodes
+- [[SetupCandidate]] - degree 45, connects to 28 communities
+- [[veteran-brain.ts]] - degree 71, connects to 22 communities
+- [[profit-rules.ts]] - degree 59, connects to 16 communities
+- [[desk-synapse.ts]] - degree 55, connects to 14 communities
+- [[runVeteranBrain()]] - degree 35, connects to 11 communities

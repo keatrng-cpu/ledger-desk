@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/measure-news-bias.mjs"
+source_file: "scripts/capture-1m-history.mjs"
 type: "code"
-community: "Community 228"
-location: "L57"
+community: "capture-1m-history.mjs"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_228
+  - community/capture-1m-historymjs
 ---
 
 # etMin()
 
 ## Connections
-- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
-- [[windowMove()]] - `calls` [EXTRACTED]
+- [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
+- [[parse()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_228
+#graphify/code #graphify/EXTRACTED #community/capture-1m-historymjs

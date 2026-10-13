@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/execution/order-intent.ts"
+source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 77"
-location: "L115"
+community: "predict-server.ts"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/predict-serverts
 ---
 
 # .constructor()
 
 ## Connections
-- [[OrderIntentError]] - `method` [EXTRACTED]
+- [[HttpError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

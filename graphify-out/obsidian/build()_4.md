@@ -1,17 +1,20 @@
 ---
-source_file: "scripts/verify-take-census.mjs"
+source_file: "scripts/oracle/bs_oracle.py"
 type: "code"
-community: "Community 229"
-location: "L26"
+community: "json"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/json
 ---
 
 # build()
 
 ## Connections
-- [[verify-take-census.mjs]] - `contains` [EXTRACTED]
+- [[bs()]] - `calls` [EXTRACTED]
+- [[bs_oracle.py]] - `contains` [EXTRACTED]
+- [[ncdf()]] - `calls` [EXTRACTED]
+- [[render()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/json

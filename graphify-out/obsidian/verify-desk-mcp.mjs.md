@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-desk-mcp.mjs"
 type: "code"
-community: "Community 184"
+community: "grok-report.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/grok-reportts
 ---
 
 # verify-desk-mcp.mjs
 
 ## Connections
 - [[card_3]] - `contains` [EXTRACTED]
-- [[check()_31]] - `contains` [EXTRACTED]
+- [[check()_22]] - `contains` [EXTRACTED]
 - [[encodeMcp()]] - `imports` [EXTRACTED]
 - [[handleMcpMessage()]] - `imports` [EXTRACTED]
 - [[mcp-server.ts]] - `imports_from` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[sse]] - `contains` [EXTRACTED]
 - [[wantsSse()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

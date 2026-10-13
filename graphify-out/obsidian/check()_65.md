@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-nerve.mjs"
+source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 251"
-location: "L20"
+community: "verify-rh-path-fire.mjs"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_251
+  - community/verify-rh-path-firemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-brain-nerve.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-path-fire.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_251
+#graphify/code #graphify/EXTRACTED #community/verify-rh-path-firemjs

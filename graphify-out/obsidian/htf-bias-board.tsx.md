@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/htf-bias-board.tsx"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # htf-bias-board.tsx
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[BiasChip()]] - `contains` [EXTRACTED]
 - [[BiasIcon()]] - `contains` [EXTRACTED]
-- [[Card()]] - `contains` [EXTRACTED]
+- [[Card()_8]] - `contains` [EXTRACTED]
 - [[HtfBiasBoard()]] - `contains` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[structure.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

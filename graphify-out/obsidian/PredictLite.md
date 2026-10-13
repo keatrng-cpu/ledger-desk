@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 162"
+community: "live-world.ts"
 location: "L740"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-worldts
 ---
 
 # PredictLite
@@ -21,4 +21,4 @@ tags:
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-worldts

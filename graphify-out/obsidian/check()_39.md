@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-spoken-form.mjs"
+source_file: "scripts/verify-day-change.mjs"
 type: "code"
-community: "Community 20"
-location: "L25"
+community: "verify-day-change.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/verify-day-changemjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-spoken-form.mjs]] - `contains` [EXTRACTED]
+- [[ok()_19]] - `calls` [EXTRACTED]
+- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/verify-day-changemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-presence.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # visemeAt()
@@ -15,4 +15,4 @@ tags:
 - [[floor-presence.ts]] - `contains` [EXTRACTED]
 - [[presenceOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

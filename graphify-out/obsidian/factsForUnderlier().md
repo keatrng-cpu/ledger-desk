@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ticket-facts.ts"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L304"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # factsForUnderlier()
@@ -17,4 +17,4 @@ tags:
 - [[option-ticket.tsx]] - `imports` [EXTRACTED]
 - [[ticket-facts.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

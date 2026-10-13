@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 35"
+community: "2. SHARED CONTRACTS"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/2_SHARED_CONTRACTS
 ---
 
 # CardPlan
@@ -16,4 +16,4 @@ tags:
 - [[card-plan.ts]] - `contains` [EXTRACTED]
 - [[score-drivers.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/2_SHARED_CONTRACTS

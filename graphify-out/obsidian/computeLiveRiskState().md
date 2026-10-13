@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L280"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # computeLiveRiskState()
@@ -23,4 +23,4 @@ tags:
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 - [[tradingWeekStart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

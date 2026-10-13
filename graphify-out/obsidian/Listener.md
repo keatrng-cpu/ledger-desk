@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 48"
-location: "L78"
+community: "paper-manager.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/paper-managerts
 ---
 
 # Listener
 
 ## Connections
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[auto-paper.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

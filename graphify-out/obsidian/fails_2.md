@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-live-lesson.mjs"
+source_file: "scripts/verify-calibration.mjs"
 type: "code"
-community: "Community 205"
-location: "L44"
+community: "calibration-panel.tsx"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/calibration-paneltsx
 ---
 
 # fails
 
 ## Connections
-- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
+- [[verify-calibration.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_205
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

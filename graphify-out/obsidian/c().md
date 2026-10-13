@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/predict/signal-engine.ts"
+source_file: "src/components/predict/predict-parts.tsx"
 type: "code"
-community: "Community 12"
-location: "L290"
+community: "mead-screens.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_12
+  - community/mead-screensts
 ---
 
 # c()
 
 ## Connections
-- [[computeSignal()]] - `calls` [EXTRACTED]
-- [[signal-engine.ts]] - `contains` [EXTRACTED]
+- [[JournalCard()]] - `calls` [EXTRACTED]
+- [[SideRow()]] - `calls` [EXTRACTED]
+- [[predict-parts.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_12
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

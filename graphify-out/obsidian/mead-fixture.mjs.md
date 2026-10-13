@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/lib/mead-fixture.mjs"
 type: "code"
-community: "Community 279"
+community: "verify-mead-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_279
+  - community/verify-mead-talkmjs
 ---
 
 # mead-fixture.mjs
@@ -18,13 +18,13 @@ tags:
 - [[board.ts]] - `dynamic_import` [EXTRACTED]
 - [[boardAt()]] - `contains` [EXTRACTED]
 - [[boardMemo]] - `contains` [EXTRACTED]
-- [[buildBoard()_1]] - `contains` [EXTRACTED]
+- [[buildBoard()]] - `contains` [EXTRACTED]
 - [[driftHistory()]] - `contains` [EXTRACTED]
 - [[espn]] - `contains` [EXTRACTED]
 - [[go-ledger.ts]] - `dynamic_import` [EXTRACTED]
 - [[hall-lite.ts]] - `dynamic_import` [EXTRACTED]
 - [[hallAt()]] - `contains` [EXTRACTED]
-- [[iso()_3]] - `contains` [EXTRACTED]
+- [[iso()_1]] - `contains` [EXTRACTED]
 - [[kalshiEvents]] - `contains` [EXTRACTED]
 - [[math.ts]] - `dynamic_import` [EXTRACTED]
 - [[mead-world.mjs]] - `dynamic_import` [EXTRACTED]
@@ -44,4 +44,4 @@ tags:
 - [[verify-live-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_279
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

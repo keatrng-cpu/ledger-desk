@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-exec.mjs"
+source_file: "scripts/verify-session-event.mjs"
 type: "code"
-community: "Community 171"
-location: "L31"
+community: "cases.ts"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_171
+  - community/casests
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
+- [[verify-session-event.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_171
+#graphify/code #graphify/EXTRACTED #community/casests

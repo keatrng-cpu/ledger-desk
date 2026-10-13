@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-ledger.ts"
 type: "code"
-community: "Community 223"
+community: ".path"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/path
 ---
 
 # serialized()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[fileLedger()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/path

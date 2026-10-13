@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tf-ladder.ts"
 type: "code"
-community: "Community 67"
+community: "tf-ladder.ts"
 location: "L446"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_67
+  - community/tf-ladderts
 ---
 
 # word()
@@ -18,4 +18,4 @@ tags:
 - [[tf-ladder.ts]] - `contains` [EXTRACTED]
 - [[verify-rh-autofire-gates.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_67
+#graphify/code #graphify/INFERRED #community/tf-ladderts

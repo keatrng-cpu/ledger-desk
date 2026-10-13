@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-desk-session.mjs"
+source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 339"
-location: "L41"
+community: "check"
+location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_339
+  - community/check
 ---
 
 # check()
 
 ## Connections
-- [[verify-desk-session.mjs]] - `contains` [EXTRACTED]
+- [[ok()_26]] - `calls` [EXTRACTED]
+- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_339
+#graphify/code #graphify/EXTRACTED #community/check

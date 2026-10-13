@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategies.ts"
 type: "code"
-community: "Community 127"
+community: "smc-canon.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # strategies.ts
@@ -37,4 +37,4 @@ tags:
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-spot-cross.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 160"
-location: "L32"
+community: "verify-card-freshness.mjs"
+location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/verify-card-freshnessmjs
 ---
 
 # bar()
 
 ## Connections
-- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
+- [[bars_9]] - `calls` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

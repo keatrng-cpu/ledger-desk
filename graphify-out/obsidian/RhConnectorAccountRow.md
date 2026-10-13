@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 158"
+community: "manager-feed.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/manager-feedts
 ---
 
 # RhConnectorAccountRow
@@ -16,4 +16,4 @@ tags:
 - [[manager-account.ts]] - `contains` [EXTRACTED]
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_158
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

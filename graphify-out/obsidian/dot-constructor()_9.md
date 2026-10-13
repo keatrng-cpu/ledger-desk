@@ -1,19 +1,17 @@
 ---
-source_file: "src/components/room/floor-proto-avatars.ts"
+source_file: "src/lib/auth/pglite-dialect.ts"
 type: "code"
-community: "Community 193"
-location: "L130"
+community: "LazyPGliteDriver"
+location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/LazyPGliteDriver
 ---
 
 # .constructor()
 
 ## Connections
-- [[OwnerAvatar]] - `method` [EXTRACTED]
-- [[makeTag()]] - `calls` [EXTRACTED]
-- [[mat()]] - `calls` [EXTRACTED]
+- [[PGliteConnection]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/LazyPGliteDriver

@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/invest/habit-card.tsx"
 type: "code"
-community: "Community 100"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/policyts
 ---
 
 # habit-card.tsx
 
 ## Connections
-- [[BUTTON_1]] - `imports` [EXTRACTED]
+- [[BUTTON]] - `imports` [EXTRACTED]
 - [[Card()_2]] - `imports` [EXTRACTED]
 - [[HabitCard()]] - `contains` [EXTRACTED]
 - [[INPUT_2]] - `imports` [EXTRACTED]
@@ -29,11 +29,11 @@ tags:
 - [[nextBuy]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[rateLadder]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sweepFundedUsd()]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_6]] - `imports` [EXTRACTED]
+- [[usd()_4]] - `imports` [EXTRACTED]
 - [[voidEntry()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/policyts

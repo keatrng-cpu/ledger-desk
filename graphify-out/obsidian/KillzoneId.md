@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 10"
+community: "jsonResponse"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/jsonResponse
 ---
 
 # KillzoneId
@@ -19,4 +19,4 @@ tags:
 - [[risk.ts]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

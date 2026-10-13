@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-path-fire.mjs"
 type: "code"
-community: "Community 298"
+community: "verify-rh-path-fire.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_298
+  - community/verify-rh-path-firemjs
 ---
 
 # verify-rh-path-fire.mjs
@@ -17,18 +17,18 @@ tags:
 - [[BPLUS_OK]] - `contains` [EXTRACTED]
 - [[FLAGS]] - `contains` [EXTRACTED]
 - [[FUNDED_1]] - `contains` [EXTRACTED]
-- [[NOW_11]] - `contains` [EXTRACTED]
-- [[ROOT_10]] - `contains` [EXTRACTED]
+- [[NOW_12]] - `contains` [EXTRACTED]
+- [[ROOT_11]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `dynamic_import` [EXTRACTED]
 - [[b()_1]] - `indirect_call` [INFERRED]
-- [[check()_74]] - `contains` [EXTRACTED]
-- [[config.ts]] - `dynamic_import` [EXTRACTED]
+- [[check()_65]] - `contains` [EXTRACTED]
 - [[g()]] - `contains` [EXTRACTED]
 - [[path-alarm.ts]] - `dynamic_import` [EXTRACTED]
-- [[read()_9]] - `contains` [EXTRACTED]
+- [[read()_8]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 - [[ref_node_url]] - `imports_from` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `dynamic_import` [EXTRACTED]
 - [[rh-autofire.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_298
+#graphify/code #graphify/EXTRACTED #community/verify-rh-path-firemjs

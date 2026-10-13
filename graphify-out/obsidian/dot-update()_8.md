@@ -1,22 +1,17 @@
 ---
-source_file: "src/components/room/floor-overhaul.ts"
+source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 24"
-location: "L469"
+community: "Avatar"
+location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/Avatar
 ---
 
 # .update()
 
 ## Connections
-- [[dot-drawPitBase()]] - `calls` [EXTRACTED]
-- [[dot-resetDrop()]] - `calls` [EXTRACTED]
-- [[dot-tick()_2]] - `calls` [INFERRED]
-- [[FloorOverhaul]] - `method` [EXTRACTED]
-- [[armLeverDisplay()]] - `calls` [EXTRACTED]
-- [[sessionDial]] - `calls` [EXTRACTED]
+- [[TicketFlight]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/Avatar

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/tape.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # tape.ts
@@ -18,4 +18,4 @@ tags:
 - [[scenarios.ts]] - `imports_from` [EXTRACTED]
 - [[tape]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

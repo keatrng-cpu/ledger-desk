@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/auth/SKILL.md"
 type: "document"
-community: "Community 65"
+community: "auth/server.ts"
 location: "L274"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_65
+  - community/auth/serverts
 ---
 
 # Per-user data (server-side — mandatory)
@@ -16,4 +16,4 @@ tags:
 - [[UnauthorizedError]] - `references` [INFERRED]
 - [[requireUserId()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_65
+#graphify/document #graphify/INFERRED #community/auth/serverts

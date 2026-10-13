@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-tab.tsx"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # PredictTabProps
@@ -15,4 +15,4 @@ tags:
 - [[ScanRow]] - `references` [EXTRACTED]
 - [[predict-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

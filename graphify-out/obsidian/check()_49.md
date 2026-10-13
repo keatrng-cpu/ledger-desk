@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-day-change.mjs"
+source_file: "scripts/verify-ai-sync.mjs"
 type: "code"
-community: "Community 220"
-location: "L27"
+community: "verify-ai-sync.mjs"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_220
+  - community/verify-ai-syncmjs
 ---
 
 # check()
 
 ## Connections
 - [[ok()_20]] - `calls` [EXTRACTED]
-- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
+- [[verify-ai-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_220
+#graphify/code #graphify/EXTRACTED #community/verify-ai-syncmjs

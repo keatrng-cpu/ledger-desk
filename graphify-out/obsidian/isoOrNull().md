@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 7"
+community: "signal-engine.ts"
 location: "L288"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/signal-enginets
 ---
 
 # isoOrNull()
@@ -29,4 +29,4 @@ tags:
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 - [[walkForward()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/signal-enginets

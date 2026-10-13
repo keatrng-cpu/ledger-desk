@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 163"
+community: "chart-timeframes.ts"
 location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/chart-timeframests
 ---
 
 # pct()
@@ -16,4 +16,4 @@ tags:
 - [[setup-anticipation.ts]] - `contains` [EXTRACTED]
 - [[targetReachable()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

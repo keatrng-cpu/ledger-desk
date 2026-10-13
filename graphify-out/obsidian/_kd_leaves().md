@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_ao.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # _kd_leaves()
@@ -17,4 +17,4 @@ tags:
 - [[numpy]] - `calls` [EXTRACTED]
 - [[refine_rect()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

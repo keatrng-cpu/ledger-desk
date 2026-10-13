@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 185"
+community: "verify-race-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/verify-race-talkmjs
 ---
 
 # verify-race-talk.mjs
@@ -18,8 +18,8 @@ tags:
 - [[TRANSCRIPT_1]] - `contains` [EXTRACTED]
 - [[WHY the trader asked the five to be agents with one goal — $1,000 → $5,000 —…]] - `rationale_for` [EXTRACTED]
 - [[at()_4]] - `contains` [EXTRACTED]
-- [[bookOf()_3]] - `contains` [EXTRACTED]
-- [[check()_32]] - `contains` [EXTRACTED]
+- [[bookOf()_2]] - `contains` [EXTRACTED]
+- [[check()_23]] - `contains` [EXTRACTED]
 - [[clockAt()_3]] - `contains` [EXTRACTED]
 - [[drain()]] - `contains` [EXTRACTED]
 - [[ev()_1]] - `contains` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[textOf()_2]] - `contains` [EXTRACTED]
 - [[unsourced()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/verify-race-talkmjs

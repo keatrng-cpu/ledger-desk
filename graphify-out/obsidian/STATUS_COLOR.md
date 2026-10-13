@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/exec-card.tsx"
 type: "code"
-community: "Community 222"
+community: "exec-card.tsx"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/exec-cardtsx
 ---
 
 # STATUS_COLOR
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[exec-card.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/exec-cardtsx

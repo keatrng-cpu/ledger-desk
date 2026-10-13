@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-amd-signals.mjs"
+source_file: "scripts/measure-entry-location.mjs"
 type: "code"
-community: "Community 136"
-location: "L77"
+community: "measure-entry-location.mjs"
+location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_136
+  - community/measure-entry-locationmjs
 ---
 
 # rows
 
 ## Connections
-- [[measure-amd-signals.mjs]] - `contains` [EXTRACTED]
+- [[measure-entry-location.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_136
+#graphify/code #graphify/EXTRACTED #community/measure-entry-locationmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L212"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # kindsOf()
@@ -16,4 +16,4 @@ tags:
 - [[opsOf()]] - `calls` [EXTRACTED]
 - [[problemKind()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

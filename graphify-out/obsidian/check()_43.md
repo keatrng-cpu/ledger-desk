@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-mead-talk.mjs"
+source_file: "scripts/verify-hi-alert-brain.mjs"
 type: "code"
-community: "Community 210"
-location: "L44"
+community: "verify-hi-alert-brain.mjs"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_210
+  - community/verify-hi-alert-brainmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-hi-alert-brain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_210
+#graphify/code #graphify/EXTRACTED #community/verify-hi-alert-brainmjs

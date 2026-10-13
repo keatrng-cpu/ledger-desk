@@ -1,19 +1,25 @@
 ---
-source_file: "src/components/room/floor-overhaul-race.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 10"
-location: "L13"
+community: "mead-screens.ts"
+location: "L215"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/mead-screensts
 ---
 
 # fit()
 
 ## Connections
-- [[drawRaceBoard()]] - `calls` [EXTRACTED]
-- [[drawScrubberBoard()]] - `calls` [EXTRACTED]
-- [[floor-overhaul-race.ts]] - `contains` [EXTRACTED]
+- [[drawBooth()]] - `calls` [EXTRACTED]
+- [[drawBubble()]] - `calls` [EXTRACTED]
+- [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawLectern()]] - `calls` [EXTRACTED]
+- [[drawLedger()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
+- [[drawTv()]] - `calls` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

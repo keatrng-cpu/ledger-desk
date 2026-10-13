@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-C.md"
 type: "document"
-community: "Community 235"
+community: "verify-audit.mjs"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_235
+  - community/verify-auditmjs
 ---
 
 # Phase B integration notes — B4 alerts, B5 schedules, B6 snapshot review
@@ -21,4 +21,4 @@ tags:
 - [[7. Security posture]] - `contains` [EXTRACTED]
 - [[INTEGRATION-C]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_235
+#graphify/document #graphify/EXTRACTED #community/verify-auditmjs

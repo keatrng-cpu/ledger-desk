@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/data-fresh.ts"
 type: "code"
-community: "Community 128"
+community: "invest-office.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/invest-officets
 ---
 
 # data-fresh.ts
@@ -31,4 +31,4 @@ tags:
 - [[verify-audit.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/invest-officets

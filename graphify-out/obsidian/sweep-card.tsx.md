@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/invest/sweep-card.tsx"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # sweep-card.tsx
 
 ## Connections
-- [[BUTTON_1]] - `imports` [EXTRACTED]
+- [[BUTTON]] - `imports` [EXTRACTED]
 - [[Card()_2]] - `imports` [EXTRACTED]
 - [[DATABENTO_MONTHLY_USD]] - `imports` [EXTRACTED]
 - [[DATA_RENT_MONTHLY_USD]] - `imports` [EXTRACTED]
@@ -30,15 +30,15 @@ tags:
 - [[planSweep()]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[priorMonth()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[realizedNeededFor()]] - `imports` [EXTRACTED]
 - [[rentVsSweep()]] - `imports` [EXTRACTED]
 - [[rh-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[rhMonth()]] - `imports` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_6]] - `imports` [EXTRACTED]
+- [[usd()_4]] - `imports` [EXTRACTED]
 - [[usd0()]] - `imports` [EXTRACTED]
 - [[validateSweepMonth()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

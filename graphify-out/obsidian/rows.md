@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/measure-model-claims.mjs"
 type: "code"
-community: "Community 115"
-location: "L61"
+community: "measure-model-claims.mjs"
+location: "L134"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/measure-model-claimsmjs
 ---
 
 # rows
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[measure-model-claims.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/measure-model-claimsmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-E.md"
 type: "document"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L39"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # Wiring step 1 — backfill on login / on mount when signed in
@@ -15,4 +15,4 @@ tags:
 - [[D1 — what was actually broken]] - `contains` [EXTRACTED]
 - [[syncPaperBookToDb()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_87
+#graphify/document #graphify/EXTRACTED #community/paper-backfillts

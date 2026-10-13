@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-office.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # InvestInputs
@@ -24,4 +24,4 @@ tags:
 - [[nextBuy]] - `references` [EXTRACTED]
 - [[rateLadder]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

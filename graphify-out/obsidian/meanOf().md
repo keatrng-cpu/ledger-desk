@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/rnd.ts"
 type: "code"
-community: "Community 194"
+community: "rnd.ts"
 location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/rndts
 ---
 
 # meanOf()
@@ -18,4 +18,4 @@ tags:
 - [[tOne()_1]] - `calls` [EXTRACTED]
 - [[tWelch()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/rndts

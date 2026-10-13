@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "code"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # build-learn-figures.py
@@ -18,7 +18,7 @@ tags:
 - [[atr()_2]] - `contains` [EXTRACTED]
 - [[bear_structure_before()]] - `contains` [EXTRACTED]
 - [[datetime_2]] - `imports_from` [EXTRACTED]
-- [[et()_4]] - `contains` [EXTRACTED]
+- [[et()_5]] - `contains` [EXTRACTED]
 - [[fig()_1]] - `contains` [EXTRACTED]
 - [[find_against()]] - `contains` [EXTRACTED]
 - [[find_breakout()]] - `contains` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[sys]] - `imports` [EXTRACTED]
 - [[well_formed()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/build-learn-figurespy

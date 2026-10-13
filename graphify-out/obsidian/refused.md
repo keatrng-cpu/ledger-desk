@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/fidelity/replay-desk.mjs"
 type: "code"
-community: "Community 53"
-location: "L345"
+community: "replay-desk.mjs"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/replay-deskmjs
 ---
 
 # refused
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[replay-desk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/replay-deskmjs

@@ -1,18 +1,22 @@
 ---
-source_file: "src/components/desk/risk-panel.tsx"
+source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 44"
-location: "L14"
+community: "room-engine.ts"
+location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/room-enginets
 ---
 
 # money()
 
 ## Connections
-- [[LimitBar()]] - `calls` [EXTRACTED]
-- [[risk-panel.tsx]] - `contains` [EXTRACTED]
+- [[applyCycle()]] - `calls` [EXTRACTED]
+- [[bookRealized()]] - `calls` [EXTRACTED]
+- [[equityOf()]] - `calls` [EXTRACTED]
+- [[markBook()]] - `calls` [EXTRACTED]
+- [[paper-book.ts]] - `contains` [EXTRACTED]
+- [[voidPosition()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/room-enginets

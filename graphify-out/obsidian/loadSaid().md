@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/said-memory.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # loadSaid()
@@ -15,4 +15,4 @@ tags:
 - [[floor-scene.ts]] - `imports` [EXTRACTED]
 - [[said-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

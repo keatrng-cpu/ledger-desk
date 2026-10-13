@@ -1,22 +1,24 @@
 ---
-source_file: "scripts/lib/mead-fixture.mjs"
+source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 279"
-location: "L116"
+community: "predict-server.ts"
+location: "L374"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_279
+  - community/predict-serverts
 ---
 
 # buildBoard()
 
 ## Connections
-- [[boardAt()]] - `calls` [EXTRACTED]
-- [[driftHistory()]] - `calls` [EXTRACTED]
-- [[iso()_3]] - `calls` [EXTRACTED]
-- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
-- [[rawAt()]] - `calls` [EXTRACTED]
-- [[scanRows()]] - `calls` [EXTRACTED]
+- [[americanToProb()]] - `calls` [EXTRACTED]
+- [[board.ts]] - `contains` [EXTRACTED]
+- [[devig()]] - `calls` [EXTRACTED]
+- [[getPredictBoard]] - `calls` [EXTRACTED]
+- [[noVig()]] - `calls` [EXTRACTED]
+- [[polyQuoteFor()]] - `calls` [EXTRACTED]
+- [[predict-server.ts]] - `imports` [EXTRACTED]
+- [[read()_12]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_279
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

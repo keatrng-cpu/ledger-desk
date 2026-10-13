@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 100"
+community: "invest-panel.tsx"
 location: "L492"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-paneltsx
 ---
 
 # dryPowderTrigger()
@@ -17,4 +17,4 @@ tags:
 - [[book.ts]] - `contains` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

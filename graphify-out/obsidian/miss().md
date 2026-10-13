@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-floor-ik.mjs"
 type: "code"
-community: "Community 329"
+community: "verify-floor-ik.mjs"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_329
+  - community/verify-floor-ikmjs
 ---
 
 # miss()
@@ -15,4 +15,4 @@ tags:
 - [[rigHand()]] - `calls` [EXTRACTED]
 - [[verify-floor-ik.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_329
+#graphify/code #graphify/EXTRACTED #community/verify-floor-ikmjs

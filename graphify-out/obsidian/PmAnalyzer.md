@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L202"
+community: "index.tsx"
+location: "L203"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # PmAnalyzer
@@ -16,4 +16,4 @@ tags:
 - [[index.tsx]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

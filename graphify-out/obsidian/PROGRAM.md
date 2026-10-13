@@ -1,12 +1,12 @@
 ---
 source_file: "PROGRAM.md"
 type: "document"
-community: "Community 303"
+community: "Program Definition — DRAFT, NOT YET IN FORCE"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_303
+  - community/Program_Definition__DRAFT_NOT_YET_IN_FORCE
 ---
 
 # PROGRAM.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Program Definition — DRAFT, NOT YET IN FORCE]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_303
+#graphify/document #graphify/EXTRACTED #community/Program_Definition__DRAFT_NOT_YET_IN_FORCE

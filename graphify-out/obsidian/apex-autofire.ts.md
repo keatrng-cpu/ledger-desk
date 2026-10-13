@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/execution/apex-autofire.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # apex-autofire.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[AUTOFIRE_CONFLUENCE_FLOOR]] - `imports` [EXTRACTED]
 - [[AutofireResult]] - `contains` [EXTRACTED]
 - [[FanOutAccountResult]] - `imports` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[tryApexAutofire]] - `contains` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

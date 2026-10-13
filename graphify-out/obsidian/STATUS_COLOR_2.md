@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/race-panel.tsx"
 type: "code"
-community: "Community 299"
+community: "audit.ts"
 location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_299
+  - community/auditts
 ---
 
 # STATUS_COLOR
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[race-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_299
+#graphify/code #graphify/EXTRACTED #community/auditts

@@ -1,18 +1,21 @@
 ---
-source_file: "scripts/measure-micro-entry.mjs"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 199"
-location: "L82"
+community: "cases.ts"
+location: "L310"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_199
+  - community/casests
 ---
 
 # simulate()
 
 ## Connections
-- [[etMin()]] - `calls` [EXTRACTED]
-- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
+- [[buildCases()]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[etTime()_1]] - `calls` [EXTRACTED]
+- [[px()_4]] - `calls` [EXTRACTED]
+- [[r2()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_199
+#graphify/code #graphify/EXTRACTED #community/casests

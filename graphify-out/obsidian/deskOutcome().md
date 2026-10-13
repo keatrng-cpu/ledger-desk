@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 311"
+community: "replay-drill.ts"
 location: "L720"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_311
+  - community/replay-drillts
 ---
 
 # deskOutcome()
@@ -19,4 +19,4 @@ tags:
 - [[replay-drill.ts]] - `contains` [EXTRACTED]
 - [[simulateOrder()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_311
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

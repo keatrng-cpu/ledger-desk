@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/gen-build-id.mjs"
 type: "code"
-community: "Community 191"
+community: "ref_node_url"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/ref_node_url
 ---
 
 # gen-build-id.mjs
@@ -20,8 +20,8 @@ tags:
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 - [[ref_node_url]] - `imports_from` [EXTRACTED]
-- [[root_4]] - `contains` [EXTRACTED]
+- [[root]] - `contains` [EXTRACTED]
 - [[sha()]] - `contains` [EXTRACTED]
 - [[target_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

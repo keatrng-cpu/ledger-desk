@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/month-ahead.ts"
 type: "code"
-community: "Community 69"
+community: "ghost-book.ts"
 location: "L432"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/ghost-bookts
 ---
 
 # monthAheadFocusLine()
@@ -18,4 +18,4 @@ tags:
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

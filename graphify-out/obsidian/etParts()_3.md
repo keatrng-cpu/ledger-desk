@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/trade-note.ts"
+source_file: "src/lib/execution/option-marks.ts"
 type: "code"
-community: "Community 8"
-location: "L58"
+community: "rh-dispatch.ts"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/rh-dispatchts
 ---
 
 # etParts()
 
 ## Connections
-- [[buildTradeNote()]] - `calls` [EXTRACTED]
-- [[trade-note.ts]] - `contains` [EXTRACTED]
+- [[liveExpiry()]] - `calls` [EXTRACTED]
+- [[option-marks.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L466"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # taxYear()
@@ -16,7 +16,7 @@ tags:
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[ledger.ts]] - `contains` [EXTRACTED]
-- [[round2()_6]] - `calls` [EXTRACTED]
+- [[round2()_10]] - `calls` [EXTRACTED]
 - [[taxOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

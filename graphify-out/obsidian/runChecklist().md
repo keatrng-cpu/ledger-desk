@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/trigger-server.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # runChecklist()
@@ -14,11 +14,11 @@ tags:
 ## Connections
 - [[checkScheduledJobs]] - `calls` [EXTRACTED]
 - [[etWindow_1]] - `calls` [EXTRACTED]
-- [[fmtR()_2]] - `calls` [EXTRACTED]
+- [[fmtR()_1]] - `calls` [EXTRACTED]
 - [[sendAlert()]] - `calls` [EXTRACTED]
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 - [[tradingWeekStart()]] - `calls` [EXTRACTED]
 - [[trigger-server.ts]] - `contains` [EXTRACTED]
 - [[windowStats]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # drawChart()
@@ -16,7 +16,7 @@ tags:
 - [[cuesOfFrame()]] - `calls` [EXTRACTED]
 - [[drawScreen()]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[fmt()_4]] - `calls` [EXTRACTED]
+- [[fmt()_3]] - `calls` [EXTRACTED]
 - [[header()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

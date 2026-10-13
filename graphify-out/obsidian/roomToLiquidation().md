@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 188"
+community: "runApexSim"
 location: "L1226"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_188
+  - community/runApexSim
 ---
 
 # roomToLiquidation()
@@ -17,7 +17,7 @@ tags:
 - [[apex-sim.ts]] - `contains` [EXTRACTED]
 - [[apexRulesFor()]] - `calls` [EXTRACTED]
 - [[dllFor()]] - `calls` [EXTRACTED]
-- [[fmtUsd()_1]] - `calls` [EXTRACTED]
+- [[fmtUsd()]] - `calls` [EXTRACTED]
 - [[isMicro()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_188
+#graphify/code #graphify/EXTRACTED #community/runApexSim

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/paper-mirror.ts"
 type: "code"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # mirrorOpenRow()
@@ -18,4 +18,4 @@ tags:
 - [[paper-backfill.ts]] - `imports` [EXTRACTED]
 - [[paper-mirror.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/paper-backfillts

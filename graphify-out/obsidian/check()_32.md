@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-race-talk.mjs"
+source_file: "scripts/verify-spoken-form.mjs"
 type: "code"
-community: "Community 185"
-location: "L37"
+community: "verify-entry-alarm.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_185
+  - community/verify-entry-alarmmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
+- [[verify-spoken-form.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_185
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

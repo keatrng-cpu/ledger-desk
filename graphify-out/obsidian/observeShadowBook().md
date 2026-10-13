@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-store.ts"
 type: "code"
-community: "Community 149"
+community: "shadow-store.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_149
+  - community/shadow-storets
 ---
 
 # observeShadowBook()
@@ -20,4 +20,4 @@ tags:
 - [[scheduleFlush()]] - `calls` [EXTRACTED]
 - [[shadow-store.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_149
+#graphify/code #graphify/EXTRACTED #community/shadow-storets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L471"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # propsSignature()
@@ -17,4 +17,4 @@ tags:
 - [[raceReplaySignature()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

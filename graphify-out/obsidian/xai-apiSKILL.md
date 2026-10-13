@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/xai-api/SKILL.md"
 type: "document"
-community: "Community 325"
+community: "xAI API (Grok)"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_325
+  - community/xAI_API_Grok
 ---
 
 # xai-api/SKILL.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[xAI API (Grok)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_325
+#graphify/document #graphify/EXTRACTED #community/xAI_API_Grok

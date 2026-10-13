@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 9"
+community: "profit-path.ts"
 location: "L427"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/profit-pathts
 ---
 
 # goldStandardNote()
@@ -19,4 +19,4 @@ tags:
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 273"
+community: "smoke_live.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # model_validator
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[dot-desk_gates()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "rationale"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L37"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # |z| of the last return against the ones before it. Too few prints, or a flat…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[noise_z()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_273
+#graphify/rationale #graphify/EXTRACTED #community/smoke_livepy

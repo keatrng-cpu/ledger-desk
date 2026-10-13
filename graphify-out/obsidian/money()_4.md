@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/invest/funnel-card.tsx"
+source_file: "src/components/journal/discipline-panel.tsx"
 type: "code"
-community: "Community 209"
+community: "journal/server.ts"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/journal/serverts
 ---
 
 # money()
 
 ## Connections
-- [[Rows()]] - `calls` [EXTRACTED]
-- [[funnel-card.tsx]] - `contains` [EXTRACTED]
+- [[DisciplinePanel()]] - `calls` [EXTRACTED]
+- [[SplitCell()]] - `calls` [EXTRACTED]
+- [[discipline-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tradezella-analyze.ts"
 type: "code"
-community: "Community 46"
+community: "strategy-grade.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/strategy-gradets
 ---
 
 # ConfluenceItem
@@ -15,4 +15,4 @@ tags:
 - [[ComponentKey]] - `references` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

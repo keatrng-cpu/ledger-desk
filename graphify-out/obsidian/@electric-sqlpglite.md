@@ -1,23 +1,20 @@
 ---
-source_file: "@electric-sql/pglite"
-type: "code"
-community: "Community 1"
+source_file: "package.json"
+type: "concept"
+community: "LazyPGliteDriver"
+location: "L61"
 tags:
-  - graphify/code
+  - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/LazyPGliteDriver
 ---
 
 # @electric-sql/pglite
 
 ## Connections
-- [[db.ts]] - `dynamic_import` [EXTRACTED]
-- [[verify-attestation.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-live-gateway.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-paper-step.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-rh-dispatch.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
-- [[verify-room-snapshot.mjs]] - `dynamic_import` [EXTRACTED]
+- [[createPgliteSql()]] - `imports_from` [EXTRACTED]
+- [[package.json]] - `imports` [EXTRACTED]
+- [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
+- [[verify-rh-oauth.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/concept #graphify/EXTRACTED #community/LazyPGliteDriver

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "code"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # gate.py
@@ -21,4 +21,4 @@ tags:
 - [[scipy]] - `imports_from` [EXTRACTED]
 - [[typing]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

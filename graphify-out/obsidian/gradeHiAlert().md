@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "hi-alert.ts"
 location: "L244"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/hi-alertts
 ---
 
 # gradeHiAlert()
@@ -15,6 +15,6 @@ tags:
 - [[barsAfter()]] - `calls` [EXTRACTED]
 - [[gradeAll()]] - `calls` [EXTRACTED]
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
-- [[r2()_11]] - `calls` [EXTRACTED]
+- [[r2()_12]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

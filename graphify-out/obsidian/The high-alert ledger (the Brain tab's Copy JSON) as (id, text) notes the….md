@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "rationale"
-community: "Community 268"
+community: "memory.py"
 location: "L74"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # The high-alert ledger (the Brain tab's Copy JSON) as (id, text) notes: the…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[ledger_notes()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_268
+#graphify/rationale #graphify/EXTRACTED #community/memorypy

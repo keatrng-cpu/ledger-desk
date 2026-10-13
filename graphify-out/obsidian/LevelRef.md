@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 162"
+community: "live-voices.ts"
 location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-voicests
 ---
 
 # LevelRef
@@ -17,4 +17,4 @@ tags:
 - [[live-voices.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-voicests

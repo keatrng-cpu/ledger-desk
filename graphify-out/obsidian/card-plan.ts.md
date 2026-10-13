@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 254"
+community: "smc-master.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/smc-masterts
 ---
 
 # card-plan.ts
@@ -35,6 +35,7 @@ tags:
 - [[cardPlanFrom()]] - `contains` [EXTRACTED]
 - [[cardRisk]] - `contains` [EXTRACTED]
 - [[cardSizeRefusal()]] - `contains` [EXTRACTED]
+- [[desk-listen.ts]] - `imports_from` [EXTRACTED]
 - [[deskLevelsOf()]] - `contains` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
 - [[drawPoolsForSide()]] - `contains` [EXTRACTED]
@@ -45,13 +46,17 @@ tags:
 - [[planStopText()]] - `contains` [EXTRACTED]
 - [[planTargetText()]] - `contains` [EXTRACTED]
 - [[poolFrom()]] - `contains` [EXTRACTED]
+- [[primaryTarget()]] - `contains` [EXTRACTED]
 - [[r2()_5]] - `contains` [EXTRACTED]
+- [[raidOnStopSide()]] - `contains` [EXTRACTED]
 - [[restableFromCard()]] - `contains` [EXTRACTED]
 - [[riskAtrBucket()]] - `imports` [EXTRACTED]
+- [[round2.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[score-drivers.ts]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[signedR()]] - `contains` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
@@ -59,4 +64,4 @@ tags:
 - [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[withOrderLevels()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

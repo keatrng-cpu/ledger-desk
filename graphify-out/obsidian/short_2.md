@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-take-moments.mjs"
+source_file: "scripts/agent-sync.mjs"
 type: "code"
-community: "Community 145"
-location: "L25"
+community: "agent-sync.mjs"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/agent-syncmjs
 ---
 
 # short
 
 ## Connections
-- [[verify-take-moments.mjs]] - `contains` [EXTRACTED]
+- [[agent-sync.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/agent-syncmjs

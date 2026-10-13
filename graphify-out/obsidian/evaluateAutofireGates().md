@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/autofire-gates.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # evaluateAutofireGates()
@@ -16,4 +16,4 @@ tags:
 - [[autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[tryApexAutofire]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

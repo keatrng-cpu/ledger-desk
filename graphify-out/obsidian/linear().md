@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hit-odds.ts"
 type: "code"
-community: "Community 178"
+community: "hit-odds.ts"
 location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_178
+  - community/hit-oddsts
 ---
 
 # linear()
@@ -15,4 +15,4 @@ tags:
 - [[hit-odds.ts]] - `contains` [EXTRACTED]
 - [[hitOdds]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_178
+#graphify/code #graphify/EXTRACTED #community/hit-oddsts

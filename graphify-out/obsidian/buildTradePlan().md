@@ -1,26 +1,26 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 72"
-location: "L372"
+community: "OhlcBar"
+location: "L374"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # buildTradePlan()
 
 ## Connections
 - [[atrOf()]] - `calls` [EXTRACTED]
-- [[elapsedFractionOf()_1]] - `calls` [EXTRACTED]
+- [[elapsedFractionOf()]] - `calls` [EXTRACTED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[groupSessions()]] - `calls` [EXTRACTED]
 - [[maxRiskFor()]] - `calls` [EXTRACTED]
 - [[priceWorth()]] - `calls` [EXTRACTED]
-- [[round2()_9]] - `calls` [EXTRACTED]
+- [[round2()_7]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[targetOdds]] - `calls` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

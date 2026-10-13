@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/bars.py"
 type: "rationale"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L28"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # Historical bars from Yahoo. `symbol` is MNQ, ES, or NQ — the desk's names, not…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[yahoo_bars()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_146
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

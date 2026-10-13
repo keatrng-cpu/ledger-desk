@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-P0.md"
 type: "document"
-community: "Community 58"
+community: "structure.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # INTEGRATION-P0.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[INTEGRATION-P0 — Truth & safety (branch agentsphase-p0)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_58
+#graphify/document #graphify/EXTRACTED #community/structurets

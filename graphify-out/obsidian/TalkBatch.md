@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1466"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # TalkBatch
@@ -16,4 +16,4 @@ tags:
 - [[DialogueLine]] - `references` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

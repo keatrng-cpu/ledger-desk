@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L286"
+community: "index.tsx"
+location: "L287"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # mirrorClosedPaperTrades()
@@ -17,4 +17,4 @@ tags:
 - [[mirrorPaperClose]] - `calls` [EXTRACTED]
 - [[raisePositionFlattenedAlert]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 160"
+community: "shock.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/shockts
 ---
 
 # SHOCK_MIN_PTS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[shock.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/shockts

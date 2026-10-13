@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/detectors.ts"
 type: "code"
-community: "Community 26"
+community: "curriculum.ts"
 location: "L1895"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/curriculumts
 ---
 
 # RECENT_SWEEP_BARS
@@ -15,4 +15,4 @@ tags:
 - [[curriculum.ts]] - `imports` [EXTRACTED]
 - [[detectors.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/curriculumts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-evidence.ts"
 type: "code"
-community: "Community 63"
+community: "hall-lite.ts"
 location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/hall-litets
 ---
 
 # MIN_SAMPLE_BUCKET
@@ -15,4 +15,4 @@ tags:
 - [[paper-scorer.ts]] - `imports` [EXTRACTED]
 - [[signal-evidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/hall-litets

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-mead-plan.mjs"
 type: "code"
-community: "Community 147"
+community: "mead-hall-layout.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/mead-hall-layoutts
 ---
 
 # rooms
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build-mead-plan.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/mead-hall-layoutts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_ao.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # floor_ao.py
@@ -25,7 +25,7 @@ tags:
 - [[bmesh]] - `imports` [EXTRACTED]
 - [[bpy]] - `imports` [EXTRACTED]
 - [[build_floors()]] - `contains` [EXTRACTED]
-- [[build_walls()]] - `contains` [EXTRACTED]
+- [[build_walls()_1]] - `contains` [EXTRACTED]
 - [[classify()_1]] - `contains` [EXTRACTED]
 - [[floor_ao.py - baked ambient occlusion for the office, written as vertex colours…]] - `rationale_for` [EXTRACTED]
 - [[math]] - `imports` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[refine_rect()]] - `contains` [EXTRACTED]
 - [[time]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

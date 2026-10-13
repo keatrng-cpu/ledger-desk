@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/attest.ts"
 type: "code"
-community: "Community 285"
+community: "attest.ts"
 location: "L300"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_285
+  - community/attestts
 ---
 
 # Seal
@@ -16,4 +16,4 @@ tags:
 - [[attest.ts]] - `contains` [EXTRACTED]
 - [[chainHealth]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_285
+#graphify/code #graphify/EXTRACTED #community/attestts

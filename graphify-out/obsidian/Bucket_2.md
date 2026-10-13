@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/trading/calibration.ts"
+source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 174"
-location: "L87"
+community: "discretion-memory.ts"
+location: "L201"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_174
+  - community/discretion-memoryts
 ---
 
 # Bucket
 
 ## Connections
-- [[calibration.ts]] - `contains` [EXTRACTED]
+- [[LegScore]] - `inherits` [EXTRACTED]
+- [[discretion-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_174
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

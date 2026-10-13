@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L79"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # Arm / confirmation
@@ -17,4 +17,4 @@ tags:
 - [[Robinhood live options routine (live-when-armed)]] - `contains` [EXTRACTED]
 - [[Session checklist]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_56
+#graphify/document #graphify/EXTRACTED #community/manager-live-loopts

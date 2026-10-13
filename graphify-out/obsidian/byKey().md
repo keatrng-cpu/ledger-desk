@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # byKey()
@@ -21,4 +21,4 @@ tags:
 - [[sessionNote()]] - `calls` [EXTRACTED]
 - [[takeWordNote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 321"
+community: "replay-drill.ts"
 location: "L804"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_321
+  - community/replay-drillts
 ---
 
 # makeAttempt()
@@ -20,4 +20,4 @@ tags:
 - [[scoreProcess()]] - `calls` [EXTRACTED]
 - [[traderOutcome()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_321
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

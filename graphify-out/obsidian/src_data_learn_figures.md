@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 148"
+community: "figures.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # src_data_learn_figures
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[figures.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_148
+#graphify/concept #graphify/EXTRACTED #community/figurests

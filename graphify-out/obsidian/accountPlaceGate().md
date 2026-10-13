@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L200"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # accountPlaceGate()
@@ -19,4 +19,4 @@ tags:
 - [[mayPlaceAfterReview()]] - `calls` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

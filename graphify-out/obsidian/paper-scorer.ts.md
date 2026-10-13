@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/predict/paper-scorer.ts"
 type: "code"
-community: "Community 63"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/pm-analyzertsx
 ---
 
 # paper-scorer.ts
 
 ## Connections
-- [[CalibrationBucket_1]] - `contains` [EXTRACTED]
+- [[CalibrationBucket]] - `contains` [EXTRACTED]
 - [[DEFAULT_SIGNAL_FEES]] - `imports` [EXTRACTED]
 - [[DEFAULT_SLIPPAGE]] - `imports` [EXTRACTED]
 - [[FeeModel]] - `imports` [EXTRACTED]
@@ -29,7 +29,7 @@ tags:
 - [[Readable]] - `contains` [EXTRACTED]
 - [[ScoreCore]] - `contains` [EXTRACTED]
 - [[ScorerOptions]] - `contains` [EXTRACTED]
-- [[Side_2]] - `imports` [EXTRACTED]
+- [[Side_5]] - `imports` [EXTRACTED]
 - [[SignalGrade]] - `imports` [EXTRACTED]
 - [[TOO_FEW]] - `imports` [EXTRACTED]
 - [[TooFew]] - `imports` [EXTRACTED]
@@ -56,7 +56,7 @@ tags:
 - [[preOutcome()]] - `contains` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
 - [[priceBinFor()]] - `imports` [EXTRACTED]
-- [[r4()_5]] - `contains` [EXTRACTED]
+- [[r4()_1]] - `contains` [EXTRACTED]
 - [[scorePaper()]] - `contains` [EXTRACTED]
 - [[signal-engine.ts]] - `imports_from` [EXTRACTED]
 - [[signal-evidence.ts]] - `imports_from` [EXTRACTED]
@@ -64,4 +64,4 @@ tags:
 - [[walkForward()]] - `contains` [EXTRACTED]
 - [[won()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L1168"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # .clock()
 
 ## Connections
-- [[dot-add()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
 - [[ledgerScreenOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

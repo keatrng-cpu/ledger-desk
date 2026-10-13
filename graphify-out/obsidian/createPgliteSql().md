@@ -1,22 +1,22 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 11"
+community: "getSql"
 location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/getSql
 ---
 
 # createPgliteSql()
 
 ## Connections
 - [[dot-query()]] - `calls` [EXTRACTED]
-- [[@electric-sqlpglite_1]] - `imports_from` [EXTRACTED]
+- [[@electric-sqlpglite]] - `imports_from` [EXTRACTED]
 - [[createSql()]] - `calls` [EXTRACTED]
 - [[db.ts]] - `contains` [EXTRACTED]
 - [[identity()]] - `indirect_call` [INFERRED]
 - [[toSql()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/getSql

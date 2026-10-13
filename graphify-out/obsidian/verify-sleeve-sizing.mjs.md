@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-sleeve-sizing.mjs"
 type: "code"
-community: "Community 213"
+community: "verify-sleeve-sizing.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_213
+  - community/verify-sleeve-sizingmjs
 ---
 
 # verify-sleeve-sizing.mjs
@@ -15,11 +15,11 @@ tags:
 - [[dot-x()]] - `indirect_call` [INFERRED]
 - [[a_1]] - `contains` [EXTRACTED]
 - [[capped]] - `contains` [EXTRACTED]
-- [[check()_46]] - `contains` [EXTRACTED]
+- [[check()_36]] - `contains` [EXTRACTED]
 - [[huge]] - `contains` [EXTRACTED]
 - [[l]] - `contains` [EXTRACTED]
 - [[live()]] - `contains` [EXTRACTED]
-- [[ok()_19]] - `contains` [EXTRACTED]
+- [[ok()_18]] - `contains` [EXTRACTED]
 - [[oneDte]] - `contains` [EXTRACTED]
 - [[over]] - `contains` [EXTRACTED]
 - [[plan()]] - `contains` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[v]] - `contains` [EXTRACTED]
 - [[wide]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_213
+#graphify/code #graphify/EXTRACTED #community/verify-sleeve-sizingmjs

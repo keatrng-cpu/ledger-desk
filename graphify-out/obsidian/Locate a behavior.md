@@ -1,12 +1,12 @@
 ---
 source_file: ".ai/system_map.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L7"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # Locate a behavior
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[System map]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

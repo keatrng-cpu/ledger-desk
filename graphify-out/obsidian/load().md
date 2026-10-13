@@ -1,33 +1,17 @@
 ---
-source_file: "src/lib/trading/build-desk.ts"
+source_file: "scripts/kill-tune.mts"
 type: "code"
-community: "Community 1"
-location: "L277"
+community: "buildTradingDesk"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/buildTradingDesk
 ---
 
 # load()
 
 ## Connections
-- [[RiskPanel()]] - `calls` [EXTRACTED]
-- [[aggregateBars()]] - `calls` [EXTRACTED]
-- [[budgetedLeg()]] - `calls` [EXTRACTED]
-- [[build-desk.ts]] - `contains` [EXTRACTED]
-- [[buildTradingDesk()]] - `calls` [EXTRACTED]
-- [[cloneSeries()]] - `indirect_call` [INFERRED]
-- [[fetchDatabentoBars()]] - `calls` [EXTRACTED]
-- [[fetchYahooBars()]] - `calls` [EXTRACTED]
-- [[hasDatabentoKey()]] - `calls` [EXTRACTED]
-- [[mergeNewerBars()]] - `calls` [EXTRACTED]
-- [[minutesOf()_1]] - `calls` [EXTRACTED]
-- [[readLiveBars()]] - `calls` [EXTRACTED]
-- [[remaining()]] - `calls` [EXTRACTED]
-- [[stampSeriesFromBars()]] - `calls` [EXTRACTED]
-- [[stitchLiveSession()]] - `calls` [EXTRACTED]
-- [[syntheticBars()]] - `calls` [EXTRACTED]
-- [[withBudget()]] - `calls` [EXTRACTED]
+- [[kill-tune.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

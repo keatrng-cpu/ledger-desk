@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/perfect-entry-backtest.py"
 type: "code"
-community: "Community 192"
+community: "perfect-entry-backtest.py"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_192
+  - community/perfect-entry-backtestpy
 ---
 
 # bucket_close()
@@ -17,4 +17,4 @@ tags:
 - [[minute_of()_2]] - `calls` [EXTRACTED]
 - [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_192
+#graphify/code #graphify/EXTRACTED #community/perfect-entry-backtestpy

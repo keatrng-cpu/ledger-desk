@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 86"
+community: "invest-office.ts"
 location: "L319"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-officets
 ---
 
 # nextReport()
@@ -17,4 +17,4 @@ tags:
 - [[plusDays()]] - `calls` [EXTRACTED]
 - [[timeline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-officets

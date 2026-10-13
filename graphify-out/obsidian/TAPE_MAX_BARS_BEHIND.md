@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/tape-trust.ts"
 type: "code"
-community: "Community 164"
+community: "build-desk.ts"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/build-deskts
 ---
 
 # TAPE_MAX_BARS_BEHIND
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[tape-trust.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/build-deskts

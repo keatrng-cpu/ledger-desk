@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ltf-reaction.ts"
 type: "code"
-community: "Community 98"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/trading/scannerts
 ---
 
 # ltf-reaction.ts
@@ -16,7 +16,7 @@ tags:
 - [[LTF_REACTION_MINUTES]] - `contains` [EXTRACTED]
 - [[LtfReaction]] - `contains` [EXTRACTED]
 - [[MarketNarrative]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[aggregateBars()_1]] - `imports` [EXTRACTED]
 - [[applyLtfReaction()]] - `contains` [EXTRACTED]
 - [[bucket()_6]] - `contains` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

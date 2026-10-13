@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-event.ts"
 type: "code"
-community: "Community 115"
+community: "cases.ts"
 location: "L132"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/casests
 ---
 
 # readSession()
@@ -26,4 +26,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[volumeRatio()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/casests

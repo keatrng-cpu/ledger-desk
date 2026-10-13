@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 277"
+community: "ref_node_path"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # ref_node_path
@@ -49,4 +49,4 @@ tags:
 - [[verify-rh-path-fire.mjs]] - `imports_from` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_277
+#graphify/concept #graphify/EXTRACTED #community/ref_node_path

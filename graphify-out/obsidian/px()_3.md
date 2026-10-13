@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/trading/shadow-book.ts"
+source_file: "src/components/desk/month-ahead-panel.tsx"
 type: "code"
-community: "Community 126"
-location: "L147"
+community: "month-ahead.ts"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/month-aheadts
 ---
 
 # px()
 
 ## Connections
-- [[analyzeShadow()]] - `calls` [EXTRACTED]
-- [[applyRange()]] - `calls` [EXTRACTED]
-- [[openShadows()]] - `calls` [EXTRACTED]
-- [[shadow-book.ts]] - `contains` [EXTRACTED]
-- [[tickShadow()]] - `calls` [EXTRACTED]
+- [[BookCol()_1]] - `calls` [EXTRACTED]
+- [[month-ahead-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/month-aheadts

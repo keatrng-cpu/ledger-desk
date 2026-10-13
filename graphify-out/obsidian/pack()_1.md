@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_pack.py"
 type: "code"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L212"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # pack()
@@ -19,4 +19,4 @@ tags:
 - [[read_glb()]] - `calls` [EXTRACTED]
 - [[write_glb()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/floor_packpy

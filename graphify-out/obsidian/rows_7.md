@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-tf-tiers.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 170"
-location: "L108"
+community: "news.ts"
+location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_170
+  - community/newsts
 ---
 
 # rows
 
 ## Connections
-- [[measure-tf-tiers.mjs]] - `contains` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_170
+#graphify/code #graphify/EXTRACTED #community/newsts

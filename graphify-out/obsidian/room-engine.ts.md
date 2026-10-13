@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/room-engine.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # room-engine.ts
@@ -80,7 +80,7 @@ tags:
 - [[ensureSeats()]] - `imports` [EXTRACTED]
 - [[equityOf()]] - `imports` [EXTRACTED]
 - [[etClockLabel()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `imports` [EXTRACTED]
@@ -150,7 +150,7 @@ tags:
 - [[race.ts]] - `imports_from` [EXTRACTED]
 - [[raceScreenOf()]] - `contains` [EXTRACTED]
 - [[rankOf()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readDeskForRoom()]] - `imports` [EXTRACTED]
 - [[readInvestOffice()]] - `imports` [EXTRACTED]
 - [[refreshInvestScreens()]] - `contains` [EXTRACTED]
@@ -196,4 +196,4 @@ tags:
 - [[worldFromDesk()]] - `imports` [EXTRACTED]
 - [[zustand]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

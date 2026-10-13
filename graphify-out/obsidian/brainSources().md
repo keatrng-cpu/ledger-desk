@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 92"
+community: "live-world.ts"
 location: "L293"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/live-worldts
 ---
 
 # brainSources()
@@ -22,4 +22,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[runLiveCycle()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/live-worldts

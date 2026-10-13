@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L1353"
+community: "evaluateOptionsDesk"
+location: "L1362"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # toTicket()
@@ -19,6 +19,7 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[orderPlanFor()]] - `calls` [EXTRACTED]
 - [[pathContinuation()]] - `calls` [EXTRACTED]
+- [[restampWorkingStop()]] - `calls` [EXTRACTED]
 - [[rhLine()]] - `calls` [EXTRACTED]
 - [[rhRiskBudgetUsd()]] - `calls` [EXTRACTED]
 - [[rhWorkingStop()]] - `calls` [EXTRACTED]
@@ -26,4 +27,4 @@ tags:
 - [[smtLead()_1]] - `calls` [EXTRACTED]
 - [[swingSpanCards()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

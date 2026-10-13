@@ -1,12 +1,12 @@
 ---
 source_file: "docs/agent-sync.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # agent-sync.md
@@ -15,4 +15,4 @@ tags:
 - [[AGENTS]] - `references` [EXTRACTED]
 - [[Agent sync]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

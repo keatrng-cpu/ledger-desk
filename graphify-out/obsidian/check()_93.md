@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-word-hold.mjs"
+source_file: "scripts/verify-entry-trigger.mjs"
 type: "code"
-community: "Community 8"
-location: "L13"
+community: "entry-trigger.ts"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/entry-triggerts
 ---
 
 # check()
 
 ## Connections
-- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
+- [[verify-entry-trigger.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

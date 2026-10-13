@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-oauth.ts"
 type: "code"
-community: "Community 274"
+community: "rh-mcp.ts"
 location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_274
+  - community/rh-mcpts
 ---
 
 # readOauth()
@@ -17,4 +17,4 @@ tags:
 - [[rh-oauth.ts]] - `contains` [EXTRACTED]
 - [[toolingFromStored()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_274
+#graphify/code #graphify/EXTRACTED #community/rh-mcpts

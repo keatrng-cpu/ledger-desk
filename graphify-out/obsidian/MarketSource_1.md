@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/types.ts"
 type: "code"
-community: "Community 164"
+community: "index.tsx"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/indextsx
 ---
 
 # MarketSource
@@ -20,4 +20,4 @@ tags:
 - [[markettypes.ts]] - `contains` [EXTRACTED]
 - [[tape-trust.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/indextsx

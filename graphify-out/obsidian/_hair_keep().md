@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 344"
+community: "build_floor.py"
 location: "L1651"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_344
+  - community/build_floorpy
 ---
 
 # _hair_keep()
@@ -17,4 +17,4 @@ tags:
 - [[bust()]] - `calls` [EXTRACTED]
 - [[keep()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_344
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

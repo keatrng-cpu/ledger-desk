@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-smc-master.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 119"
-location: "L55"
+community: "verify-invest-office.mjs"
+location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/verify-invest-officemjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_1]] - `calls` [EXTRACTED]
-- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

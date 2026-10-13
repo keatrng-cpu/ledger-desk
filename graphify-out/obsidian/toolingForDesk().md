@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-mcp.ts"
 type: "code"
-community: "Community 274"
+community: "rh-mcp.ts"
 location: "L291"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_274
+  - community/rh-mcpts
 ---
 
 # toolingForDesk()
@@ -17,4 +17,4 @@ tags:
 - [[rh-mcp.ts]] - `contains` [EXTRACTED]
 - [[toolingFromStored()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_274
+#graphify/code #graphify/EXTRACTED #community/rh-mcpts

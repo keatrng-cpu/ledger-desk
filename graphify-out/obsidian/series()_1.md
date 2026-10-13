@@ -1,17 +1,21 @@
 ---
-source_file: "scripts/verify-tape-trust.mjs"
+source_file: "scripts/fidelity/replay-desk.mjs"
 type: "code"
-community: "Community 164"
-location: "L39"
+community: "replay-desk.mjs"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/replay-deskmjs
 ---
 
 # series()
 
 ## Connections
-- [[verify-tape-trust.mjs]] - `contains` [EXTRACTED]
+- [[agg()]] - `calls` [EXTRACTED]
+- [[bisect()]] - `calls` [EXTRACTED]
+- [[chartJson()]] - `calls` [EXTRACTED]
+- [[replay-desk.mjs]] - `contains` [EXTRACTED]
+- [[sessionStart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/replay-deskmjs

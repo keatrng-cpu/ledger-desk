@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 176"
+community: "trade-log.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_176
+  - community/trade-logts
 ---
 
 # src_data_trade_log
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[trade-log.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_176
+#graphify/concept #graphify/EXTRACTED #community/trade-logts

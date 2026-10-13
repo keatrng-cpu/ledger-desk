@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/execution/shadow.ts"
 type: "code"
-community: "Community 43"
+community: "@tanstack/react-start"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tanstack/react-start
 ---
 
 # shadow.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[OrderIntent_2]] - `imports` [EXTRACTED]
 - [[RecordShadowOrderData]] - `contains` [EXTRACTED]
 - [[RecordShadowOrderInput]] - `contains` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

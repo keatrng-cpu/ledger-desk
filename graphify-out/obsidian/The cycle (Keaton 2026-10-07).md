@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 158"
+community: "manager-live-loop.ts"
 location: "L180"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_158
+  - community/manager-live-loopts
 ---
 
 # The cycle (Keaton 2026-10-07)
@@ -17,4 +17,4 @@ tags:
 - [[managerAgreeFromRoom()]] - `references` [INFERRED]
 - [[runRhDesk()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_158
+#graphify/document #graphify/INFERRED #community/manager-live-loopts

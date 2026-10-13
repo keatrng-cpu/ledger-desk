@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_tex.py"
 type: "code"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # add_uvs()
@@ -16,4 +16,4 @@ tags:
 - [[floor_tex.py]] - `contains` [EXTRACTED]
 - [[numpy]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_202
+#graphify/code #graphify/EXTRACTED #community/floor_packpy

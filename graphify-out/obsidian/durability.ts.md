@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/durability.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # durability.ts
@@ -36,4 +36,4 @@ tags:
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

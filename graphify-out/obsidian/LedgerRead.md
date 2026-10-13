@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # LedgerRead
@@ -21,4 +21,4 @@ tags:
 - [[ledger.ts]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

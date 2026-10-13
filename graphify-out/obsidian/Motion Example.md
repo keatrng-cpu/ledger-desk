@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/animations.md"
 type: "document"
-community: "Community 290"
+community: "Animations"
 location: "L309"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_290
+  - community/Animations
 ---
 
 # Motion Example
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Scale on Press]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_290
+#graphify/document #graphify/EXTRACTED #community/Animations

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-store.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # HallFeed
@@ -17,4 +17,4 @@ tags:
 - [[SignalBoard]] - `references` [EXTRACTED]
 - [[hall-store.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

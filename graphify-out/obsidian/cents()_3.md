@@ -1,17 +1,19 @@
 ---
-source_file: "src/lib/predict/math.ts"
+source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 2"
-location: "L85"
+community: "hall-lite.ts"
+location: "L154"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/hall-litets
 ---
 
 # cents()
 
 ## Connections
-- [[math.ts]] - `contains` [EXTRACTED]
+- [[hall-lite.ts]] - `contains` [EXTRACTED]
+- [[rowOf()_1]] - `calls` [EXTRACTED]
+- [[scanOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/hall-litets

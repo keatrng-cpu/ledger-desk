@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/intent.ts"
 type: "code"
-community: "Community 177"
+community: "intent.ts"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_177
+  - community/intentts
 ---
 
 # exitKey()
@@ -15,4 +15,4 @@ tags:
 - [[intent.ts]] - `contains` [EXTRACTED]
 - [[intentsFromCycle()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_177
+#graphify/code #graphify/EXTRACTED #community/intentts

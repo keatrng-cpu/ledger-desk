@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/week-ahead.ts"
 type: "code"
-community: "Community 134"
+community: "week-ahead.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_134
+  - community/week-aheadts
 ---
 
 # week-ahead.ts
 
 ## Connections
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PLANS]] - `contains` [EXTRACTED]
 - [[PRINTS]] - `contains` [EXTRACTED]
 - [[WEEK_OCT12_OCT16]] - `contains` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[weekDayFor()]] - `contains` [EXTRACTED]
 - [[weekRangeFromBars()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_134
+#graphify/code #graphify/EXTRACTED #community/week-aheadts

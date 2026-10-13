@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 57"
+community: "seats.ts"
 location: "L435"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/seatsts
 ---
 
 # stepSeats()
@@ -18,7 +18,7 @@ tags:
 - [[closedRowOf()]] - `calls` [EXTRACTED]
 - [[contractName()]] - `calls` [EXTRACTED]
 - [[entriesOpen()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[evaluateEntry()]] - `calls` [EXTRACTED]
 - [[ghostFrom()]] - `calls` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[stepGhost()]] - `calls` [EXTRACTED]
 - [[verdictFor()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/seatsts

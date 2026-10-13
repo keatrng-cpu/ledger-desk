@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L337"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # window_closed_for_today()
@@ -17,4 +17,4 @@ tags:
 - [[databento_live_gateway.py]] - `contains` [EXTRACTED]
 - [[datetime_3]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

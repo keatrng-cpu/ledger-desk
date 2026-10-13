@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-overlay.ts"
 type: "code"
-community: "Community 272"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_272
+  - community/build-deskts
 ---
 
 # chart-overlay.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[ChartOverlay]] - `contains` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OverlayPool]] - `contains` [EXTRACTED]
 - [[OverlayStructure]] - `contains` [EXTRACTED]
 - [[SmcArray]] - `imports` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_272
+#graphify/code #graphify/EXTRACTED #community/build-deskts

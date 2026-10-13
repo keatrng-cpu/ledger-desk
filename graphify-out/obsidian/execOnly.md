@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 119"
-location: "L495"
+community: "verify-smc-master.mjs"
+location: "L499"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/verify-smc-mastermjs
 ---
 
 # execOnly
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

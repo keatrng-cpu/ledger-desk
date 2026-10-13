@@ -1,20 +1,42 @@
 ---
-source_file: "src/components/desk/options-swing-panel.tsx"
+source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 153"
-location: "L49"
+community: "meeting.ts"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/meetingts
 ---
 
 # usd()
 
 ## Connections
-- [[OptionsSwingPanel()]] - `calls` [EXTRACTED]
-- [[QuoteSheet()]] - `calls` [EXTRACTED]
-- [[SleeveBudgetBar()]] - `calls` [EXTRACTED]
-- [[options-swing-panel.tsx]] - `contains` [EXTRACTED]
+- [[brief()]] - `calls` [EXTRACTED]
+- [[chop()]] - `calls` [EXTRACTED]
+- [[closed()]] - `calls` [EXTRACTED]
+- [[debate()]] - `calls` [EXTRACTED]
+- [[debrief()]] - `calls` [EXTRACTED]
+- [[drawRaceBoard()]] - `calls` [EXTRACTED]
+- [[evaluateEntry()]] - `calls` [EXTRACTED]
+- [[exitFor()]] - `calls` [EXTRACTED]
+- [[exits.ts]] - `imports` [EXTRACTED]
+- [[fill()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-race.ts]] - `imports` [EXTRACTED]
+- [[floor-props.ts]] - `imports` [EXTRACTED]
+- [[floor-race-replay.ts]] - `imports` [EXTRACTED]
+- [[holding()]] - `calls` [EXTRACTED]
+- [[meeting.ts]] - `imports` [EXTRACTED]
+- [[newSeatBook()]] - `calls` [EXTRACTED]
+- [[orchestrator.ts]] - `imports` [EXTRACTED]
+- [[roomformat.ts]] - `contains` [EXTRACTED]
+- [[seatMomentText()]] - `calls` [EXTRACTED]
+- [[seats.ts]] - `imports` [EXTRACTED]
+- [[sessionMoments()]] - `calls` [EXTRACTED]
+- [[statProps()]] - `calls` [EXTRACTED]
+- [[triggerWait()]] - `calls` [EXTRACTED]
+- [[trophiesAndScars()]] - `calls` [EXTRACTED]
+- [[verdictFor()_2]] - `calls` [EXTRACTED]
+- [[vetoMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/meetingts

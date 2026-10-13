@@ -1,18 +1,20 @@
 ---
-source_file: "scripts/verify-option-math-oracle.mjs"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 191"
-location: "L35"
+community: "crew-year-backtest.py"
+location: "L194"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/crew-year-backtestpy
 ---
 
 # walk()
 
 ## Connections
-- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
-- [[worst()_1]] - `calls` [EXTRACTED]
+- [[collect()_1]] - `calls` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[day_key()_1]] - `calls` [EXTRACTED]
+- [[minute_of()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

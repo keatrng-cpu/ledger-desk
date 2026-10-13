@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L185"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # SeatBook
@@ -20,4 +20,4 @@ tags:
 - [[rnd.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

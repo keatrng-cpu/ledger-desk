@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 100"
+community: "live-world.ts"
 location: "L698"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/live-worldts
 ---
 
 # InvestLite
@@ -29,4 +29,4 @@ tags:
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 - [[srclibroominvest-read.ts]] - `references` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/live-worldts

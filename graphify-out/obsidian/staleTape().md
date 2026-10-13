@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 263"
+community: "staleTape"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_263
+  - community/staleTape
 ---
 
 # staleTape()
@@ -15,4 +15,4 @@ tags:
 - [[tapeGate()]] - `calls` [EXTRACTED]
 - [[verify-room.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_263
+#graphify/code #graphify/EXTRACTED #community/staleTape

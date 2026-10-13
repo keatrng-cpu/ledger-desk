@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L10"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # Files changed
@@ -17,4 +17,4 @@ tags:
 - [[scanSetups()]] - `references` [INFERRED]
 - [[scoreCandidates()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_40
+#graphify/document #graphify/INFERRED #community/trading/scannerts

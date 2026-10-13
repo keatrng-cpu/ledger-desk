@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/selfcheck.py"
 type: "rationale"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # Fixture checks. No network. A mutant that drops the swing test fails here.…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[selfcheck.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_146
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

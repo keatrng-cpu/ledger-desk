@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 72"
+community: "simulate-path-trade.ts"
 location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/simulate-path-tradets
 ---
 
 # MAX_RISK_PTS
@@ -17,4 +17,4 @@ tags:
 - [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # live-world.ts
@@ -15,7 +15,7 @@ tags:
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[Beat]] - `imports` [EXTRACTED]
 - [[BookRead]] - `imports` [EXTRACTED]
-- [[CalEvent]] - `imports` [EXTRACTED]
+- [[CalEvent_1]] - `imports` [EXTRACTED]
 - [[CalRead]] - `imports` [EXTRACTED]
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
@@ -75,7 +75,7 @@ tags:
 - [[emptyRings()]] - `contains` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[equityOf()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[evidenceHeadlines()]] - `imports` [EXTRACTED]
@@ -161,4 +161,4 @@ tags:
 - [[weekRead()]] - `contains` [EXTRACTED]
 - [[worldFromDesk()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

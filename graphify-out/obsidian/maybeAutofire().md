@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L411"
+community: "index.tsx"
+location: "L412"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # maybeAutofire()
@@ -16,4 +16,4 @@ tags:
 - [[index.tsx]] - `contains` [EXTRACTED]
 - [[tryApexAutofire]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

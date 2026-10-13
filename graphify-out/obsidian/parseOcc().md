@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/occ.ts"
 type: "code"
-community: "Community 222"
+community: "exec-card.tsx"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/exec-cardtsx
 ---
 
 # parseOcc()
@@ -18,4 +18,4 @@ tags:
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[occ.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/exec-cardtsx

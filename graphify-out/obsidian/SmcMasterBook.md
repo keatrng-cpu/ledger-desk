@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 229"
-location: "L81"
+community: "SmcMasterBook"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/SmcMasterBook
 ---
 
 # SmcMasterBook
@@ -18,6 +18,7 @@ tags:
 - [[SetupRecord]] - `references` [EXTRACTED]
 - [[SetupWalkthrough]] - `references` [EXTRACTED]
 - [[TradePlan]] - `references` [EXTRACTED]
+- [[continuationArray]] - `references` [EXTRACTED]
 - [[entry-state.ts]] - `imports` [EXTRACTED]
 - [[entry-trigger-panel.tsx]] - `imports` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports` [EXTRACTED]
@@ -35,4 +36,4 @@ tags:
 - [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[word-hysteresis.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/SmcMasterBook

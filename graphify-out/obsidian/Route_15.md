@@ -1,19 +1,22 @@
 ---
-source_file: "src/routes/api/rh/callback.ts"
+source_file: "src/routes/__root.tsx"
 type: "code"
-community: "Community 65"
-location: "L59"
+community: "routeTree.gen.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/routeTreegents
 ---
 
 # Route
 
 ## Connections
+- [[AuthProvider()]] - `calls` [EXTRACTED]
+- [[CreatedWithGrokBanner()]] - `calls` [EXTRACTED]
+- [[FileRoutesById]] - `references` [EXTRACTED]
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[callback.ts]] - `contains` [EXTRACTED]
+- [[__root.tsx]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

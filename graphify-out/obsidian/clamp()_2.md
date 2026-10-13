@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/journal/discretion.ts"
+source_file: "src/lib/trading/month-contract.ts"
 type: "code"
-community: "Community 155"
-location: "L115"
+community: "month-contract.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/month-contractts
 ---
 
 # clamp()
 
 ## Connections
-- [[computeDiscretion()]] - `calls` [EXTRACTED]
-- [[discretion.ts]] - `contains` [EXTRACTED]
+- [[contractsForEquity()]] - `calls` [EXTRACTED]
+- [[month-contract.ts]] - `contains` [EXTRACTED]
+- [[monthDollars()]] - `calls` [EXTRACTED]
+- [[ticketForEquity()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/month-contractts

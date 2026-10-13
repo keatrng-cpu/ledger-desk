@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L200"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # rhAccountShort()
@@ -17,4 +17,4 @@ tags:
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[rhSpendable()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

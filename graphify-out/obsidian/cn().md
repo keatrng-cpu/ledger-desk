@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/utils.ts"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L4"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # cn()
@@ -30,11 +30,11 @@ tags:
 - [[BrainWord()]] - `calls` [EXTRACTED]
 - [[BridgeStatus()]] - `calls` [EXTRACTED]
 - [[BucketTable()]] - `calls` [EXTRACTED]
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CandidateCard()]] - `calls` [EXTRACTED]
 - [[CanonBadge()]] - `calls` [EXTRACTED]
+- [[Card()_8]] - `calls` [EXTRACTED]
 - [[Card()]] - `calls` [EXTRACTED]
-- [[Card()_1]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
 - [[CardDescription()]] - `calls` [EXTRACTED]
 - [[CardHeader()]] - `calls` [EXTRACTED]
@@ -87,8 +87,8 @@ tags:
 - [[ResultsTable()]] - `calls` [EXTRACTED]
 - [[RhAccountStrip()]] - `calls` [EXTRACTED]
 - [[RiskPanel()]] - `calls` [EXTRACTED]
-- [[Row()_3]] - `calls` [EXTRACTED]
-- [[Row()_4]] - `calls` [EXTRACTED]
+- [[Row()_5]] - `calls` [EXTRACTED]
+- [[Row()_6]] - `calls` [EXTRACTED]
 - [[RulesTable()]] - `calls` [EXTRACTED]
 - [[Section()]] - `calls` [EXTRACTED]
 - [[Seg()]] - `calls` [EXTRACTED]
@@ -169,4 +169,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

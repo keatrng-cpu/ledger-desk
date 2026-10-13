@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/mead/mead-signal-feed.ts"
+source_file: "src/components/mead/mead-feed.ts"
 type: "code"
-community: "Community 16"
-location: "L152"
+community: "prediction-market-feed.ts"
+location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/prediction-market-feedts
 ---
 
 # .dispose()
 
 ## Connections
-- [[SignalHallFeed]] - `method` [EXTRACTED]
+- [[MeadFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

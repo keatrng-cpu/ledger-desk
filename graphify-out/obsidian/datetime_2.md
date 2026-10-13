@@ -1,17 +1,17 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 64"
+community: "build-learn-figures.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # datetime
 
 ## Connections
 - [[build-learn-figures.py]] - `imports_from` [EXTRACTED]
-- [[et()_4]] - `references` [EXTRACTED]
+- [[et()_5]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/build-learn-figurespy

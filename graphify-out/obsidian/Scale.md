@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/learn-figure.tsx"
 type: "code"
-community: "Community 148"
+community: "figures.ts"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # Scale
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[learn-figure.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/figurests

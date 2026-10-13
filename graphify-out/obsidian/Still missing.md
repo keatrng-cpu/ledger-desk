@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 94"
+community: "rh-dispatch.ts"
 location: "L274"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # Still missing
@@ -17,4 +17,4 @@ tags:
 - [[decideRhCycle()]] - `references` [INFERRED]
 - [[placeOrder()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_94
+#graphify/document #graphify/INFERRED #community/rh-dispatchts

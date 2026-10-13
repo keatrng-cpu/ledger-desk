@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/trace-session.mjs"
+source_file: "scripts/measure-news-bias.mjs"
 type: "code"
-community: "Community 20"
-location: "L28"
+community: "measure-news-bias.mjs"
+location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/measure-news-biasmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[dayChangePct()_5]] - `calls` [EXTRACTED]
-- [[trace-session.mjs]] - `contains` [EXTRACTED]
+- [[measure()]] - `calls` [EXTRACTED]
+- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/measure-news-biasmjs

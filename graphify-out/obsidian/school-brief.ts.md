@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 102"
+community: "school-brief.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/school-briefts
 ---
 
 # school-brief.ts
@@ -19,7 +19,7 @@ tags:
 - [[CheckState_1]] - `contains` [EXTRACTED]
 - [[DEFS]] - `contains` [EXTRACTED]
 - [[Def]] - `contains` [EXTRACTED]
-- [[Dir]] - `contains` [EXTRACTED]
+- [[Dir_1]] - `contains` [EXTRACTED]
 - [[FACETS]] - `contains` [EXTRACTED]
 - [[Facet]] - `contains` [EXTRACTED]
 - [[HYBRIDS]] - `contains` [EXTRACTED]
@@ -53,7 +53,7 @@ tags:
 - [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[ownSchool()]] - `contains` [EXTRACTED]
 - [[reversalAgreement()]] - `contains` [EXTRACTED]
-- [[rung()]] - `contains` [EXTRACTED]
+- [[rung()_1]] - `contains` [EXTRACTED]
 - [[schoolBias()]] - `contains` [EXTRACTED]
 - [[schoolFactsFrom()]] - `contains` [EXTRACTED]
 - [[schoolGate()]] - `contains` [EXTRACTED]
@@ -78,4 +78,4 @@ tags:
 - [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 - [[yes()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/school-briefts

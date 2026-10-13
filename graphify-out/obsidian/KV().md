@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/invest-office-panel.tsx"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # KV()
@@ -15,4 +15,4 @@ tags:
 - [[InvestOfficePanel()]] - `calls` [EXTRACTED]
 - [[invest-office-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

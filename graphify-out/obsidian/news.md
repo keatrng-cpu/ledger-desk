@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-off-hours-study.mjs"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # news
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-off-hours-study.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

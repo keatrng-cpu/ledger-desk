@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-chart-timeframes.mjs"
+source_file: "scripts/verify-desk-enhancements.mjs"
 type: "code"
-community: "Community 163"
-location: "L25"
+community: "verify-desk-enhancements.mjs"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/verify-desk-enhancementsmjs
 ---
 
 # ok()
 
 ## Connections
-- [[verify-chart-timeframes.mjs]] - `contains` [EXTRACTED]
+- [[check()_16]] - `calls` [EXTRACTED]
+- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/verify-desk-enhancementsmjs

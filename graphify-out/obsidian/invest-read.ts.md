@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 49"
+community: "live-voices-invest.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-investts
 ---
 
 # invest-read.ts
@@ -23,7 +23,7 @@ tags:
 - [[InvestLite]] - `imports` [EXTRACTED]
 - [[InvestThemeLite]] - `imports` [EXTRACTED]
 - [[InvestTier]] - `imports` [EXTRACTED]
-- [[MONTHS_4]] - `contains` [EXTRACTED]
+- [[MONTHS_3]] - `contains` [EXTRACTED]
 - [[WEEKDAYS]] - `contains` [EXTRACTED]
 - [[WatchKind]] - `imports` [EXTRACTED]
 - [[boardAgenda()]] - `contains` [EXTRACTED]
@@ -46,12 +46,12 @@ tags:
 - [[live-voices-invest-firm.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports_from` [EXTRACTED]
 - [[lookAt()]] - `contains` [EXTRACTED]
-- [[macroRead]] - `contains` [EXTRACTED]
+- [[macroRead_1]] - `contains` [EXTRACTED]
 - [[monthSay()]] - `contains` [EXTRACTED]
 - [[off-hours-study.ts]] - `imports_from` [EXTRACTED]
 - [[opsHealth()]] - `contains` [EXTRACTED]
 - [[plusDays()]] - `contains` [EXTRACTED]
-- [[r2()_7]] - `contains` [EXTRACTED]
+- [[r2()_8]] - `contains` [EXTRACTED]
 - [[sentences()]] - `contains` [EXTRACTED]
 - [[sentencesWithin()]] - `contains` [EXTRACTED]
 - [[themeOfTheDay()]] - `contains` [EXTRACTED]
@@ -61,4 +61,4 @@ tags:
 - [[watchHit]] - `contains` [EXTRACTED]
 - [[whenPhrase()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

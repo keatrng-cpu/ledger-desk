@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-floor-rh-account.mjs"
+source_file: "scripts/verify-lab-constants.mjs"
 type: "code"
-community: "Community 3"
-location: "L12"
+community: "verify-lab-constants.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/verify-lab-constantsmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-rh-account.mjs]] - `contains` [EXTRACTED]
+- [[same()_2]] - `calls` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/verify-lab-constantsmjs

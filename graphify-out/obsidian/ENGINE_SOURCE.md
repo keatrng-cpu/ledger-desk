@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/ingest-server.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # ENGINE_SOURCE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[ingest-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

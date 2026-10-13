@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/raid-pair.ts"
 type: "code"
-community: "Community 187"
-location: "L121"
+community: "detectors.ts"
+location: "L164"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/detectorsts
 ---
 
 # namingSweep()
@@ -21,4 +21,4 @@ tags:
 - [[recentRealSweeps()]] - `calls` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/detectorsts

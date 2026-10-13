@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # live-voices-mead.ts
@@ -17,9 +17,9 @@ tags:
 - [[AT_JUMBO]] - `contains` [EXTRACTED]
 - [[AT_TABLE]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
-- [[Ctx_1]] - `imports` [EXTRACTED]
+- [[Ctx]] - `imports` [EXTRACTED]
 - [[Ex]] - `imports` [EXTRACTED]
-- [[Facts_1]] - `imports` [EXTRACTED]
+- [[Facts]] - `imports` [EXTRACTED]
 - [[HALL()]] - `contains` [EXTRACTED]
 - [[HALL_NEWS_MAX_AGE_MS]] - `contains` [EXTRACTED]
 - [[HALL_SCENES]] - `contains` [EXTRACTED]
@@ -28,7 +28,7 @@ tags:
 - [[HallLite]] - `imports` [EXTRACTED]
 - [[HallNewsLink]] - `contains` [EXTRACTED]
 - [[HallRowLite]] - `imports` [EXTRACTED]
-- [[KNOWN]] - `contains` [EXTRACTED]
+- [[KNOWN_1]] - `contains` [EXTRACTED]
 - [[LAYER_SAY]] - `imports` [EXTRACTED]
 - [[LIQ_SAY]] - `contains` [EXTRACTED]
 - [[Line]] - `imports` [EXTRACTED]
@@ -41,7 +41,7 @@ tags:
 - [[TalkWorld]] - `imports` [EXTRACTED]
 - [[bandOf()]] - `contains` [EXTRACTED]
 - [[bestNewsLink()]] - `contains` [EXTRACTED]
-- [[c()_1]] - `contains` [EXTRACTED]
+- [[c()_2]] - `contains` [EXTRACTED]
 - [[clip()_1]] - `imports` [EXTRACTED]
 - [[compact()]] - `imports` [EXTRACTED]
 - [[crowdOffer()]] - `contains` [EXTRACTED]
@@ -86,4 +86,4 @@ tags:
 - [[usable()]] - `contains` [EXTRACTED]
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

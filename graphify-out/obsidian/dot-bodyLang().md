@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 24"
+community: "FloorOverhaul"
 location: "L463"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/FloorOverhaul
 ---
 
 # .bodyLang()
@@ -16,4 +16,4 @@ tags:
 - [[BodyLang]] - `references` [EXTRACTED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

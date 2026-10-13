@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # sayable()
@@ -20,4 +20,4 @@ tags:
 - [[scanOf()]] - `calls` [EXTRACTED]
 - [[sourceName()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

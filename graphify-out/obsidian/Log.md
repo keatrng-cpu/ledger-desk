@@ -1,12 +1,12 @@
 ---
 source_file: "ai/DECISIONS.md"
 type: "document"
-community: "Community 292"
+community: "Log"
 location: "L33"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_292
+  - community/Log
 ---
 
 # Log
@@ -24,4 +24,4 @@ tags:
 - [[2026-10-07 — The floor's faces follow the line. The other engines do not run here]] - `contains` [EXTRACTED]
 - [[DECISIONS — ledger-desk (append-only)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_292
+#graphify/document #graphify/EXTRACTED #community/Log

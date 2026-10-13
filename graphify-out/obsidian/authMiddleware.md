@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/middleware.ts"
 type: "code"
-community: "Community 87"
+community: "@tanstack/react-start"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/tanstack/react-start
 ---
 
 # authMiddleware
@@ -39,4 +39,4 @@ tags:
 - [[trigger-server.ts]] - `imports` [EXTRACTED]
 - [[verify.server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

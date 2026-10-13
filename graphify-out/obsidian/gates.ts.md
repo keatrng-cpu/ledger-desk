@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 150"
+community: "gates.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/gatests
 ---
 
 # gates.ts
@@ -36,25 +36,25 @@ tags:
 - [[checkExit()]] - `contains` [EXTRACTED]
 - [[checkRun()]] - `contains` [EXTRACTED]
 - [[clockOf()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[evidenceOf()]] - `contains` [EXTRACTED]
 - [[exec-server.ts]] - `imports_from` [EXTRACTED]
 - [[exectypes.ts]] - `imports_from` [EXTRACTED]
 - [[executor.ts]] - `imports_from` [EXTRACTED]
-- [[hhmm()_2]] - `contains` [EXTRACTED]
+- [[hhmm()_4]] - `contains` [EXTRACTED]
 - [[limits.ts]] - `imports_from` [EXTRACTED]
 - [[liveReadiness]] - `contains` [EXTRACTED]
 - [[mandate.ts]] - `imports_from` [EXTRACTED]
-- [[median()]] - `contains` [EXTRACTED]
+- [[median()_3]] - `contains` [EXTRACTED]
 - [[nextWeekday()]] - `imports` [EXTRACTED]
 - [[occ.ts]] - `imports_from` [EXTRACTED]
 - [[occSymbol()]] - `imports` [EXTRACTED]
 - [[option-math.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_3]] - `contains` [EXTRACTED]
-- [[r2()_3]] - `contains` [EXTRACTED]
+- [[pct()_12]] - `contains` [EXTRACTED]
+- [[r2()_6]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
-- [[symbolOf()]] - `contains` [EXTRACTED]
+- [[symbolOf()_1]] - `contains` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/gatests

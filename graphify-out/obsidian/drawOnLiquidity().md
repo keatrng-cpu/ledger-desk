@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 20"
+community: "OhlcBar"
 location: "L247"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/OhlcBar
 ---
 
 # drawOnLiquidity()
@@ -28,9 +28,9 @@ tags:
 - [[median()_2]] - `calls` [EXTRACTED]
 - [[mergeCoincident()]] - `calls` [EXTRACTED]
 - [[remainingExcursions()]] - `calls` [EXTRACTED]
-- [[round2()_4]] - `calls` [EXTRACTED]
+- [[round2()_6]] - `calls` [EXTRACTED]
 - [[scoreCandidates()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[withEmpiricalTarget()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/room/floor-voice.ts"
+source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 275"
-location: "L115"
+community: "floor-ik.ts"
+location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_275
+  - community/floor-ikts
 ---
 
 # clamp()
 
 ## Connections
-- [[floor-voice.ts]] - `contains` [EXTRACTED]
-- [[naturalPlan()]] - `calls` [EXTRACTED]
-- [[phrasePlan()]] - `calls` [EXTRACTED]
+- [[armAngles]] - `calls` [EXTRACTED]
+- [[eulerXYZ()]] - `calls` [EXTRACTED]
+- [[floor-ik.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_275
+#graphify/code #graphify/EXTRACTED #community/floor-ikts

@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 47"
+community: "dependencies"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/dependencies
 ---
 
 # @tanstack/react-table
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/code #graphify/EXTRACTED #community/dependencies

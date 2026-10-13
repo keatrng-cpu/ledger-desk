@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/ingest-server.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # ingest-server.ts
@@ -29,4 +29,4 @@ tags:
 - [[schema.ts]] - `imports_from` [EXTRACTED]
 - [[setPaperEnabled()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

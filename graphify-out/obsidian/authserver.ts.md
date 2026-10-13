@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/auth/server.ts"
 type: "code"
-community: "Community 105"
+community: "auth/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_105
+  - community/auth/serverts
 ---
 
 # auth/server.ts
 
 ## Connections
 - [[$.ts]] - `imports_from` [EXTRACTED]
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[AUTH_DB_URL_VARS]] - `contains` [EXTRACTED]
 - [[GROK_ISSUER_DEFAULT]] - `imports` [EXTRACTED]
 - [[GROK_PROVIDERS]] - `re_exports` [EXTRACTED]
@@ -22,7 +22,7 @@ tags:
 - [[PREVIEW_CLIENT_ID]] - `imports` [EXTRACTED]
 - [[PREVIEW_CLIENT_SECRET]] - `imports` [EXTRACTED]
 - [[SESSION_TOKEN_COOKIE]] - `contains` [EXTRACTED]
-- [[auth_1]] - `contains` [EXTRACTED]
+- [[auth]] - `contains` [EXTRACTED]
 - [[authConfigured]] - `contains` [EXTRACTED]
 - [[better-auth_1]] - `imports_from` [EXTRACTED]
 - [[createAuthPool()]] - `contains` [EXTRACTED]
@@ -37,7 +37,7 @@ tags:
 - [[getPglite()]] - `imports` [EXTRACTED]
 - [[globalAuthRef]] - `contains` [EXTRACTED]
 - [[issuerBase]] - `contains` [EXTRACTED]
-- [[pg_1]] - `imports_from` [EXTRACTED]
+- [[pg]] - `imports_from` [EXTRACTED]
 - [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
 - [[pgliteDialect()]] - `imports` [EXTRACTED]
 - [[popup.server.ts]] - `imports_from` [EXTRACTED]
@@ -49,4 +49,4 @@ tags:
 - [[ref_node_crypto]] - `imports_from` [EXTRACTED]
 - [[verify.server.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_105
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

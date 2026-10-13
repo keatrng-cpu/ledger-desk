@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 113"
+community: "floor-sound.ts"
 location: "L248"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/floor-soundts
 ---
 
 # .lockCast()
@@ -20,4 +20,4 @@ tags:
 - [[saveCast()]] - `calls` [EXTRACTED]
 - [[setVoiceQuality()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/floor-soundts

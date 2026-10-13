@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 270"
+community: "replay-drill.ts"
 location: "L822"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_270
+  - community/replay-drillts
 ---
 
 # RuleCurve
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[replay-drill.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_270
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

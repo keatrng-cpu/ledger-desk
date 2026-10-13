@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # options-sleeve.ts
@@ -36,4 +36,4 @@ tags:
 - [[verify-overnight.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

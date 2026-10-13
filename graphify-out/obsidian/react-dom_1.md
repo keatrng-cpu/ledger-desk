@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 233"
+community: "render-setup-chart.mjs"
 location: "L101"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_233
+  - community/render-setup-chartmjs
 ---
 
 # react-dom
@@ -15,4 +15,4 @@ tags:
 - [[package.json]] - `imports` [EXTRACTED]
 - [[render-setup-chart.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_233
+#graphify/concept #graphify/EXTRACTED #community/render-setup-chartmjs

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-lab-constants.mjs"
+source_file: "src/components/room/wire-chat.ts"
 type: "code"
-community: "Community 335"
-location: "L12"
+community: "trading-floor-tab.tsx"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_335
+  - community/trading-floor-tabtsx
 ---
 
 # read()
 
 ## Connections
-- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
+- [[useStored()]] - `calls` [EXTRACTED]
+- [[wire-chat.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_335
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

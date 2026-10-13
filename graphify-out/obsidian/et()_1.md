@@ -1,18 +1,22 @@
 ---
-source_file: "scripts/verify-tf-ladder.mjs"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 166"
-location: "L28"
+community: "crew-year-backtest.py"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_166
+  - community/crew-year-backtestpy
 ---
 
 # et()
 
 ## Connections
-- [[swingDaily]] - `calls` [EXTRACTED]
-- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
+- [[collect()_1]] - `calls` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[datetime_1]] - `references` [EXTRACTED]
+- [[day_key()_1]] - `calls` [EXTRACTED]
+- [[minute_of()_1]] - `calls` [EXTRACTED]
+- [[weekday()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_166
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

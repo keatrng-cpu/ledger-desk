@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-anticipation.ts"
 type: "code"
-community: "Community 163"
+community: "chart-timeframes.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/chart-timeframests
 ---
 
 # setup-anticipation.ts
@@ -39,4 +39,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-setup-anticipation.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # floor-props.ts
@@ -55,7 +55,7 @@ tags:
 - [[fmtPct()]] - `contains` [EXTRACTED]
 - [[fmtPx()]] - `contains` [EXTRACTED]
 - [[gateWord()]] - `imports` [EXTRACTED]
-- [[inSeg()]] - `contains` [EXTRACTED]
+- [[inSeg()_1]] - `contains` [EXTRACTED]
 - [[isPdh()]] - `contains` [EXTRACTED]
 - [[isPdl()]] - `contains` [EXTRACTED]
 - [[liquidityTrack]] - `contains` [EXTRACTED]
@@ -81,7 +81,7 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[trophiesAndScars()]] - `contains` [EXTRACTED]
 - [[until()]] - `contains` [EXTRACTED]
-- [[usd()_4]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 - [[vixWeather]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

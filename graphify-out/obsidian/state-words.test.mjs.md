@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/state-words.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # state-words.test.mjs
@@ -17,4 +17,4 @@ tags:
 - [[state-words.ts]] - `dynamic_import` [EXTRACTED]
 - [[tsx_1]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

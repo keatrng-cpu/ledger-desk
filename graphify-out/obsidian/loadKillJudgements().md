@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-store.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # loadKillJudgements()
@@ -20,4 +20,4 @@ tags:
 - [[readInvestOffice()]] - `calls` [EXTRACTED]
 - [[trippedTickers()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

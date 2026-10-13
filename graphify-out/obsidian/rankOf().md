@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # rankOf()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[Code map]] - `references` [INFERRED]
 - [[getRoomSnapshot]] - `calls` [EXTRACTED]
-- [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[putRoomSnapshot]] - `calls` [EXTRACTED]
 - [[rankKey()]] - `calls` [EXTRACTED]
 - [[restoreRoomIfRicher()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[snapshot.ts]] - `contains` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

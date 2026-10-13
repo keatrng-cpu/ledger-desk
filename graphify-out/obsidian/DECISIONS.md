@@ -1,12 +1,12 @@
 ---
 source_file: "ai/DECISIONS.md"
 type: "document"
-community: "Community 292"
+community: "buildTradingDesk"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_292
+  - community/buildTradingDesk
 ---
 
 # DECISIONS.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[DECISIONS — ledger-desk (append-only)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_292
+#graphify/document #graphify/EXTRACTED #community/buildTradingDesk

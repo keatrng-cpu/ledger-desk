@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/intake.py"
 type: "code"
-community: "Community 225"
+community: "selfcheck.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/selfcheckpy
 ---
 
 # intake.py
@@ -16,7 +16,7 @@ tags:
 - [[app.py]] - `imports_from` [EXTRACTED]
 - [[argparse]] - `imports` [EXTRACTED]
 - [[json_1]] - `imports` [EXTRACTED]
-- [[main()_5]] - `contains` [EXTRACTED]
+- [[main()_3]] - `contains` [EXTRACTED]
 - [[parse_issue()]] - `contains` [EXTRACTED]
 - [[re]] - `imports` [EXTRACTED]
 - [[render()]] - `contains` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[selfcheck.py]] - `imports_from` [EXTRACTED]
 - [[sys]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_225
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

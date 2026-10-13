@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 316"
+community: "replay-drill.ts"
 location: "L898"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_316
+  - community/replay-drillts
 ---
 
 # tagForRule()
@@ -16,4 +16,4 @@ tags:
 - [[nextCaseId()]] - `calls` [EXTRACTED]
 - [[replay-drill.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_316
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

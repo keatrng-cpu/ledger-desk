@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/probe-closest.mjs"
+source_file: "scripts/build-shadow-replay.mjs"
 type: "code"
-community: "Community 20"
-location: "L28"
+community: "detectors.ts"
+location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[dayKey()_9]] - `calls` [EXTRACTED]
-- [[probe-closest.mjs]] - `contains` [EXTRACTED]
+- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
+- [[deskAt()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

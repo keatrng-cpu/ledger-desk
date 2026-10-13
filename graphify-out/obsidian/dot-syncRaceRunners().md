@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-overhaul.ts"
 type: "code"
-community: "Community 10"
+community: "FloorOverhaul"
 location: "L741"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/FloorOverhaul
 ---
 
 # .syncRaceRunners()
@@ -15,4 +15,4 @@ tags:
 - [[dot-setProps()]] - `calls` [EXTRACTED]
 - [[FloorOverhaul]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/FloorOverhaul

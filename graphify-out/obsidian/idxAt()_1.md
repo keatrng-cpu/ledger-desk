@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-hit-odds.mjs"
 type: "code"
-community: "Community 45"
+community: "build-hit-odds.mjs"
 location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/build-hit-oddsmjs
 ---
 
 # idxAt()
@@ -15,4 +15,4 @@ tags:
 - [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
 - [[inputsFor()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/build-hit-oddsmjs

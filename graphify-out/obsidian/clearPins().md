@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # clearPins()
@@ -16,4 +16,4 @@ tags:
 - [[loadDeskMemory()]] - `calls` [EXTRACTED]
 - [[saveDeskMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

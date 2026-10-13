@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # RaceAnim
@@ -17,4 +17,4 @@ tags:
 - [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 - [[floorProps]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

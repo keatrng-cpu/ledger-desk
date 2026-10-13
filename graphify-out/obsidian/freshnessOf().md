@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/data-fresh.ts"
 type: "code"
-community: "Community 128"
+community: "live-world.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/live-worldts
 ---
 
 # freshnessOf()
@@ -22,4 +22,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/live-worldts

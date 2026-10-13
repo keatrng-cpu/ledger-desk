@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # predict/scanner.ts
@@ -35,7 +35,7 @@ tags:
 - [[limitPriceFor()]] - `imports` [EXTRACTED]
 - [[math.ts]] - `imports_from` [EXTRACTED]
 - [[mead-fixture.mjs]] - `dynamic_import` [EXTRACTED]
-- [[pc()_3]] - `contains` [EXTRACTED]
+- [[pc()_2]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
@@ -51,4 +51,4 @@ tags:
 - [[topSetups()]] - `contains` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 50"
+community: "room-engine.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_50
+  - community/room-enginets
 ---
 
 # GOAL_STORAGE
@@ -15,4 +15,4 @@ tags:
 - [[goal.ts]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_50
+#graphify/code #graphify/EXTRACTED #community/room-enginets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
-community: "Community 193"
+community: "floor-proto-avatars.ts"
 location: "L238"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_193
+  - community/floor-proto-avatarsts
 ---
 
 # .tryMove()
@@ -16,4 +16,4 @@ tags:
 - [[dot-tickOwnerManager()]] - `calls` [INFERRED]
 - [[OwnerAvatar]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_193
+#graphify/code #graphify/INFERRED #community/floor-proto-avatarsts

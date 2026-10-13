@@ -1,25 +1,22 @@
 ---
-source_file: "src/routes/api/rh/callback.ts"
+source_file: "src/routes/api/desk/journal.ts"
 type: "code"
-community: "Community 65"
-location: "L26"
+community: "routeTree.gen.ts"
+location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/routeTreegents
 ---
 
 # handle()
 
 ## Connections
-- [[callback.ts]] - `indirect_call` [INFERRED]
-- [[clientIdFor()]] - `calls` [EXTRACTED]
-- [[cookieValue()]] - `calls` [EXTRACTED]
+- [[card-journal.ts]] - `imports_from` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
-- [[exchangeCode()]] - `calls` [EXTRACTED]
-- [[getSessionUser()]] - `calls` [EXTRACTED]
-- [[page()]] - `calls` [EXTRACTED]
-- [[rh-oauth.ts]] - `imports_from` [EXTRACTED]
-- [[unpackPkce()]] - `calls` [EXTRACTED]
+- [[deskjournal.ts]] - `indirect_call` [INFERRED]
+- [[jsonResponse()]] - `calls` [EXTRACTED]
+- [[learning.ts]] - `imports_from` [EXTRACTED]
+- [[smcdiscipline.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

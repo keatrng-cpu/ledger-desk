@@ -1,19 +1,22 @@
 ---
-source_file: "src/lib/room/floor-locomotion.ts"
+source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 242"
+community: "floor-feet.ts"
 location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_242
+  - community/floor-feetts
 ---
 
 # clamp()
 
 ## Connections
-- [[floor-locomotion.ts]] - `contains` [EXTRACTED]
-- [[smoothPath()]] - `calls` [EXTRACTED]
-- [[substep()]] - `calls` [EXTRACTED]
+- [[armSwing()]] - `calls` [EXTRACTED]
+- [[floor-feet.ts]] - `contains` [EXTRACTED]
+- [[footAt()]] - `calls` [EXTRACTED]
+- [[legAngles]] - `calls` [EXTRACTED]
+- [[minJerk()]] - `calls` [EXTRACTED]
+- [[smooth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_242
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

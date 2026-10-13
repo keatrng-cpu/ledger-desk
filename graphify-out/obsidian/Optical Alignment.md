@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/surfaces.md"
 type: "document"
-community: "Community 276"
+community: "Surfaces"
 location: "L57"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_276
+  - community/Surfaces
 ---
 
 # Optical Alignment
@@ -17,4 +17,4 @@ tags:
 - [[Play Button Triangles]] - `contains` [EXTRACTED]
 - [[Surfaces_1]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_276
+#graphify/document #graphify/EXTRACTED #community/Surfaces

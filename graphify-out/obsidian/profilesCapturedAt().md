@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 209"
+community: "invest-firm.ts"
 location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-firmts
 ---
 
 # profilesCapturedAt()
@@ -18,4 +18,4 @@ tags:
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[investSnapshots()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

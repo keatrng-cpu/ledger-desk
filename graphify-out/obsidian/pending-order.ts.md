@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/pending-order.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # pending-order.ts
@@ -34,11 +34,11 @@ tags:
 - [[releasePending()]] - `contains` [EXTRACTED]
 - [[restLimit()]] - `contains` [EXTRACTED]
 - [[restingFor()]] - `contains` [EXTRACTED]
-- [[save()_7]] - `contains` [EXTRACTED]
+- [[save()_8]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
 - [[subscribePending()]] - `contains` [EXTRACTED]
 - [[tickPending()]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

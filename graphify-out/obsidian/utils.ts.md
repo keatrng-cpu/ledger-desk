@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/utils.ts"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # utils.ts
@@ -72,4 +72,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

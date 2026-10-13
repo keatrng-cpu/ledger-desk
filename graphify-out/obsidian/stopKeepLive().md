@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/live/keep-live.ts"
 type: "code"
-community: "Community 71"
+community: "capture-history.mjs"
 location: "L93"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/capture-historymjs
 ---
 
 # stopKeepLive()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[keep-live.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

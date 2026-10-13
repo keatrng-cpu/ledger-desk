@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/option-ticket.tsx"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # OptionTicket()
@@ -15,7 +15,7 @@ tags:
 - [[Conditions()]] - `calls` [EXTRACTED]
 - [[CounterChip()]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
-- [[Row()_3]] - `calls` [EXTRACTED]
+- [[Row()_5]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 - [[evaluateOptionsDesk()]] - `calls` [EXTRACTED]
 - [[factsForUnderlier()]] - `calls` [EXTRACTED]
@@ -26,6 +26,6 @@ tags:
 - [[pickCard()]] - `calls` [EXTRACTED]
 - [[schoolTicket()]] - `calls` [EXTRACTED]
 - [[ticketHolds()]] - `calls` [EXTRACTED]
-- [[usd()_1]] - `calls` [EXTRACTED]
+- [[usd()_5]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

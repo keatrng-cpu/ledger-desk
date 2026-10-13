@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/entry-state.test.mjs"
 type: "code"
-community: "Community 78"
+community: "tsx"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_78
+  - community/tsx
 ---
 
 # desk()
 
 ## Connections
-- [[book()_4]] - `calls` [EXTRACTED]
-- [[card()_8]] - `calls` [EXTRACTED]
+- [[book()_6]] - `calls` [EXTRACTED]
+- [[card()_10]] - `calls` [EXTRACTED]
 - [[entry-state.test.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_78
+#graphify/code #graphify/EXTRACTED #community/tsx

@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/typography.md"
 type: "document"
-community: "Community 302"
+community: "Text Wrapping"
 location: "L45"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_302
+  - community/Text_Wrapping
 ---
 
 # When to Use Which
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Text Wrapping]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_302
+#graphify/document #graphify/EXTRACTED #community/Text_Wrapping

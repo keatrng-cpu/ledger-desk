@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 127"
+community: "profit-path.ts"
 location: "L498"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/profit-pathts
 ---
 
 # bandToRiskGrade()
@@ -16,4 +16,4 @@ tags:
 - [[profit-path.ts]] - `imports` [EXTRACTED]
 - [[strategy-grade.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

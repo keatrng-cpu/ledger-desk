@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L915"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # lastScored()
@@ -17,4 +17,4 @@ tags:
 - [[meeting.ts]] - `imports` [EXTRACTED]
 - [[vetoMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

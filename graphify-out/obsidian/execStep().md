@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 291"
+community: "execStep"
 location: "L152"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_291
+  - community/execStep
 ---
 
 # execStep()
@@ -20,18 +20,18 @@ tags:
 - [[dot-recent()_1]] - `calls` [EXTRACTED]
 - [[dot-reserve()_1]] - `calls` [EXTRACTED]
 - [[dot-state()_1]] - `calls` [EXTRACTED]
-- [[dot-update()_9]] - `calls` [EXTRACTED]
+- [[dot-update()_1]] - `calls` [EXTRACTED]
 - [[blankRow()]] - `calls` [EXTRACTED]
 - [[checkEntry()]] - `calls` [EXTRACTED]
 - [[checkExit()]] - `calls` [EXTRACTED]
 - [[checkRun()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[evidenceOf()]] - `calls` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
 - [[exec-server.ts]] - `imports` [EXTRACTED]
 - [[execStepFn]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `contains` [EXTRACTED]
-- [[handle()_1]] - `calls` [EXTRACTED]
+- [[handle()_2]] - `calls` [EXTRACTED]
 - [[liveReadiness]] - `calls` [EXTRACTED]
 - [[msg()]] - `calls` [EXTRACTED]
 - [[occSymbol()]] - `calls` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[rhSpendable()]] - `calls` [EXTRACTED]
 - [[rowPatchFromBroker()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_291
+#graphify/code #graphify/EXTRACTED #community/execStep

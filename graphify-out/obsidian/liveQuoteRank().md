@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # liveQuoteRank()
@@ -15,4 +15,4 @@ tags:
 - [[freshest.ts]] - `contains` [EXTRACTED]
 - [[pickFreshestQuote()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

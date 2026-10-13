@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 location: "L423"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # stats()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[direction-book.py]] - `contains` [EXTRACTED]
 - [[pack()]] - `calls` [EXTRACTED]
-- [[row()_2]] - `calls` [EXTRACTED]
+- [[row()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

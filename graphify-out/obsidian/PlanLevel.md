@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 254"
+community: "OhlcBar"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/OhlcBar
 ---
 
 # PlanLevel
@@ -15,4 +15,4 @@ tags:
 - [[card-plan.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 205"
+community: "verify-live-lesson.mjs"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/verify-live-lessonmjs
 ---
 
 # stub
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_205
+#graphify/code #graphify/EXTRACTED #community/verify-live-lessonmjs

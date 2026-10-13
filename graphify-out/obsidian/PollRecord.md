@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/take-census.ts"
 type: "code"
-community: "Community 229"
+community: "SmcMasterBook"
 location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/SmcMasterBook
 ---
 
 # PollRecord
@@ -15,4 +15,4 @@ tags:
 - [[SmcMasterBook]] - `references` [EXTRACTED]
 - [[take-census.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/SmcMasterBook

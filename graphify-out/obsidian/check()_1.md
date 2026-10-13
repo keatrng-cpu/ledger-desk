@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-live-ladder.mjs"
+source_file: "scripts/verify-invest.mjs"
 type: "code"
-community: "Community 1"
-location: "L9"
+community: "verify-invest.mjs"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/verify-investmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-live-ladder.mjs]] - `contains` [EXTRACTED]
+- [[ok()]] - `calls` [EXTRACTED]
+- [[verify-invest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/verify-investmjs

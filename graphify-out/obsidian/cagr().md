@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-durability.mjs"
 type: "code"
-community: "Community 218"
+community: "capture-durability.mjs"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_218
+  - community/capture-durabilitymjs
 ---
 
 # cagr()
@@ -15,4 +15,4 @@ tags:
 - [[capture-durability.mjs]] - `contains` [EXTRACTED]
 - [[round4()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_218
+#graphify/code #graphify/EXTRACTED #community/capture-durabilitymjs

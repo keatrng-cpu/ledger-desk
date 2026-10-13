@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 20"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # market-narrative.ts
@@ -16,14 +16,14 @@ tags:
 - [[DetectorSummary]] - `imports` [EXTRACTED]
 - [[DrawOnLiquidity]] - `contains` [EXTRACTED]
 - [[EntryModel]] - `contains` [EXTRACTED]
-- [[GATE_4]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[LiquidityMap]] - `contains` [EXTRACTED]
 - [[LiquiditySide]] - `contains` [EXTRACTED]
 - [[MarketNarrative]] - `contains` [EXTRACTED]
 - [[NarrativeClass]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
-- [[RULES_1]] - `contains` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
+- [[RULES_2]] - `contains` [EXTRACTED]
 - [[SessionClock]] - `imports` [EXTRACTED]
 - [[StrategyId]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
@@ -50,6 +50,7 @@ tags:
 - [[polaritySweep()]] - `imports` [EXTRACTED]
 - [[preferredFor()]] - `contains` [EXTRACTED]
 - [[probe-closest.mjs]] - `dynamic_import` [EXTRACTED]
+- [[provisionalRaid]] - `imports` [EXTRACTED]
 - [[raid-pair.ts]] - `imports_from` [EXTRACTED]
 - [[session-brief.ts]] - `imports_from` [EXTRACTED]
 - [[sessionLive()]] - `imports` [EXTRACTED]
@@ -66,4 +67,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[withEmpiricalTarget()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

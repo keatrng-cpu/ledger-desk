@@ -1,0 +1,17 @@
+---
+source_file: "scripts/fidelity/fetch-data.mts"
+type: "code"
+community: "ref_node_fs"
+location: "L5"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/ref_node_fs
+---
+
+# chart()
+
+## Connections
+- [[fetch-data.mts]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

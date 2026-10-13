@@ -1,17 +1,21 @@
 ---
 source_file: "src/lib/trading/desk-listen.ts"
 type: "code"
-community: "Community 184"
-location: "L59"
+community: "buildTradingDesk"
+location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/buildTradingDesk
 ---
 
 # DeskWire
 
 ## Connections
+- [[ArrayRow]] - `references` [EXTRACTED]
+- [[SmtRead]] - `references` [EXTRACTED]
 - [[desk-listen.ts]] - `contains` [EXTRACTED]
+- [[htfBiasOf()]] - `references` [EXTRACTED]
+- [[wireMtf()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_ao.py"
 type: "rationale"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # floor_ao.py - baked ambient occlusion for the office, written as vertex colours…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor_ao.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_140
+#graphify/rationale #graphify/EXTRACTED #community/floor_aopy

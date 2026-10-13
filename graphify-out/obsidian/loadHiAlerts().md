@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "veteran-brain.ts"
 location: "L451"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/veteran-braints
 ---
 
 # loadHiAlerts()
@@ -21,4 +21,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

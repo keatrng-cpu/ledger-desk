@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L640"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # worldFromDesk()
@@ -16,7 +16,7 @@ tags:
 - [[bookRead()]] - `calls` [EXTRACTED]
 - [[calendarRead()]] - `calls` [EXTRACTED]
 - [[cardRead()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[evidenceHeadlines()]] - `calls` [EXTRACTED]
 - [[feedOf()]] - `calls` [EXTRACTED]
@@ -34,4 +34,4 @@ tags:
 - [[tapeBook()]] - `calls` [EXTRACTED]
 - [[weekRead()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L94"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # familyTag()
@@ -16,4 +16,4 @@ tags:
 - [[isNflMarket()]] - `calls` [EXTRACTED]
 - [[rowOf()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

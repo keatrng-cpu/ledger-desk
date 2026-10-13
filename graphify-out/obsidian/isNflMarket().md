@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L266"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # isNflMarket()
@@ -21,4 +21,4 @@ tags:
 - [[rankMarkets()]] - `calls` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

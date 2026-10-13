@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-micro-entry.mjs"
+source_file: "scripts/sweep-gates.mjs"
 type: "code"
-community: "Community 199"
-location: "L168"
+community: "cases.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_199
+  - community/casests
 ---
 
 # VARIANTS
 
 ## Connections
-- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
+- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_199
+#graphify/code #graphify/EXTRACTED #community/casests

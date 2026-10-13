@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L195"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # BookRead
@@ -16,4 +16,4 @@ tags:
 - [[live-types.ts]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

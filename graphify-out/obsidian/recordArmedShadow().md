@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 44"
-location: "L336"
+community: "index.tsx"
+location: "L337"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/indextsx
 ---
 
 # recordArmedShadow()
@@ -19,4 +19,4 @@ tags:
 - [[paperAPlusCounters()]] - `calls` [EXTRACTED]
 - [[recordShadowOrder]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/indextsx

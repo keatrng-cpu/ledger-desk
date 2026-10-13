@@ -1,23 +1,18 @@
 ---
-source_file: "src/lib/room/quant.ts"
+source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 52"
-location: "L102"
+community: "OhlcBar"
+location: "L283"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/OhlcBar
 ---
 
 # round2()
 
 ## Connections
-- [[attribute()_1]] - `calls` [EXTRACTED]
-- [[backstopped()]] - `calls` [EXTRACTED]
-- [[breakevenSpot()]] - `calls` [EXTRACTED]
-- [[holdValue()]] - `calls` [EXTRACTED]
-- [[premiumStopOf()]] - `calls` [EXTRACTED]
-- [[priceOptionPlan()]] - `calls` [EXTRACTED]
-- [[quant.ts]] - `contains` [EXTRACTED]
+- [[buildTradePlan()]] - `calls` [EXTRACTED]
+- [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

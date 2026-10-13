@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/floor-feet.ts"
+source_file: "src/lib/smc/exec-context.ts"
 type: "code"
-community: "Community 267"
-location: "L29"
+community: "buildTradingDesk"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_267
+  - community/buildTradingDesk
 ---
 
 # Side
 
 ## Connections
-- [[floor-feet.ts]] - `contains` [EXTRACTED]
+- [[exec-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_267
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

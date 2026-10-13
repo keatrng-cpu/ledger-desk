@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 267"
+community: "floor-feet.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_267
+  - community/floor-feetts
 ---
 
 # floor-feet.ts
@@ -19,13 +19,13 @@ tags:
 - [[REST_PHASE]] - `contains` [EXTRACTED]
 - [[SHOE]] - `contains` [EXTRACTED]
 - [[SOLE]] - `contains` [EXTRACTED]
-- [[Side]] - `contains` [EXTRACTED]
+- [[Side_6]] - `contains` [EXTRACTED]
 - [[SlideSample]] - `contains` [EXTRACTED]
 - [[V2_4]] - `contains` [EXTRACTED]
 - [[V3_3]] - `contains` [EXTRACTED]
 - [[ankleFor()]] - `contains` [EXTRACTED]
 - [[armSwing()]] - `contains` [EXTRACTED]
-- [[clamp()_7]] - `contains` [EXTRACTED]
+- [[clamp()_6]] - `contains` [EXTRACTED]
 - [[floor-locomotion.ts]] - `imports_from` [EXTRACTED]
 - [[footAt()]] - `contains` [EXTRACTED]
 - [[footPlan]] - `contains` [EXTRACTED]
@@ -41,4 +41,4 @@ tags:
 - [[verify-floor-feet.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-floor-locomotion.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_267
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

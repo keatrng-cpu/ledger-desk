@@ -1,23 +1,21 @@
 ---
-source_file: "scripts/lib/mead-fixture.mjs"
+source_file: "src/lib/journal/server.ts"
 type: "code"
-community: "Community 279"
-location: "L25"
+community: "journal/server.ts"
+location: "L170"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_279
+  - community/journal/serverts
 ---
 
 # iso()
 
 ## Connections
-- [[buildBoard()_1]] - `calls` [EXTRACTED]
-- [[driftHistory()]] - `calls` [EXTRACTED]
-- [[hallAt()]] - `calls` [EXTRACTED]
-- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
-- [[predictBoardAt()]] - `calls` [EXTRACTED]
-- [[shiftIso()]] - `calls` [EXTRACTED]
-- [[signalsAt()]] - `calls` [EXTRACTED]
+- [[getSettings]] - `calls` [EXTRACTED]
+- [[journalserver.ts]] - `contains` [EXTRACTED]
+- [[listEvents]] - `calls` [EXTRACTED]
+- [[mapTrade()]] - `calls` [EXTRACTED]
+- [[updateEquity]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_279
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

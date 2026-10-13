@@ -1,12 +1,12 @@
 ---
 source_file: "docs/TOOLING_PLAN.md"
 type: "document"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L25"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # Done this session (each has a test; the count is the list)
@@ -19,4 +19,4 @@ tags:
 - [[proposeRhFromManagerFeed()]] - `references` [INFERRED]
 - [[proposeRhFromPathFire()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_56
+#graphify/document #graphify/INFERRED #community/manager-live-loopts

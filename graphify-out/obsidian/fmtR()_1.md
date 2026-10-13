@@ -1,32 +1,27 @@
 ---
-source_file: "src/lib/trading/discretion-memory.ts"
+source_file: "src/lib/alerts/cron-stats-server.ts"
 type: "code"
-community: "Community 111"
-location: "L346"
+community: "jsonResponse"
+location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/jsonResponse
 ---
 
 # fmtR()
 
 ## Connections
-- [[ExpectedPath()]] - `calls` [EXTRACTED]
-- [[ReasonRow()]] - `calls` [EXTRACTED]
-- [[Row()_1]] - `calls` [EXTRACTED]
-- [[ShadowBookPanel()]] - `calls` [EXTRACTED]
-- [[Totals()]] - `calls` [EXTRACTED]
-- [[ciText()]] - `calls` [EXTRACTED]
-- [[discretion-memory.ts]] - `contains` [EXTRACTED]
-- [[discretionDigest()]] - `calls` [EXTRACTED]
-- [[entryEvidenceLine()]] - `calls` [EXTRACTED]
-- [[legLine()]] - `calls` [EXTRACTED]
-- [[managementLine()]] - `calls` [EXTRACTED]
-- [[reasonLine()]] - `calls` [EXTRACTED]
-- [[runVeteranBrain()]] - `calls` [EXTRACTED]
-- [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
-- [[veteran-brain.ts]] - `imports` [EXTRACTED]
+- [[checklist.ts]] - `imports` [EXTRACTED]
+- [[cron-stats-server.ts]] - `contains` [EXTRACTED]
+- [[handleChecklist()]] - `calls` [EXTRACTED]
+- [[handleReview()]] - `calls` [EXTRACTED]
+- [[handleWeekly()]] - `calls` [EXTRACTED]
+- [[review.ts]] - `imports` [EXTRACTED]
+- [[runChecklist()]] - `calls` [EXTRACTED]
+- [[runReview()]] - `calls` [EXTRACTED]
+- [[runWeekly()]] - `calls` [EXTRACTED]
+- [[trigger-server.ts]] - `imports` [EXTRACTED]
+- [[weekly.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

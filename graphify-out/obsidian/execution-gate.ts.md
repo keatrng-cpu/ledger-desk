@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/execution-gate.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # execution-gate.ts
@@ -23,8 +23,8 @@ tags:
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
 - [[apexAccountPhase]] - `contains` [EXTRACTED]
 - [[apexAccountRisk]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[autofire-gates.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[dayLoss()]] - `contains` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[env()_1]] - `contains` [EXTRACTED]
@@ -37,4 +37,4 @@ tags:
 - [[tradovate-client.ts]] - `imports_from` [EXTRACTED]
 - [[tradovate-orders.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

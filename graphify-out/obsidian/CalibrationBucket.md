@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/trading/replay.ts"
+source_file: "src/lib/predict/paper-scorer.ts"
 type: "code"
-community: "Community 58"
-location: "L302"
+community: "pm-analyzer.tsx"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/pm-analyzertsx
 ---
 
 # CalibrationBucket
 
 ## Connections
-- [[replay.ts]] - `contains` [EXTRACTED]
+- [[TooFew]] - `references` [EXTRACTED]
+- [[paper-scorer.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

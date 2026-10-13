@@ -1,12 +1,12 @@
 ---
 source_file: "ai/research/INDEX.md"
 type: "document"
-community: "Community 323"
+community: "Research INDEX — ledger-desk"
 location: "L36"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_323
+  - community/Research_INDEX__ledger-desk
 ---
 
 # Not yet present (named by the plan, do not link until they exist)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Research INDEX — ledger-desk]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_323
+#graphify/document #graphify/EXTRACTED #community/Research_INDEX__ledger-desk

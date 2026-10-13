@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/format.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # signed()
@@ -17,4 +17,4 @@ tags:
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[investformat.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

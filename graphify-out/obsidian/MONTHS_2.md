@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 41"
-location: "L45"
+community: "session-backtest.ts"
+location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/session-backtestts
 ---
 
 # MONTHS
 
 ## Connections
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[session-backtest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

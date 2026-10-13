@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/offline.ts"
 type: "code"
-community: "Community 232"
+community: "news-tab.tsx"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_232
+  - community/news-tabtsx
 ---
 
 # SETUP_URL
@@ -17,4 +17,4 @@ tags:
 - [[offline.ts]] - `contains` [EXTRACTED]
 - [[thesis-card.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_232
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

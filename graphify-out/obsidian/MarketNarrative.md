@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 40"
-location: "L87"
+community: "smc-master.ts"
+location: "L96"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # MarketNarrative
@@ -24,4 +24,4 @@ tags:
 - [[smc-canon.ts]] - `imports` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

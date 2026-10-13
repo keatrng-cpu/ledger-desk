@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-floor-presence.mjs"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # face()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-floor-presence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

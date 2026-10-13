@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/safety-net.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # safetyNetDue()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
-- [[handle()_1]] - `calls` [EXTRACTED]
+- [[handle()_2]] - `calls` [EXTRACTED]
 - [[safety-net.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

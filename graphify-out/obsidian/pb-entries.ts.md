@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/pb-entries.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # pb-entries.ts
@@ -21,4 +21,4 @@ tags:
 - [[sequenceFor()]] - `contains` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

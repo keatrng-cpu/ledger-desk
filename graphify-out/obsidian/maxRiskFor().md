@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 72"
-location: "L275"
+community: "OhlcBar"
+location: "L277"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # maxRiskFor()
@@ -16,4 +16,4 @@ tags:
 - [[maxRiskPtsFor()]] - `calls` [EXTRACTED]
 - [[trade-plan.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

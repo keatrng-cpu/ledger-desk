@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-traffic.ts"
 type: "code"
-community: "Community 251"
+community: "desk-atlas.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_251
+  - community/desk-atlasts
 ---
 
 # noteNerve()
@@ -25,4 +25,4 @@ tags:
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[syncPeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_251
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

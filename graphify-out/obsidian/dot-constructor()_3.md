@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/lib/mead-world.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 142"
-location: "L120"
+community: "verify-invest-office.mjs"
+location: "L718"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-invest-officemjs
 ---
 
 # .constructor()
 
 ## Connections
-- [[Sim]] - `method` [EXTRACTED]
+- [[AllText]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

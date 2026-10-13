@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/retain.py"
 type: "code"
-community: "Community 226"
+community: "retain.py"
 location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/retainpy
 ---
 
 # classify()
@@ -19,4 +19,4 @@ tags:
 - [[stand()]] - `contains` [EXTRACTED]
 - [[write_note()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/retainpy

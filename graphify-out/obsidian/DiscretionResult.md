@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 155"
+community: "claude-server.ts"
 location: "L92"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/claude-serverts
 ---
 
 # DiscretionResult
@@ -19,4 +19,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

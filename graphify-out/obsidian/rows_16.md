@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-hit-odds.mjs"
+source_file: "scripts/build-shadow-replay.mjs"
 type: "code"
-community: "Community 45"
-location: "L76"
+community: "detectors.ts"
+location: "L138"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_45
+  - community/detectorsts
 ---
 
 # rows
 
 ## Connections
-- [[build-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_45
+#graphify/code #graphify/EXTRACTED #community/detectorsts

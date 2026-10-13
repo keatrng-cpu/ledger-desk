@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/journal/analytics-server.ts"
+source_file: "src/lib/desk/card-journal.ts"
 type: "code"
-community: "Community 195"
-location: "L31"
+community: "card-journal.ts"
+location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_195
+  - community/card-journalts
 ---
 
 # Row
 
 ## Connections
-- [[analytics-server.ts]] - `contains` [EXTRACTED]
+- [[card-journal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_195
+#graphify/code #graphify/EXTRACTED #community/card-journalts

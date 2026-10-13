@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 310"
+community: "replay-drill.ts"
 location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_310
+  - community/replay-drillts
 ---
 
 # hhmm()
@@ -17,4 +17,4 @@ tags:
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_310
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

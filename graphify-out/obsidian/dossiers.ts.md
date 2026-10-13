@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/dossiers.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # dossiers.ts
@@ -40,4 +40,4 @@ tags:
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

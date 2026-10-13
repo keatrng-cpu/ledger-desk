@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/room/live-voices-invest-firm.ts"
 type: "code"
-community: "Community 215"
+community: "live-voices-invest-firm.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/live-voices-invest-firmts
 ---
 
 # live-voices-invest-firm.ts
 
 ## Connections
 - [[ANIM]] - `imports` [EXTRACTED]
-- [[AT()_7]] - `contains` [EXTRACTED]
-- [[Ctx_1]] - `imports` [EXTRACTED]
+- [[AT()_8]] - `contains` [EXTRACTED]
+- [[Ctx]] - `imports` [EXTRACTED]
 - [[Ex]] - `imports` [EXTRACTED]
 - [[FRESH_EFFECT]] - `contains` [EXTRACTED]
 - [[INVEST_STUDY_MOVES]] - `contains` [EXTRACTED]
@@ -49,7 +49,7 @@ tags:
 - [[live-types.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices-invest.ts]] - `imports_from` [EXTRACTED]
 - [[live-voices.ts]] - `imports_from` [EXTRACTED]
-- [[macroRead]] - `imports` [EXTRACTED]
+- [[macroRead_1]] - `imports` [EXTRACTED]
 - [[monthSay()]] - `imports` [EXTRACTED]
 - [[pc1()]] - `contains` [EXTRACTED]
 - [[pick()]] - `imports` [EXTRACTED]
@@ -62,4 +62,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[whenPhrase()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/live-voices-invest-firmts

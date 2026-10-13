@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/auth/SKILL.md"
 type: "document"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L92"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # Wiring (do this once)
@@ -17,4 +17,4 @@ tags:
 - [[authPopupPlugin()]] - `references` [INFERRED]
 - [[signIn()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_79
+#graphify/document #graphify/INFERRED #community/auth/clientts

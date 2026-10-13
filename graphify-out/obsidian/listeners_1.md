@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/ui/plain-english.ts"
+source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 69"
-location: "L155"
+community: "paper-manager.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/paper-managerts
 ---
 
 # listeners
 
 ## Connections
-- [[plain-english.ts]] - `contains` [EXTRACTED]
+- [[auto-paper.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

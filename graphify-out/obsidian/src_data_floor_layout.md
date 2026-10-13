@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 17"
+community: "floor-scene.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # src_data_floor_layout
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_17
+#graphify/concept #graphify/EXTRACTED #community/floor-scenets

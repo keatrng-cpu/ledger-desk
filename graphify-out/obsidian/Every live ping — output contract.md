@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 336"
+community: "CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)"
 location: "L106"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_336
+  - community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace
 ---
 
 # Every live ping — output contract
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Live session loop (trader sits AmericaChicago)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_336
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace

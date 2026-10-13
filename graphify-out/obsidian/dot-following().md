@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
+community: "floor-school-contracts.ts"
 location: "L2774"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/floor-school-contractsts
 ---
 
 # .following()
@@ -15,4 +15,4 @@ tags:
 - [[Character]] - `references` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

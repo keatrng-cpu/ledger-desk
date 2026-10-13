@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ltf-reaction.ts"
 type: "code"
-community: "Community 98"
+community: "trading/scanner.ts"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/trading/scannerts
 ---
 
 # rungRead()
@@ -20,4 +20,4 @@ tags:
 - [[readLtfReaction()]] - `calls` [EXTRACTED]
 - [[throughGap()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

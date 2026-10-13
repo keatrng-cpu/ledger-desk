@@ -1,18 +1,24 @@
 ---
-source_file: "src/lib/trading/discretion-memory.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 111"
-location: "L619"
+community: "mead-screens.ts"
+location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/mead-screensts
 ---
 
 # pct()
 
 ## Connections
-- [[discretion-memory.ts]] - `contains` [EXTRACTED]
-- [[pathStats]] - `calls` [EXTRACTED]
+- [[MeadHallTab()]] - `calls` [EXTRACTED]
+- [[PaperTicket()]] - `calls` [EXTRACTED]
+- [[drawJumbotron()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[drawTabletop()]] - `calls` [EXTRACTED]
+- [[drawTv()]] - `calls` [EXTRACTED]
+- [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

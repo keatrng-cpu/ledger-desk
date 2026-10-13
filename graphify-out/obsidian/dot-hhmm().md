@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L1173"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_13
+  - community/compact
 ---
 
 # .hhmm()
 
 ## Connections
-- [[dot-add()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
 - [[exMemory()]] - `calls` [INFERRED]
 - [[exOvernight()]] - `calls` [INFERRED]
 - [[exSession()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_13
+#graphify/code #graphify/INFERRED #community/compact

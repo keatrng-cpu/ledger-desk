@@ -1,25 +1,25 @@
 ---
 source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 36"
+community: "verify-predict.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/verify-predictmjs
 ---
 
 # verify-predict.mjs
 
 ## Connections
-- [[IDS_1]] - `contains` [EXTRACTED]
+- [[IDS]] - `contains` [EXTRACTED]
 - [[addEventListener()_2]] - `contains` [EXTRACTED]
 - [[agree_1]] - `contains` [EXTRACTED]
 - [[board_1]] - `contains` [EXTRACTED]
 - [[board.ts]] - `dynamic_import` [EXTRACTED]
 - [[cb]] - `contains` [EXTRACTED]
 - [[cheap]] - `contains` [EXTRACTED]
-- [[check()_85]] - `contains` [EXTRACTED]
+- [[check()_83]] - `contains` [EXTRACTED]
 - [[devig.ts]] - `dynamic_import` [EXTRACTED]
 - [[dispatchEvent()_2]] - `contains` [EXTRACTED]
 - [[dog]] - `contains` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[games]] - `contains` [EXTRACTED]
 - [[go]] - `contains` [EXTRACTED]
 - [[go-ledger.ts]] - `dynamic_import` [EXTRACTED]
-- [[halted_1]] - `contains` [EXTRACTED]
+- [[halted_2]] - `contains` [EXTRACTED]
 - [[inGame]] - `contains` [EXTRACTED]
 - [[jr]] - `contains` [EXTRACTED]
 - [[kalshi]] - `contains` [EXTRACTED]
@@ -55,7 +55,7 @@ tags:
 - [[moved]] - `contains` [EXTRACTED]
 - [[nePre]] - `contains` [EXTRACTED]
 - [[nv_1]] - `contains` [EXTRACTED]
-- [[ok()_28]] - `contains` [EXTRACTED]
+- [[ok()_27]] - `contains` [EXTRACTED]
 - [[pb]] - `contains` [EXTRACTED]
 - [[pl]] - `contains` [EXTRACTED]
 - [[pm_1]] - `contains` [EXTRACTED]
@@ -65,9 +65,9 @@ tags:
 - [[pregame]] - `contains` [EXTRACTED]
 - [[qb]] - `contains` [EXTRACTED]
 - [[qbb]] - `contains` [EXTRACTED]
-- [[r4()_3]] - `contains` [EXTRACTED]
+- [[r4()_4]] - `contains` [EXTRACTED]
 - [[removeEventListener()_2]] - `contains` [EXTRACTED]
-- [[rows_15]] - `contains` [EXTRACTED]
+- [[rows_17]] - `contains` [EXTRACTED]
 - [[rt]] - `contains` [EXTRACTED]
 - [[rt40()]] - `contains` [EXTRACTED]
 - [[sb]] - `contains` [EXTRACTED]
@@ -80,4 +80,4 @@ tags:
 - [[withModel]] - `contains` [EXTRACTED]
 - [[wx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/verify-predictmjs

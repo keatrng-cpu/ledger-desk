@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-cases.mjs"
+source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 143"
-location: "L27"
+community: "verify-invest-office.mjs"
+location: "L321"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-invest-officemjs
 ---
 
 # all
 
 ## Connections
-- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
+- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

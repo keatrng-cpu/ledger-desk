@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/replay-drill.ts"
 type: "code"
-community: "Community 341"
+community: "replay-drill.ts"
 location: "L776"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_341
+  - community/replay-drillts
 ---
 
 # parseStore()
@@ -18,4 +18,4 @@ tags:
 - [[replay-drill.tsx]] - `imports` [EXTRACTED]
 - [[validAttempt()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_341
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

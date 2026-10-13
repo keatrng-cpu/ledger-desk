@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-fuel.ts"
 type: "code"
-community: "Community 300"
+community: "desk-atlas.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_300
+  - community/desk-atlasts
 ---
 
 # brain-fuel.ts
@@ -32,7 +32,7 @@ tags:
 - [[noteNerve()]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[saveAtlas()]] - `imports` [EXTRACTED]
-- [[savePeople()_1]] - `contains` [EXTRACTED]
+- [[savePeople()]] - `contains` [EXTRACTED]
 - [[verify-brain-fuel.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_300
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

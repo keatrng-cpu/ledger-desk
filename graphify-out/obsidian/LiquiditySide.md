@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 20"
-location: "L48"
+community: "detectors.ts"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # LiquiditySide
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[market-narrative.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

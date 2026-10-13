@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 284"
+community: "invest-office.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # src_data_earnings_calendar
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_284
+#graphify/concept #graphify/EXTRACTED #community/invest-officets

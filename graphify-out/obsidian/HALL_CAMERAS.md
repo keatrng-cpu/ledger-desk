@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/mead-hall-layout.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L136"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # HALL_CAMERAS
@@ -16,4 +16,4 @@ tags:
 - [[mead-hall-layout.ts]] - `contains` [EXTRACTED]
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

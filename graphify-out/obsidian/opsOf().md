@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L218"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # opsOf()
@@ -19,4 +19,4 @@ tags:
 - [[missedMonths()]] - `calls` [EXTRACTED]
 - [[round2()_16]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

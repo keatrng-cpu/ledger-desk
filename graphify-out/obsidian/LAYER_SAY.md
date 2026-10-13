@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L158"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # LAYER_SAY
@@ -15,4 +15,4 @@ tags:
 - [[hall-lite.ts]] - `contains` [EXTRACTED]
 - [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

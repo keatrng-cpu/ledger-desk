@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 10"
+community: ".constructor"
 location: "L1477"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/constructor
 ---
 
 # FloorSceneOptions
@@ -18,4 +18,4 @@ tags:
 - [[ManagerRoomState]] - `references` [EXTRACTED]
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/constructor

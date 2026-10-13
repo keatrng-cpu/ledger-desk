@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/desk/take-moments-panel.tsx"
+source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 145"
-location: "L26"
+community: "trading-floor-tab.tsx"
+location: "L350"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_145
+  - community/trading-floor-tabtsx
 ---
 
 # etTime()
 
 ## Connections
-- [[TakeMomentsPanel()]] - `calls` [EXTRACTED]
-- [[take-moments-panel.tsx]] - `contains` [EXTRACTED]
+- [[PlanOverlay()]] - `calls` [EXTRACTED]
+- [[WireLog()]] - `calls` [EXTRACTED]
+- [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_145
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

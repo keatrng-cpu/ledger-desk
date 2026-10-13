@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/synapse-rail.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # synapse-rail.tsx
@@ -23,11 +23,11 @@ tags:
 - [[displayLead()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
 - [[state-word.tsx]] - `imports_from` [EXTRACTED]
 - [[state-words.ts]] - `imports_from` [EXTRACTED]
 - [[useDeskSynapse]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

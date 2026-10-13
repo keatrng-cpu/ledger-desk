@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-feed.ts"
 type: "code"
-community: "Community 172"
+community: "prediction-market-feed.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/prediction-market-feedts
 ---
 
 # devBuild()
@@ -15,4 +15,4 @@ tags:
 - [[createMeadFeed()]] - `calls` [EXTRACTED]
 - [[mead-feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

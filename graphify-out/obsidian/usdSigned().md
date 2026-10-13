@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/debate.ts"
 type: "code"
-community: "Community 104"
+community: "meeting.ts"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/meetingts
 ---
 
 # usdSigned()
@@ -17,4 +17,4 @@ tags:
 - [[preMortem()]] - `calls` [EXTRACTED]
 - [[rebuttalFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/aplus-ops.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L118"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # AplusOps()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[2. Engine upload is already mounted]] - `references` [INFERRED]
 - [[BiasPill()]] - `calls` [EXTRACTED]
-- [[Card()_1]] - `calls` [EXTRACTED]
+- [[Card()]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
 - [[CardDescription()]] - `calls` [EXTRACTED]
 - [[CardHeader()]] - `calls` [EXTRACTED]
@@ -34,4 +34,4 @@ tags:
 - [[riskDollars()]] - `calls` [EXTRACTED]
 - [[uploadEngineRun]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

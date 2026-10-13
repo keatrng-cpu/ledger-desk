@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 330"
+community: "floor-voice.ts"
 location: "L308"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_330
+  - community/floor-voicets
 ---
 
 # slotRank()
@@ -16,4 +16,4 @@ tags:
 - [[floor-voice.ts]] - `contains` [EXTRACTED]
 - [[robotic()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_330
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

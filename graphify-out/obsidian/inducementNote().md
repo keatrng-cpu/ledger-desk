@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/research.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # inducementNote()
@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[byKey()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `imports` [EXTRACTED]
-- [[n()_1]] - `calls` [EXTRACTED]
+- [[n()_2]] - `calls` [EXTRACTED]
 - [[patternWarning()]] - `calls` [EXTRACTED]
-- [[r()_2]] - `calls` [EXTRACTED]
+- [[r()_1]] - `calls` [EXTRACTED]
 - [[research.ts]] - `contains` [EXTRACTED]
 - [[researchShelf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

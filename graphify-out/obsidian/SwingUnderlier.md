@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-swing.ts"
 type: "code"
-community: "Community 73"
+community: "options-desk.ts"
 location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # SwingUnderlier
@@ -21,4 +21,4 @@ tags:
 - [[options-desk.ts]] - `imports` [EXTRACTED]
 - [[options-swing.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

@@ -1,20 +1,17 @@
 ---
-source_file: "src/lib/trading/structure.ts"
+source_file: "src/lib/smc/loss-guards.ts"
 type: "code"
-community: "Community 179"
-location: "L29"
+community: "measure-loss-patterns.mts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/measure-loss-patternsmts
 ---
 
 # Bias
 
 ## Connections
-- [[BookSlice]] - `references` [EXTRACTED]
-- [[draw.ts]] - `imports` [EXTRACTED]
-- [[session-brief.ts]] - `imports` [EXTRACTED]
-- [[structure.ts]] - `contains` [EXTRACTED]
+- [[loss-guards.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

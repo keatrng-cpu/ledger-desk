@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/premarket-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L179"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # PathCard()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[PremarketPanel()]] - `calls` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[fmt()_2]] - `calls` [EXTRACTED]
+- [[fmt()_4]] - `calls` [EXTRACTED]
 - [[premarket-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

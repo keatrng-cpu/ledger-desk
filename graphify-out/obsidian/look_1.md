@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 175"
+community: "verify-card-freshness.mjs"
 location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/verify-card-freshnessmjs
 ---
 
 # look
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

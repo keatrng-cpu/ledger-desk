@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/execution/rh-ledger.ts"
+source_file: "scripts/fidelity/replay-desk.mjs"
 type: "code"
-community: "Community 94"
-location: "L110"
+community: "replay-desk.mjs"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/replay-deskmjs
 ---
 
 # load()
 
 ## Connections
-- [[dot-account()]] - `indirect_call` [INFERRED]
-- [[asRows()]] - `calls` [EXTRACTED]
-- [[sqlLedger()]] - `contains` [EXTRACTED]
+- [[replay-desk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/replay-deskmjs

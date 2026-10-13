@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L177"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # A3 — one scorer
@@ -18,4 +18,4 @@ tags:
 - [[scanSetups()]] - `references` [INFERRED]
 - [[scoreCandidates()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_40
+#graphify/document #graphify/INFERRED #community/trading/scannerts

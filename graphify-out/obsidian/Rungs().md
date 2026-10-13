@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/desk/tf-ladder-panel.tsx"
 type: "code"
-community: "Community 101"
+community: "tf-ladder-panel.tsx"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_101
+  - community/tf-ladder-paneltsx
 ---
 
 # Rungs()
 
 ## Connections
-- [[Book()]] - `calls` [EXTRACTED]
+- [[Book()_3]] - `calls` [EXTRACTED]
 - [[tf-ladder-panel.tsx]] - `contains` [EXTRACTED]
-- [[tone()]] - `calls` [EXTRACTED]
+- [[tone()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_101
+#graphify/code #graphify/EXTRACTED #community/tf-ladder-paneltsx

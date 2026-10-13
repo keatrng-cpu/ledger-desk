@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/sweep-gates.mjs"
+source_file: "scripts/capture-signals.mjs"
 type: "code"
-community: "Community 115"
-location: "L58"
+community: "capture-signals.mjs"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/capture-signalsmjs
 ---
 
 # argv
 
 ## Connections
-- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
+- [[capture-signals.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/capture-signalsmjs

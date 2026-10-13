@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L802"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .greet()
@@ -16,4 +16,4 @@ tags:
 - [[dot-sync()]] - `calls` [INFERRED]
 - [[MeadHall]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_41
+#graphify/code #graphify/INFERRED #community/mead-hall-buildts

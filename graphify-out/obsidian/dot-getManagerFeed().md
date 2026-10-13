@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 193"
+community: ".constructor"
 location: "L3544"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/constructor
 ---
 
 # .getManagerFeed()
@@ -15,4 +15,4 @@ tags:
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[ManagerFeed]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/constructor

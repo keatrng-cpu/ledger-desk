@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/learn/replay-drill.ts"
+source_file: "src/lib/smc/mtf-context.ts"
 type: "code"
-community: "Community 270"
-location: "L92"
+community: "buildTradingDesk"
+location: "L255"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_270
+  - community/buildTradingDesk
 ---
 
 # Side
 
 ## Connections
-- [[replay-drill.ts]] - `contains` [EXTRACTED]
+- [[mtf-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_270
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/neon/SKILL.md"
 type: "document"
-community: "Community 19"
+community: "getSql"
 location: "L27"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/getSql
 ---
 
 # Env vars — do **not** create a `.env` file
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Neon Postgres]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_19
+#graphify/document #graphify/EXTRACTED #community/getSql

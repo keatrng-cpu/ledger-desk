@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 193"
+community: ".constructor"
 location: "L289"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/constructor
 ---
 
 # .steer()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[ManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/constructor

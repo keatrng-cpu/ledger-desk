@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/price-path-board.tsx"
 type: "code"
-community: "Community 69"
-location: "L373"
+community: "cn"
+location: "L374"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # PricePathBoard()
@@ -20,4 +20,4 @@ tags:
 - [[price-path-board.tsx]] - `contains` [EXTRACTED]
 - [[pricePathVerdict()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

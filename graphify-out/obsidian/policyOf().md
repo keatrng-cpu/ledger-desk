@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/goal.ts"
 type: "code"
-community: "Community 57"
+community: "goal.ts"
 location: "L550"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/goalts
 ---
 
 # policyOf()
@@ -18,4 +18,4 @@ tags:
 - [[seats.ts]] - `imports` [EXTRACTED]
 - [[verdictFor()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/goalts

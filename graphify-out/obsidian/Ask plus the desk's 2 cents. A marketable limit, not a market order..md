@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "rationale"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L76"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # Ask plus the desk's 2 cents. A marketable limit, not a market order.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[dot-limit_px()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_273
+#graphify/rationale #graphify/EXTRACTED #community/smoke_livepy

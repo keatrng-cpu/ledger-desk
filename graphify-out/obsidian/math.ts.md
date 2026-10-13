@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # math.ts
 
 ## Connections
 - [[DEFAULT_FEES]] - `contains` [EXTRACTED]
-- [[EntryRead_1]] - `contains` [EXTRACTED]
+- [[EntryRead]] - `contains` [EXTRACTED]
 - [[FeeModel]] - `contains` [EXTRACTED]
 - [[KALSHI_MAKER_RATE]] - `contains` [EXTRACTED]
 - [[KALSHI_TAKER_RATE]] - `contains` [EXTRACTED]
@@ -23,7 +23,7 @@ tags:
 - [[americanToProb()]] - `contains` [EXTRACTED]
 - [[board.ts]] - `imports_from` [EXTRACTED]
 - [[ceilCents()]] - `contains` [EXTRACTED]
-- [[cents()_3]] - `contains` [EXTRACTED]
+- [[cents()_2]] - `contains` [EXTRACTED]
 - [[entryEdge()]] - `contains` [EXTRACTED]
 - [[exitRuleShape()]] - `contains` [EXTRACTED]
 - [[feePerContract()]] - `contains` [EXTRACTED]
@@ -51,4 +51,4 @@ tags:
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-tab.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # INTERVALS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[predict-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

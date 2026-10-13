@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-themes.ts"
 type: "code"
-community: "Community 128"
+community: "book.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_128
+  - community/bookts
 ---
 
 # usableThemes()
@@ -19,4 +19,4 @@ tags:
 - [[invest-themes.ts]] - `contains` [EXTRACTED]
 - [[themeProblem()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_128
+#graphify/code #graphify/EXTRACTED #community/bookts

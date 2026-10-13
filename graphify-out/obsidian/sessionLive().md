@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 130"
+community: "trading/scanner.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/trading/scannerts
 ---
 
 # sessionLive()
@@ -40,4 +40,4 @@ tags:
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

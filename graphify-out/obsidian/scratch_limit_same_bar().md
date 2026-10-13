@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 156"
+community: "crew-year-backtest.py"
 location: "L323"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_156
+  - community/crew-year-backtestpy
 ---
 
 # scratch_limit_same_bar()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[choose_target()]] - `calls` [EXTRACTED]
 - [[crew-year-backtest.py]] - `contains` [EXTRACTED]
-- [[main()_3]] - `calls` [EXTRACTED]
+- [[main()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_156
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

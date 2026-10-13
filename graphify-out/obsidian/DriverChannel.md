@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/score-drivers.ts"
 type: "code"
-community: "Community 84"
+community: "strategy-grade.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_84
+  - community/strategy-gradets
 ---
 
 # DriverChannel
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[score-drivers.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_84
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

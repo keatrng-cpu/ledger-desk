@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/cron/checklist.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # handleChecklist()
@@ -15,7 +15,7 @@ tags:
 - [[authorizeCronRequest()]] - `calls` [EXTRACTED]
 - [[checklist.ts]] - `indirect_call` [INFERRED]
 - [[etWindow_1]] - `calls` [EXTRACTED]
-- [[fmtR()_2]] - `calls` [EXTRACTED]
+- [[fmtR()_1]] - `calls` [EXTRACTED]
 - [[getSessionClock()]] - `calls` [EXTRACTED]
 - [[isForced()]] - `calls` [EXTRACTED]
 - [[jsonResponse()]] - `calls` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[tradingWeekStart()]] - `calls` [EXTRACTED]
 - [[windowStats]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

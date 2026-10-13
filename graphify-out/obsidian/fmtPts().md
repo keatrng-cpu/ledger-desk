@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shock.ts"
 type: "code"
-community: "Community 160"
-location: "L174"
+community: "shock.ts"
+location: "L230"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/shockts
 ---
 
 # fmtPts()
@@ -16,4 +16,4 @@ tags:
 - [[shock.ts]] - `contains` [EXTRACTED]
 - [[shockBrief]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/shockts

@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/room/wire-chat.ts"
+source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 51"
-location: "L24"
+community: "predict-server.ts"
+location: "L335"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/predict-serverts
 ---
 
 # read()
 
 ## Connections
-- [[useStored()]] - `calls` [EXTRACTED]
-- [[wire-chat.ts]] - `contains` [EXTRACTED]
+- [[board.ts]] - `contains` [EXTRACTED]
+- [[buildBoard()_1]] - `calls` [EXTRACTED]
+- [[entryEdge()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-cases.mjs"
 type: "code"
-community: "Community 143"
+community: "build-learn-cases.mjs"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/build-learn-casesmjs
 ---
 
 # selected
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/build-learn-casesmjs

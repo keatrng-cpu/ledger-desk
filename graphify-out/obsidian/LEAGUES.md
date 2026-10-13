@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # LEAGUES
@@ -16,4 +16,4 @@ tags:
 - [[predict-server.ts]] - `imports` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

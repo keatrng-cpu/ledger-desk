@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-E.md"
 type: "document"
-community: "Community 77"
+community: "order-intent.ts"
 location: "L110"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_77
+  - community/order-intentts
 ---
 
 # E1 — `OrderIntent`
@@ -16,4 +16,4 @@ tags:
 - [[clientOrderId()]] - `references` [INFERRED]
 - [[contractSpec()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_77
+#graphify/document #graphify/INFERRED #community/order-intentts

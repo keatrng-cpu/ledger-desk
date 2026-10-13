@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L266"
+community: "evaluateOptionsDesk"
+location: "L268"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # pathCandidates()
@@ -17,4 +17,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[pathCandidate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

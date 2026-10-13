@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 57"
+community: "seats.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_57
+  - community/seatsts
 ---
 
 # seats.ts
@@ -64,7 +64,7 @@ tags:
 - [[emptySeat()]] - `contains` [EXTRACTED]
 - [[ensureSeats()]] - `contains` [EXTRACTED]
 - [[entriesOpen()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[evaluateEntry()]] - `imports` [EXTRACTED]
 - [[exits.ts]] - `imports_from` [EXTRACTED]
@@ -105,9 +105,9 @@ tags:
 - [[stepGhost()]] - `imports` [EXTRACTED]
 - [[stepSeats()]] - `contains` [EXTRACTED]
 - [[ticketKelly()]] - `contains` [EXTRACTED]
-- [[usd()_4]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 - [[verdictFor()_2]] - `contains` [EXTRACTED]
 - [[verify-rnd.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_57
+#graphify/code #graphify/EXTRACTED #community/seatsts

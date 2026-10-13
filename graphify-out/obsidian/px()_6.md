@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/desk/week-ahead-panel.tsx"
+source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 14"
-location: "L5"
+community: "floor-screens.ts"
+location: "L1301"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/floor-screensts
 ---
 
 # px()
 
 ## Connections
-- [[BookCol()]] - `calls` [EXTRACTED]
-- [[week-ahead-panel.tsx]] - `contains` [EXTRACTED]
+- [[drawScanner()]] - `calls` [EXTRACTED]
+- [[floor-screens.ts]] - `contains` [EXTRACTED]
+- [[fmt()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

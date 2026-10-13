@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # manager-feed.ts
@@ -40,9 +40,9 @@ tags:
 - [[PathSnap]] - `contains` [EXTRACTED]
 - [[RuleEffect]] - `contains` [EXTRACTED]
 - [[RuleScope]] - `contains` [EXTRACTED]
-- [[STEER_LINES_1]] - `contains` [EXTRACTED]
+- [[STEER_LINES]] - `contains` [EXTRACTED]
 - [[SteerMove]] - `contains` [EXTRACTED]
-- [[StrikeOffset_1]] - `contains` [EXTRACTED]
+- [[StrikeOffset]] - `contains` [EXTRACTED]
 - [[StubManagerFeed]] - `contains` [EXTRACTED]
 - [[agentAgreeFromManagerRoomState()]] - `imports` [EXTRACTED]
 - [[automation-state.ts]] - `imports_from` [EXTRACTED]
@@ -78,4 +78,4 @@ tags:
 - [[verify-no-bot-entry.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerLiveLoop()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

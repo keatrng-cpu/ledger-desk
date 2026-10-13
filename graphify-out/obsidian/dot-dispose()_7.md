@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/room/manager-feed.ts"
+source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 224"
-location: "L302"
+community: "Avatar"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_224
+  - community/Avatar
 ---
 
 # .dispose()
 
 ## Connections
-- [[dot-dispose()_6]] - `calls` [INFERRED]
-- [[StubManagerFeed]] - `method` [EXTRACTED]
+- [[dot-dispose()_6]] - `calls` [EXTRACTED]
+- [[TicketFlight]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_224
+#graphify/code #graphify/EXTRACTED #community/Avatar

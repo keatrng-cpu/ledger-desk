@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 113"
+community: "FloorSound"
 location: "L248"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/FloorSound
 ---
 
 # isNaturalVoice()
@@ -20,4 +20,4 @@ tags:
 - [[robotic()]] - `calls` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/FloorSound

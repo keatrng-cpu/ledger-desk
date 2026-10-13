@@ -1,27 +1,18 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/desk/risk-panel.tsx"
 type: "code"
-community: "Community 25"
-location: "L200"
+community: "aplus/config.ts"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/aplus/configts
 ---
 
 # money()
 
 ## Connections
-- [[drawGoalLadder()]] - `calls` [EXTRACTED]
-- [[drawGoalOdds()]] - `calls` [EXTRACTED]
-- [[drawGoalProgress()]] - `calls` [EXTRACTED]
-- [[drawInvBoard()]] - `calls` [EXTRACTED]
-- [[drawInvFunnel()]] - `calls` [EXTRACTED]
-- [[drawInvPortfolio()]] - `calls` [EXTRACTED]
-- [[drawMarquee()]] - `calls` [EXTRACTED]
-- [[drawMonitor()]] - `calls` [EXTRACTED]
-- [[drawSeatLeague()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[invUsd()]] - `calls` [EXTRACTED]
+- [[LimitBar()]] - `calls` [EXTRACTED]
+- [[risk-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

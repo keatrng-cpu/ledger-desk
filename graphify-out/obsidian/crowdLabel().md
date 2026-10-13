@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L220"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # crowdLabel()
@@ -16,4 +16,4 @@ tags:
 - [[mead-signal-feed.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

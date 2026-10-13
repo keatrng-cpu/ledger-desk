@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/pnl.ts"
 type: "code"
-community: "Community 77"
+community: "order-intent.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/order-intentts
 ---
 
 # contractSpec()
@@ -18,4 +18,4 @@ tags:
 - [[order-intent.ts]] - `imports` [EXTRACTED]
 - [[pnl.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/order-intentts

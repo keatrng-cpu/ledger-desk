@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/claude-handoff.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # buildClaudeHandoff()
@@ -31,4 +31,4 @@ tags:
 - [[qLine()]] - `calls` [EXTRACTED]
 - [[ritualWindow]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

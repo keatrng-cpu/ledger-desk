@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/contract-ladder.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L105"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # buildLadder()
@@ -19,7 +19,7 @@ tags:
 - [[ladderSteps()]] - `calls` [EXTRACTED]
 - [[priceOptionPlan()]] - `calls` [EXTRACTED]
 - [[quoteOption()]] - `calls` [EXTRACTED]
-- [[r2()_8]] - `calls` [EXTRACTED]
+- [[r2()_9]] - `calls` [EXTRACTED]
 - [[race.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/attest-server.ts"
 type: "code"
-community: "Community 285"
+community: "attest.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_285
+  - community/attestts
 ---
 
 # appendAttestation()
@@ -22,4 +22,4 @@ tags:
 - [[openTrade]] - `calls` [EXTRACTED]
 - [[recordRealFill]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_285
+#graphify/code #graphify/EXTRACTED #community/attestts

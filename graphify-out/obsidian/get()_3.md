@@ -1,18 +1,20 @@
 ---
-source_file: "src/lib/execution/rh-http.ts"
+source_file: "src/routes/api/desk/watcher.ts"
 type: "code"
-community: "Community 94"
-location: "L66"
+community: "api/desk/fast.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/api/desk/fastts
 ---
 
 # get()
 
 ## Connections
-- [[readJson()_1]] - `calls` [EXTRACTED]
-- [[toolingFromEnv()]] - `contains` [EXTRACTED]
+- [[db.ts]] - `imports_from` [EXTRACTED]
+- [[jsonResponse()]] - `calls` [EXTRACTED]
+- [[post()_2]] - `calls` [EXTRACTED]
+- [[watcher.ts]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/api/desk/fastts

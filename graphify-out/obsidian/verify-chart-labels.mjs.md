@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-chart-labels.mjs"
 type: "code"
-community: "Community 27"
+community: "setup-chart.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/setup-charttsx
 ---
 
 # verify-chart-labels.mjs
@@ -16,7 +16,7 @@ tags:
 - [[fails_5]] - `contains` [EXTRACTED]
 - [[groupName()]] - `imports` [EXTRACTED]
 - [[groupNestedArrays()]] - `imports` [EXTRACTED]
-- [[ok()_24]] - `contains` [EXTRACTED]
+- [[ok()_22]] - `contains` [EXTRACTED]
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/setup-charttsx

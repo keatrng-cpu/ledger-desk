@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/build-learn-engine.mjs"
+source_file: "scripts/diagnose-sequence.mjs"
 type: "code"
-community: "Community 203"
-location: "L55"
+community: "detectors.ts"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_203
+  - community/detectorsts
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
-- [[dayKey()_11]] - `calls` [EXTRACTED]
+- [[diagnose-sequence.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_203
+#graphify/code #graphify/EXTRACTED #community/detectorsts

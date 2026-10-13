@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-mcp.ts"
 type: "code"
-community: "Community 274"
+community: "rh-mcp.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_274
+  - community/rh-mcpts
 ---
 
 # rh-mcp.ts
@@ -26,11 +26,11 @@ tags:
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[ensureAccess()]] - `imports` [EXTRACTED]
 - [[exec-flatten.ts]] - `dynamic_import` [EXTRACTED]
-- [[handle()_1]] - `imports_from` [EXTRACTED]
-- [[handle()_3]] - `imports_from` [EXTRACTED]
+- [[handle()_2]] - `imports_from` [EXTRACTED]
+- [[handle()_4]] - `imports_from` [EXTRACTED]
 - [[instrumentIdFrom()]] - `contains` [EXTRACTED]
 - [[mcpTooling()]] - `contains` [EXTRACTED]
-- [[num()_10]] - `contains` [EXTRACTED]
+- [[num()_11]] - `contains` [EXTRACTED]
 - [[option-marks.ts]] - `dynamic_import` [EXTRACTED]
 - [[orderArgs()]] - `contains` [EXTRACTED]
 - [[orderIdFrom()]] - `contains` [EXTRACTED]
@@ -58,4 +58,4 @@ tags:
 - [[unwrapData()]] - `contains` [EXTRACTED]
 - [[verify-rh-oauth.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_274
+#graphify/code #graphify/EXTRACTED #community/rh-mcpts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L1402"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # PLACES
@@ -15,4 +15,4 @@ tags:
 - [[floor-scene.ts]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

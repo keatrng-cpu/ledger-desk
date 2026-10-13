@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 214"
+community: "Avatar"
 location: "L190"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Avatar
 ---
 
 # .strike()
@@ -15,4 +15,4 @@ tags:
 - [[dot-react()]] - `calls` [INFERRED]
 - [[Bell]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Avatar

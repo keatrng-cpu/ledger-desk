@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_doors.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # _along_range()
@@ -16,4 +16,4 @@ tags:
 - [[build()_1]] - `calls` [EXTRACTED]
 - [[floor_doors.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

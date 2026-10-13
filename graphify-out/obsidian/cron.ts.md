@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/cron.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # cron.ts
@@ -14,6 +14,7 @@ tags:
 ## Connections
 - [[CronAuthResult]] - `contains` [EXTRACTED]
 - [[CronRunResult]] - `contains` [EXTRACTED]
+- [[apideskfast.ts]] - `imports_from` [EXTRACTED]
 - [[auth-server.ts]] - `re_exports` [EXTRACTED]
 - [[authorizeCronRequest()]] - `contains` [EXTRACTED]
 - [[card.ts]] - `imports_from` [EXTRACTED]
@@ -21,11 +22,12 @@ tags:
 - [[cronSecret()]] - `contains` [EXTRACTED]
 - [[cronUserId()]] - `contains` [EXTRACTED]
 - [[cycle.ts]] - `imports_from` [EXTRACTED]
+- [[deskjournal.ts]] - `imports_from` [EXTRACTED]
 - [[envValue()_1]] - `contains` [EXTRACTED]
 - [[etDateParts()]] - `imports` [EXTRACTED]
 - [[etWindow_1]] - `contains` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports_from` [EXTRACTED]
-- [[handle()_2]] - `imports_from` [EXTRACTED]
+- [[handle()_3]] - `imports_from` [EXTRACTED]
 - [[handoff.ts]] - `imports_from` [EXTRACTED]
 - [[isForced()]] - `contains` [EXTRACTED]
 - [[jsonResponse()]] - `imports` [EXTRACTED]
@@ -38,6 +40,7 @@ tags:
 - [[run()_3]] - `imports_from` [EXTRACTED]
 - [[secureEquals()]] - `contains` [EXTRACTED]
 - [[trigger-server.ts]] - `imports_from` [EXTRACTED]
+- [[watcher.ts]] - `imports_from` [EXTRACTED]
 - [[weekly.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

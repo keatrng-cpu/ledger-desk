@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
-community: "Community 9"
+community: "veteran-brain.ts"
 location: "L1008"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_9
+  - community/veteran-braints
 ---
 
 # rememberSessionTrade()
@@ -25,4 +25,4 @@ tags:
 - [[slug()]] - `calls` [EXTRACTED]
 - [[uid()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_9
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

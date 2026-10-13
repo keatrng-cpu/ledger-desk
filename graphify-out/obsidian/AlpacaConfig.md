@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 154"
+community: "alpaca.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/alpacats
 ---
 
 # AlpacaConfig
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[alpaca.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/alpacats

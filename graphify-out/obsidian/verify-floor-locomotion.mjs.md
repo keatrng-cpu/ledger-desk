@@ -1,21 +1,21 @@
 ---
 source_file: "scripts/verify-floor-locomotion.mjs"
 type: "code"
-community: "Community 287"
+community: "verify-floor-locomotion.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_287
+  - community/verify-floor-locomotionmjs
 ---
 
 # verify-floor-locomotion.mjs
 
 ## Connections
 - [[dot-x()]] - `indirect_call` [INFERRED]
-- [[P_1]] - `contains` [EXTRACTED]
+- [[P_2]] - `contains` [EXTRACTED]
 - [[audit()]] - `contains` [EXTRACTED]
-- [[check()_70]] - `contains` [EXTRACTED]
+- [[check()_62]] - `contains` [EXTRACTED]
 - [[chordViolations()]] - `contains` [EXTRACTED]
 - [[floor-feet.ts]] - `dynamic_import` [EXTRACTED]
 - [[floor-locomotion.ts]] - `dynamic_import` [EXTRACTED]
@@ -33,4 +33,4 @@ tags:
 - [[walkable()]] - `indirect_call` [INFERRED]
 - [[wrapPi()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_287
+#graphify/code #graphify/EXTRACTED #community/verify-floor-locomotionmjs

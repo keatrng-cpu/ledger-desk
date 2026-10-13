@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/score-drivers.ts"
 type: "code"
-community: "Community 39"
+community: "cn"
 location: "L394"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # topDrivers()
@@ -17,4 +17,4 @@ tags:
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 - [[verify-score-drivers.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

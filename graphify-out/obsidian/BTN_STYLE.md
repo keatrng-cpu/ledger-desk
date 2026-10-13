@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # BTN_STYLE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[pm-analyzer.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-geometry.mjs"
+source_file: "scripts/verify-pm-signal-engine.mjs"
 type: "code"
-community: "Community 250"
-location: "L26"
+community: "verify-pm-signal-engine.mjs"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_250
+  - community/verify-pm-signal-enginemjs
 ---
 
 # near()
 
 ## Connections
-- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
+- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_250
+#graphify/code #graphify/EXTRACTED #community/verify-pm-signal-enginemjs

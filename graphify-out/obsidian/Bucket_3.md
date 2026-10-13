@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/predict/journal.ts"
+source_file: "src/lib/trading/calibration.ts"
 type: "code"
-community: "Community 2"
-location: "L107"
+community: "calibration-panel.tsx"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/calibration-paneltsx
 ---
 
 # Bucket
 
 ## Connections
-- [[predictjournal.ts]] - `contains` [EXTRACTED]
+- [[calibration.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/calibration-paneltsx

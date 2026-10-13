@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 179"
+community: "trading/scanner.ts"
 location: "L375"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/trading/scannerts
 ---
 
 # drawTargetsForSide()
@@ -20,4 +20,4 @@ tags:
 - [[scoreCandidates()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

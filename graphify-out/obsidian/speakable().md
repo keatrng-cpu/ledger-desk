@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 96"
+community: "spoken-form.ts"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # speakable()
@@ -17,4 +17,4 @@ tags:
 - [[spokenForm()]] - `calls` [EXTRACTED]
 - [[verify-floor-voice.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

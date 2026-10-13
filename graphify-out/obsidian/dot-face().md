@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .face()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Person]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

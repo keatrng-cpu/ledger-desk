@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-target-odds.mjs"
+source_file: "scripts/measure-micro-entry.mjs"
 type: "code"
-community: "Community 143"
-location: "L19"
+community: "measure-micro-entry.mjs"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/measure-micro-entrymjs
 ---
 
 # hist
 
 ## Connections
-- [[measure-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/measure-micro-entrymjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/options-swing-panel.tsx"
 type: "code"
-community: "Community 153"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # options-swing-panel.tsx
@@ -41,7 +41,7 @@ tags:
 - [[options-knowledge.ts]] - `imports_from` [EXTRACTED]
 - [[options-sleeve.ts]] - `imports_from` [EXTRACTED]
 - [[optionsDeskPlaybook()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readRhAccount()]] - `imports` [EXTRACTED]
 - [[readRhIncome()]] - `imports` [EXTRACTED]
 - [[rh-autofire-gates.ts]] - `imports_from` [EXTRACTED]
@@ -51,11 +51,11 @@ tags:
 - [[subscribeRhIncome()]] - `imports` [EXTRACTED]
 - [[subscribeRhSleeve()]] - `imports` [EXTRACTED]
 - [[uirh-account.ts]] - `imports_from` [EXTRACTED]
-- [[usd()_2]] - `contains` [EXTRACTED]
+- [[usd()_6]] - `contains` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[useDeskSynapse]] - `imports` [EXTRACTED]
 - [[useRhAccount()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[verdictClass()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

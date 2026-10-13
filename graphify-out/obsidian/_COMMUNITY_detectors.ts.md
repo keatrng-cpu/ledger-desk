@@ -1,0 +1,222 @@
+---
+type: community
+cohesion: 0.02
+members: 137
+---
+
+# detectors.ts
+
+**Cohesion:** 0.02 - loosely connected
+**Members:** 137 nodes
+
+## Members
+- [[3. Extending the scanner pre-score with detectors (future step)]] - document - INTEGRATION-P2.md
+- [[3.3 Everything else that fights measured evidence]] - document - docs/DESK_25_BUILD_PLAN.md
+- [[ACCUM_LOOKBACK_BARS]] - code - src/lib/trading/detectors.ts
+- [[ACCUM_MAX_BAR_RANGE_ATR]] - code - src/lib/trading/detectors.ts
+- [[ACCUM_MAX_RANGE_ATR]] - code - src/lib/trading/detectors.ts
+- [[ACCUM_MIN_BARS]] - code - src/lib/trading/detectors.ts
+- [[ARM_LOOKBACK_BARS]] - code - src/lib/trading/detectors.ts
+- [[ATR_PERIOD]] - code - src/lib/trading/detectors.ts
+- [[AccumulationRead]] - code - src/lib/trading/detectors.ts
+- [[BAR_SPAN_SAMPLE]] - code - src/lib/trading/detectors.ts
+- [[BLAKE_WINDOW_BARS]] - code - src/lib/trading/detectors.ts
+- [[BlakeRead]] - code - src/lib/trading/detectors.ts
+- [[BlakeSwing]] - code - src/lib/trading/detectors.ts
+- [[DISPLACEMENT_K]] - code - src/lib/trading/detectors.ts
+- [[DISPLACEMENT_RULE]] - code - src/lib/trading/detectors.ts
+- [[DISRESPECT_RECENCY_BARS]] - code - src/lib/trading/htf-invalidation.ts
+- [[DisplacementGap]] - code - src/lib/trading/detectors.ts
+- [[DisplacementQuality]] - code - src/lib/trading/detectors.ts
+- [[DisplacementRule]] - code - src/lib/trading/detectors.ts
+- [[DrawOnLiquidity]] - code - src/lib/trading/market-narrative.ts
+- [[EntryModel]] - code - src/lib/trading/market-narrative.ts
+- [[FVG_MIDDLE_BODY_ATR]] - code - src/lib/trading/detectors.ts
+- [[FvgFill]] - code - src/lib/trading/detectors.ts
+- [[GAP_CLOSE_SCAN_BARS]] - code - src/lib/trading/detectors.ts
+- [[GATE_5]] - code - src/lib/trading/gate-tuning.ts
+- [[GateTuning]] - code - src/lib/trading/gate-tuning.ts
+- [[HalfZone]] - code - src/lib/trading/gate-tuning.ts
+- [[INDUCEMENT_WINDOW_BARS]] - code - src/lib/trading/detectors.ts
+- [[InducementArmRead]] - code - src/lib/trading/detectors.ts
+- [[InducementRead]] - code - src/lib/trading/detectors.ts
+- [[LiquidityMap]] - code - src/lib/trading/market-narrative.ts
+- [[LiquiditySide]] - code - src/lib/trading/market-narrative.ts
+- [[MIN_BARS]] - code - src/lib/trading/detectors.ts
+- [[MITIGATION_WINDOW_BARS]] - code - src/lib/trading/detectors.ts
+- [[MM_DISPLACE_WITHIN]] - code - src/lib/trading/detectors.ts
+- [[MM_DISPLACE_WITHIN_MINUTES]] - code - src/lib/trading/detectors.ts
+- [[MM_MAX_ARMED_AGE]] - code - src/lib/trading/detectors.ts
+- [[MM_MAX_COMPLETE_AGE]] - code - src/lib/trading/detectors.ts
+- [[MM_SWING_WIDTH]] - code - src/lib/trading/detectors.ts
+- [[MM_WINDOW]] - code - src/lib/trading/detectors.ts
+- [[MechanicalInvalidation]] - code - src/lib/trading/detectors.ts
+- [[MechanicalState]] - code - src/lib/trading/detectors.ts
+- [[MitigationBlock]] - code - src/lib/trading/detectors.ts
+- [[MitigationRead]] - code - src/lib/trading/detectors.ts
+- [[NOT_DISRESPECTED]] - code - src/lib/trading/htf-invalidation.ts
+- [[NO_ACCUMULATION]] - code - src/lib/trading/detectors.ts
+- [[NO_ARM]] - code - src/lib/trading/detectors.ts
+- [[NO_INDUCEMENT]] - code - src/lib/trading/detectors.ts
+- [[NO_MITIGATION]] - code - src/lib/trading/detectors.ts
+- [[NarrativeClass]] - code - src/lib/trading/market-narrative.ts
+- [[OB_SCAN_BACK]] - code - src/lib/trading/detectors.ts
+- [[ORIGINAL_GATE]] - code - src/lib/trading/gate-tuning.ts
+- [[OrderBlock]] - code - src/lib/trading/detectors.ts
+- [[RULES_2]] - code - src/lib/trading/market-narrative.ts
+- [[SWEEP_DECAY]] - code - src/lib/trading/raid-pair.ts
+- [[SWEEP_TAPE_MIN_COVERAGE]] - code - src/lib/trading/detectors.ts
+- [[SmcAlertKind]] - code - src/lib/trading/smc-board.ts
+- [[SmcKind]] - code - src/lib/trading/smc-board.ts
+- [[SmcTf]] - code - src/lib/trading/smc-board.ts
+- [[SweepEvent]] - code - src/lib/trading/detectors.ts
+- [[SweepQuality]] - code - src/lib/trading/detectors.ts
+- [[SweepTapeRead]] - code - src/lib/trading/detectors.ts
+- [[SweepTapeVerdict]] - code - src/lib/trading/detectors.ts
+- [[SwingPoint]] - code - src/lib/trading/detectors.ts
+- [[all_5]] - code - scripts/build-shadow-replay.mjs
+- [[applyVeto()]] - code - src/lib/trading/scanner.ts
+- [[arraysFromFvg()]] - code - src/lib/trading/smc-board.ts
+- [[arraysFromOb()]] - code - src/lib/trading/smc-board.ts
+- [[assertCausal()]] - code - src/lib/trading/session-backtest.ts
+- [[barSpanMs()]] - code - src/lib/trading/detectors.ts
+- [[biasDisrespect]] - code - src/lib/trading/htf-invalidation.ts
+- [[body()]] - code - src/lib/trading/detectors.ts
+- [[build-shadow-replay.mjs]] - code - scripts/build-shadow-replay.mjs
+- [[buildLiquidityMap()]] - code - src/lib/trading/market-narrative.ts
+- [[buildMarketNarrative()]] - code - src/lib/trading/market-narrative.ts
+- [[buildSmcTape()]] - code - src/lib/trading/smc-board.ts
+- [[card_6]] - code - scripts/build-shadow-replay.mjs
+- [[check()_79]] - code - scripts/verify-judas-window.mjs
+- [[classifyNarrative()]] - code - src/lib/trading/market-narrative.ts
+- [[dayChangePct()_4]] - code - scripts/build-shadow-replay.mjs
+- [[dayChangePct()_5]] - code - scripts/diagnose-path.mjs
+- [[dayChangePct()_6]] - code - scripts/diagnose-sequence.mjs
+- [[dedupeAlerts()]] - code - src/lib/trading/smc-board.ts
+- [[dedupeArrays()]] - code - src/lib/trading/smc-board.ts
+- [[deskAt()]] - code - scripts/build-shadow-replay.mjs
+- [[detectAccumulation()]] - code - src/lib/trading/detectors.ts
+- [[detectDisplacements()]] - code - src/lib/trading/detectors.ts
+- [[detectFvgs()]] - code - src/lib/trading/detectors.ts
+- [[detectMechanicalModel()]] - code - src/lib/trading/detectors.ts
+- [[detectOrderBlocks()]] - code - src/lib/trading/detectors.ts
+- [[detectSweeps()]] - code - src/lib/trading/detectors.ts
+- [[detectors.ts]] - code - src/lib/trading/detectors.ts
+- [[diagnose-path.mjs]] - code - scripts/diagnose-path.mjs
+- [[diagnose-sequence.mjs]] - code - scripts/diagnose-sequence.mjs
+- [[displacementLeftArray()]] - code - src/lib/trading/raid-pair.ts
+- [[dualNarrativeSummary()]] - code - src/lib/trading/market-narrative.ts
+- [[fvgState()]] - code - src/lib/trading/smc-board.ts
+- [[gapLeftBy()]] - code - src/lib/trading/detectors.ts
+- [[gate-tuning.ts]] - code - src/lib/trading/gate-tuning.ts
+- [[gradeAt()_1]] - code - scripts/verify-judas-window.mjs
+- [[gradeDisplacementQuality()]] - code - src/lib/trading/detectors.ts
+- [[gradeSweepQuality()]] - code - src/lib/trading/detectors.ts
+- [[halfAgrees()]] - code - src/lib/trading/gate-tuning.ts
+- [[history_3]] - code - scripts/build-shadow-replay.mjs
+- [[history_4]] - code - scripts/diagnose-path.mjs
+- [[history_5]] - code - scripts/diagnose-sequence.mjs
+- [[htf-invalidation.ts]] - code - src/lib/trading/htf-invalidation.ts
+- [[inWin]] - code - scripts/verify-judas-window.mjs
+- [[inc()]] - code - scripts/diagnose-path.mjs
+- [[judasTape()]] - code - scripts/verify-judas-window.mjs
+- [[market-narrative.ts]] - code - src/lib/trading/market-narrative.ts
+- [[mid()]] - code - src/lib/trading/smc-board.ts
+- [[namingSweep()]] - code - src/lib/trading/raid-pair.ts
+- [[outWin]] - code - scripts/verify-judas-window.mjs
+- [[pad2()_4]] - code - src/lib/trading/smc-board.ts
+- [[preferredFor()]] - code - src/lib/trading/market-narrative.ts
+- [[provisionalRaid]] - code - src/lib/trading/raid-pair.ts
+- [[r1()_1]] - code - scripts/verify-judas-window.mjs
+- [[raid-pair.ts]] - code - src/lib/trading/raid-pair.ts
+- [[recent()]] - code - src/lib/trading/detectors.ts
+- [[recentRealSweeps()]] - code - src/lib/trading/raid-pair.ts
+- [[rejectionBlocks()]] - code - src/lib/trading/smc-board.ts
+- [[resampleSessionBars()]] - code - src/lib/trading/structure.ts
+- [[rollingAtr()]] - code - src/lib/trading/detectors.ts
+- [[rows_16]] - code - scripts/build-shadow-replay.mjs
+- [[setGate()]] - code - src/lib/trading/gate-tuning.ts
+- [[smc-board.ts]] - code - src/lib/trading/smc-board.ts
+- [[stampEt()]] - code - src/lib/trading/smc-board.ts
+- [[stride]] - code - scripts/diagnose-path.mjs
+- [[stride_1]] - code - scripts/diagnose-sequence.mjs
+- [[summarizeDetectors()]] - code - src/lib/trading/detectors.ts
+- [[sweepAgeWeight()]] - code - src/lib/trading/raid-pair.ts
+- [[sweepInvalidated()]] - code - src/lib/trading/raid-pair.ts
+- [[t0_11]] - code - scripts/build-shadow-replay.mjs
+- [[tapeOn()]] - code - src/lib/trading/smc-board.ts
+- [[verify-judas-window.mjs]] - code - scripts/verify-judas-window.mjs
+- [[withEmpiricalTarget()]] - code - src/lib/trading/market-narrative.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/detectorsts
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 55 edges to [[_COMMUNITY_tradingscanner.ts]]
+- 31 edges to [[_COMMUNITY_buildTradingDesk]]
+- 20 edges to [[_COMMUNITY_smc-master.ts]]
+- 19 edges to [[_COMMUNITY_OhlcBar]]
+- 16 edges to [[_COMMUNITY_build-desk.ts]]
+- 14 edges to [[_COMMUNITY_cases.ts]]
+- 12 edges to [[_COMMUNITY_live-lesson.ts]]
+- 10 edges to [[_COMMUNITY_cn]]
+- 10 edges to [[_COMMUNITY_structure.ts]]
+- 10 edges to [[_COMMUNITY_news.ts]]
+- 7 edges to [[_COMMUNITY_orchestrator.ts]]
+- 5 edges to [[_COMMUNITY_veteran-brain.ts]]
+- 5 edges to [[_COMMUNITY_ref_node_fs]]
+- 5 edges to [[_COMMUNITY_react]]
+- 5 edges to [[_COMMUNITY_session-backtest.ts]]
+- 4 edges to [[_COMMUNITY_SmcArray]]
+- 4 edges to [[_COMMUNITY_day-context.ts]]
+- 4 edges to [[_COMMUNITY_smcdiscipline.ts]]
+- 3 edges to [[_COMMUNITY_2. SHARED CONTRACTS]]
+- 3 edges to [[_COMMUNITY_room-engine.ts]]
+- 3 edges to [[_COMMUNITY_learning-backfill.mts]]
+- 3 edges to [[_COMMUNITY_shock.ts]]
+- 3 edges to [[_COMMUNITY_verify-smc-master.mjs]]
+- 3 edges to [[_COMMUNITY_verify-desk-enhancements.mjs]]
+- 3 edges to [[_COMMUNITY_verify-detectors.mjs]]
+- 3 edges to [[_COMMUNITY_capture-signals.mjs]]
+- 3 edges to [[_COMMUNITY_curriculum.ts]]
+- 3 edges to [[_COMMUNITY_smc-shared.test.mjs]]
+- 3 edges to [[_COMMUNITY_build-replay-drills.mjs]]
+- 2 edges to [[_COMMUNITY_ghost-book.ts]]
+- 2 edges to [[_COMMUNITY_live-world.ts]]
+- 2 edges to [[_COMMUNITY_smc-canon.ts]]
+- 2 edges to [[_COMMUNITY_calibration-panel.tsx]]
+- 2 edges to [[_COMMUNITY_verify-live-lesson.mjs]]
+- 2 edges to [[_COMMUNITY_build-hit-odds.mjs]]
+- 1 edge to [[_COMMUNITY_A2 — the mechanical sequence can now die]]
+- 1 edge to [[_COMMUNITY_options-desk.ts]]
+- 1 edge to [[_COMMUNITY_verify-rh-cycle.mjs]]
+- 1 edge to [[_COMMUNITY_Transition Only What Changes]]
+- 1 edge to [[_COMMUNITY_tf-ladder.ts]]
+- 1 edge to [[_COMMUNITY_discretion-memory.ts]]
+- 1 edge to [[_COMMUNITY_measure-model-claims.mjs]]
+- 1 edge to [[_COMMUNITY_verify-curriculum.mjs]]
+- 1 edge to [[_COMMUNITY_shadow-book.ts]]
+- 1 edge to [[_COMMUNITY_measure-amd-signals.mjs]]
+- 1 edge to [[_COMMUNITY_dual-index-charts.tsx]]
+- 1 edge to [[_COMMUNITY_measure-entry-location.mjs]]
+- 1 edge to [[_COMMUNITY_measure-inducement-news.mjs]]
+- 1 edge to [[_COMMUNITY_chart-timeframes.ts]]
+- 1 edge to [[_COMMUNITY_build-evidence-pack.mjs]]
+- 1 edge to [[_COMMUNITY_build-learn-engine.mjs]]
+- 1 edge to [[_COMMUNITY_verify-entry-alarm.mjs]]
+- 1 edge to [[_COMMUNITY_session-brief.ts]]
+- 1 edge to [[_COMMUNITY_candlestick-pane.tsx]]
+- 1 edge to [[_COMMUNITY_sweep-regimes.mjs]]
+- 1 edge to [[_COMMUNITY_setup-chart.tsx]]
+- 1 edge to [[_COMMUNITY_measure-judas.mjs]]
+
+## Top bridge nodes
+- [[detectors.ts]] - degree 128, connects to 35 communities
+- [[smc-board.ts]] - degree 60, connects to 22 communities
+- [[market-narrative.ts]] - degree 54, connects to 15 communities
+- [[build-shadow-replay.mjs]] - degree 23, connects to 11 communities
+- [[raid-pair.ts]] - degree 39, connects to 10 communities

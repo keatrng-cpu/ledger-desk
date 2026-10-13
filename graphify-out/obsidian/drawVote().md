@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L1176"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # drawVote()
@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[clear()]] - `calls` [EXTRACTED]
 - [[drawScreen()]] - `calls` [EXTRACTED]
-- [[fit()_5]] - `calls` [EXTRACTED]
+- [[fit()_4]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 - [[header()]] - `calls` [EXTRACTED]
 - [[pct()_9]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

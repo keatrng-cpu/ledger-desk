@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-feet.ts"
 type: "code"
-community: "Community 267"
+community: "floor-feet.ts"
 location: "L101"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_267
+  - community/floor-feetts
 ---
 
 # stanceAnkle()
@@ -17,4 +17,4 @@ tags:
 - [[rot()_1]] - `calls` [EXTRACTED]
 - [[smooth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_267
+#graphify/code #graphify/EXTRACTED #community/floor-feetts

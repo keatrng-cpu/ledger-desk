@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/scanner.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # ScanRow
@@ -26,4 +26,4 @@ tags:
 - [[prediction-market-feed.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

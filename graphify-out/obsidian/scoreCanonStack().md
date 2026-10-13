@@ -1,18 +1,19 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 40"
-location: "L555"
+community: "smc-master.ts"
+location: "L568"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # scoreCanonStack()
 
 ## Connections
 - [[SetupScanner()]] - `calls` [EXTRACTED]
+- [[Where each one decides]] - `references` [INFERRED]
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[has()_3]] - `calls` [EXTRACTED]
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
@@ -21,4 +22,4 @@ tags:
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

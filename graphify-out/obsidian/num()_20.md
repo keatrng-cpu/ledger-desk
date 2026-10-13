@@ -1,18 +1,24 @@
 ---
-source_file: "src/lib/bridge/paper-server.ts"
+source_file: "src/components/desk/snapshot-review.tsx"
 type: "code"
-community: "Community 95"
-location: "L59"
+community: "snapshot-review.tsx"
+location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/snapshot-reviewtsx
 ---
 
 # num()
 
 ## Connections
-- [[listOpenPaperTrades]] - `calls` [EXTRACTED]
-- [[paper-server.ts]] - `contains` [EXTRACTED]
+- [[BiasSection()]] - `calls` [EXTRACTED]
+- [[CandidateCard()]] - `calls` [EXTRACTED]
+- [[DrawTarget()]] - `calls` [EXTRACTED]
+- [[DrawsSection()]] - `calls` [EXTRACTED]
+- [[LevelsSection()]] - `calls` [EXTRACTED]
+- [[NewsSection()]] - `calls` [EXTRACTED]
+- [[ScanSection()]] - `calls` [EXTRACTED]
+- [[snapshot-review.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

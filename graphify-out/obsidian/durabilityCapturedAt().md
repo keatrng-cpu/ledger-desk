@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/durability.ts"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # durabilityCapturedAt()
@@ -17,4 +17,4 @@ tags:
 - [[investSnapshots()]] - `calls` [EXTRACTED]
 - [[memoOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

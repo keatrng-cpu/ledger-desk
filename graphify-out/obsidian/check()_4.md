@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-propfirm-score.mjs"
+source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 108"
-location: "L18"
+community: "snapshot.ts"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/snapshotts
 ---
 
 # check()
 
 ## Connections
-- [[verify-propfirm-score.mjs]] - `contains` [EXTRACTED]
+- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/snapshotts

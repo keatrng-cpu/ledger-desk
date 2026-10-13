@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-lab-constants.mjs"
+source_file: "brainlab/rhread.py"
 type: "code"
-community: "Community 335"
-location: "L14"
+community: "rhread.py"
+location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_335
+  - community/rhreadpy
 ---
 
 # num()
 
 ## Connections
-- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
+- [[option_quote()]] - `contains` [EXTRACTED]
+- [[row()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_335
+#graphify/code #graphify/EXTRACTED #community/rhreadpy

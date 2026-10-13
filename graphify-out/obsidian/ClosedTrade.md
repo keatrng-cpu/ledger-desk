@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 155"
+community: "dual-index-charts.tsx"
 location: "L8"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/dual-index-chartstsx
 ---
 
 # ClosedTrade
@@ -21,4 +21,4 @@ tags:
 - [[profit-path.ts]] - `imports` [EXTRACTED]
 - [[sample-run.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

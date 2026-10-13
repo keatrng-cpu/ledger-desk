@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-learn-history.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # SYMBOLS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[capture-learn-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

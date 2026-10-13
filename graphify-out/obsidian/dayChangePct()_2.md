@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/diagnose-path.mjs"
+source_file: "src/lib/learn/cases.ts"
 type: "code"
-community: "Community 20"
-location: "L34"
+community: "cases.ts"
+location: "L160"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/casests
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
+- [[Snapshot]] - `calls` [EXTRACTED]
+- [[cases.ts]] - `contains` [EXTRACTED]
+- [[etDayKey()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/casests

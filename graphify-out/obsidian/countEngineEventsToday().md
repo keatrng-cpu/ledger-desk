@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/bridge/ingest-server.ts"
 type: "code"
-community: "Community 95"
+community: "getSql"
 location: "L162"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/getSql
 ---
 
 # countEngineEventsToday()
@@ -17,4 +17,4 @@ tags:
 - [[ingest-server.ts]] - `contains` [EXTRACTED]
 - [[paper-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/getSql

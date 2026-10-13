@@ -1,12 +1,12 @@
 ---
 source_file: "docs/ENGINE_BRIDGE.md"
 type: "document"
-community: "Community 294"
+community: "Engine bridge — Trading-Automation → Ledger desk"
 location: "L49"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_294
+  - community/Engine_bridge__Trading-Automation__Ledger_desk
 ---
 
 # `POST /api/engine/journal`
@@ -18,4 +18,4 @@ tags:
 - [[Responses]] - `contains` [EXTRACTED]
 - [[curl]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_294
+#graphify/document #graphify/EXTRACTED #community/Engine_bridge__Trading-Automation__Ledger_desk

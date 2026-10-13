@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/measure-option-time.mjs"
+source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 169"
-location: "L148"
+community: "orchestrator.ts"
+location: "L467"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_169
+  - community/orchestratorts
 ---
 
 # etMinOf()
 
 ## Connections
-- [[measure-option-time.mjs]] - `contains` [EXTRACTED]
+- [[etWallParts]] - `calls` [EXTRACTED]
+- [[evaluateEntry()]] - `calls` [EXTRACTED]
+- [[orchestrator.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_169
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

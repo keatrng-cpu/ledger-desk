@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/live-lesson.ts"
 type: "code"
-community: "Community 187"
+community: "live-lesson.ts"
 location: "L197"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/live-lessonts
 ---
 
 # LESSON_BY_ID
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[live-lesson.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

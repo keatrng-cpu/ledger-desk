@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-school-gate.mjs"
+source_file: "scripts/verify-kill-watch.mjs"
 type: "code"
-community: "Community 231"
-location: "L32"
+community: "verify-kill-watch.mjs"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_231
+  - community/verify-kill-watchmjs
 ---
 
 # bare
 
 ## Connections
-- [[verify-school-gate.mjs]] - `contains` [EXTRACTED]
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_231
+#graphify/code #graphify/EXTRACTED #community/verify-kill-watchmjs

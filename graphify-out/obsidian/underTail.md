@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/verify-detectors.mjs"
 type: "code"
-community: "Community 340"
+community: "bar"
 location: "L318"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_340
+  - community/bar
 ---
 
 # underTail
 
 ## Connections
-- [[bar()_9]] - `calls` [EXTRACTED]
+- [[bar()_8]] - `calls` [EXTRACTED]
 - [[verify-detectors.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_340
+#graphify/code #graphify/EXTRACTED #community/bar

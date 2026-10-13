@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/build-id.ts"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # BUILD_MARKER
@@ -15,4 +15,4 @@ tags:
 - [[build-id.ts]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

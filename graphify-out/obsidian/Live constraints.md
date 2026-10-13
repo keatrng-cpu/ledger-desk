@@ -1,12 +1,12 @@
 ---
 source_file: "ai/NOW.md"
 type: "document"
-community: "Community 158"
+community: "manager-live-loop.ts"
 location: "L36"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_158
+  - community/manager-live-loopts
 ---
 
 # Live constraints
@@ -17,4 +17,4 @@ tags:
 - [[evaluateRhBplusGate()]] - `references` [INFERRED]
 - [[riskGradeFromScore()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_158
+#graphify/document #graphify/INFERRED #community/manager-live-loopts

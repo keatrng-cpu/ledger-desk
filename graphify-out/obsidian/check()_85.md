@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-predict.mjs"
+source_file: "scripts/verify-live-ladder.mjs"
 type: "code"
-community: "Community 36"
-location: "L19"
+community: "smc/discipline.ts"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_36
+  - community/smc/disciplinets
 ---
 
 # check()
 
 ## Connections
-- [[ok()_28]] - `calls` [EXTRACTED]
-- [[verify-predict.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-ladder.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_36
+#graphify/code #graphify/EXTRACTED #community/smc/disciplinets

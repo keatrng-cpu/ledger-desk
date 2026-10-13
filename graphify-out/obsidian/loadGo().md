@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/go-ledger.ts"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # loadGo()
@@ -18,4 +18,4 @@ tags:
 - [[recordGo()]] - `calls` [EXTRACTED]
 - [[resolveGo()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

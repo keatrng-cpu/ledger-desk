@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # cents1()
@@ -17,4 +17,4 @@ tags:
 - [[rowOf()_1]] - `calls` [EXTRACTED]
 - [[scanOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

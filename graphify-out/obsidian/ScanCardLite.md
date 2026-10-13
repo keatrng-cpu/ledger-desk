@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
+community: "orchestrator.ts"
 location: "L385"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/orchestratorts
 ---
 
 # ScanCardLite
@@ -19,4 +19,4 @@ tags:
 - [[live-types.ts]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

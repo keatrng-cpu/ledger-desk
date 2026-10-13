@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-setup-memory.mjs"
+source_file: "scripts/verify-tf-ladder.mjs"
 type: "code"
-community: "Community 144"
-location: "L23"
+community: "verify-tf-ladder.mjs"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_144
+  - community/verify-tf-laddermjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_6]] - `calls` [EXTRACTED]
-- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
+- [[ok()_9]] - `calls` [EXTRACTED]
+- [[verify-tf-ladder.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_144
+#graphify/code #graphify/EXTRACTED #community/verify-tf-laddermjs

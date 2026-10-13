@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-sleeve-sizing.mjs"
+source_file: "scripts/verify-brain-fuel.mjs"
 type: "code"
-community: "Community 213"
-location: "L24"
+community: "verify-brain-fuel.mjs"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_213
+  - community/verify-brain-fuelmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_19]] - `calls` [EXTRACTED]
-- [[verify-sleeve-sizing.mjs]] - `contains` [EXTRACTED]
+- [[verify-brain-fuel.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_213
+#graphify/code #graphify/EXTRACTED #community/verify-brain-fuelmjs

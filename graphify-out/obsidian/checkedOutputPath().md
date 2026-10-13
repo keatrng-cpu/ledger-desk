@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/browser-guard.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # checkedOutputPath()
@@ -16,4 +16,4 @@ tags:
 - [[browser-smoke.mjs]] - `imports` [EXTRACTED]
 - [[fail()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

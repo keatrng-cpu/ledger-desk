@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/journal/snapshots.ts"
+source_file: "src/lib/desk/learning.ts"
 type: "code"
-community: "Community 93"
-location: "L108"
+community: "learning.ts"
+location: "L211"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/learningts
 ---
 
 # SnapRow
 
 ## Connections
-- [[snapshots.ts]] - `contains` [EXTRACTED]
+- [[learning.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/learningts

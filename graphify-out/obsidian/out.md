@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-entry-location.mjs"
+source_file: "scripts/dump-loss-features.mts"
 type: "code"
-community: "Community 141"
-location: "L394"
+community: "buildTradingDesk"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_141
+  - community/buildTradingDesk
 ---
 
 # out
 
 ## Connections
-- [[measure-entry-location.mjs]] - `contains` [EXTRACTED]
+- [[dump-loss-features.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_141
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

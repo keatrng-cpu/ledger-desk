@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/hall-read.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # hall-read.ts
@@ -16,7 +16,7 @@ tags:
 - [[HALL_PULL_BUDGET_MS]] - `contains` [EXTRACTED]
 - [[HallDeps]] - `contains` [EXTRACTED]
 - [[HallRecordLite]] - `imports` [EXTRACTED]
-- [[LIVE_2]] - `contains` [EXTRACTED]
+- [[LIVE_1]] - `contains` [EXTRACTED]
 - [[ModelInput]] - `imports` [EXTRACTED]
 - [[PredictBoard]] - `imports` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
@@ -56,4 +56,4 @@ tags:
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[withBudget()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

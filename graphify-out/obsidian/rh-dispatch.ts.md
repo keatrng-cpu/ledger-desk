@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-dispatch.ts"
 type: "code"
-community: "Community 94"
+community: "rh-dispatch.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # rh-dispatch.ts
@@ -36,8 +36,8 @@ tags:
 - [[failedHoldClose()]] - `imports` [EXTRACTED]
 - [[feedOf()_1]] - `contains` [EXTRACTED]
 - [[foreignHeld()]] - `contains` [EXTRACTED]
-- [[handle()_1]] - `imports_from` [EXTRACTED]
-- [[handle()_3]] - `imports_from` [EXTRACTED]
+- [[handle()_2]] - `imports_from` [EXTRACTED]
+- [[handle()_4]] - `imports_from` [EXTRACTED]
 - [[heldFrom()]] - `contains` [EXTRACTED]
 - [[levelsOf()]] - `contains` [EXTRACTED]
 - [[look()]] - `contains` [EXTRACTED]
@@ -65,4 +65,4 @@ tags:
 - [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-dispatch.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

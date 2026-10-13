@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/desk/viz/must-ring.tsx"
+source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 69"
-location: "L12"
+community: "trading-floor-tab.tsx"
+location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/trading-floor-tabtsx
 ---
 
 # COLOR
 
 ## Connections
-- [[must-ring.tsx]] - `contains` [EXTRACTED]
+- [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

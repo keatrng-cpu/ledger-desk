@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/risk.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # etDateParts()
@@ -14,10 +14,10 @@ tags:
 ## Connections
 - [[cron.ts]] - `imports` [EXTRACTED]
 - [[currentKillzoneWindow()]] - `calls` [EXTRACTED]
-- [[etOffsetMs()]] - `calls` [EXTRACTED]
+- [[etOffsetMs()_1]] - `calls` [EXTRACTED]
 - [[etWindow_1]] - `calls` [EXTRACTED]
 - [[risk.ts]] - `contains` [EXTRACTED]
 - [[tradingDayStart()]] - `calls` [EXTRACTED]
 - [[tradingWeekStart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

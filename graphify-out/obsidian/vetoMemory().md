@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L178"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # vetoMemory()
@@ -15,7 +15,7 @@ tags:
 - [[debate()]] - `calls` [EXTRACTED]
 - [[lastScored()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
-- [[usd()_4]] - `calls` [EXTRACTED]
+- [[usd()_2]] - `calls` [EXTRACTED]
 - [[vetoed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/typography.md"
 type: "document"
-community: "Community 302"
+community: "Text Wrapping"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_302
+  - community/Text_Wrapping
 ---
 
 # Typography
@@ -17,4 +17,4 @@ tags:
 - [[Text Wrapping]] - `contains` [EXTRACTED]
 - [[typography]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_302
+#graphify/document #graphify/EXTRACTED #community/Text_Wrapping

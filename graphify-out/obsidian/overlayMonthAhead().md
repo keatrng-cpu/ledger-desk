@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/month-ahead.ts"
 type: "code"
-community: "Community 152"
+community: "month-ahead.ts"
 location: "L515"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/month-aheadts
 ---
 
 # overlayMonthAhead()
@@ -20,4 +20,4 @@ tags:
 - [[monthRangeFromBars()]] - `calls` [EXTRACTED]
 - [[overlayBook()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/month-aheadts

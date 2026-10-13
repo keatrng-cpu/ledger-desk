@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 41"
+community: "mead-screens.ts"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-screensts
 ---
 
 # TicketSide
@@ -19,4 +19,4 @@ tags:
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

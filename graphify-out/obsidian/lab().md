@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-audit.mjs"
 type: "code"
-community: "Community 235"
+community: "verify-audit.mjs"
 location: "L38"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_235
+  - community/verify-auditmjs
 ---
 
 # lab()
@@ -16,4 +16,4 @@ tags:
 - [[verify-audit.mjs]] - `contains` [EXTRACTED]
 - [[verify-room-seats.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_235
+#graphify/code #graphify/INFERRED #community/verify-auditmjs

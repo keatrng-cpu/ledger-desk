@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-kill-watch.mjs"
+source_file: "scripts/verify-sleeve-sizing.mjs"
 type: "code"
-community: "Community 197"
-location: "L23"
+community: "verify-sleeve-sizing.mjs"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_197
+  - community/verify-sleeve-sizingmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_13]] - `calls` [EXTRACTED]
-- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
+- [[ok()_18]] - `calls` [EXTRACTED]
+- [[verify-sleeve-sizing.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_197
+#graphify/code #graphify/EXTRACTED #community/verify-sleeve-sizingmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L250"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # shouldFlatten()
@@ -24,4 +24,4 @@ tags:
 - [[progressRead()]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

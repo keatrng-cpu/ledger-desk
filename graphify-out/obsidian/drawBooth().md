@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 41"
+community: "mead-screens.ts"
 location: "L500"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-screensts
 ---
 
 # drawBooth()
@@ -15,10 +15,10 @@ tags:
 - [[dot-buildBooths()]] - `calls` [EXTRACTED]
 - [[dot-redraw()]] - `calls` [EXTRACTED]
 - [[eventLabel()]] - `calls` [EXTRACTED]
-- [[fit()_7]] - `calls` [EXTRACTED]
+- [[fit()]] - `calls` [EXTRACTED]
 - [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
 - [[plate()]] - `calls` [EXTRACTED]
 - [[price2()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

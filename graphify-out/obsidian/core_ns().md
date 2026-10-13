@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 338"
+community: "build_floor.py"
 location: "L1470"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_338
+  - community/build_floorpy
 ---
 
 # core_ns()
@@ -17,4 +17,4 @@ tags:
 - [[build_office()]] - `calls` [EXTRACTED]
 - [[export_textured()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_338
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

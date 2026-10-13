@@ -1,16 +1,22 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 226"
+community: "fills.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/fillspy
 ---
 
 # Path
 
 ## Connections
-- [[write_note()_1]] - `references` [EXTRACTED]
+- [[_engine()]] - `references` [EXTRACTED]
+- [[latency_ms()]] - `references` [EXTRACTED]
+- [[mark_filled()]] - `references` [EXTRACTED]
+- [[mark_sent()]] - `references` [EXTRACTED]
+- [[open_db()]] - `references` [EXTRACTED]
+- [[record()_2]] - `references` [EXTRACTED]
+- [[slippage_report()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/fillspy

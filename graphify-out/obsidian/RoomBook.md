@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 122"
+community: "live-world.ts"
 location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_122
+  - community/live-worldts
 ---
 
 # RoomBook
@@ -29,4 +29,4 @@ tags:
 - [[snapshot-sync.ts]] - `imports` [EXTRACTED]
 - [[snapshot.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_122
+#graphify/code #graphify/EXTRACTED #community/live-worldts

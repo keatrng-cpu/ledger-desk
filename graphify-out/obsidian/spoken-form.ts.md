@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 96"
+community: "spoken-form.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # spoken-form.ts
@@ -34,7 +34,7 @@ tags:
 - [[jargon()]] - `contains` [EXTRACTED]
 - [[money()_16]] - `contains` [EXTRACTED]
 - [[moneyWords()]] - `contains` [EXTRACTED]
-- [[num()_21]] - `contains` [EXTRACTED]
+- [[num()_22]] - `contains` [EXTRACTED]
 - [[numbersHeld()]] - `contains` [EXTRACTED]
 - [[numbersOf()_3]] - `contains` [EXTRACTED]
 - [[plural()_4]] - `contains` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[wc()]] - `contains` [EXTRACTED]
 - [[words()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

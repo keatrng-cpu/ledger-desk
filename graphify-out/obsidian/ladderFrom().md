@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/viz/price-ladder.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L199"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # ladderFrom()
@@ -18,4 +18,4 @@ tags:
 - [[price-path-board.tsx]] - `imports` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

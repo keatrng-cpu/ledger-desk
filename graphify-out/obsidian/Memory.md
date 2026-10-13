@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # Memory
@@ -20,4 +20,4 @@ tags:
 - [[floor-props.ts]] - `imports` [EXTRACTED]
 - [[floor-school-contracts.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

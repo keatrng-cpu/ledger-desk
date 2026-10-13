@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L132"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # seatMomentText()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 - [[sessionMoments()]] - `calls` [EXTRACTED]
-- [[usd()_4]] - `calls` [EXTRACTED]
+- [[usd()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

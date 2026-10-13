@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-ticket.ts"
 type: "code"
-community: "Community 48"
+community: "aplus/config.ts"
 location: "L207"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/aplus/configts
 ---
 
 # ticketHeadline()
@@ -15,6 +15,6 @@ tags:
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[entry-ticket.ts]] - `contains` [EXTRACTED]
 - [[path-alarm.ts]] - `imports` [EXTRACTED]
-- [[px()_11]] - `calls` [EXTRACTED]
+- [[px()_7]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

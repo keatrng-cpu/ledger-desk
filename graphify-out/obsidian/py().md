@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-research-retain.mjs"
 type: "code"
-community: "Community 297"
+community: "verify-research-retain.mjs"
 location: "L75"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_297
+  - community/verify-research-retainmjs
 ---
 
 # py()
@@ -15,4 +15,4 @@ tags:
 - [[snake()]] - `calls` [EXTRACTED]
 - [[verify-research-retain.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_297
+#graphify/code #graphify/EXTRACTED #community/verify-research-retainmjs

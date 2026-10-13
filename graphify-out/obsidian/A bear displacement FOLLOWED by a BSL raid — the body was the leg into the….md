@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "rationale"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L593"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # A bear displacement FOLLOWED by a BSL raid — the body was the leg into the…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[find_shift_early()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_64
+#graphify/rationale #graphify/EXTRACTED #community/build-learn-figurespy

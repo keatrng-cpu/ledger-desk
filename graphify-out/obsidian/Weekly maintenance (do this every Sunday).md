@@ -1,12 +1,12 @@
 ---
 source_file: "src/data/news-calendar.md"
 type: "document"
-community: "Community 284"
+community: "invest-office.ts"
 location: "L35"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # Weekly maintenance (do this every Sunday)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[US econ news calendar — maintenance]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_284
+#graphify/document #graphify/EXTRACTED #community/invest-officets

@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-B.md"
 type: "document"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # INTEGRATION-B — wiring left for the integrator
@@ -26,4 +26,4 @@ tags:
 - [[openPaperTradeInstant()]] - `references` [INFERRED]
 - [[pathTakeGate()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_44
+#graphify/document #graphify/EXTRACTED #community/paper-managerts

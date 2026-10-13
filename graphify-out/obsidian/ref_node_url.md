@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 11"
+community: "ref_node_url"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_url
 ---
 
 # ref_node_url
@@ -38,4 +38,4 @@ tags:
 - [[verify-sleeve-migration.mjs]] - `imports_from` [EXTRACTED]
 - [[verify-take-census.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_11
+#graphify/concept #graphify/EXTRACTED #community/ref_node_url

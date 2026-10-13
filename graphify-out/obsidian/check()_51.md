@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-discipline.mjs"
+source_file: "scripts/verify-floor-cues.mjs"
 type: "code"
-community: "Community 23"
-location: "L17"
+community: "floor-screens.ts"
+location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/floor-screensts
 ---
 
 # check()
 
 ## Connections
-- [[verify-discipline.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-cues.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

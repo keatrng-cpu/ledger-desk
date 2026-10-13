@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 321"
+community: "trading/evidence.ts"
 location: "L230"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_321
+  - community/trading/evidencets
 ---
 
 # Framing()
@@ -16,4 +16,4 @@ tags:
 - [[evidenceHeadlines()]] - `calls` [EXTRACTED]
 - [[replay-drill.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_321
+#graphify/code #graphify/EXTRACTED #community/trading/evidencets

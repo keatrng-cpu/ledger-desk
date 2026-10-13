@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-smc-master.mjs"
+source_file: "scripts/verify-repo-guards.mjs"
 type: "code"
-community: "Community 119"
-location: "L63"
+community: "ref_node_url"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/ref_node_url
 ---
 
 # ok()
 
 ## Connections
-- [[check()_7]] - `calls` [EXTRACTED]
-- [[verify-smc-master.mjs]] - `contains` [EXTRACTED]
+- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-amd-signals.mjs"
 type: "code"
-community: "Community 136"
+community: "measure-amd-signals.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_136
+  - community/measure-amd-signalsmjs
 ---
 
 # measure-amd-signals.mjs
@@ -31,7 +31,7 @@ tags:
 - [[r3()_2]] - `contains` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[result_1]] - `contains` [EXTRACTED]
-- [[rows_2]] - `contains` [EXTRACTED]
+- [[rows_1]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[show()_1]] - `contains` [EXTRACTED]
 - [[sim()_1]] - `contains` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[withMainSweep]] - `contains` [EXTRACTED]
 - [[yearOf()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_136
+#graphify/code #graphify/EXTRACTED #community/measure-amd-signalsmjs

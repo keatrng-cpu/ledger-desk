@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/brand-check.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # brand-check.mjs
@@ -18,4 +18,4 @@ tags:
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[ref_node_path]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

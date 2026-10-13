@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
-community: "Community 39"
+community: "cn"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_39
+  - community/cn
 ---
 
 # setup-scanner.tsx
@@ -15,7 +15,7 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[BarStrip()]] - `imports` [EXTRACTED]
 - [[BlockerStrip()]] - `contains` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CANON_SORT_BONUS]] - `contains` [EXTRACTED]
 - [[CHART_TFS]] - `imports` [EXTRACTED]
 - [[CanonBadge()]] - `contains` [EXTRACTED]
@@ -42,7 +42,7 @@ tags:
 - [[MIN_RISK_ATR]] - `imports` [EXTRACTED]
 - [[MUST_SHORT]] - `contains` [EXTRACTED]
 - [[MarketNarrative]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PriceLadder()]] - `imports` [EXTRACTED]
 - [[SCHOOL_SAY]] - `imports` [EXTRACTED]
 - [[ScanResult]] - `imports` [EXTRACTED]
@@ -57,6 +57,7 @@ tags:
 - [[TfLadder]] - `imports` [EXTRACTED]
 - [[allSeries()]] - `imports` [EXTRACTED]
 - [[anticipate()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyLtf()]] - `imports` [EXTRACTED]
 - [[atrOf()]] - `imports` [EXTRACTED]
 - [[autoTf()]] - `imports` [EXTRACTED]
@@ -74,7 +75,6 @@ tags:
 - [[census]] - `imports` [EXTRACTED]
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
 - [[detectInducement()]] - `imports` [EXTRACTED]
 - [[detectMitigationBlock()]] - `imports` [EXTRACTED]
@@ -105,7 +105,7 @@ tags:
 - [[pb-entries.ts]] - `imports_from` [EXTRACTED]
 - [[price-ladder.tsx]] - `imports_from` [EXTRACTED]
 - [[qBucket()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readCardGeometry()]] - `imports` [EXTRACTED]
 - [[readLtfLead()]] - `imports` [EXTRACTED]
 - [[resolveTf()]] - `imports` [EXTRACTED]
@@ -138,4 +138,4 @@ tags:
 - [[useGhost()]] - `contains` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_39
+#graphify/code #graphify/EXTRACTED #community/cn

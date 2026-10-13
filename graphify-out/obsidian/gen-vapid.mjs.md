@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/gen-vapid.mjs"
 type: "code"
-community: "Community 65"
+community: "rh-oauth.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/rh-oauthts
 ---
 
 # gen-vapid.mjs
@@ -18,4 +18,4 @@ tags:
 - [[publicKey]] - `contains` [EXTRACTED]
 - [[ref_node_crypto]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/rh-oauthts

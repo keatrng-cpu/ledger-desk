@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L1600"
+community: "evaluateOptionsDesk"
+location: "L1611"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # pathContinuation()
@@ -27,11 +27,10 @@ tags:
 - [[pathCandidate()]] - `calls` [EXTRACTED]
 - [[planForUnderlier()]] - `calls` [EXTRACTED]
 - [[proxyPair()]] - `calls` [EXTRACTED]
-- [[rhWorkingStop()]] - `calls` [EXTRACTED]
 - [[shrinkTicket()]] - `calls` [EXTRACTED]
 - [[sideFromFutures()]] - `calls` [EXTRACTED]
 - [[toTicket()]] - `calls` [EXTRACTED]
 - [[underlierOf()]] - `calls` [EXTRACTED]
 - [[weekDayFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

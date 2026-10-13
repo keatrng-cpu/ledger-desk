@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 46"
+community: "simulate-path-trade.ts"
 location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/simulate-path-tradets
 ---
 
 # pointValue()
@@ -15,4 +15,4 @@ tags:
 - [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
 - [[simulatePathTrade()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/trading/rh-income.ts"
+source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 153"
-location: "L91"
+community: "apex-sim-panel.tsx"
+location: "L164"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/apex-sim-paneltsx
 ---
 
 # persist()
 
 ## Connections
-- [[closeRhFill()]] - `calls` [EXTRACTED]
-- [[logRhFill()]] - `calls` [EXTRACTED]
-- [[rh-income.ts]] - `contains` [EXTRACTED]
+- [[ApexSimPanel()]] - `calls` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

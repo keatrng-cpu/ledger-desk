@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 162"
+community: "floor-school-contracts.ts"
 location: "L1613"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/floor-school-contractsts
 ---
 
 # HuddleData
@@ -15,4 +15,4 @@ tags:
 - [[Character]] - `references` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

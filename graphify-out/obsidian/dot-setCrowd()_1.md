@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 16"
+community: "mead-hall-build.ts"
 location: "L173"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/mead-hall-buildts
 ---
 
 # .setCrowd()
@@ -16,4 +16,4 @@ tags:
 - [[CrowdRead]] - `references` [EXTRACTED]
 - [[MeadScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

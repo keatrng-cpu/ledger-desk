@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 26"
+community: "veteran-brain.ts"
 location: "L117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/veteran-braints
 ---
 
 # isBlakeLongDemoted()
@@ -20,4 +20,4 @@ tags:
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

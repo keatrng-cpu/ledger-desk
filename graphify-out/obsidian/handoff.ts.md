@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/desk/handoff.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # handoff.ts
@@ -27,4 +27,4 @@ tags:
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[src_lib_alerts_cron_jsonresponse]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

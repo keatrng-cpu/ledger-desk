@@ -1,12 +1,12 @@
 ---
 source_file: "server/middleware/no-cache.ts"
 type: "code"
-community: "Community 249"
+community: "no-cache.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_249
+  - community/no-cachets
 ---
 
 # no-cache.ts
@@ -18,4 +18,4 @@ tags:
 - [[noCacheMiddleware()]] - `contains` [EXTRACTED]
 - [[withNoStore()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_249
+#graphify/code #graphify/EXTRACTED #community/no-cachets

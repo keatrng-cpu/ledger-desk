@@ -1,22 +1,22 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # scanOf()
 
 ## Connections
-- [[cents()]] - `calls` [EXTRACTED]
+- [[cents()_3]] - `calls` [EXTRACTED]
 - [[cents1()]] - `calls` [EXTRACTED]
 - [[hall-lite.ts]] - `contains` [EXTRACTED]
 - [[rowOf()_1]] - `calls` [EXTRACTED]
 - [[sayable()]] - `calls` [EXTRACTED]
 - [[shorten()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

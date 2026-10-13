@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 112"
+community: "build_floor.py"
 location: "L940"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_112
+  - community/build_floorpy
 ---
 
 # f_globe()
@@ -22,4 +22,4 @@ tags:
 - [[sphere()]] - `calls` [EXTRACTED]
 - [[torus()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_112
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

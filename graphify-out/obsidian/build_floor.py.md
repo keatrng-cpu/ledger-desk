@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 120"
+community: "build_floor.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # build_floor.py
@@ -21,7 +21,7 @@ tags:
 - [[T()]] - `contains` [EXTRACTED]
 - [[_hair_keep()]] - `contains` [EXTRACTED]
 - [[_lin()]] - `contains` [EXTRACTED]
-- [[_newell()_1]] - `contains` [EXTRACTED]
+- [[_newell()]] - `contains` [EXTRACTED]
 - [[_principled()]] - `contains` [EXTRACTED]
 - [[_xf()]] - `contains` [EXTRACTED]
 - [[box()]] - `contains` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[build_portraits()]] - `contains` [EXTRACTED]
 - [[build_rooms()]] - `contains` [EXTRACTED]
 - [[build_screens()]] - `contains` [EXTRACTED]
-- [[build_walls()_1]] - `contains` [EXTRACTED]
+- [[build_walls()]] - `contains` [EXTRACTED]
 - [[bust()]] - `contains` [EXTRACTED]
 - [[composite_png()]] - `contains` [EXTRACTED]
 - [[core_ns()]] - `contains` [EXTRACTED]
@@ -94,7 +94,7 @@ tags:
 - [[random]] - `imports` [EXTRACTED]
 - [[read_glb_json()]] - `contains` [EXTRACTED]
 - [[reset_scene()]] - `contains` [EXTRACTED]
-- [[ring()_1]] - `contains` [EXTRACTED]
+- [[ring()]] - `contains` [EXTRACTED]
 - [[screens_on_wall()]] - `contains` [EXTRACTED]
 - [[shell()]] - `contains` [EXTRACTED]
 - [[sitter_side()]] - `contains` [EXTRACTED]
@@ -109,4 +109,4 @@ tags:
 - [[verify()]] - `contains` [EXTRACTED]
 - [[wall_top_below()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_120
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

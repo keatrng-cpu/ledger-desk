@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-prediction-market-feed.mjs"
+source_file: "scripts/verify-paper-step.mjs"
 type: "code"
-community: "Community 204"
-location: "L335"
+community: "verify-paper-step.mjs"
+location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_204
+  - community/verify-paper-stepmjs
 ---
 
 # live
 
 ## Connections
-- [[verify-prediction-market-feed.mjs]] - `contains` [EXTRACTED]
+- [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_204
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

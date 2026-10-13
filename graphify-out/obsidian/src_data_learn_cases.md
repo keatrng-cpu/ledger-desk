@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 67"
+community: "learn-tab.tsx"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_67
+  - community/learn-tabtsx
 ---
 
 # src_data_learn_cases
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_67
+#graphify/concept #graphify/EXTRACTED #community/learn-tabtsx

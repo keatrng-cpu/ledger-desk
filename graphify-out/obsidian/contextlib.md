@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 296"
+community: "smc_ref.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_296
+  - community/smc_refpy
 ---
 
 # contextlib
@@ -14,4 +14,4 @@ tags:
 - [[_library()]] - `calls` [EXTRACTED]
 - [[smc_ref.py]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_296
+#graphify/concept #graphify/EXTRACTED #community/smc_refpy

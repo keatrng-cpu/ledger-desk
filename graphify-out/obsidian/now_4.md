@@ -1,0 +1,17 @@
+---
+source_file: "scripts/verify-kill-watch.mjs"
+type: "code"
+community: "verify-kill-watch.mjs"
+location: "L93"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/verify-kill-watchmjs
+---
+
+# now
+
+## Connections
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/verify-kill-watchmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-school-contracts.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L403"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # FloorSchoolDebateBriefing
@@ -16,7 +16,7 @@ tags:
 - [[Argument]] - `references` [EXTRACTED]
 - [[Character]] - `references` [EXTRACTED]
 - [[DialogueLine]] - `references` [EXTRACTED]
-- [[Facts]] - `references` [EXTRACTED]
+- [[Facts_1]] - `references` [EXTRACTED]
 - [[FloorSnap]] - `references` [EXTRACTED]
 - [[Lens]] - `references` [EXTRACTED]
 - [[ManagerCall]] - `references` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[floor-school-contracts.ts]] - `contains` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

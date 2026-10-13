@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-room-seats.mjs"
+source_file: "scripts/verify-target-odds.mjs"
 type: "code"
-community: "Community 125"
-location: "L33"
+community: "verify-target-odds.mjs"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/verify-target-oddsmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
+- [[ok()_3]] - `calls` [EXTRACTED]
+- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/verify-target-oddsmjs

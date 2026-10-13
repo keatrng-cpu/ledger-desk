@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/overnight-swing.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L518"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # overnightLine()
@@ -17,4 +17,4 @@ tags:
 - [[overnight-swing.ts]] - `contains` [EXTRACTED]
 - [[usd()_7]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

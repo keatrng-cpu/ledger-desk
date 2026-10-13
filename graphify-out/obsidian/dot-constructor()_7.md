@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/auth/pglite-dialect.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 190"
-location: "L109"
+community: "floor-scene.ts"
+location: "L1271"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/floor-scenets
 ---
 
 # .constructor()
 
 ## Connections
-- [[PGliteConnection]] - `method` [EXTRACTED]
+- [[Cat]] - `method` [EXTRACTED]
+- [[contactBlob()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_190
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

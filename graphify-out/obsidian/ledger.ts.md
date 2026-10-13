@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # ledger.ts
@@ -44,11 +44,11 @@ tags:
 - [[isLongTerm()]] - `contains` [EXTRACTED]
 - [[ledger-server.ts]] - `imports_from` [EXTRACTED]
 - [[longTermFrom()]] - `contains` [EXTRACTED]
-- [[order()_1]] - `contains` [EXTRACTED]
+- [[order()]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
 - [[previewSale()]] - `contains` [EXTRACTED]
 - [[replay()]] - `contains` [EXTRACTED]
-- [[round2()_6]] - `contains` [EXTRACTED]
+- [[round2()_10]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sweepFundedUsd()]] - `contains` [EXTRACTED]
 - [[sync.ts]] - `imports_from` [EXTRACTED]
@@ -59,4 +59,4 @@ tags:
 - [[washFamily()]] - `imports` [EXTRACTED]
 - [[washFor()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

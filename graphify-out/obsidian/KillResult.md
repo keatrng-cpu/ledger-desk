@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-watch.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L123"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # KillResult
@@ -19,4 +19,4 @@ tags:
 - [[kill-watch-server.ts]] - `imports` [EXTRACTED]
 - [[kill-watch.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

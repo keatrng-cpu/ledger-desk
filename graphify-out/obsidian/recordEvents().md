@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 21"
+community: "desk-atlas.ts"
 location: "L648"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/desk-atlasts
 ---
 
 # recordEvents()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[absorbAtlas()]] - `calls` [EXTRACTED]
 - [[agents.ts]] - `contains` [EXTRACTED]
-- [[hhmm()_4]] - `calls` [EXTRACTED]
+- [[hhmm()_3]] - `calls` [EXTRACTED]
 - [[improveAtlas()]] - `calls` [EXTRACTED]
 - [[jobsFor()]] - `calls` [EXTRACTED]
 - [[nudge()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[seenLately()]] - `calls` [EXTRACTED]
 - [[syncPeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

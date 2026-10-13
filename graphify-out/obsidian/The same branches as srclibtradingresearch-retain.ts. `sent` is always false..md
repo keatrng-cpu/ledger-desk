@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/retain.py"
 type: "rationale"
-community: "Community 226"
+community: "retain.py"
 location: "L63"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/retainpy
 ---
 
 # The same branches as src/lib/trading/research-retain.ts. `sent` is always false.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[classify()_2]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_226
+#graphify/rationale #graphify/EXTRACTED #community/retainpy

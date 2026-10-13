@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rnd.mjs"
 type: "code"
-community: "Community 208"
+community: "verify-rnd.mjs"
 location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/verify-rndmjs
 ---
 
 # json()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-rnd.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/verify-rndmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics-server.ts"
 type: "code"
-community: "Community 195"
+community: "analytics-panel.tsx"
 location: "L150"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_195
+  - community/analytics-paneltsx
 ---
 
 # analyticsInput
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[analytics-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_195
+#graphify/code #graphify/EXTRACTED #community/analytics-paneltsx

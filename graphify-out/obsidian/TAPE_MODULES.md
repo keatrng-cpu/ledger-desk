@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-curriculum.mjs"
 type: "code"
-community: "Community 118"
+community: "verify-curriculum.mjs"
 location: "L364"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_118
+  - community/verify-curriculummjs
 ---
 
 # TAPE_MODULES
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-curriculum.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_118
+#graphify/code #graphify/EXTRACTED #community/verify-curriculummjs

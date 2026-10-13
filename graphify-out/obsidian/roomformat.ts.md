@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # room/format.ts
@@ -35,7 +35,7 @@ tags:
 - [[pctOf()]] - `contains` [EXTRACTED]
 - [[prem()]] - `contains` [EXTRACTED]
 - [[ptsTxt()]] - `contains` [EXTRACTED]
-- [[px()_10]] - `contains` [EXTRACTED]
+- [[px()_8]] - `contains` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[rSigned()]] - `contains` [EXTRACTED]
 - [[race.ts]] - `imports_from` [EXTRACTED]
@@ -44,7 +44,7 @@ tags:
 - [[shortDate()]] - `imports` [EXTRACTED]
 - [[sideWord()]] - `contains` [EXTRACTED]
 - [[signedPct()]] - `contains` [EXTRACTED]
-- [[usd()_4]] - `contains` [EXTRACTED]
+- [[usd()_2]] - `contains` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

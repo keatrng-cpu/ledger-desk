@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/feed.ts"
 type: "code"
-community: "Community 116"
+community: "feed.ts"
 location: "L286"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_116
+  - community/feedts
 ---
 
 # nameRegex()
@@ -16,4 +16,4 @@ tags:
 - [[TEAM_RX]] - `indirect_call` [INFERRED]
 - [[feed.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_116
+#graphify/code #graphify/INFERRED #community/feedts

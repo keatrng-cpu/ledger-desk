@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room-snapshot.mjs"
+source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 125"
-location: "L23"
+community: "verify-live-talk.mjs"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/verify-live-talkmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-room-snapshot.mjs]] - `contains` [EXTRACTED]
+- [[verify-live-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

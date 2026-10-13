@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/simulate-path-trade.ts"
 type: "code"
-community: "Community 46"
+community: "simulate-path-trade.ts"
 location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/simulate-path-tradets
 ---
 
 # parseZoneMid()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[simulate-path-trade.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/bridge/paper-server.ts"
 type: "code"
-community: "Community 95"
+community: "getSql"
 location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/getSql
 ---
 
 # listOpenPaperTrades
 
 ## Connections
 - [[getSql()]] - `calls` [EXTRACTED]
-- [[num()_20]] - `calls` [EXTRACTED]
+- [[num()_9]] - `calls` [EXTRACTED]
 - [[paper-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/getSql

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/cron.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # etWindow
@@ -16,9 +16,9 @@ tags:
 - [[cron.ts]] - `contains` [EXTRACTED]
 - [[etDateParts()]] - `calls` [EXTRACTED]
 - [[exec-flatten.ts]] - `imports` [EXTRACTED]
-- [[handle()_1]] - `calls` [EXTRACTED]
 - [[handle()_2]] - `calls` [EXTRACTED]
 - [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[handleChecklist()]] - `calls` [EXTRACTED]
 - [[handleReview()]] - `calls` [EXTRACTED]
 - [[handleWeekly()]] - `calls` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[trigger-server.ts]] - `imports` [EXTRACTED]
 - [[weekly.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

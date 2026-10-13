@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L1233"
+community: "evaluateOptionsDesk"
+location: "L1237"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # liveCtxFor()
@@ -17,4 +17,4 @@ tags:
 - [[pathContinuation()]] - `calls` [EXTRACTED]
 - [[proxyPair()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

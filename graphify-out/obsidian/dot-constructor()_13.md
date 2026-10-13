@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 214"
+community: "Avatar"
 location: "L161"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Avatar
 ---
 
 # .constructor()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Bell]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Avatar

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/news-server.ts"
 type: "code"
-community: "Community 116"
+community: "feed.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_116
+  - community/feedts
 ---
 
 # loadNews()
@@ -18,4 +18,4 @@ tags:
 - [[parseFeed()]] - `calls` [EXTRACTED]
 - [[thesis-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_116
+#graphify/code #graphify/EXTRACTED #community/feedts

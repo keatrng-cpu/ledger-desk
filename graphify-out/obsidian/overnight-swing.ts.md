@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/overnight-swing.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # overnight-swing.ts
@@ -35,9 +35,9 @@ tags:
 - [[THETA_DAYS_WEEKEND]] - `contains` [EXTRACTED]
 - [[THETA_DAYS_WEEKNIGHT]] - `contains` [EXTRACTED]
 - [[WORKING_STOP_PCT]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[claude-handoff.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[gapFrequency()]] - `contains` [EXTRACTED]
 - [[gradeOvernight()]] - `contains` [EXTRACTED]
@@ -55,4 +55,4 @@ tags:
 - [[verify-overnight.mjs]] - `dynamic_import` [EXTRACTED]
 - [[weekdayName()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

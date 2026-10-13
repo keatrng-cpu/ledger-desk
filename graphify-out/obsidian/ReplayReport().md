@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/lab/replay-report.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # ReplayReport()
 
 ## Connections
 - [[1. Mount `ReplayReport` in the Lab section]] - `references` [INFERRED]
-- [[Button]] - `calls` [EXTRACTED]
-- [[Card()_1]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
+- [[Card()]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
 - [[CardDescription()]] - `calls` [EXTRACTED]
 - [[CardHeader()]] - `calls` [EXTRACTED]
@@ -24,8 +24,8 @@ tags:
 - [[expCls()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[latestEngineRun]] - `calls` [EXTRACTED]
-- [[pct()_2]] - `calls` [EXTRACTED]
+- [[pct()_3]] - `calls` [EXTRACTED]
 - [[replay-report.tsx]] - `contains` [EXTRACTED]
 - [[runReplay]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

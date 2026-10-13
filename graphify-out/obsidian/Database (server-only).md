@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/neon/SKILL.md"
 type: "document"
-community: "Community 19"
+community: "getSql"
 location: "L40"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/getSql
 ---
 
 # Database (server-only)
@@ -15,4 +15,4 @@ tags:
 - [[Neon Postgres]] - `contains` [EXTRACTED]
 - [[getSql()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_19
+#graphify/document #graphify/EXTRACTED #community/getSql

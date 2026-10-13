@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # pick()
@@ -106,4 +106,4 @@ tags:
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 - [[norm()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

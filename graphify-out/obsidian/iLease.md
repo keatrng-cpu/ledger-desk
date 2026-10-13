@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-paper-step.mjs"
 type: "code"
-community: "Community 4"
+community: "verify-paper-step.mjs"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/verify-paper-stepmjs
 ---
 
 # iLease
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-paper-step.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

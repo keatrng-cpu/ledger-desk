@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/build-desk.ts"
 type: "code"
-community: "Community 1"
-location: "L240"
+community: "build-desk.ts"
+location: "L262"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # loadMinute()
@@ -22,4 +22,4 @@ tags:
 - [[remaining()]] - `calls` [EXTRACTED]
 - [[withBudget()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

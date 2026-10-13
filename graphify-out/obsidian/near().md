@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # near()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-room-seats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/four-facts-board.tsx"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # four-facts-board.tsx
@@ -28,9 +28,9 @@ tags:
 - [[loadRhSleeve()]] - `imports` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[options-sleeve.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[wordClass()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

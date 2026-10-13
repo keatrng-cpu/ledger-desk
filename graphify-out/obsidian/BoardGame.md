@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 172"
+community: "prediction-market-feed.ts"
 location: "L323"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/prediction-market-feedts
 ---
 
 # BoardGame
@@ -19,4 +19,4 @@ tags:
 - [[predict-server.ts]] - `imports` [EXTRACTED]
 - [[predictscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

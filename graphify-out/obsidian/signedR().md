@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/card-plan.ts"
 type: "code"
-community: "Community 254"
-location: "L578"
+community: "smc-master.ts"
+location: "L612"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/smc-masterts
 ---
 
 # signedR()
@@ -15,4 +15,4 @@ tags:
 - [[card-plan.ts]] - `contains` [EXTRACTED]
 - [[cardSizeRefusal()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

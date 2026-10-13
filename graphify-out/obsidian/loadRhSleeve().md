@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # loadRhSleeve()
@@ -32,4 +32,4 @@ tags:
 - [[saveRhSleeve()]] - `calls` [EXTRACTED]
 - [[subscribeRhSleeve()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

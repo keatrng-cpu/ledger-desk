@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L19"
+community: "paper-manager.ts"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # AUTO_PAPER_STORAGE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[auto-paper.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

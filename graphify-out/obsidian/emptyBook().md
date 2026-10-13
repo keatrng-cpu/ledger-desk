@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/paper-book.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # emptyBook()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[cycle.ts]] - `imports` [EXTRACTED]
 - [[emptyCounters()]] - `calls` [EXTRACTED]
-- [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[loadRoomBook()]] - `calls` [EXTRACTED]
 - [[paper-book.ts]] - `contains` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[roomdrill.ts]] - `imports` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L263"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # toPredictLite()
@@ -17,4 +17,4 @@ tags:
 - [[verify-off-hours-study.mjs]] - `imports` [EXTRACTED]
 - [[yesCentsOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

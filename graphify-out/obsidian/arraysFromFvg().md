@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # arraysFromFvg()
@@ -18,4 +18,4 @@ tags:
 - [[stampEt()]] - `calls` [EXTRACTED]
 - [[tapeOn()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

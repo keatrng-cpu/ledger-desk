@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/mandate.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L8"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # ROOM_STOP_PCT
@@ -15,4 +15,4 @@ tags:
 - [[mandate.ts]] - `contains` [EXTRACTED]
 - [[roomformat.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

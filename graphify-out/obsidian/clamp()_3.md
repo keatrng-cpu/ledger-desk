@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/trading/month-contract.ts"
+source_file: "src/lib/trading/hit-odds.ts"
 type: "code"
-community: "Community 159"
-location: "L31"
+community: "hit-odds.ts"
+location: "L160"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_159
+  - community/hit-oddsts
 ---
 
 # clamp()
 
 ## Connections
-- [[contractsForEquity()]] - `calls` [EXTRACTED]
-- [[month-contract.ts]] - `contains` [EXTRACTED]
-- [[monthDollars()]] - `calls` [EXTRACTED]
-- [[ticketForEquity()]] - `calls` [EXTRACTED]
+- [[hit-odds.ts]] - `contains` [EXTRACTED]
+- [[oddsFeatures()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_159
+#graphify/code #graphify/EXTRACTED #community/hit-oddsts

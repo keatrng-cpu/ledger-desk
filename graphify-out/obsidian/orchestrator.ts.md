@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # orchestrator.ts
@@ -30,9 +30,9 @@ tags:
 - [[EntryOpts]] - `contains` [EXTRACTED]
 - [[EntryPlan]] - `contains` [EXTRACTED]
 - [[EntryTier]] - `contains` [EXTRACTED]
-- [[ExitPlan]] - `contains` [EXTRACTED]
-- [[Facts]] - `imports` [EXTRACTED]
-- [[Gate]] - `contains` [EXTRACTED]
+- [[ExitPlan_1]] - `contains` [EXTRACTED]
+- [[Facts_1]] - `imports` [EXTRACTED]
+- [[Gate_1]] - `contains` [EXTRACTED]
 - [[GemmaAnim]] - `contains` [EXTRACTED]
 - [[GemmaZone]] - `contains` [EXTRACTED]
 - [[HeldLevels]] - `contains` [EXTRACTED]
@@ -69,7 +69,7 @@ tags:
 - [[STOP_TXT]] - `imports` [EXTRACTED]
 - [[SterlingAnim]] - `contains` [EXTRACTED]
 - [[SterlingZone]] - `contains` [EXTRACTED]
-- [[StrikeOffset]] - `re_exports` [EXTRACTED]
+- [[StrikeOffset_1]] - `re_exports` [EXTRACTED]
 - [[Trend]] - `contains` [EXTRACTED]
 - [[Underlier]] - `re_exports` [EXTRACTED]
 - [[UnderlierTape]] - `contains` [EXTRACTED]
@@ -81,19 +81,19 @@ tags:
 - [[ZONES_BY_CHARACTER]] - `contains` [EXTRACTED]
 - [[Zone]] - `contains` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[audit.ts]] - `imports_from` [EXTRACTED]
 - [[buildMeeting()]] - `imports` [EXTRACTED]
 - [[chooseContract()]] - `imports` [EXTRACTED]
 - [[clockEt()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[contractName()]] - `imports` [EXTRACTED]
 - [[counters.ts]] - `imports_from` [EXTRACTED]
 - [[cycle.ts]] - `imports_from` [EXTRACTED]
 - [[debate.ts]] - `imports_from` [EXTRACTED]
 - [[decayToStop()]] - `imports` [EXTRACTED]
 - [[desk-read.ts]] - `imports_from` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
-- [[etMinOf()]] - `contains` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
+- [[etMinOf()_2]] - `contains` [EXTRACTED]
 - [[etWallParts]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[etfAt()]] - `imports` [EXTRACTED]
@@ -135,7 +135,7 @@ tags:
 - [[option-math.ts]] - `re_exports` [EXTRACTED]
 - [[outputViolations()]] - `contains` [EXTRACTED]
 - [[paper-book.ts]] - `imports_from` [EXTRACTED]
-- [[pctTxt()]] - `contains` [EXTRACTED]
+- [[pctTxt()_1]] - `contains` [EXTRACTED]
 - [[pickExit()]] - `imports` [EXTRACTED]
 - [[pickStrike()]] - `contains` [EXTRACTED]
 - [[planAgents()]] - `imports` [EXTRACTED]
@@ -144,7 +144,7 @@ tags:
 - [[priceOptionPlan()]] - `imports` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[ptsTxt()]] - `imports` [EXTRACTED]
-- [[px()_10]] - `imports` [EXTRACTED]
+- [[px()_8]] - `imports` [EXTRACTED]
 - [[quant.ts]] - `imports_from` [EXTRACTED]
 - [[quoteFor()]] - `contains` [EXTRACTED]
 - [[quoteOption()]] - `imports` [EXTRACTED]
@@ -164,7 +164,7 @@ tags:
 - [[strikeFor()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[urgencyFor()]] - `contains` [EXTRACTED]
-- [[usd()_4]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 - [[validateInput()]] - `contains` [EXTRACTED]
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
@@ -172,6 +172,6 @@ tags:
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-race-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
-- [[vixOf()]] - `contains` [EXTRACTED]
+- [[vixOf()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

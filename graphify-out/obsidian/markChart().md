@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-markup.ts"
 type: "code"
-community: "Community 46"
+community: "tradezella-analyze.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/tradezella-analyzets
 ---
 
 # markChart()
@@ -19,4 +19,4 @@ tags:
 - [[tfFocus()]] - `calls` [EXTRACTED]
 - [[wrapText()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

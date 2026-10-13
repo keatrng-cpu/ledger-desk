@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot.ts"
 type: "code"
-community: "Community 125"
+community: "live-world.ts"
 location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/live-worldts
 ---
 
 # RoomSnapshot
@@ -20,4 +20,4 @@ tags:
 - [[snapshot-sync.ts]] - `imports` [EXTRACTED]
 - [[snapshot.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/live-worldts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-option-time.mjs"
 type: "code"
-community: "Community 169"
+community: "measure-option-time.mjs"
 location: "L152"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_169
+  - community/measure-option-timemjs
 ---
 
 # yearOf()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[measure-option-time.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_169
+#graphify/code #graphify/EXTRACTED #community/measure-option-timemjs

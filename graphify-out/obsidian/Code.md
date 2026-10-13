@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L156"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # Code
@@ -25,4 +25,4 @@ tags:
 - [[rhCandidateFromManagerFeed()]] - `references` [INFERRED]
 - [[ticketFromManagerState()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_56
+#graphify/document #graphify/INFERRED #community/manager-live-loopts

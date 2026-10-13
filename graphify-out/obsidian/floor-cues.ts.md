@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-cues.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # floor-cues.ts
@@ -33,4 +33,4 @@ tags:
 - [[stampOf()]] - `contains` [EXTRACTED]
 - [[verify-floor-cues.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

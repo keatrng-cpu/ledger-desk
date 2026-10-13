@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/cron/rh-manage.ts"
 type: "code"
-community: "Community 94"
+community: "rh-dispatch.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/rh-dispatchts
 ---
 
 # rh-manage.ts
@@ -24,14 +24,14 @@ tags:
 - [[RhOrder]] - `imports` [EXTRACTED]
 - [[RhReview]] - `imports` [EXTRACTED]
 - [[RhTooling]] - `imports` [EXTRACTED]
-- [[Route_7]] - `contains` [EXTRACTED]
+- [[Route_19]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `dynamic_import` [EXTRACTED]
 - [[closeOnlyTooling()]] - `contains` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
 - [[db.ts]] - `dynamic_import` [EXTRACTED]
 - [[deskTrusted()]] - `contains` [EXTRACTED]
 - [[exec-sql.ts]] - `dynamic_import` [EXTRACTED]
-- [[handle()_2]] - `indirect_call` [INFERRED]
+- [[handle()_3]] - `indirect_call` [INFERRED]
 - [[isCloseOnlyOrder()]] - `contains` [EXTRACTED]
 - [[manager-live-loop.ts]] - `imports_from` [EXTRACTED]
 - [[rh-cycle.ts]] - `imports_from` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

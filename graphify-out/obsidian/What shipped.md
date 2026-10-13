@@ -1,27 +1,17 @@
 ---
-source_file: "INTEGRATION-P1.md"
+source_file: "INTEGRATION-P2.md"
 type: "document"
-community: "Community 31"
-location: "L7"
+community: "dual-index-charts.tsx"
+location: "L8"
 tags:
   - graphify/document
-  - graphify/INFERRED
-  - community/Community_31
+  - graphify/EXTRACTED
+  - community/dual-index-chartstsx
 ---
 
 # What shipped
 
 ## Connections
-- [[HaltBanner()]] - `references` [INFERRED]
-- [[INTEGRATION-P1 — Journal + active risk governor]] - `contains` [EXTRACTED]
-- [[JournalPanel()]] - `references` [INFERRED]
-- [[LogSetupDialog()]] - `references` [INFERRED]
-- [[RiskState]] - `references` [INFERRED]
-- [[SetupCandidate]] - `references` [INFERRED]
-- [[closeTrade()]] - `references` [INFERRED]
-- [[computeRiskFlags()]] - `references` [INFERRED]
-- [[currentKillzoneWindow()]] - `references` [INFERRED]
-- [[tradingDayStart()]] - `references` [INFERRED]
-- [[tradingWeekStart()]] - `references` [INFERRED]
+- [[INTEGRATION-P2 — wiring instructions for the deskscanner integrator]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/INFERRED #community/Community_31
+#graphify/document #graphify/EXTRACTED #community/dual-index-chartstsx

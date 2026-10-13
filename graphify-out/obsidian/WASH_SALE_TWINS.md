@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L70"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # WASH_SALE_TWINS
@@ -16,4 +16,4 @@ tags:
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

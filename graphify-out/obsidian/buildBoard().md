@@ -1,24 +1,22 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "scripts/lib/mead-fixture.mjs"
 type: "code"
-community: "Community 2"
-location: "L374"
+community: "verify-mead-talk.mjs"
+location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/verify-mead-talkmjs
 ---
 
 # buildBoard()
 
 ## Connections
-- [[americanToProb()]] - `calls` [EXTRACTED]
-- [[board.ts]] - `contains` [EXTRACTED]
-- [[devig()]] - `calls` [EXTRACTED]
-- [[getPredictBoard]] - `calls` [EXTRACTED]
-- [[noVig()]] - `calls` [EXTRACTED]
-- [[polyQuoteFor()]] - `calls` [EXTRACTED]
-- [[predict-server.ts]] - `imports` [EXTRACTED]
-- [[read()_6]] - `calls` [EXTRACTED]
+- [[boardAt()]] - `calls` [EXTRACTED]
+- [[driftHistory()]] - `calls` [EXTRACTED]
+- [[iso()_1]] - `calls` [EXTRACTED]
+- [[mead-fixture.mjs]] - `contains` [EXTRACTED]
+- [[rawAt()]] - `calls` [EXTRACTED]
+- [[scanRows()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-invest-office.mjs"
 type: "code"
-community: "Community 137"
+community: "verify-invest-office.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/verify-invest-officemjs
 ---
 
 # verify-invest-office.mjs
@@ -22,9 +22,9 @@ tags:
 - [[INV]] - `contains` [EXTRACTED]
 - [[INVF]] - `contains` [EXTRACTED]
 - [[IP]] - `contains` [EXTRACTED]
-- [[KILL]] - `contains` [EXTRACTED]
+- [[KILL_1]] - `contains` [EXTRACTED]
 - [[LAYOUT_1]] - `contains` [EXTRACTED]
-- [[NOW_2]] - `contains` [EXTRACTED]
+- [[NOW_1]] - `contains` [EXTRACTED]
 - [[POSITIONS]] - `contains` [EXTRACTED]
 - [[RH_FILLS]] - `contains` [EXTRACTED]
 - [[SPOKEN]] - `contains` [EXTRACTED]
@@ -32,12 +32,12 @@ tags:
 - [[THEMES]] - `contains` [EXTRACTED]
 - [[TRANSCRIPT]] - `contains` [EXTRACTED]
 - [[WHY the trader asked for an office where the five manage a mid-to-long-term…]] - `rationale_for` [EXTRACTED]
-- [[all_1]] - `contains` [EXTRACTED]
+- [[all_2]] - `contains` [EXTRACTED]
 - [[at()]] - `contains` [EXTRACTED]
 - [[audit.ts]] - `dynamic_import` [EXTRACTED]
 - [[book.ts]] - `dynamic_import` [EXTRACTED]
-- [[bookOf()_2]] - `contains` [EXTRACTED]
-- [[check()_12]] - `contains` [EXTRACTED]
+- [[bookOf()_1]] - `contains` [EXTRACTED]
+- [[check()_7]] - `contains` [EXTRACTED]
 - [[clockAt()]] - `contains` [EXTRACTED]
 - [[ctxF()]] - `contains` [EXTRACTED]
 - [[data-fresh.ts]] - `dynamic_import` [EXTRACTED]
@@ -45,7 +45,7 @@ tags:
 - [[diffInto()]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `dynamic_import` [EXTRACTED]
 - [[durability.ts]] - `dynamic_import` [EXTRACTED]
-- [[etMinOf()_1]] - `contains` [EXTRACTED]
+- [[etMinOf()]] - `contains` [EXTRACTED]
 - [[exposure.ts]] - `dynamic_import` [EXTRACTED]
 - [[extraBad()]] - `contains` [EXTRACTED]
 - [[factors.ts]] - `dynamic_import` [EXTRACTED]
@@ -91,6 +91,7 @@ tags:
 - [[rh-bridge.ts]] - `dynamic_import` [EXTRACTED]
 - [[runDay()]] - `contains` [EXTRACTED]
 - [[runFirm()]] - `contains` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[set()]] - `contains` [EXTRACTED]
 - [[sleevesW]] - `contains` [EXTRACTED]
@@ -100,4 +101,4 @@ tags:
 - [[universe.ts]] - `dynamic_import` [EXTRACTED]
 - [[unsourced()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/verify-invest-officemjs

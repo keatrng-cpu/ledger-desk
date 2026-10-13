@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L174"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .react()
@@ -16,4 +16,4 @@ tags:
 - [[FloorMead]] - `method` [EXTRACTED]
 - [[Reaction]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/entry-trigger-panel.tsx"
 type: "code"
-community: "Community 8"
+community: "entry-trigger.ts"
 location: "L181"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/entry-triggerts
 ---
 
 # pendingFillToast()
@@ -16,4 +16,4 @@ tags:
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

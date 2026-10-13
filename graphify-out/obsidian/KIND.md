@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/news/news-timeline.tsx"
 type: "code"
-community: "Community 109"
+community: "news-tab.tsx"
 location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_109
+  - community/news-tabtsx
 ---
 
 # KIND
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[news-timeline.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_109
+#graphify/code #graphify/EXTRACTED #community/news-tabtsx

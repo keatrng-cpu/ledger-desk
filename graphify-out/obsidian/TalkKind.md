@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 103"
+community: "live-types.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-typests
 ---
 
 # TalkKind
@@ -18,4 +18,4 @@ tags:
 - [[live-types.ts]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-typests

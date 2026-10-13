@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hit-odds.ts"
 type: "code"
-community: "Community 178"
+community: "hit-odds.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_178
+  - community/hit-oddsts
 ---
 
 # hit-odds.ts
@@ -29,7 +29,7 @@ tags:
 - [[b()_1]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[build-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
-- [[clamp()_4]] - `contains` [EXTRACTED]
+- [[clamp()_3]] - `contains` [EXTRACTED]
 - [[geometryOf()]] - `contains` [EXTRACTED]
 - [[hit-odds-model.ts]] - `imports_from` [EXTRACTED]
 - [[hitOdds]] - `contains` [EXTRACTED]
@@ -40,4 +40,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-hit-odds.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_178
+#graphify/code #graphify/EXTRACTED #community/hit-oddsts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/long-board.ts"
 type: "code"
-community: "Community 209"
+community: "invest-firm.ts"
 location: "L189"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-firmts
 ---
 
 # sleeveLoad()
@@ -18,4 +18,4 @@ tags:
 - [[long-board.tsx]] - `imports` [EXTRACTED]
 - [[riskOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

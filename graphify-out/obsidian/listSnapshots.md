@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/snapshots.ts"
 type: "code"
-community: "Community 93"
+community: "snapshot-review.tsx"
 location: "L136"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_93
+  - community/snapshot-reviewtsx
 ---
 
 # listSnapshots
@@ -18,4 +18,4 @@ tags:
 - [[snapshots.ts]] - `contains` [EXTRACTED]
 - [[toSummary()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_93
+#graphify/code #graphify/EXTRACTED #community/snapshot-reviewtsx

@@ -1,19 +1,21 @@
 ---
-source_file: "src/lib/room/hall-lite.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 114"
-location: "L154"
+community: "mead-screens.ts"
+location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/mead-screensts
 ---
 
 # cents()
 
 ## Connections
-- [[hall-lite.ts]] - `contains` [EXTRACTED]
-- [[rowOf()_1]] - `calls` [EXTRACTED]
-- [[scanOf()]] - `calls` [EXTRACTED]
+- [[MeadHallTab()]] - `calls` [EXTRACTED]
+- [[PaperTicket()]] - `calls` [EXTRACTED]
+- [[drawRuneBoard()]] - `calls` [EXTRACTED]
+- [[mead-hall-tab.tsx]] - `imports` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

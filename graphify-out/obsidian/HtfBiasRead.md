@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 40"
+community: "smc-master.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # HtfBiasRead
@@ -31,4 +31,4 @@ tags:
 - [[structure.ts]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

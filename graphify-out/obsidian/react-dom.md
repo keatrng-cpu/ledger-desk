@@ -1,11 +1,11 @@
 ---
 source_file: "react-dom"
 type: "code"
-community: "Community 227"
+community: "verify-replay-drills.mjs"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_227
+  - community/verify-replay-drillsmjs
 ---
 
 # react-dom
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_227
+#graphify/code #graphify/EXTRACTED #community/verify-replay-drillsmjs

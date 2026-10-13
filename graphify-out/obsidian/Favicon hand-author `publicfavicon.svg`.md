@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/og/SKILL.md"
 type: "document"
-community: "Community 205"
+community: "verify-live-lesson.mjs"
 location: "L193"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/verify-live-lessonmjs
 ---
 
 # Favicon: hand-author `public/favicon.svg`
@@ -15,4 +15,4 @@ tags:
 - [[Share cards, favicon, and app icons]] - `contains` [EXTRACTED]
 - [[head()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_205
+#graphify/document #graphify/EXTRACTED #community/verify-live-lessonmjs

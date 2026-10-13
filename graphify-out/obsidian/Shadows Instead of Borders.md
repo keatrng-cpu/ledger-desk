@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/surfaces.md"
 type: "document"
-community: "Community 276"
+community: "Surfaces"
 location: "L117"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_276
+  - community/Surfaces
 ---
 
 # Shadows Instead of Borders
@@ -18,4 +18,4 @@ tags:
 - [[Usage with Hover Transition]] - `contains` [EXTRACTED]
 - [[When to Use Shadows vs. Borders]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_276
+#graphify/document #graphify/EXTRACTED #community/Surfaces

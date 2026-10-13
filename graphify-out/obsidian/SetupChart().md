@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
-community: "Community 27"
+community: "setup-chart.tsx"
 location: "L421"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/setup-charttsx
 ---
 
 # SetupChart()
@@ -33,7 +33,7 @@ tags:
 - [[resolveKillzone()]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 - [[setup-chart.tsx]] - `contains` [EXTRACTED]
-- [[shortName()]] - `calls` [EXTRACTED]
+- [[shortName()_1]] - `calls` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/setup-charttsx

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/capture-invest-universe.mjs"
+source_file: "scripts/blender/preview-glb.mjs"
 type: "code"
-community: "Community 219"
-location: "L74"
+community: "preview-glb.mjs"
+location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_219
+  - community/preview-glbmjs
 ---
 
 # args
 
 ## Connections
-- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
+- [[preview-glb.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_219
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

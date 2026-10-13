@@ -1,12 +1,12 @@
 ---
 source_file: ".claude/skills/code-index/SKILL.md"
 type: "document"
-community: "Community 347"
+community: "code-index/SKILL.md"
 location: "L6"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_347
+  - community/code-index/SKILLmd
 ---
 
 # Code index
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[code-indexSKILL]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_347
+#graphify/document #graphify/EXTRACTED #community/code-index/SKILLmd

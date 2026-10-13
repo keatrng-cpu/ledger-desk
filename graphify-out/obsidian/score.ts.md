@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/propfirm/score.ts"
 type: "code"
-community: "Community 108"
+community: "propfirm-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_108
+  - community/propfirm-paneltsx
 ---
 
 # score.ts
@@ -24,7 +24,7 @@ tags:
 - [[PropVerdict]] - `contains` [EXTRACTED]
 - [[account.ts]] - `imports_from` [EXTRACTED]
 - [[apex-sim.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[propfirm-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[refuse()]] - `contains` [EXTRACTED]
 - [[rules.ts]] - `imports_from` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[verify-apex-sim.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-propfirm-score.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_108
+#graphify/code #graphify/EXTRACTED #community/propfirm-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 278"
+community: "verify-rh-desk-job.mjs"
 location: "L146"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_278
+  - community/verify-rh-desk-jobmjs
 ---
 
 # manager()
@@ -15,4 +15,4 @@ tags:
 - [[card()_4]] - `calls` [EXTRACTED]
 - [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_278
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/chart-timeframes.ts"
 type: "code"
-community: "Community 163"
+community: "chart-timeframes.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_163
+  - community/chart-timeframests
 ---
 
 # chart-timeframes.ts
@@ -20,7 +20,7 @@ tags:
 - [[MINUTE_ONLY_TFS]] - `contains` [EXTRACTED]
 - [[MS]] - `contains` [EXTRACTED]
 - [[MarkKind]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[TF_MARKS]] - `contains` [EXTRACTED]
 - [[TF_ROLE]] - `contains` [EXTRACTED]
 - [[TF_VISIBLE_BARS]] - `contains` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[verify-chart-timeframes.mjs]] - `imports_from` [EXTRACTED]
 - [[verify-judas-window.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_163
+#graphify/code #graphify/EXTRACTED #community/chart-timeframests

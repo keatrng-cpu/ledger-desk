@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/brain-word.tsx"
 type: "code"
-community: "Community 187"
+community: "index.tsx"
 location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/indextsx
 ---
 
 # BrainWord()
@@ -20,4 +20,4 @@ tags:
 - [[lessonForLayer()]] - `calls` [EXTRACTED]
 - [[readLiveLessons()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/indextsx

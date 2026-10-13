@@ -1,12 +1,12 @@
 ---
 source_file: "docs/ENGINE_BRIDGE.md"
 type: "document"
-community: "Community 294"
+community: "Engine bridge — Trading-Automation → Ledger desk"
 location: "L233"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_294
+  - community/Engine_bridge__Trading-Automation__Ledger_desk
 ---
 
 # Environment (desk side)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Engine bridge — Trading-Automation → Ledger desk]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_294
+#graphify/document #graphify/EXTRACTED #community/Engine_bridge__Trading-Automation__Ledger_desk

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
+community: "audit.ts"
 location: "L267"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # LabLite
@@ -19,4 +19,4 @@ tags:
 - [[live-world.ts]] - `imports` [EXTRACTED]
 - [[school-contract.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

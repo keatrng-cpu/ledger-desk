@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/rh-account-strip.tsx"
+source_file: "src/components/desk/option-ticket.tsx"
 type: "code"
-community: "Community 33"
-location: "L13"
+community: "cn"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/cn
 ---
 
 # usd()
 
 ## Connections
-- [[RhAccountStrip()]] - `calls` [EXTRACTED]
-- [[rh-account-strip.tsx]] - `contains` [EXTRACTED]
+- [[OptionTicket()]] - `calls` [EXTRACTED]
+- [[option-ticket.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/cn

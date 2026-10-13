@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/room/contract-ladder.ts"
+source_file: "src/lib/trading/tf-ladder.ts"
 type: "code"
-community: "Community 0"
-location: "L72"
+community: "tf-ladder.ts"
+location: "L179"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/tf-ladderts
 ---
 
 # LadderInput
 
 ## Connections
-- [[OptionType]] - `references` [EXTRACTED]
-- [[Underlier]] - `references` [EXTRACTED]
-- [[contract-ladder.ts]] - `contains` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
+- [[tf-ladder.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/tf-ladderts

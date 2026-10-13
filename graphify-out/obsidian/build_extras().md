@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 180"
+community: "build_floor.py"
 location: "L1405"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # build_extras()
@@ -26,4 +26,4 @@ tags:
 - [[sitter_side()]] - `calls` [EXTRACTED]
 - [[torus()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_180
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

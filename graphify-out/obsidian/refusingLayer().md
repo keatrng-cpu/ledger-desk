@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L265"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # refusingLayer()
@@ -18,4 +18,4 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports` [EXTRACTED]
 - [[shadow-book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

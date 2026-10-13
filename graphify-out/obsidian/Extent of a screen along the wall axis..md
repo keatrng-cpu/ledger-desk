@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_doors.py"
 type: "rationale"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L36"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # Extent of a screen along the wall axis.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[_along_range()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_140
+#graphify/rationale #graphify/EXTRACTED #community/floor_aopy

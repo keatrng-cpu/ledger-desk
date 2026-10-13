@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tf-ladder.ts"
 type: "code"
-community: "Community 101"
+community: "tf-ladder.ts"
 location: "L473"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_101
+  - community/tf-ladderts
 ---
 
 # buildTfLadder()
@@ -30,4 +30,4 @@ tags:
 - [[tradeDateOf()]] - `calls` [EXTRACTED]
 - [[word()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_101
+#graphify/code #graphify/EXTRACTED #community/tf-ladderts

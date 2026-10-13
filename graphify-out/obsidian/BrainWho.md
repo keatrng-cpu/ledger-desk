@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 253"
+community: "crew-years.ts"
 location: "L534"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_253
+  - community/crew-yearsts
 ---
 
 # BrainWho
@@ -20,4 +20,4 @@ tags:
 - [[floor-brains.tsx]] - `imports` [EXTRACTED]
 - [[hi-alert-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_253
+#graphify/code #graphify/EXTRACTED #community/crew-yearsts

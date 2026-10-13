@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/orchestrator.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L82"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # Character
 
 ## Connections
 - [[dot-castSummary()]] - `references` [EXTRACTED]
-- [[dot-constructor()_12]] - `references` [EXTRACTED]
+- [[dot-constructor()_16]] - `references` [EXTRACTED]
 - [[dot-follow()]] - `references` [EXTRACTED]
 - [[dot-following()]] - `references` [EXTRACTED]
 - [[dot-goTo()_1]] - `references` [EXTRACTED]
@@ -90,4 +90,4 @@ tags:
 - [[seats.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

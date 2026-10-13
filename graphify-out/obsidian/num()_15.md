@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/lab/apex-sim-panel.tsx"
+source_file: "scripts/verify-lab-constants.mjs"
 type: "code"
-community: "Community 59"
-location: "L110"
+community: "verify-lab-constants.mjs"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/verify-lab-constantsmjs
 ---
 
 # num()
 
 ## Connections
-- [[ApexSimPanel()]] - `calls` [EXTRACTED]
-- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
+- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/verify-lab-constantsmjs

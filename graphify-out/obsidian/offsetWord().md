@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 104"
+community: "meeting.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_104
+  - community/meetingts
 ---
 
 # offsetWord()
@@ -16,4 +16,4 @@ tags:
 - [[roomformat.ts]] - `contains` [EXTRACTED]
 - [[strikeWhy()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_104
+#graphify/code #graphify/EXTRACTED #community/meetingts

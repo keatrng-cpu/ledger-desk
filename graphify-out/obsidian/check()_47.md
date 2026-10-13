@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-school-brief.mjs"
+source_file: "scripts/verify-apex-sim.mjs"
 type: "code"
-community: "Community 217"
-location: "L29"
+community: "verify-apex-sim.mjs"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/verify-apex-simmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-school-brief.mjs]] - `contains` [EXTRACTED]
+- [[verify-apex-sim.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/verify-apex-simmjs

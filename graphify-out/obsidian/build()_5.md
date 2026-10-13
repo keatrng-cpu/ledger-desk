@@ -1,24 +1,17 @@
 ---
-source_file: "scripts/blender/floor_dress.py"
+source_file: "scripts/verify-take-census.mjs"
 type: "code"
-community: "Community 269"
-location: "L486"
+community: "index.tsx"
+location: "L26"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_269
+  - graphify/EXTRACTED
+  - community/indextsx
 ---
 
 # build()
 
 ## Connections
-- [[dot-cables()]] - `calls` [INFERRED]
-- [[dot-clutter()]] - `calls` [INFERRED]
-- [[dot-decals()]] - `calls` [INFERRED]
-- [[dot-plants()]] - `calls` [INFERRED]
-- [[dot-posters()]] - `calls` [INFERRED]
-- [[dot-shelf()]] - `calls` [INFERRED]
-- [[Dress]] - `calls` [EXTRACTED]
-- [[floor_dress.py]] - `contains` [EXTRACTED]
+- [[verify-take-census.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_269
+#graphify/code #graphify/EXTRACTED #community/indextsx

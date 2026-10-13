@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/blender/floor_opt.py"
+source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 140"
-location: "L25"
+community: "build_floor.py"
+location: "L244"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/build_floorpy
 ---
 
 # _newell()
 
 ## Connections
-- [[floor_opt.py]] - `contains` [EXTRACTED]
-- [[hidden_faces()]] - `calls` [EXTRACTED]
+- [[dot-add()]] - `calls` [EXTRACTED]
+- [[build_floor.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

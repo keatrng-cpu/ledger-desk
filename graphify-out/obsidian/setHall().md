@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-store.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # setHall()
@@ -20,4 +20,4 @@ tags:
 - [[use-mead-feed.ts]] - `imports` [EXTRACTED]
 - [[useMeadFloorFeed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/brain-feed.ts"
 type: "code"
-community: "Community 217"
+community: "crew-years.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_217
+  - community/crew-yearsts
 ---
 
 # brain-feed.ts
 
 ## Connections
-- [[BOOK_4]] - `contains` [EXTRACTED]
+- [[BOOK_5]] - `contains` [EXTRACTED]
 - [[BrainJobs]] - `contains` [EXTRACTED]
 - [[SCHOOLS]] - `imports` [EXTRACTED]
 - [[agents.ts]] - `imports_from` [EXTRACTED]
@@ -22,4 +22,4 @@ tags:
 - [[smc-canon.ts]] - `imports_from` [EXTRACTED]
 - [[verify-school-brief.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_217
+#graphify/code #graphify/EXTRACTED #community/crew-yearsts

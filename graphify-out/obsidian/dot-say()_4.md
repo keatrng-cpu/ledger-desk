@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L165"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .say()
@@ -15,6 +15,6 @@ tags:
 - [[dot-greet()]] - `calls` [INFERRED]
 - [[dot-react()_2]] - `calls` [EXTRACTED]
 - [[Person]] - `method` [EXTRACTED]
-- [[drawBubble()_1]] - `calls` [EXTRACTED]
+- [[drawBubble()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

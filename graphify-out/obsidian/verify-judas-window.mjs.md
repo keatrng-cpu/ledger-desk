@@ -1,22 +1,22 @@
 ---
 source_file: "scripts/verify-judas-window.mjs"
 type: "code"
-community: "Community 20"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # verify-judas-window.mjs
 
 ## Connections
 - [[chart-timeframes.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_37]] - `contains` [EXTRACTED]
+- [[check()_79]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[gradeAt()]] - `contains` [EXTRACTED]
+- [[gradeAt()_1]] - `contains` [EXTRACTED]
 - [[inWin]] - `contains` [EXTRACTED]
 - [[judas-window.ts]] - `dynamic_import` [EXTRACTED]
 - [[judasTape()]] - `contains` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[structure.ts]] - `dynamic_import` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

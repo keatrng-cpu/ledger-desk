@@ -1,0 +1,239 @@
+---
+type: community
+cohesion: 0.03
+members: 145
+---
+
+# index.tsx
+
+**Cohesion:** 0.03 - loosely connected
+**Members:** 145 nodes
+
+## Members
+- [[dot-constructor()_29]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[BUILD_AT]] - code - src/lib/build-id.ts
+- [[BUILD_ID]] - code - src/lib/build-id.ts
+- [[BUILD_LABEL]] - code - src/lib/build-id.ts
+- [[BUILD_MARKER]] - code - src/lib/build-id.ts
+- [[BookFacts()]] - code - src/components/desk/four-facts-board.tsx
+- [[BrainWord()]] - code - src/components/desk/brain-word.tsx
+- [[BuildingDesk()]] - code - src/routes/index.tsx
+- [[CATEGORIES]] - code - src/routes/index.tsx
+- [[CENSUS_MAX]] - code - src/lib/trading/take-census.ts
+- [[CENSUS_STORAGE]] - code - src/lib/trading/take-census.ts
+- [[CategoryDef]] - code - src/routes/index.tsx
+- [[CensusVerdict]] - code - src/lib/trading/take-census.ts
+- [[ChartMarks()]] - code - src/components/desk/four-facts-board.tsx
+- [[ClientTimeoutError]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[CounterRead]] - code - src/lib/trading/ticket-facts.ts
+- [[DESK_CLOSE_LAG_MS]] - code - src/lib/trading/desk-cadence.ts
+- [[DESK_POLL_GAP_MS]] - code - src/lib/trading/desk-cadence.ts
+- [[DeskCategory]] - code - src/routes/index.tsx
+- [[DeskFold()]] - code - src/routes/index.tsx
+- [[ET]] - code - src/lib/trading/trade-note.ts
+- [[Fact()_1]] - code - src/components/desk/four-facts-board.tsx
+- [[FourFactsBoard()]] - code - src/components/desk/four-facts-board.tsx
+- [[HIDDEN_CATEGORIES]] - code - src/routes/index.tsx
+- [[LayerBlock]] - code - src/lib/trading/take-census.ts
+- [[LedgerSummary]] - code - src/lib/trading/take-moments.ts
+- [[LiquidityPanel()]] - code - src/components/desk/liquidity-panel.tsx
+- [[LiveSays]] - code - src/lib/trading/live-says.ts
+- [[LiveSaysPanel()]] - code - src/components/desk/live-says-panel.tsx
+- [[LiveSaysPrint]] - code - src/lib/trading/live-says.ts
+- [[MarketSource_1]] - code - src/lib/market/types.ts
+- [[MasterplacePage()]] - code - src/routes/index.tsx
+- [[MeadHallTab]] - code - src/routes/index.tsx
+- [[MomentAction]] - code - src/lib/trading/take-moments.ts
+- [[MomentKind_1]] - code - src/lib/trading/take-moments.ts
+- [[NY_AM_LIVE_LABEL]] - code - src/lib/trading/sessions.ts
+- [[OPENABLE]] - code - src/routes/index.tsx
+- [[OUTCOME_LABEL]] - code - src/components/desk/take-moments-panel.tsx
+- [[PATH_4]] - code - src/lib/trading/take-moments.ts
+- [[PRE_REGISTERED]] - code - src/lib/trading/take-census.ts
+- [[PRE_REGISTERED_CONCLUSIONS]] - code - src/lib/trading/take-census.ts
+- [[PmAnalyzer]] - code - src/routes/index.tsx
+- [[RiskFetchState]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[RiskHaltFlags]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[SectionHead()_1]] - code - src/routes/index.tsx
+- [[T0_17]] - code - scripts/verify-take-census.mjs
+- [[T0_18]] - code - scripts/verify-take-moments.mjs
+- [[TakeCensusPanel()]] - code - src/components/desk/take-census-panel.tsx
+- [[TakeMoment]] - code - src/lib/trading/take-moments.ts
+- [[TakeMomentsPanel()]] - code - src/components/desk/take-moments-panel.tsx
+- [[TapeTrustInput]] - code - src/lib/market/tape-trust.ts
+- [[TfLadderPanel()]] - code - src/components/desk/tf-ladder-panel.tsx
+- [[TradeLogPanel()]] - code - src/components/desk/trade-log-panel.tsx
+- [[TradingFloorTab]] - code - src/routes/index.tsx
+- [[applyWordHysteresis()]] - code - src/lib/trading/word-hysteresis.ts
+- [[autoPaperKey()]] - code - src/lib/trading/auto-paper.ts
+- [[autoPaperShouldTake()]] - code - src/lib/trading/auto-paper.ts
+- [[bar()_12]] - code - scripts/verify-take-moments.mjs
+- [[bothFacts()]] - code - src/lib/trading/ticket-facts.ts
+- [[brainLiveRisk]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[build()_5]] - code - scripts/verify-take-census.mjs
+- [[build-id.ts]] - code - src/lib/build-id.ts
+- [[buildLiveSays()]] - code - src/lib/trading/live-says.ts
+- [[buildTradeNote()]] - code - src/lib/trading/trade-note.ts
+- [[captureSnapshot]] - code - src/lib/journal/snapshots.ts
+- [[census]] - code - src/lib/trading/take-census.ts
+- [[check()_92]] - code - scripts/verify-take-moments.mjs
+- [[classifyRiskFailure()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[counterClass()]] - code - src/components/desk/four-facts-board.tsx
+- [[dayKey()_14]] - code - src/lib/trading/take-moments.ts
+- [[describeDeskError()]] - code - src/routes/index.tsx
+- [[desk-cadence.ts]] - code - src/lib/trading/desk-cadence.ts
+- [[desk-fetch-guard.ts]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[deskStaleLine()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[emptyDeskMemory()]] - code - src/lib/trading/desk-memory.ts
+- [[etClock()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[etParts()_2]] - code - src/lib/trading/trade-note.ts
+- [[etTime()_5]] - code - src/components/desk/take-moments-panel.tsx
+- [[fails_6]] - code - scripts/verify-take-census.mjs
+- [[fetchYearStudySeed()]] - code - src/lib/trading/bt-seed.ts
+- [[four-facts-board.tsx]] - code - src/components/desk/four-facts-board.tsx
+- [[getDeskSynapse()]] - code - src/lib/trading/desk-synapse.ts
+- [[getDiscretionState]] - code - src/lib/journal/discretion-server.ts
+- [[gradeAll()]] - code - src/lib/trading/hi-alert.ts
+- [[index.tsx]] - code - src/routes/index.tsx
+- [[isLivePrint()]] - code - src/lib/trading/live-says.ts
+- [[isMeadCapture()]] - code - src/routes/index.tsx
+- [[isNyAmLiveWindow()]] - code - src/lib/trading/sessions.ts
+- [[isSignedOutError()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[isWatchable()]] - code - src/lib/trading/entry-trigger.ts
+- [[keepFresher()]] - code - src/routes/index.tsx
+- [[live-says-panel.tsx]] - code - src/components/desk/live-says-panel.tsx
+- [[live-says.ts]] - code - src/lib/trading/live-says.ts
+- [[load()_10]] - code - src/lib/trading/auto-paper.ts
+- [[loadCensus()]] - code - src/lib/trading/take-census.ts
+- [[loadMoments()]] - code - src/lib/trading/take-moments.ts
+- [[managePricesFromDesk()]] - code - src/routes/index.tsx
+- [[markTakeAction()]] - code - src/lib/trading/take-moments.ts
+- [[maybeAutofire()]] - code - src/routes/index.tsx
+- [[median()_4]] - code - src/lib/trading/take-census.ts
+- [[mirrorClosedPaperTrades()]] - code - src/routes/index.tsx
+- [[missingLayers()]] - code - src/lib/trading/trade-note.ts
+- [[momentFor()]] - code - src/lib/trading/take-moments.ts
+- [[msUntilNextDeskPoll()]] - code - src/lib/trading/desk-cadence.ts
+- [[noteAutoPaperSkip()]] - code - src/lib/trading/auto-paper.ts
+- [[noteBlanks()]] - code - src/lib/trading/trade-note.ts
+- [[num()_19]] - code - src/lib/trading/trade-note.ts
+- [[observeTakeMoments()]] - code - src/lib/trading/take-moments.ts
+- [[ok()_29]] - code - scripts/verify-take-census.mjs
+- [[patchDeskQuotes()]] - code - src/routes/index.tsx
+- [[printOf()]] - code - src/lib/trading/live-says.ts
+- [[quoteDelayMs()]] - code - src/routes/index.tsx
+- [[readRiskGoverned()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[recordArmedShadow()]] - code - src/routes/index.tsx
+- [[recordPoll()]] - code - src/lib/trading/take-census.ts
+- [[recordPrint()]] - code - src/lib/market/print-bars.ts
+- [[recordShadowOrder]] - code - src/lib/execution/shadow.ts
+- [[releaseAutoPaperKey()]] - code - src/lib/trading/auto-paper.ts
+- [[rememberAutoPaperKey()]] - code - src/lib/trading/auto-paper.ts
+- [[resolveMoment()]] - code - src/lib/trading/take-moments.ts
+- [[riskEntryAllowed()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[riskEntryBlockedReason()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[riskHalted()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[riskReadOutcome]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[riskUnknownLine()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[save()_6]] - code - src/lib/trading/auto-paper.ts
+- [[save()_7]] - code - src/lib/trading/take-moments.ts
+- [[saveHiAlerts()]] - code - src/lib/trading/hi-alert.ts
+- [[setAutoPaper()]] - code - src/lib/trading/auto-paper.ts
+- [[short_5]] - code - scripts/verify-take-moments.mjs
+- [[src_lib_execution_apex_autofire_autofire_confluence_floor]] - concept
+- [[subscribeMoments()]] - code - src/lib/trading/take-moments.ts
+- [[summarizeMoments()]] - code - src/lib/trading/take-moments.ts
+- [[take-census-panel.tsx]] - code - src/components/desk/take-census-panel.tsx
+- [[take-census.ts]] - code - src/lib/trading/take-census.ts
+- [[take-moments-panel.tsx]] - code - src/components/desk/take-moments-panel.tsx
+- [[take-moments.ts]] - code - src/lib/trading/take-moments.ts
+- [[tickMomentOutcomes()]] - code - src/lib/trading/take-moments.ts
+- [[trade-log-panel.tsx]] - code - src/components/desk/trade-log-panel.tsx
+- [[trade-note.ts]] - code - src/lib/trading/trade-note.ts
+- [[verify-take-census.mjs]] - code - scripts/verify-take-census.mjs
+- [[verify-take-moments.mjs]] - code - scripts/verify-take-moments.mjs
+- [[withClientTimeout()]] - code - src/lib/trading/desk-fetch-guard.ts
+- [[wordClass()]] - code - src/components/desk/four-facts-board.tsx
+- [[wordHold]] - code - src/routes/index.tsx
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/indextsx
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 50 edges to [[_COMMUNITY_veteran-brain.ts]]
+- 50 edges to [[_COMMUNITY_cn]]
+- 44 edges to [[_COMMUNITY_react]]
+- 33 edges to [[_COMMUNITY_paper-manager.ts]]
+- 19 edges to [[_COMMUNITY_build-desk.ts]]
+- 18 edges to [[_COMMUNITY_entry-trigger.ts]]
+- 18 edges to [[_COMMUNITY_aplusconfig.ts]]
+- 14 edges to [[_COMMUNITY_ghost-book.ts]]
+- 14 edges to [[_COMMUNITY_dual-index-charts.tsx]]
+- 12 edges to [[_COMMUNITY_journalserver.ts]]
+- 12 edges to [[_COMMUNITY_options-swing-panel.tsx]]
+- 11 edges to [[_COMMUNITY_use-entry-state.ts]]
+- 10 edges to [[_COMMUNITY_OhlcBar]]
+- 9 edges to [[_COMMUNITY_room-engine.ts]]
+- 8 edges to [[_COMMUNITY_shadow-store.ts]]
+- 7 edges to [[_COMMUNITY_jsonResponse]]
+- 7 edges to [[_COMMUNITY_paper-backfill.ts]]
+- 6 edges to [[_COMMUNITY_send-server.ts]]
+- 6 edges to [[_COMMUNITY_smc-master.ts]]
+- 5 edges to [[_COMMUNITY_claude-server.ts]]
+- 5 edges to [[_COMMUNITY_SmcMasterBook]]
+- 5 edges to [[_COMMUNITY_tradovate-orders.ts]]
+- 5 edges to [[_COMMUNITY_authclient.ts]]
+- 5 edges to [[_COMMUNITY_hi-alert.ts]]
+- 5 edges to [[_COMMUNITY_orchestrator.ts]]
+- 5 edges to [[_COMMUNITY_snapshot-review.tsx]]
+- 4 edges to [[_COMMUNITY_analytics-panel.tsx]]
+- 4 edges to [[_COMMUNITY_word-hysteresis.ts]]
+- 3 edges to [[_COMMUNITY_propfirm-panel.tsx]]
+- 3 edges to [[_COMMUNITY_news-tab.tsx]]
+- 3 edges to [[_COMMUNITY_setup-chart-panel.tsx]]
+- 3 edges to [[_COMMUNITY_discuss-tab.tsx]]
+- 3 edges to [[_COMMUNITY_calibration-panel.tsx]]
+- 3 edges to [[_COMMUNITY_trade-log.ts]]
+- 3 edges to [[_COMMUNITY_getSql]]
+- 3 edges to [[_COMMUNITY_invest-panel.tsx]]
+- 3 edges to [[_COMMUNITY_tf-ladder-panel.tsx]]
+- 3 edges to [[_COMMUNITY_evaluateOptionsDesk]]
+- 3 edges to [[_COMMUNITY_live-world.ts]]
+- 3 edges to [[_COMMUNITY_watcher-tab.tsx]]
+- 3 edges to [[_COMMUNITY_shadow-book-panel.tsx]]
+- 3 edges to [[_COMMUNITY_apex-sim-panel.tsx]]
+- 3 edges to [[_COMMUNITY_learn-tab.tsx]]
+- 3 edges to [[_COMMUNITY_order-intent.ts]]
+- 3 edges to [[_COMMUNITY_floor-brains.tsx]]
+- 3 edges to [[_COMMUNITY_routeTree.gen.ts]]
+- 2 edges to [[_COMMUNITY_live-lesson.ts]]
+- 2 edges to [[_COMMUNITY_desk-atlas.ts]]
+- 2 edges to [[_COMMUNITY_mead-screens.ts]]
+- 2 edges to [[_COMMUNITY_ref_node_fs]]
+- 2 edges to [[_COMMUNITY_pm-analyzer.tsx]]
+- 2 edges to [[_COMMUNITY_setup-memory.ts]]
+- 2 edges to [[_COMMUNITY_@tanstackreact-start]]
+- 2 edges to [[_COMMUNITY_trading-floor-tab.tsx]]
+- 1 edge to [[_COMMUNITY_sleeve-sizing.ts]]
+- 1 edge to [[_COMMUNITY_buildTradingDesk]]
+- 1 edge to [[_COMMUNITY_journalanalytics.ts]]
+- 1 edge to [[_COMMUNITY_week-ahead.ts]]
+- 1 edge to [[_COMMUNITY_INTEGRATION-P1 — Journal + active risk governor]]
+- 1 edge to [[_COMMUNITY_smc-canon.ts]]
+- 1 edge to [[_COMMUNITY_chart-timeframes.ts]]
+- 1 edge to [[_COMMUNITY_verify-desk-cadence.mjs]]
+- 1 edge to [[_COMMUNITY_tradingscanner.ts]]
+- 1 edge to [[_COMMUNITY_capture-history.mjs]]
+- 1 edge to [[_COMMUNITY_options-desk.ts]]
+- 1 edge to [[_COMMUNITY_ref_node_url]]
+
+## Top bridge nodes
+- [[index.tsx]] - degree 305, connects to 50 communities
+- [[MasterplacePage()]] - degree 136, connects to 33 communities
+- [[take-moments.ts]] - degree 27, connects to 8 communities
+- [[four-facts-board.tsx]] - degree 20, connects to 7 communities
+- [[autoPaperShouldTake()]] - degree 14, connects to 6 communities

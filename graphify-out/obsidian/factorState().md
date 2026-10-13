@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 40"
-location: "L179"
+community: "smc-master.ts"
+location: "L193"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # factorState()
@@ -15,4 +15,4 @@ tags:
 - [[gradeBook()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

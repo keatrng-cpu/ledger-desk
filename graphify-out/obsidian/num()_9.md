@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/capture-invest-universe.mjs"
+source_file: "src/lib/bridge/paper-server.ts"
 type: "code"
-community: "Community 219"
-location: "L81"
+community: "getSql"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_219
+  - community/getSql
 ---
 
 # num()
 
 ## Connections
-- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
-- [[captureEtfProfiles()]] - `calls` [EXTRACTED]
+- [[listOpenPaperTrades]] - `calls` [EXTRACTED]
+- [[paper-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_219
+#graphify/code #graphify/EXTRACTED #community/getSql

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 214"
+community: "Avatar"
 location: "L2498"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Avatar
 ---
 
 # .react()
@@ -21,4 +21,4 @@ tags:
 - [[WireLog()]] - `calls` [EXTRACTED]
 - [[cuesOfFrame()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Avatar

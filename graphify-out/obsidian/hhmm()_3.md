@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-gateway-window.mjs"
+source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 200"
-location: "L68"
+community: "desk-atlas.ts"
+location: "L366"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_200
+  - community/desk-atlasts
 ---
 
 # hhmm()
 
 ## Connections
-- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
+- [[agents.ts]] - `contains` [EXTRACTED]
+- [[recordEvents()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_200
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

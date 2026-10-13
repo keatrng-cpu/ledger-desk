@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/check-research-sources.mjs"
 type: "code"
-community: "Community 70"
+community: "check-research-sources.mjs"
 location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_70
+  - community/check-research-sourcesmjs
 ---
 
 # pageText()
@@ -17,4 +17,4 @@ tags:
 - [[pdfText()]] - `calls` [EXTRACTED]
 - [[worker()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_70
+#graphify/code #graphify/EXTRACTED #community/check-research-sourcesmjs

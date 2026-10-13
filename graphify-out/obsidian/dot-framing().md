@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 289"
+community: "FloorScene"
 location: "L1117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_289
+  - community/FloorScene
 ---
 
 # .framing()
@@ -17,4 +17,4 @@ tags:
 - [[Avatar]] - `method` [EXTRACTED]
 - [[Code map]] - `references` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_289
+#graphify/code #graphify/EXTRACTED #community/FloorScene

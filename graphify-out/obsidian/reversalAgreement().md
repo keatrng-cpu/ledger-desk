@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 102"
+community: "school-brief.ts"
 location: "L463"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/school-briefts
 ---
 
 # reversalAgreement()
@@ -15,4 +15,4 @@ tags:
 - [[Code map]] - `references` [INFERRED]
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/school-briefts

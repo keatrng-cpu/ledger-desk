@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/utils.ts"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # formatPct()
@@ -19,4 +19,4 @@ tags:
 - [[dual-index-charts.tsx]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

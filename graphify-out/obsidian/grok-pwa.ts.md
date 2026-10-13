@@ -1,12 +1,12 @@
 ---
 source_file: "server/middleware/grok-pwa.ts"
 type: "code"
-community: "Community 135"
+community: "grok-pwa-plugin.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_135
+  - community/grok-pwa-pluginmjs
 ---
 
 # grok-pwa.ts
@@ -26,4 +26,4 @@ tags:
 - [[renderWebManifest()]] - `imports` [EXTRACTED]
 - [[requestHost()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_135
+#graphify/code #graphify/EXTRACTED #community/grok-pwa-pluginmjs

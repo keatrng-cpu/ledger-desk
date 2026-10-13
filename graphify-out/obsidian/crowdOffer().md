@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L646"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # crowdOffer()
@@ -16,4 +16,4 @@ tags:
 - [[live-voices-mead.ts]] - `contains` [EXTRACTED]
 - [[moverOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

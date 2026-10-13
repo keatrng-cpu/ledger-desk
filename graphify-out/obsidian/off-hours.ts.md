@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # off-hours.ts
@@ -17,4 +17,4 @@ tags:
 - [[live-talk.ts]] - `imports_from` [EXTRACTED]
 - [[marketClosed()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

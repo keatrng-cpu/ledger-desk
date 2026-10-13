@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/push-server.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # push-server.ts
@@ -37,4 +37,4 @@ tags:
 - [[vapidPublicKey()]] - `contains` [EXTRACTED]
 - [[vapidSubject()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

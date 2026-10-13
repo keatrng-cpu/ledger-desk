@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 172"
+community: "prediction-market-feed.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_172
+  - community/prediction-market-feedts
 ---
 
 # prediction-market-feed.ts
@@ -69,7 +69,7 @@ tags:
 - [[pm-analyzer.test.mjs]] - `imports_from` [EXTRACTED]
 - [[predict-server.ts]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[r4()_1]] - `contains` [EXTRACTED]
+- [[r4()_2]] - `contains` [EXTRACTED]
 - [[rankMarkets()]] - `contains` [EXTRACTED]
 - [[readiness]] - `imports` [EXTRACTED]
 - [[rhMcpUnavailableAdapter()]] - `contains` [EXTRACTED]
@@ -83,4 +83,4 @@ tags:
 - [[unitPrice()]] - `contains` [EXTRACTED]
 - [[verify-prediction-market-feed.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_172
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

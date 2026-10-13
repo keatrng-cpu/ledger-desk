@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-news-ipo.mjs"
+source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 133"
-location: "L19"
+community: "verify-setup-memory.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_133
+  - community/verify-setup-memorymjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_3]] - `calls` [EXTRACTED]
-- [[verify-news-ipo.mjs]] - `contains` [EXTRACTED]
+- [[ok()_5]] - `calls` [EXTRACTED]
+- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_133
+#graphify/code #graphify/EXTRACTED #community/verify-setup-memorymjs

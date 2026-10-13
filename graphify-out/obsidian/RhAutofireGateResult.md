@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
-location: "L329"
+community: "rh-autofire.ts"
+location: "L331"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # RhAutofireGateResult
@@ -17,4 +17,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[rh-autofire.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

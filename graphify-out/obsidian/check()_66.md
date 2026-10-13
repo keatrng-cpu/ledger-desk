@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-card-plan.mjs"
+source_file: "scripts/verify-floor-rh-account.mjs"
 type: "code"
-community: "Community 254"
-location: "L26"
+community: "meeting.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_254
+  - community/meetingts
 ---
 
 # check()
 
 ## Connections
-- [[verify-card-plan.mjs]] - `contains` [EXTRACTED]
+- [[verify-floor-rh-account.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_254
+#graphify/code #graphify/EXTRACTED #community/meetingts

@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/desk/viz/must-ring.tsx"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # must-ring.tsx
 
 ## Connections
-- [[COLOR_1]] - `contains` [EXTRACTED]
+- [[COLOR]] - `contains` [EXTRACTED]
 - [[MustRing()]] - `contains` [EXTRACTED]
 - [[SmcLayer]] - `imports` [EXTRACTED]
 - [[arc()]] - `contains` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[usePlainify()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

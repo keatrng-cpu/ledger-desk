@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/bars.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # desk_bars()
@@ -18,4 +18,4 @@ tags:
 - [[bars.py]] - `contains` [EXTRACTED]
 - [[pandas]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

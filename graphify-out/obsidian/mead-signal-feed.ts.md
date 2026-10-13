@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-signal-feed.ts"
 type: "code"
-community: "Community 16"
+community: "hall-read.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/hall-readts
 ---
 
 # mead-signal-feed.ts
@@ -37,7 +37,7 @@ tags:
 - [[mead-hall-build.ts]] - `imports_from` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
 - [[nextHallState()]] - `contains` [EXTRACTED]
-- [[pctTxt()_1]] - `contains` [EXTRACTED]
+- [[pctTxt()]] - `contains` [EXTRACTED]
 - [[pm-analyzer.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports_from` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
@@ -48,4 +48,4 @@ tags:
 - [[use-mead-feed.ts]] - `imports_from` [EXTRACTED]
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/hall-readts

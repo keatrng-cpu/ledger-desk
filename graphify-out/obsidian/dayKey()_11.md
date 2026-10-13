@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/build-learn-engine.mjs"
+source_file: "scripts/measure-judas.mjs"
 type: "code"
-community: "Community 203"
-location: "L54"
+community: "measure-judas.mjs"
+location: "L59"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_203
+  - community/measure-judasmjs
 ---
 
 # dayKey()
 
 ## Connections
-- [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
-- [[dayChangePct()_6]] - `calls` [EXTRACTED]
+- [[measure-judas.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_203
+#graphify/code #graphify/EXTRACTED #community/measure-judasmjs

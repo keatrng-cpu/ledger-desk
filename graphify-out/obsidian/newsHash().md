@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-talk.ts"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L379"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # newsHash()
@@ -17,4 +17,4 @@ tags:
 - [[live-talk.ts]] - `contains` [EXTRACTED]
 - [[newsCands()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

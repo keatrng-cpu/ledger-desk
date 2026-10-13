@@ -1,20 +1,18 @@
 ---
-source_file: "src/components/mead/mead-screens.ts"
+source_file: "src/components/room/floor-proto-avatars.ts"
 type: "code"
-community: "Community 41"
-location: "L629"
+community: "floor-proto-avatars.ts"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/floor-proto-avatarsts
 ---
 
 # drawBubble()
 
 ## Connections
-- [[dot-say()_4]] - `calls` [EXTRACTED]
-- [[fit()_7]] - `calls` [EXTRACTED]
-- [[mead-people.ts]] - `imports` [EXTRACTED]
-- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[dot-say()_2]] - `calls` [EXTRACTED]
+- [[floor-proto-avatars.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/floor-proto-avatarsts

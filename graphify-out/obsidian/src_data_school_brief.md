@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 102"
+community: "school-brief.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/school-briefts
 ---
 
 # src_data_school_brief
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[school-brief.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_102
+#graphify/concept #graphify/EXTRACTED #community/school-briefts

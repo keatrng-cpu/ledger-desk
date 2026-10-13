@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/hall-read.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L91"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # loadHallBoard()
@@ -23,4 +23,4 @@ tags:
 - [[use-mead-feed.ts]] - `imports` [EXTRACTED]
 - [[useMeadFloorFeed()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-option-math-oracle.mjs"
+source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 191"
-location: "L27"
+community: "verify-goal.mjs"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-goalmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
+- [[verify-goal.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-goalmjs

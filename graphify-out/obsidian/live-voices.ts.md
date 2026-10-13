@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 162"
+community: "live-voices.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-voicests
 ---
 
 # live-voices.ts
@@ -22,13 +22,13 @@ tags:
 - [[CardRead]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[ClosedStudyData]] - `contains` [EXTRACTED]
-- [[Ctx_1]] - `contains` [EXTRACTED]
+- [[Ctx]] - `contains` [EXTRACTED]
 - [[DealingData]] - `contains` [EXTRACTED]
 - [[DrawData]] - `contains` [EXTRACTED]
 - [[EXEC_LIMITS]] - `imports` [EXTRACTED]
 - [[EvidenceData]] - `contains` [EXTRACTED]
 - [[Ex]] - `contains` [EXTRACTED]
-- [[Facts_1]] - `imports` [EXTRACTED]
+- [[Facts]] - `imports` [EXTRACTED]
 - [[FeedData]] - `contains` [EXTRACTED]
 - [[GapData]] - `contains` [EXTRACTED]
 - [[GhostData]] - `contains` [EXTRACTED]
@@ -137,4 +137,4 @@ tags:
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-voicests

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L809"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .getState()
@@ -17,4 +17,4 @@ tags:
 - [[MeadHall]] - `method` [EXTRACTED]
 - [[PredictionMarketFeedState]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

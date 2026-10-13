@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 127"
+community: "strategy-grade.ts"
 location: "L376"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/strategy-gradets
 ---
 
 # bestStrategyGrade()
@@ -18,4 +18,4 @@ tags:
 - [[qualityScore()]] - `calls` [EXTRACTED]
 - [[strategy-grade.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

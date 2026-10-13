@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 29"
+community: "build-desk.ts"
 location: "L106"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/build-deskts
 ---
 
 # aggregateBars()
@@ -15,7 +15,7 @@ tags:
 - [[bestRung()]] - `calls` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[freshest.ts]] - `contains` [EXTRACTED]
-- [[load()]] - `calls` [EXTRACTED]
+- [[load()_1]] - `calls` [EXTRACTED]
 - [[ltf-lead.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/build-deskts

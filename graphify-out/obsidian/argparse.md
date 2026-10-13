@@ -1,17 +1,17 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 225"
+community: "selfcheck.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/selfcheckpy
 ---
 
 # argparse
 
 ## Connections
 - [[intake.py]] - `imports` [EXTRACTED]
-- [[main()_5]] - `calls` [EXTRACTED]
+- [[main()_3]] - `calls` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_225
+#graphify/concept #graphify/EXTRACTED #community/selfcheckpy

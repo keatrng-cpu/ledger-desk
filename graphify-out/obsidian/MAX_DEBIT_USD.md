@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sleeve-sizing.ts"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # MAX_DEBIT_USD
@@ -18,4 +18,4 @@ tags:
 - [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

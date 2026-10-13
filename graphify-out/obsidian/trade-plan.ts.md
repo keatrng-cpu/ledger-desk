@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-plan.ts"
 type: "code"
-community: "Community 72"
+community: "OhlcBar"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_72
+  - community/OhlcBar
 ---
 
 # trade-plan.ts
@@ -19,10 +19,11 @@ tags:
 - [[MAX_RISK_PTS]] - `imports` [EXTRACTED]
 - [[MIN_RISK_ATR]] - `contains` [EXTRACTED]
 - [[MIN_SESSIONS_FOR_ODDS]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[PlanLevel]] - `contains` [EXTRACTED]
 - [[PlanSide]] - `contains` [EXTRACTED]
 - [[PlanWorth]] - `contains` [EXTRACTED]
+- [[STRUCT_STOP_ATR]] - `contains` [EXTRACTED]
 - [[SessionSlice]] - `imports` [EXTRACTED]
 - [[SmcArray]] - `imports` [EXTRACTED]
 - [[TradePlan]] - `contains` [EXTRACTED]
@@ -35,7 +36,7 @@ tags:
 - [[cases.ts]] - `imports_from` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
-- [[elapsedFractionOf()_1]] - `contains` [EXTRACTED]
+- [[elapsedFractionOf()]] - `contains` [EXTRACTED]
 - [[entry-ticket.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[expectedR()]] - `imports` [EXTRACTED]
@@ -52,7 +53,7 @@ tags:
 - [[render-setup-chart.mjs]] - `dynamic_import` [EXTRACTED]
 - [[replay-drill.ts]] - `imports_from` [EXTRACTED]
 - [[rh-floor-signals.ts]] - `imports_from` [EXTRACTED]
-- [[round2()_9]] - `contains` [EXTRACTED]
+- [[round2()_7]] - `contains` [EXTRACTED]
 - [[runnerWorthIt()]] - `imports` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-chart.tsx]] - `imports_from` [EXTRACTED]
@@ -69,4 +70,4 @@ tags:
 - [[verify-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-trade-plan.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_72
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

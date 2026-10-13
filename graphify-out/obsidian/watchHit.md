@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # watchHit
@@ -21,4 +21,4 @@ tags:
 - [[live-talk.ts]] - `imports` [EXTRACTED]
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

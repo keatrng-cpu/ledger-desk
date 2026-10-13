@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L852"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # ManageContext
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[DrawRead]] - `references` [EXTRACTED]
 - [[NewsEvent]] - `references` [EXTRACTED]
-- [[OhlcBar]] - `references` [EXTRACTED]
+- [[OhlcBar_1]] - `references` [EXTRACTED]
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

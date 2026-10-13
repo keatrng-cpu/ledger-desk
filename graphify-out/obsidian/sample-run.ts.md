@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/sample-run.ts"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # sample-run.ts
@@ -24,14 +24,14 @@ tags:
 - [[PremarketSnapshot]] - `contains` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports_from` [EXTRACTED]
 - [[aplusanalytics.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[buildBacktestPayload()]] - `contains` [EXTRACTED]
 - [[buildDemoTrades()]] - `contains` [EXTRACTED]
 - [[buildNarrative()]] - `contains` [EXTRACTED]
 - [[buildPremarketSnapshot()]] - `contains` [EXTRACTED]
 - [[computeMetrics()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[confluence.ts]] - `imports_from` [EXTRACTED]
 - [[equityCurve()]] - `imports` [EXTRACTED]
 - [[seeded()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

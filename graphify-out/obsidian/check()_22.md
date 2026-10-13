@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-spot-cross.mjs"
+source_file: "scripts/verify-desk-mcp.mjs"
 type: "code"
-community: "Community 160"
-location: "L23"
+community: "grok-report.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/grok-reportts
 ---
 
 # check()
 
 ## Connections
-- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
+- [[verify-desk-mcp.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

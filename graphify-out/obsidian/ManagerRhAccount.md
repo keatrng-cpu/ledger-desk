@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # ManagerRhAccount
 
 ## Connections
-- [[dot-setAccount()]] - `references` [EXTRACTED]
+- [[dot-setAccount()_1]] - `references` [EXTRACTED]
 - [[dot-setAccountFromConnector()]] - `references` [EXTRACTED]
 - [[ManagerRoomState]] - `references` [EXTRACTED]
 - [[ManagerRoomStateAgree]] - `references` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[uirh-account.ts]] - `imports` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

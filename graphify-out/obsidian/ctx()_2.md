@@ -1,20 +1,23 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "src/lib/desk/learning-stats.ts"
 type: "code"
-community: "Community 48"
-location: "L133"
+community: "learning-stats.ts"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/learning-statsts
 ---
 
 # ctx()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
-- [[playAlarmTone()]] - `calls` [EXTRACTED]
-- [[shockSiren()]] - `calls` [EXTRACTED]
+- [[grokVsDesk()]] - `calls` [EXTRACTED]
+- [[learning-stats.ts]] - `contains` [EXTRACTED]
+- [[regimeFeatures()]] - `calls` [EXTRACTED]
+- [[shockStats()]] - `calls` [EXTRACTED]
+- [[targetStats()]] - `calls` [EXTRACTED]
+- [[tfVoteWeights()]] - `calls` [EXTRACTED]
+- [[vetoes()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/learning-statsts

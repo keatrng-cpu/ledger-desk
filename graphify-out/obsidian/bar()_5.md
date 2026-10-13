@@ -1,20 +1,17 @@
 ---
-source_file: "scripts/render-mead-attachments.mjs"
+source_file: "scripts/verify-exit-rules.mjs"
 type: "code"
-community: "Community 173"
-location: "L207"
+community: "verify-exit-rules.mjs"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_173
+  - community/verify-exit-rulesmjs
 ---
 
 # bar()
 
 ## Connections
-- [[render-mead-attachments.mjs]] - `contains` [EXTRACTED]
-- [[rr()_1]] - `calls` [EXTRACTED]
-- [[text()]] - `calls` [EXTRACTED]
-- [[tv()]] - `calls` [EXTRACTED]
+- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_173
+#graphify/code #graphify/EXTRACTED #community/verify-exit-rulesmjs

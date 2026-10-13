@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-mead-hall.mjs"
+source_file: "scripts/verify-mead-talk.mjs"
 type: "code"
-community: "Community 186"
-location: "L19"
+community: "verify-mead-talk.mjs"
+location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_186
+  - community/verify-mead-talkmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-mead-hall.mjs]] - `contains` [EXTRACTED]
+- [[verify-mead-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_186
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 59"
+community: "apex-sim-panel.tsx"
 location: "L438"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/apex-sim-paneltsx
 ---
 
 # ApexSimPanel()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
-- [[Card()_1]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
+- [[Card()]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
 - [[CardDescription()]] - `calls` [EXTRACTED]
 - [[CardHeader()]] - `calls` [EXTRACTED]
@@ -35,12 +35,12 @@ tags:
 - [[inputKey()]] - `calls` [EXTRACTED]
 - [[loadEvidenceDist()]] - `calls` [EXTRACTED]
 - [[money()_14]] - `calls` [EXTRACTED]
-- [[num()_15]] - `calls` [EXTRACTED]
-- [[persist()_1]] - `calls` [EXTRACTED]
+- [[num()_16]] - `calls` [EXTRACTED]
+- [[persist()]] - `calls` [EXTRACTED]
 - [[restore()]] - `calls` [EXTRACTED]
 - [[roomToLiquidation()]] - `calls` [EXTRACTED]
 - [[runApexSim()]] - `calls` [EXTRACTED]
 - [[simCaveats()]] - `calls` [EXTRACTED]
 - [[simHonestyLine()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

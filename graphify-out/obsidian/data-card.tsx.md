@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/invest/data-card.tsx"
 type: "code"
-community: "Community 34"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/invest-paneltsx
 ---
 
 # data-card.tsx
 
 ## Connections
-- [[BUTTON_1]] - `imports` [EXTRACTED]
+- [[BUTTON]] - `imports` [EXTRACTED]
 - [[Card()_2]] - `imports` [EXTRACTED]
 - [[DataCard()]] - `contains` [EXTRACTED]
 - [[Note()]] - `imports` [EXTRACTED]
@@ -21,9 +21,9 @@ tags:
 - [[importLedger()]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[investformat.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sync.ts]] - `imports_from` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

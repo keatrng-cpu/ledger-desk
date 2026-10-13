@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-shadow-replay.mjs"
+source_file: "scripts/trace-session.mjs"
 type: "code"
-community: "Community 20"
-location: "L22"
+community: "news.ts"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # history
 
 ## Connections
-- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
+- [[trace-session.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

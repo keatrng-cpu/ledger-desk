@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L246"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # washSaleBan()
@@ -20,4 +20,4 @@ tags:
 - [[universe.ts]] - `contains` [EXTRACTED]
 - [[verdictFor()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

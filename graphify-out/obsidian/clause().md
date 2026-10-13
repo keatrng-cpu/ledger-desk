@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-read.ts"
 type: "code"
-community: "Community 300"
+community: "desk-atlas.ts"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_300
+  - community/desk-atlasts
 ---
 
 # clause()
@@ -15,4 +15,4 @@ tags:
 - [[bookSentence()]] - `calls` [EXTRACTED]
 - [[brain-read.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_300
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

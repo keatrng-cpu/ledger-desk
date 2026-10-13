@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L261"
+community: "evaluateOptionsDesk"
+location: "L263"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # afterSecondImpulse()
@@ -17,4 +17,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[pathContinuation()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

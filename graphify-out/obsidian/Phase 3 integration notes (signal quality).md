@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-P3.md"
 type: "document"
-community: "Community 58"
+community: "structure.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # Phase 3 integration notes (signal quality)
@@ -19,4 +19,4 @@ tags:
 - [[5. Config note]] - `contains` [EXTRACTED]
 - [[INTEGRATION-P3]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_58
+#graphify/document #graphify/EXTRACTED #community/structurets

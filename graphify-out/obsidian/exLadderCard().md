@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-race.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L421"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/compact
 ---
 
 # exLadderCard()
@@ -21,4 +21,4 @@ tags:
 - [[oddsTxt()]] - `calls` [EXTRACTED]
 - [[pick()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/compact

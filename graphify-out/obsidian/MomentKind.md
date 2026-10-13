@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # MomentKind
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-race-replay.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

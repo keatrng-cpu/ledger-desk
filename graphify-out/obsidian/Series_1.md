@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # Series
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[atr()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

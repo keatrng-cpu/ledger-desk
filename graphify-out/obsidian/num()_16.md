@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/predict/board.ts"
+source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 7"
-location: "L62"
+community: "apex-sim-panel.tsx"
+location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/apex-sim-paneltsx
 ---
 
 # num()
 
 ## Connections
-- [[board.ts]] - `contains` [EXTRACTED]
-- [[parseEspnScoreboard()]] - `calls` [EXTRACTED]
-- [[parseKalshiEvents()]] - `calls` [EXTRACTED]
-- [[parsePolyMarket()]] - `calls` [EXTRACTED]
-- [[parseSummaryExtras()]] - `calls` [EXTRACTED]
+- [[ApexSimPanel()]] - `calls` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

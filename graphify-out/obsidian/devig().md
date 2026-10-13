@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/predict/devig.ts"
 type: "code"
-community: "Community 2"
+community: "predict-server.ts"
 location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-serverts
 ---
 
 # devig()
 
 ## Connections
-- [[bisect()]] - `calls` [EXTRACTED]
+- [[bisect()_2]] - `calls` [EXTRACTED]
 - [[board.ts]] - `imports` [EXTRACTED]
-- [[buildBoard()]] - `calls` [EXTRACTED]
+- [[buildBoard()_1]] - `calls` [EXTRACTED]
 - [[devig.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

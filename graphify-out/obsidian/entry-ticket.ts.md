@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-ticket.ts"
 type: "code"
-community: "Community 48"
+community: "aplus/config.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/aplus/configts
 ---
 
 # entry-ticket.ts
@@ -15,10 +15,10 @@ tags:
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
 - [[EntryTicket]] - `contains` [EXTRACTED]
 - [[TradePlan]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[buildEntryTicket()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[path-alarm.ts]] - `imports_from` [EXTRACTED]
-- [[px()_11]] - `contains` [EXTRACTED]
+- [[px()_7]] - `contains` [EXTRACTED]
 - [[riskAtrBucket()]] - `imports` [EXTRACTED]
 - [[riskGradeFromScore()]] - `imports` [EXTRACTED]
 - [[sizeContracts()]] - `imports` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 - [[verify-entry-ticket.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

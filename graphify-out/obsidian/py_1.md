@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-gateway-window.mjs"
+source_file: "scripts/lab.mjs"
 type: "code"
-community: "Community 200"
-location: "L30"
+community: "ref_node_path"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_200
+  - community/ref_node_path
 ---
 
 # py
 
 ## Connections
-- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
+- [[lab.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_200
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

@@ -1,22 +1,19 @@
 ---
-source_file: "src/routes/__root.tsx"
+source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 54"
-location: "L12"
+community: "routeTree.gen.ts"
+location: "L212"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # Route
 
 ## Connections
-- [[AuthProvider()]] - `calls` [EXTRACTED]
-- [[CreatedWithGrokBanner()]] - `calls` [EXTRACTED]
-- [[FileRoutesById]] - `references` [EXTRACTED]
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[__root.tsx]] - `contains` [EXTRACTED]
+- [[index.tsx]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

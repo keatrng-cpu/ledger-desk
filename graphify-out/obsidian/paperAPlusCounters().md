@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "veteran-brain.ts"
 location: "L227"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/veteran-braints
 ---
 
 # paperAPlusCounters()
@@ -20,4 +20,4 @@ tags:
 - [[paper-manager.ts]] - `contains` [EXTRACTED]
 - [[recordArmedShadow()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

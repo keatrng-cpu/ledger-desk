@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/predict/predict-server.ts"
 type: "code"
-community: "Community 7"
+community: "predict-server.ts"
 location: "L140"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_7
+  - community/predict-serverts
 ---
 
 # getPredictBoard
 
 ## Connections
 - [[PredictTab()]] - `calls` [EXTRACTED]
-- [[buildBoard()]] - `calls` [EXTRACTED]
+- [[buildBoard()_1]] - `calls` [EXTRACTED]
 - [[extrasFor()]] - `calls` [EXTRACTED]
 - [[getJson()]] - `calls` [EXTRACTED]
 - [[hall-read.ts]] - `imports` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[predict-server.ts]] - `contains` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_7
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

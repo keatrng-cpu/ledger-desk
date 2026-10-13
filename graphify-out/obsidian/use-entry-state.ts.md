@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/use-entry-state.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # use-entry-state.ts
@@ -33,7 +33,7 @@ tags:
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[price-path-board.tsx]] - `imports_from` [EXTRACTED]
 - [[pricePathVerdict()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[rh-account-strip.tsx]] - `imports_from` [EXTRACTED]
 - [[screen-flash.tsx]] - `re_exports` [EXTRACTED]
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
@@ -46,4 +46,4 @@ tags:
 - [[useEntryState()]] - `contains` [EXTRACTED]
 - [[useRhAccount()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

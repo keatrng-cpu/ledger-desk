@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/invest-office-panel.tsx"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # invest-office-panel.tsx
@@ -37,7 +37,7 @@ tags:
 - [[money()]] - `contains` [EXTRACTED]
 - [[money2()]] - `contains` [EXTRACTED]
 - [[policy.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readInvestOffice()]] - `imports` [EXTRACTED]
 - [[refreshInvestScreens()]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[usableThemes()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

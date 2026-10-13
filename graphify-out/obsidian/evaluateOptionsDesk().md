@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L2117"
+community: "evaluateOptionsDesk"
+location: "L2172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # evaluateOptionsDesk()
@@ -26,7 +26,7 @@ tags:
 - [[eventSecond()]] - `calls` [EXTRACTED]
 - [[four-facts-board.tsx]] - `imports` [EXTRACTED]
 - [[gateHand()]] - `calls` [EXTRACTED]
-- [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[handleGet()]] - `calls` [EXTRACTED]
 - [[isJudasWindow()]] - `calls` [EXTRACTED]
 - [[judasIfvg0dte()]] - `calls` [EXTRACTED]
@@ -49,4 +49,4 @@ tags:
 - [[underlierOf()]] - `calls` [EXTRACTED]
 - [[underlierSheet()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-repo-guards.mjs"
+source_file: "scripts/verify-option-math-oracle.mjs"
 type: "code"
-community: "Community 314"
-location: "L57"
+community: "verify-option-math-oracle.mjs"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_314
+  - community/verify-option-math-oraclemjs
 ---
 
 # walk()
 
 ## Connections
-- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
-- [[walk()_6]] - `calls` [EXTRACTED]
+- [[verify-option-math-oracle.mjs]] - `contains` [EXTRACTED]
+- [[worst()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_314
+#graphify/code #graphify/EXTRACTED #community/verify-option-math-oraclemjs

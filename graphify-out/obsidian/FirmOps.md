@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
+community: "live-voices-invest.ts"
 location: "L546"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/live-voices-investts
 ---
 
 # FirmOps
@@ -16,4 +16,4 @@ tags:
 - [[invest-read.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

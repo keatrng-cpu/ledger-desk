@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 32"
+community: "package.json"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_32
+  - community/packagejson
 ---
 
 # overrides
@@ -15,4 +15,4 @@ tags:
 - [[nf3]] - `contains` [EXTRACTED]
 - [[package.json]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_32
+#graphify/code #graphify/EXTRACTED #community/packagejson

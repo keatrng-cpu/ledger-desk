@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/override-log.ts"
 type: "code"
-community: "Community 60"
+community: "trade-log.ts"
 location: "L107"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_60
+  - community/trade-logts
 ---
 
 # overrideScorecard()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[override-log.ts]] - `contains` [EXTRACTED]
 - [[readTradeLog()]] - `calls` [EXTRACTED]
-- [[round2()_8]] - `calls` [EXTRACTED]
+- [[round2()_4]] - `calls` [EXTRACTED]
 - [[trade-log.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_60
+#graphify/code #graphify/EXTRACTED #community/trade-logts

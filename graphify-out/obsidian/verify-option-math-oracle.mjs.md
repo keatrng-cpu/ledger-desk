@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/verify-option-math-oracle.mjs"
 type: "code"
-community: "Community 191"
+community: "verify-option-math-oracle.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/verify-option-math-oraclemjs
 ---
 
 # verify-option-math-oracle.mjs
 
 ## Connections
 - [[G]] - `contains` [EXTRACTED]
-- [[check()_35]] - `contains` [EXTRACTED]
+- [[check()_68]] - `contains` [EXTRACTED]
 - [[mutants]] - `contains` [EXTRACTED]
 - [[n_1]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `dynamic_import` [EXTRACTED]
@@ -21,7 +21,7 @@ tags:
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
 - [[sci()]] - `contains` [EXTRACTED]
 - [[w_2]] - `contains` [EXTRACTED]
-- [[walk()_2]] - `contains` [EXTRACTED]
+- [[walk()_6]] - `contains` [EXTRACTED]
 - [[worst()_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/verify-option-math-oraclemjs

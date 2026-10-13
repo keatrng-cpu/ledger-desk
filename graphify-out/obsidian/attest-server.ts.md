@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/attest-server.ts"
 type: "code"
-community: "Community 285"
+community: "attest.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_285
+  - community/attestts
 ---
 
 # attest-server.ts
@@ -37,4 +37,4 @@ tags:
 - [[verifyChain()]] - `imports` [EXTRACTED]
 - [[verifyUserChain()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_285
+#graphify/code #graphify/EXTRACTED #community/attestts

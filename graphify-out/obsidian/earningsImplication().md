@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/schedule.ts"
 type: "code"
-community: "Community 284"
+community: "invest-office.ts"
 location: "L112"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # earningsImplication()
@@ -15,4 +15,4 @@ tags:
 - [[schedule.ts]] - `contains` [EXTRACTED]
 - [[timeline()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_284
+#graphify/code #graphify/EXTRACTED #community/invest-officets

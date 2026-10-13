@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/invest-read.ts"
+source_file: "src/lib/predict/board.ts"
 type: "code"
-community: "Community 49"
-location: "L65"
+community: "predict-server.ts"
+location: "L67"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/predict-serverts
 ---
 
 # MONTHS
 
 ## Connections
-- [[invest-read.ts]] - `contains` [EXTRACTED]
+- [[board.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

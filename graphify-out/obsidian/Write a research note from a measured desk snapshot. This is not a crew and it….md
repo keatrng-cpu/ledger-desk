@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/retain.py"
 type: "rationale"
-community: "Community 226"
+community: "retain.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/retainpy
 ---
 
 # Write a research note from a measured desk snapshot. This is not a crew and it…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[retain.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_226
+#graphify/rationale #graphify/EXTRACTED #community/retainpy

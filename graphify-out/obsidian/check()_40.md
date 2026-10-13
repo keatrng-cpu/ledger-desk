@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-gateway-window.mjs"
+source_file: "scripts/verify-replay-drills.mjs"
 type: "code"
-community: "Community 200"
-location: "L23"
+community: "verify-replay-drills.mjs"
+location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_200
+  - community/verify-replay-drillsmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_14]] - `calls` [EXTRACTED]
-- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
+- [[all()]] - `calls` [EXTRACTED]
+- [[verify-replay-drills.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_200
+#graphify/code #graphify/EXTRACTED #community/verify-replay-drillsmjs

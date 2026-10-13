@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/tradovate-client.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # tokenCache
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[tradovate-client.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

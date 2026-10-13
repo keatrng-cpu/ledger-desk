@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-cases.mjs"
+source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 143"
-location: "L20"
+community: "news.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/newsts
 ---
 
 # history
 
 ## Connections
-- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
+- [[probe-closest.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/newsts

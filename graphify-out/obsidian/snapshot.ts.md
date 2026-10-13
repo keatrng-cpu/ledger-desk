@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/snapshot.ts"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # snapshot.ts
@@ -37,4 +37,4 @@ tags:
 - [[verify-room-seats.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-room-snapshot.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

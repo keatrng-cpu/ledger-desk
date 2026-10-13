@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-rnd.mjs"
+source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 208"
-location: "L31"
+community: "verify-goal.mjs"
+location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_208
+  - community/verify-goalmjs
 ---
 
 # near()
 
 ## Connections
-- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
+- [[verify-goal.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_208
+#graphify/code #graphify/EXTRACTED #community/verify-goalmjs

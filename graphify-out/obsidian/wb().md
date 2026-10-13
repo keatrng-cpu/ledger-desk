@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 246"
+community: "build_floor.py"
 location: "L627"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_246
+  - community/build_floorpy
 ---
 
 # wb()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[P()]] - `calls` [EXTRACTED]
 - [[box()]] - `calls` [EXTRACTED]
-- [[build_walls()_1]] - `contains` [EXTRACTED]
+- [[build_walls()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_246
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

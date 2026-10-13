@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/market/databento.ts"
+source_file: "scripts/verify-cases.mjs"
 type: "code"
-community: "Community 98"
-location: "L519"
+community: "ref_node_fs"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/ref_node_fs
 ---
 
 # etMinutes()
 
 ## Connections
-- [[databento.ts]] - `contains` [EXTRACTED]
-- [[nyAmBars()]] - `calls` [EXTRACTED]
-- [[rthBars()]] - `calls` [EXTRACTED]
+- [[verify-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/performance.md"
 type: "document"
-community: "Community 90"
+community: "Transition Only What Changes"
 location: "L41"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_90
+  - community/Transition_Only_What_Changes
 ---
 
 # Tailwind `transition-transform` Note
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Transition Only What Changes]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_90
+#graphify/document #graphify/EXTRACTED #community/Transition_Only_What_Changes

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 51"
+community: "floor-sound.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/floor-soundts
 ---
 
 # floor-sound.ts
@@ -36,4 +36,4 @@ tags:
 - [[setVoiceQuality()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/floor-soundts

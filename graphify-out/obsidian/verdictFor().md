@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/discretion-memory.ts"
 type: "code"
-community: "Community 111"
+community: "discretion-memory.ts"
 location: "L367"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/discretion-memoryts
 ---
 
 # verdictFor()
@@ -16,4 +16,4 @@ tags:
 - [[decidedN()]] - `calls` [EXTRACTED]
 - [[discretion-memory.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/discretion-memoryts

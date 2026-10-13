@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/desk/grok-report.ts"
 type: "code"
-community: "Community 184"
+community: "grok-report.ts"
 location: "L105"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/grok-reportts
 ---
 
 # writeGrokReport()
@@ -18,4 +18,4 @@ tags:
 - [[parseGrokReport()]] - `calls` [EXTRACTED]
 - [[post()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

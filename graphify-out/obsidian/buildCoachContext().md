@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/coach/context.ts"
 type: "code"
-community: "Community 161"
+community: "react"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_161
+  - community/react
 ---
 
 # buildCoachContext()
@@ -20,4 +20,4 @@ tags:
 - [[discuss-tab.tsx]] - `imports` [EXTRACTED]
 - [[trading-coach.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_161
+#graphify/code #graphify/EXTRACTED #community/react

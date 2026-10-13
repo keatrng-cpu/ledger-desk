@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 129"
+community: "thesis-server.ts"
 location: "L149"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/thesis-serverts
 ---
 
 # build()
@@ -29,4 +29,4 @@ tags:
 - [[timeline()]] - `calls` [EXTRACTED]
 - [[weekday()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/thesis-serverts

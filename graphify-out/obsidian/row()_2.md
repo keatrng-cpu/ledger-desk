@@ -1,19 +1,17 @@
 ---
-source_file: "scripts/direction-book.py"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 131"
-location: "L484"
+community: "verify-rh-desk-job.mjs"
+location: "L202"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/verify-rh-desk-jobmjs
 ---
 
 # row()
 
 ## Connections
-- [[main()_2]] - `contains` [EXTRACTED]
-- [[num()_11]] - `indirect_call` [INFERRED]
-- [[stats()]] - `calls` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

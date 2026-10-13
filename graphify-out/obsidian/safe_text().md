@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/intake.py"
 type: "code"
-community: "Community 225"
+community: "selfcheck.py"
 location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/selfcheckpy
 ---
 
 # safe_text()
@@ -16,4 +16,4 @@ tags:
 - [[intake.py]] - `contains` [EXTRACTED]
 - [[parse_issue()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_225
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

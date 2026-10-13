@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/rh-account.ts"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # ui/rh-account.ts
@@ -34,4 +34,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

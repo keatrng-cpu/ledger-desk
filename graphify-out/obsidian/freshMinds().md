@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L387"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # freshMinds()
@@ -17,4 +17,4 @@ tags:
 - [[hash01()_1]] - `calls` [EXTRACTED]
 - [[planAgents()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

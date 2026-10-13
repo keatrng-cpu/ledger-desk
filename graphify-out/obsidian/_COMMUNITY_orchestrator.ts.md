@@ -1,0 +1,295 @@
+---
+type: community
+cohesion: 0.03
+members: 166
+---
+
+# orchestrator.ts
+
+**Cohesion:** 0.03 - loosely connected
+**Members:** 166 nodes
+
+## Members
+- [[ANIMS_BY_CHARACTER]] - code - src/lib/room/orchestrator.ts
+- [[ActionType]] - code - src/lib/room/orchestrator.ts
+- [[Agenda]] - code - src/lib/room/agents.ts
+- [[AgentAct]] - code - src/lib/room/agents.ts
+- [[Attribution_1]] - code - src/lib/room/quant.ts
+- [[BrokerAction]] - code - src/lib/room/orchestrator.ts
+- [[BsRead]] - code - src/lib/room/option-math.ts
+- [[CREW_3]] - code - src/lib/room/lab.ts
+- [[CardRead]] - code - src/lib/room/live-types.ts
+- [[ContractChoice]] - code - src/lib/room/quant.ts
+- [[DESKS]] - code - src/lib/room/orchestrator.ts
+- [[DrillFrame]] - code - src/lib/room/drill.ts
+- [[ET_PARTS_FMT]] - code - src/lib/trading/sessions.ts
+- [[EVENT_EXIT_MIN]] - code - src/lib/room/exits.ts
+- [[EXIT_RANK]] - code - src/lib/room/exits.ts
+- [[EntryOpts]] - code - src/lib/room/orchestrator.ts
+- [[EntryPlan]] - code - src/lib/room/orchestrator.ts
+- [[EntryTier]] - code - src/lib/room/orchestrator.ts
+- [[ExitContext]] - code - src/lib/room/exits.ts
+- [[ExitPlan_1]] - code - src/lib/room/orchestrator.ts
+- [[ExitPolicy]] - code - src/lib/room/exits.ts
+- [[Facts_1]] - code - src/lib/room/meeting.ts
+- [[FloorScreens]] - code - src/components/room/floor-screens.ts
+- [[Gate_1]] - code - src/lib/room/orchestrator.ts
+- [[GemmaAnim]] - code - src/lib/room/orchestrator.ts
+- [[GhostFut]] - code - src/lib/room/lab.ts
+- [[GhostPos]] - code - src/lib/room/lab.ts
+- [[GhostStepCtx]] - code - src/lib/room/lab.ts
+- [[GoalSpec]] - code - src/lib/room/goal.ts
+- [[GoalView]] - code - src/lib/room/goal.ts
+- [[HALF_SPREAD]] - code - src/lib/room/option-math.ts
+- [[HoldRead]] - code - src/lib/room/quant.ts
+- [[JaxAnim]] - code - src/lib/room/orchestrator.ts
+- [[LADDER_MAX_STEPS]] - code - src/lib/room/contract-ladder.ts
+- [[LabStepArgs]] - code - src/lib/room/lab.ts
+- [[LadderCard]] - code - src/lib/room/contract-ladder.ts
+- [[LadderInput_1]] - code - src/lib/room/contract-ladder.ts
+- [[Lenses]] - code - src/lib/room/debate.ts
+- [[MANDATE_POLICY]] - code - src/lib/room/exits.ts
+- [[MEETING_LINES]] - code - src/lib/room/orchestrator.ts
+- [[MIN_TRACK]] - code - src/lib/room/lab.ts
+- [[NY_AM_LIVE_END_MIN]] - code - src/lib/trading/sessions.ts
+- [[NY_AM_LIVE_START_MIN]] - code - src/lib/trading/sessions.ts
+- [[NetWindow]] - code - src/lib/room/exec/safety-net.ts
+- [[NovaAnim]] - code - src/lib/room/orchestrator.ts
+- [[OptionEv]] - code - src/lib/room/quant.ts
+- [[OptionQuote]] - code - src/lib/room/option-math.ts
+- [[OptionType]] - code - src/lib/room/option-math.ts
+- [[PlanRead]] - code - src/lib/room/quant.ts
+- [[PlanWatch]] - code - src/lib/room/lab.ts
+- [[PriceArgs]] - code - src/lib/room/quant.ts
+- [[ROOM_CLOCK]] - code - src/lib/room/mandate.ts
+- [[ROOM_MANDATE]] - code - src/lib/room/mandate.ts
+- [[ROOM_POLICY]] - code - src/lib/room/exits.ts
+- [[ROOM_STOP_PCT]] - code - src/lib/room/mandate.ts
+- [[Race]] - code - src/lib/room/race.ts
+- [[RaceInput]] - code - src/lib/room/race.ts
+- [[RoomBookPosition]] - code - src/lib/room/paper-book.ts
+- [[RoomClosedTrade]] - code - src/lib/room/paper-book.ts
+- [[RoomDeskRead]] - code - src/lib/room/orchestrator.ts
+- [[RoomEntryRead]] - code - src/lib/room/orchestrator.ts
+- [[RoomFrameLite]] - code - src/lib/room/manager-room-feed.ts
+- [[RoomLab]] - code - src/lib/room/lab.ts
+- [[RoomLedger]] - code - src/lib/room/orchestrator.ts
+- [[RoomOutput]] - code - src/lib/room/orchestrator.ts
+- [[RoomPositionIn]] - code - src/lib/room/orchestrator.ts
+- [[RoomTrace]] - code - src/lib/room/orchestrator.ts
+- [[Rung_1]] - code - src/lib/room/contract-ladder.ts
+- [[RungPricing]] - code - src/lib/room/contract-ladder.ts
+- [[SAFE_TAPE]] - code - src/lib/room/orchestrator.ts
+- [[STOP_TXT]] - code - src/lib/room/format.ts
+- [[ScanCardLite]] - code - src/lib/room/live-types.ts
+- [[Scenario_1]] - code - src/lib/room/quant.ts
+- [[SeatBook]] - code - src/lib/room/seats.ts
+- [[SeatClosed]] - code - src/lib/room/seats.ts
+- [[SeatStepArgs]] - code - src/lib/room/seats.ts
+- [[Situation]] - code - src/lib/room/agents.ts
+- [[SterlingAnim]] - code - src/lib/room/orchestrator.ts
+- [[StrikeOffset_1]] - code - src/lib/room/option-math.ts
+- [[TimeOddsFile]] - code - src/lib/room/time-odds.ts
+- [[Trend]] - code - src/lib/room/orchestrator.ts
+- [[Underlier]] - code - src/lib/room/option-math.ts
+- [[UnderlierTape]] - code - src/lib/room/orchestrator.ts
+- [[Urgency_1]] - code - src/lib/room/orchestrator.ts
+- [[VIX_ELEVATED]] - code - src/lib/room/mandate.ts
+- [[VIX_STRESSED]] - code - src/lib/room/mandate.ts
+- [[VinceAnim]] - code - src/lib/room/orchestrator.ts
+- [[WEEKDAY_MAP]] - code - src/lib/trading/sessions.ts
+- [[ZONES_BY_CHARACTER]] - code - src/lib/room/orchestrator.ts
+- [[attribute()_1]] - code - src/lib/room/quant.ts
+- [[backstopped()]] - code - src/lib/room/quant.ts
+- [[barGrid()]] - code - src/lib/room/time-odds.ts
+- [[bidAt()]] - code - src/lib/room/quant.ts
+- [[blackScholes()]] - code - src/lib/room/option-math.ts
+- [[breakevenSpot()]] - code - src/lib/room/quant.ts
+- [[buildLadder()]] - code - src/lib/room/contract-ladder.ts
+- [[calendarFor()]] - code - src/components/room/room-engine.ts
+- [[cents()_5]] - code - src/lib/room/option-math.ts
+- [[chooseContract()]] - code - src/lib/room/quant.ts
+- [[clockEt()]] - code - src/lib/room/format.ts
+- [[computeRace()]] - code - src/lib/room/race.ts
+- [[contract-ladder.ts]] - code - src/lib/room/contract-ladder.ts
+- [[decayToStop()]] - code - src/lib/room/option-math.ts
+- [[etMinOf()_2]] - code - src/lib/room/orchestrator.ts
+- [[etWallToEpochMs()]] - code - src/lib/trading/sessions.ts
+- [[etfAt()]] - code - src/lib/room/quant.ts
+- [[evaluateEntry()]] - code - src/lib/room/orchestrator.ts
+- [[exitFor()]] - code - src/lib/room/exits.ts
+- [[exits.ts]] - code - src/lib/room/exits.ts
+- [[expiryFor()]] - code - src/lib/room/orchestrator.ts
+- [[expiryMs()]] - code - src/lib/room/option-math.ts
+- [[focusFor()]] - code - src/lib/room/orchestrator.ts
+- [[futAtR()]] - code - src/lib/room/quant.ts
+- [[ghostFrom()]] - code - src/lib/room/lab.ts
+- [[holdReadFor()]] - code - src/lib/room/quant.ts
+- [[holdValue()]] - code - src/lib/room/quant.ts
+- [[holdsFor()]] - code - src/lib/room/orchestrator.ts
+- [[isNum()]] - code - src/lib/room/orchestrator.ts
+- [[isWeekendDate()]] - code - src/lib/room/option-math.ts
+- [[isoPlusDays()]] - code - src/lib/room/option-math.ts
+- [[ivFor()]] - code - src/lib/room/option-math.ts
+- [[lab.ts]] - code - src/lib/room/lab.ts
+- [[ladderSteps()]] - code - src/lib/room/contract-ladder.ts
+- [[leagueRead]] - code - src/lib/room/seats.ts
+- [[mandate.ts]] - code - src/lib/room/mandate.ts
+- [[memoView()]] - code - src/lib/room/race.ts
+- [[money()_12]] - code - src/lib/room/lab.ts
+- [[nextWeekday()]] - code - src/lib/room/option-math.ts
+- [[noneFut()]] - code - src/lib/room/quant.ts
+- [[normCdf()]] - code - src/lib/room/option-math.ts
+- [[normPdf()]] - code - src/lib/room/option-math.ts
+- [[offsetAt()]] - code - src/lib/room/option-math.ts
+- [[offsetOf()]] - code - src/lib/room/option-math.ts
+- [[option-math.ts]] - code - src/lib/room/option-math.ts
+- [[orchestrator.ts]] - code - src/lib/room/orchestrator.ts
+- [[pT1Now()]] - code - src/lib/room/quant.ts
+- [[pctTxt()_1]] - code - src/lib/room/orchestrator.ts
+- [[pickExit()]] - code - src/lib/room/exits.ts
+- [[pickStrike()]] - code - src/lib/room/orchestrator.ts
+- [[planHitOdds()]] - code - src/lib/trading/hit-odds-model.ts
+- [[planKeyOf()]] - code - src/lib/room/lab.ts
+- [[premiumStopOf()]] - code - src/lib/room/quant.ts
+- [[priceOptionPlan()]] - code - src/lib/room/quant.ts
+- [[quant.ts]] - code - src/lib/room/quant.ts
+- [[quoteFor()]] - code - src/lib/room/orchestrator.ts
+- [[quoteOption()]] - code - src/lib/room/option-math.ts
+- [[r2()_9]] - code - src/lib/room/contract-ladder.ts
+- [[race.ts]] - code - src/lib/room/race.ts
+- [[repricedOdds()]] - code - src/lib/room/quant.ts
+- [[resolveMemories()]] - code - src/lib/room/agents.ts
+- [[resolveWatch()]] - code - src/lib/room/lab.ts
+- [[roomRungs()]] - code - src/lib/room/contract-ladder.ts
+- [[round2()_11]] - code - src/lib/room/quant.ts
+- [[rrOf()]] - code - src/lib/room/quant.ts
+- [[safety-net.ts]] - code - src/lib/room/exec/safety-net.ts
+- [[sessions.ts]] - code - src/lib/trading/sessions.ts
+- [[stepGhost()]] - code - src/lib/room/lab.ts
+- [[stepLab()]] - code - src/lib/room/lab.ts
+- [[stepsOf()_1]] - code - src/lib/room/option-math.ts
+- [[strikeFor()]] - code - src/lib/room/option-math.ts
+- [[t1AtrOf()]] - code - src/lib/room/quant.ts
+- [[urgencyFor()]] - code - src/lib/room/orchestrator.ts
+- [[validateInput()]] - code - src/lib/room/orchestrator.ts
+- [[vixOf()_1]] - code - src/lib/room/orchestrator.ts
+- [[weekendMsBetween()]] - code - src/lib/room/option-math.ts
+- [[yearsToExpiry()]] - code - src/lib/room/option-math.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/orchestratorts
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 114 edges to [[_COMMUNITY_room-engine.ts]]
+- 79 edges to [[_COMMUNITY_meeting.ts]]
+- 49 edges to [[_COMMUNITY_live-world.ts]]
+- 43 edges to [[_COMMUNITY_seats.ts]]
+- 31 edges to [[_COMMUNITY_floor-school-contracts.ts]]
+- 22 edges to [[_COMMUNITY_agents.ts]]
+- 16 edges to [[_COMMUNITY_goal.ts]]
+- 14 edges to [[_COMMUNITY_floor-screens.ts]]
+- 13 edges to [[_COMMUNITY_live-types.ts]]
+- 11 edges to [[_COMMUNITY_live-voices.ts]]
+- 9 edges to [[_COMMUNITY_rnd.ts]]
+- 9 edges to [[_COMMUNITY_jsonResponse]]
+- 8 edges to [[_COMMUNITY_time-odds.ts]]
+- 8 edges to [[_COMMUNITY_manager-feed.ts]]
+- 7 edges to [[_COMMUNITY_news.ts]]
+- 7 edges to [[_COMMUNITY_detectors.ts]]
+- 6 edges to [[_COMMUNITY_smc-master.ts]]
+- 6 edges to [[_COMMUNITY_live-talk.ts]]
+- 6 edges to [[_COMMUNITY_gates.ts]]
+- 6 edges to [[_COMMUNITY_exec-server.ts]]
+- 6 edges to [[_COMMUNITY_verify-room.mjs]]
+- 5 edges to [[_COMMUNITY_rh-autofire.ts]]
+- 5 edges to [[_COMMUNITY_tf-ladder.ts]]
+- 5 edges to [[_COMMUNITY_index.tsx]]
+- 5 edges to [[_COMMUNITY_verify-goal.mjs]]
+- 4 edges to [[_COMMUNITY_build-desk.ts]]
+- 4 edges to [[_COMMUNITY_ghost-book.ts]]
+- 4 edges to [[_COMMUNITY_options-desk.ts]]
+- 4 edges to [[_COMMUNITY_verify-race-talk.mjs]]
+- 4 edges to [[_COMMUNITY_react]]
+- 4 edges to [[_COMMUNITY_measure-room-ev.mjs]]
+- 4 edges to [[_COMMUNITY_options-swing-panel.tsx]]
+- 3 edges to [[_COMMUNITY_hit-odds.ts]]
+- 3 edges to [[_COMMUNITY_audit.ts]]
+- 3 edges to [[_COMMUNITY_floor-overhaul.ts]]
+- 3 edges to [[_COMMUNITY_shadow-book.ts]]
+- 3 edges to [[_COMMUNITY_verify-paper-step.mjs]]
+- 3 edges to [[_COMMUNITY_tradingscanner.ts]]
+- 3 edges to [[_COMMUNITY_structure.ts]]
+- 3 edges to [[_COMMUNITY_snapshot.ts]]
+- 3 edges to [[_COMMUNITY_verify-invest-office.mjs]]
+- 3 edges to [[_COMMUNITY_verify-live-talk.mjs]]
+- 3 edges to [[_COMMUNITY_cases.ts]]
+- 3 edges to [[_COMMUNITY_sleeve-sizing.ts]]
+- 2 edges to [[_COMMUNITY_floor-scene.ts]]
+- 2 edges to [[_COMMUNITY_spot-cross.ts]]
+- 2 edges to [[_COMMUNITY_discuss-tab.tsx]]
+- 2 edges to [[_COMMUNITY_verify-room-exec.mjs]]
+- 2 edges to [[_COMMUNITY_intent.ts]]
+- 2 edges to [[_COMMUNITY_aplusconfig.ts]]
+- 2 edges to [[_COMMUNITY_paper-manager.ts]]
+- 2 edges to [[_COMMUNITY_trading-floor-tab.tsx]]
+- 2 edges to [[_COMMUNITY_veteran-brain.ts]]
+- 1 edge to [[_COMMUNITY_dot-apply]]
+- 1 edge to [[_COMMUNITY_policy.ts]]
+- 1 edge to [[_COMMUNITY_buildTradingDesk]]
+- 1 edge to [[_COMMUNITY_book.ts]]
+- 1 edge to [[_COMMUNITY_measure-model-claims.mjs]]
+- 1 edge to [[_COMMUNITY_verify-smc-master.mjs]]
+- 1 edge to [[_COMMUNITY_week-ahead.ts]]
+- 1 edge to [[_COMMUNITY_measure-amd-signals.mjs]]
+- 1 edge to [[_COMMUNITY_measure-entry-location.mjs]]
+- 1 edge to [[_COMMUNITY_executor.ts]]
+- 1 edge to [[_COMMUNITY_month-ahead.ts]]
+- 1 edge to [[_COMMUNITY_measure-inducement-news.mjs]]
+- 1 edge to [[_COMMUNITY_verify-desk-enhancements.mjs]]
+- 1 edge to [[_COMMUNITY_verify-tf-ladder.mjs]]
+- 1 edge to [[_COMMUNITY_measure-option-time.mjs]]
+- 1 edge to [[_COMMUNITY_measure-tf-tiers.mjs]]
+- 1 edge to [[_COMMUNITY_build-evidence-pack.mjs]]
+- 1 edge to [[_COMMUNITY_capture-signals.mjs]]
+- 1 edge to [[_COMMUNITY_measure-exit-plan.mjs]]
+- 1 edge to [[_COMMUNITY_live-lesson.ts]]
+- 1 edge to [[_COMMUNITY_live-voices-mead.ts]]
+- 1 edge to [[_COMMUNITY_verify-mead-talk.mjs]]
+- 1 edge to [[_COMMUNITY_verify-day-change.mjs]]
+- 1 edge to [[_COMMUNITY_session-brief.ts]]
+- 1 edge to [[_COMMUNITY_verify-replay-drills.mjs]]
+- 1 edge to [[_COMMUNITY_measure-news-bias.mjs]]
+- 1 edge to [[_COMMUNITY_journalserver.ts]]
+- 1 edge to [[_COMMUNITY_floor-sound.ts]]
+- 1 edge to [[_COMMUNITY_setup-chart.tsx]]
+- 1 edge to [[_COMMUNITY_curriculum.ts]]
+- 1 edge to [[_COMMUNITY_floor-voice.ts]]
+- 1 edge to [[_COMMUNITY_verify-rnd.mjs]]
+- 1 edge to [[_COMMUNITY_verify-option-math-oracle.mjs]]
+- 1 edge to [[_COMMUNITY_measure-judas.mjs]]
+- 1 edge to [[_COMMUNITY_use-entry-state.ts]]
+- 1 edge to [[_COMMUNITY_verify-lab-constants.mjs]]
+- 1 edge to [[_COMMUNITY_verify-shadow-book.mjs]]
+- 1 edge to [[_COMMUNITY_build-hit-odds.mjs]]
+- 1 edge to [[_COMMUNITY_session-backtest.ts]]
+- 1 edge to [[_COMMUNITY_invest-firm.ts]]
+- 1 edge to [[_COMMUNITY_cn]]
+- 1 edge to [[_COMMUNITY_replay-drill.ts]]
+- 1 edge to [[_COMMUNITY_verify-rh-cycle.mjs]]
+- 1 edge to [[_COMMUNITY_apex-sim.ts]]
+- 1 edge to [[_COMMUNITY_entry-trigger.ts]]
+- 1 edge to [[_COMMUNITY_backtest-account.mjs]]
+- 1 edge to [[_COMMUNITY_build-replay-drills.mjs]]
+- 1 edge to [[_COMMUNITY_rh-dispatch.ts]]
+
+## Top bridge nodes
+- [[sessions.ts]] - degree 123, connects to 70 communities
+- [[orchestrator.ts]] - degree 161, connects to 33 communities
+- [[option-math.ts]] - degree 67, connects to 25 communities
+- [[mandate.ts]] - degree 25, connects to 13 communities
+- [[lab.ts]] - degree 69, connects to 11 communities

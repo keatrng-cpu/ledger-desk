@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 26"
+community: "veteran-brain.ts"
 location: "L97"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/veteran-braints
 ---
 
 # aPlusRiskPct()
@@ -15,4 +15,4 @@ tags:
 - [[aPlusFullSizeUnlocked()]] - `calls` [EXTRACTED]
 - [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

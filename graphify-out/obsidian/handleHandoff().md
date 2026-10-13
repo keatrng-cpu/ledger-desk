@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/desk/handoff.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # handleHandoff()
@@ -19,4 +19,4 @@ tags:
 - [[handoff.ts]] - `indirect_call` [INFERRED]
 - [[jsonResponse()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

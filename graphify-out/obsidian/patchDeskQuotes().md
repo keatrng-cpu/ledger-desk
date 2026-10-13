@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
-location: "L689"
+community: "index.tsx"
+location: "L690"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # patchDeskQuotes()
@@ -19,4 +19,4 @@ tags:
 - [[keepFresher()]] - `calls` [EXTRACTED]
 - [[stampSeriesFromBars()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

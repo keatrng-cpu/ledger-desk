@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/exit-rules.ts"
 type: "code"
-community: "Community 4"
+community: "paper-manager.ts"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/paper-managerts
 ---
 
 # failedHold()
@@ -20,4 +20,4 @@ tags:
 - [[managePaperTradesAgainstPrice()]] - `calls` [EXTRACTED]
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

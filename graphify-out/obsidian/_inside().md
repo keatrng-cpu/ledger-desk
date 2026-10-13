@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_opt.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # _inside()
@@ -16,4 +16,4 @@ tags:
 - [[floor_opt.py]] - `contains` [EXTRACTED]
 - [[hidden_faces()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

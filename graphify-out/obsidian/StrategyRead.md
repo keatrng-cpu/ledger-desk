@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/veteran-brain.ts"
 type: "code"
-community: "Community 127"
+community: "veteran-brain.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/veteran-braints
 ---
 
 # StrategyRead
@@ -15,4 +15,4 @@ tags:
 - [[StrategyId]] - `references` [EXTRACTED]
 - [[veteran-brain.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

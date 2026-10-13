@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 100"
+community: "live-world.ts"
 location: "L156"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_100
+  - community/live-worldts
 ---
 
 # Code map
@@ -103,4 +103,4 @@ tags:
 - [[voidPosition()]] - `references` [INFERRED]
 - [[worldFromDesk()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_100
+#graphify/document #graphify/INFERRED #community/live-worldts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-locomotion.ts"
 type: "code"
-community: "Community 242"
+community: "floor-locomotion.ts"
 location: "L71"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_242
+  - community/floor-locomotionts
 ---
 
 # smoothPath()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[bezierCorner()]] - `calls` [EXTRACTED]
 - [[chordsWalkable()]] - `calls` [EXTRACTED]
-- [[clamp()_6]] - `calls` [EXTRACTED]
+- [[clamp()_5]] - `calls` [EXTRACTED]
 - [[densify()]] - `calls` [EXTRACTED]
 - [[dist2()]] - `calls` [EXTRACTED]
 - [[floor-locomotion.ts]] - `contains` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[tidy()]] - `calls` [EXTRACTED]
 - [[withMargin()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_242
+#graphify/code #graphify/EXTRACTED #community/floor-locomotionts

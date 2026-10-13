@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/screen-flash.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # screen-flash.tsx
@@ -29,7 +29,7 @@ tags:
 - [[getFlashOn()]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[manager-account.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readRhAccount()]] - `imports` [EXTRACTED]
 - [[reportAutomation()]] - `imports` [EXTRACTED]
 - [[reportRhAccount()]] - `imports` [EXTRACTED]
@@ -42,4 +42,4 @@ tags:
 - [[useFlashOn()]] - `contains` [EXTRACTED]
 - [[useRhAccount()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

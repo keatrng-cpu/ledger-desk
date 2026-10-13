@@ -1,12 +1,12 @@
 ---
 source_file: "docs/FLOOR_BACKLOG.md"
 type: "document"
-community: "Community 28"
+community: "FloorScene"
 location: "L11"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # A. Navigation and interactivity
@@ -16,4 +16,4 @@ tags:
 - [[dot-follow()]] - `references` [INFERRED]
 - [[The Floor — 66 fixes, by category (2026-10-05)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/INFERRED #community/Community_28
+#graphify/document #graphify/INFERRED #community/FloorScene

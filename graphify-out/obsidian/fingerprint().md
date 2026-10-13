@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/setup-memory.ts"
 type: "code"
-community: "Community 176"
+community: "trade-log.ts"
 location: "L118"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_176
+  - community/trade-logts
 ---
 
 # fingerprint()
@@ -16,4 +16,4 @@ tags:
 - [[toRecord()]] - `calls` [EXTRACTED]
 - [[trade-log.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_176
+#graphify/code #graphify/EXTRACTED #community/trade-logts

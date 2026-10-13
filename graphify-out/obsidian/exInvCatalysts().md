@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/live-voices-invest.ts"
 type: "code"
-community: "Community 49"
+community: "live-voices-invest.ts"
 location: "L346"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-investts
 ---
 
 # exInvCatalysts()
 
 ## Connections
-- [[AT()_11]] - `calls` [EXTRACTED]
+- [[AT()_12]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
 - [[dayPhrase()]] - `calls` [EXTRACTED]
@@ -23,4 +23,4 @@ tags:
 - [[stop()_2]] - `calls` [EXTRACTED]
 - [[whenPhrase()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

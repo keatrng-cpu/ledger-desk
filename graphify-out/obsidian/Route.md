@@ -1,19 +1,19 @@
 ---
-source_file: "src/routes/api/desk/card.ts"
+source_file: "src/routes/api/auth/$.ts"
 type: "code"
-community: "Community 184"
-location: "L44"
+community: "auth/server.ts"
+location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/auth/serverts
 ---
 
 # Route
 
 ## Connections
+- [[$.ts]] - `contains` [EXTRACTED]
 - [[FileRoutesByPath]] - `references` [EXTRACTED]
-- [[card.ts]] - `contains` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

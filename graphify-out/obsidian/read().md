@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-sponsored-gap.mjs"
+source_file: "scripts/verify-repo-guards.mjs"
 type: "code"
-community: "Community 102"
-location: "L40"
+community: "ref_node_url"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/ref_node_url
 ---
 
 # read()
 
 ## Connections
-- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
+- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-detectors.mjs"
 type: "code"
-community: "Community 165"
+community: "verify-detectors.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_165
+  - community/verify-detectorsmjs
 ---
 
 # verify-detectors.mjs
@@ -16,7 +16,7 @@ tags:
 - [[armed]] - `contains` [EXTRACTED]
 - [[at()_3]] - `contains` [EXTRACTED]
 - [[atr]] - `contains` [EXTRACTED]
-- [[bar()_9]] - `contains` [EXTRACTED]
+- [[bar()_8]] - `contains` [EXTRACTED]
 - [[bearishClose]] - `contains` [EXTRACTED]
 - [[big]] - `contains` [EXTRACTED]
 - [[bigBody]] - `contains` [EXTRACTED]
@@ -26,12 +26,12 @@ tags:
 - [[brRead]] - `contains` [EXTRACTED]
 - [[breakout]] - `contains` [EXTRACTED]
 - [[bs]] - `contains` [EXTRACTED]
-- [[check()_83]] - `contains` [EXTRACTED]
+- [[check()_77]] - `contains` [EXTRACTED]
 - [[cisdOnly]] - `contains` [EXTRACTED]
 - [[cleanRaid]] - `contains` [EXTRACTED]
 - [[closedBack]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
-- [[eq()_2]] - `contains` [EXTRACTED]
+- [[eq()_3]] - `contains` [EXTRACTED]
 - [[gapOnly]] - `contains` [EXTRACTED]
 - [[gapped]] - `contains` [EXTRACTED]
 - [[gate-tuning.ts]] - `dynamic_import` [EXTRACTED]
@@ -54,6 +54,7 @@ tags:
 - [[oneMin()]] - `contains` [EXTRACTED]
 - [[quiet()_1]] - `contains` [EXTRACTED]
 - [[raid-pair.ts]] - `dynamic_import` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[seqBars]] - `contains` [EXTRACTED]
 - [[seqMin]] - `contains` [EXTRACTED]
 - [[smallHeldGap]] - `contains` [EXTRACTED]
@@ -66,4 +67,4 @@ tags:
 - [[underTail]] - `contains` [EXTRACTED]
 - [[wickOnly]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_165
+#graphify/code #graphify/EXTRACTED #community/verify-detectorsmjs

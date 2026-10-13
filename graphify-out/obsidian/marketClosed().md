@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L2"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # marketClosed()
@@ -17,4 +17,4 @@ tags:
 - [[off-hours.ts]] - `contains` [EXTRACTED]
 - [[utility()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

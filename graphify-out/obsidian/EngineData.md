@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/aplus-ops.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L43"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # EngineData
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[aplus-ops.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

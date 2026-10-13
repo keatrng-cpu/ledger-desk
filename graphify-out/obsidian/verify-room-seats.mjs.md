@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room-seats.mjs"
 type: "code"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # verify-room-seats.mjs
@@ -15,7 +15,7 @@ tags:
 - [[GOAL]] - `contains` [EXTRACTED]
 - [[RICH]] - `contains` [EXTRACTED]
 - [[WHY the trader asked for the five to be agents that compete with each other on…]] - `rationale_for` [EXTRACTED]
-- [[check()_8]] - `contains` [EXTRACTED]
+- [[check()_4]] - `contains` [EXTRACTED]
 - [[contract-ladder.ts]] - `dynamic_import` [EXTRACTED]
 - [[frames]] - `contains` [EXTRACTED]
 - [[goal.ts]] - `dynamic_import` [EXTRACTED]
@@ -27,10 +27,11 @@ tags:
 - [[option-math.ts]] - `dynamic_import` [EXTRACTED]
 - [[paper-book.ts]] - `dynamic_import` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[seats.ts]] - `dynamic_import` [EXTRACTED]
 - [[snapshot.ts]] - `dynamic_import` [EXTRACTED]
 - [[stepsOf()]] - `contains` [EXTRACTED]
 - [[withSeats]] - `contains` [EXTRACTED]
 - [[without]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_125
+#graphify/code #graphify/EXTRACTED #community/snapshotts

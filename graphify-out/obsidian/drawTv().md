@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 41"
+community: "mead-screens.ts"
 location: "L450"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-screensts
 ---
 
 # drawTv()
@@ -17,11 +17,11 @@ tags:
 - [[categoryLabel()]] - `calls` [EXTRACTED]
 - [[edgeTag()]] - `calls` [EXTRACTED]
 - [[eventLabel()]] - `calls` [EXTRACTED]
-- [[fit()_7]] - `calls` [EXTRACTED]
+- [[fit()]] - `calls` [EXTRACTED]
 - [[helmet()]] - `calls` [EXTRACTED]
 - [[mead-hall-build.ts]] - `imports` [EXTRACTED]
 - [[mead-screens.ts]] - `contains` [EXTRACTED]
-- [[pct()_13]] - `calls` [EXTRACTED]
+- [[pct()]] - `calls` [EXTRACTED]
 - [[plate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

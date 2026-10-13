@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L154"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # FlattenReason
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[management.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-sleeve.ts"
 type: "code"
-community: "Community 89"
+community: "options-swing-panel.tsx"
 location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-swing-paneltsx
 ---
 
 # rhTicketCapUsd()
@@ -19,4 +19,4 @@ tags:
 - [[overnight-swing.ts]] - `imports` [EXTRACTED]
 - [[verify-sleeve-migration.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

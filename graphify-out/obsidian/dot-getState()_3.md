@@ -1,18 +1,22 @@
 ---
-source_file: "src/components/mead/mead-feed.ts"
+source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 41"
-location: "L23"
+community: ".constructor"
+location: "L286"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_41
+  - graphify/INFERRED
+  - community/constructor
 ---
 
 # .getState()
 
 ## Connections
-- [[MeadFeed]] - `method` [EXTRACTED]
-- [[PredictionMarketFeedState]] - `references` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [INFERRED]
+- [[dot-getManagerState()]] - `calls` [INFERRED]
+- [[dot-interactProximity()]] - `calls` [INFERRED]
+- [[dot-onUp()]] - `calls` [INFERRED]
+- [[ManagerFeed]] - `method` [EXTRACTED]
+- [[managerStateForAgree()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/INFERRED #community/constructor

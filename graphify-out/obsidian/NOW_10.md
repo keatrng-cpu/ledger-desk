@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-options-live-ticket.mjs"
+source_file: "scripts/verify-rh-dispatch.mjs"
 type: "code"
-community: "Community 239"
-location: "L57"
+community: "verify-rh-desk-job.mjs"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_239
+  - community/verify-rh-desk-jobmjs
 ---
 
 # NOW
 
 ## Connections
-- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_239
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

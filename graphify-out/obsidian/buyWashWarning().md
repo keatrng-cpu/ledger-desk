@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/ledger.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L440"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # buyWashWarning()
@@ -16,7 +16,7 @@ tags:
 - [[addDays()_5]] - `calls` [EXTRACTED]
 - [[book-card.tsx]] - `imports` [EXTRACTED]
 - [[ledger.ts]] - `contains` [EXTRACTED]
-- [[round2()_6]] - `calls` [EXTRACTED]
+- [[round2()_10]] - `calls` [EXTRACTED]
 - [[washFamily()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

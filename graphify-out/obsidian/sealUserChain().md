@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/attest-server.ts"
 type: "code"
-community: "Community 285"
+community: "attest.ts"
 location: "L148"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_285
+  - community/attestts
 ---
 
 # sealUserChain()
@@ -16,4 +16,4 @@ tags:
 - [[readChain()]] - `calls` [EXTRACTED]
 - [[sealTip()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_285
+#graphify/code #graphify/EXTRACTED #community/attestts

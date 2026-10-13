@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/rh-income.ts"
 type: "code"
-community: "Community 89"
+community: "invest-office.ts"
 location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/invest-officets
 ---
 
 # RhFill
@@ -23,4 +23,4 @@ tags:
 - [[rh-bridge.ts]] - `imports` [EXTRACTED]
 - [[rh-income.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/invest-officets

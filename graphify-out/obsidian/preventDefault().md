@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/floor-checks.mjs"
 type: "code"
-community: "Community 189"
+community: "preview-glb.mjs"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/preview-glbmjs
 ---
 
 # preventDefault()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-checks.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_189
+#graphify/code #graphify/EXTRACTED #community/preview-glbmjs

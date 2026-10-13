@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/option-marks.tsx"
 type: "code"
-community: "Community 153"
+community: "veteran-brain.ts"
 location: "L4"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/veteran-braints
 ---
 
 # OptionMarksStrip()
@@ -18,4 +18,4 @@ tags:
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

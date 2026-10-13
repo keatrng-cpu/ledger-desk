@@ -1,18 +1,18 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 296"
+community: "smc_ref.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_296
+  - community/smc_refpy
 ---
 
 # DataFrame
 
 ## Connections
 - [[crosscheck_fvg()]] - `references` [EXTRACTED]
-- [[frame()]] - `references` [EXTRACTED]
+- [[frame()_1]] - `references` [EXTRACTED]
 - [[library_fvgs()]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_296
+#graphify/code #graphify/EXTRACTED #community/smc_refpy

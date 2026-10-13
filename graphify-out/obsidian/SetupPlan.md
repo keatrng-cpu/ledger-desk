@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tradezella-analyze.ts"
 type: "code"
-community: "Community 46"
+community: "tradezella-analyze.ts"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/tradezella-analyzets
 ---
 
 # SetupPlan
@@ -17,4 +17,4 @@ tags:
 - [[chart-markup.ts]] - `imports` [EXTRACTED]
 - [[tradezella-analyze.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

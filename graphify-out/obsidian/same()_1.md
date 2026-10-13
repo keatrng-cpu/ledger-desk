@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-lab-constants.mjs"
+source_file: "src/lib/invest/sync.ts"
 type: "code"
-community: "Community 335"
-location: "L30"
+community: "store.ts"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_335
+  - community/storets
 ---
 
 # same()
 
 ## Connections
-- [[check()_81]] - `calls` [EXTRACTED]
-- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
+- [[run()_4]] - `calls` [EXTRACTED]
+- [[sync.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_335
+#graphify/code #graphify/EXTRACTED #community/storets

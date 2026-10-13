@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signal-engine.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L449"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # VELOCITY_WINDOW_MS
@@ -15,4 +15,4 @@ tags:
 - [[hall-lite.ts]] - `imports` [EXTRACTED]
 - [[signal-engine.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-agree.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # manager-agree.ts
@@ -24,4 +24,4 @@ tags:
 - [[verify-manager-agree.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerAgree()]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

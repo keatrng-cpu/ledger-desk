@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "code"
-community: "Community 131"
+community: "direction-book.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # direction-book.py
@@ -24,7 +24,7 @@ tags:
 - [[fvg_15()]] - `contains` [EXTRACTED]
 - [[gap_events()]] - `contains` [EXTRACTED]
 - [[json_1]] - `imports` [EXTRACTED]
-- [[load()_2]] - `contains` [EXTRACTED]
+- [[load()_4]] - `contains` [EXTRACTED]
 - [[main()_2]] - `contains` [EXTRACTED]
 - [[minute_of()]] - `contains` [EXTRACTED]
 - [[one_stats()]] - `contains` [EXTRACTED]
@@ -36,8 +36,8 @@ tags:
 - [[stats()]] - `contains` [EXTRACTED]
 - [[swings()_1]] - `contains` [EXTRACTED]
 - [[take_two()]] - `contains` [EXTRACTED]
-- [[walk()]] - `contains` [EXTRACTED]
+- [[walk()_1]] - `contains` [EXTRACTED]
 - [[year_of()]] - `contains` [EXTRACTED]
 - [[zoneinfo]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/direction-bookpy

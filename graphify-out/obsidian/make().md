@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-shadow-book.mjs"
 type: "code"
-community: "Community 126"
+community: "verify-shadow-book.mjs"
 location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/verify-shadow-bookmjs
 ---
 
 # make()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/verify-shadow-bookmjs

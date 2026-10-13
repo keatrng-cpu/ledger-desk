@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L1825"
+community: "evaluateOptionsDesk"
+location: "L1845"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # smtLead()
@@ -21,8 +21,9 @@ tags:
 - [[planForUnderlier()]] - `calls` [EXTRACTED]
 - [[proxyPair()]] - `calls` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
+- [[shrinkTicket()]] - `calls` [EXTRACTED]
 - [[sideFromFutures()]] - `calls` [EXTRACTED]
 - [[toTicket()]] - `calls` [EXTRACTED]
 - [[weekDayFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 51"
+community: "meeting.ts"
 location: "L873"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/meetingts
 ---
 
 # PeopleCards()
@@ -21,4 +21,4 @@ tags:
 - [[relationWord()]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/meetingts

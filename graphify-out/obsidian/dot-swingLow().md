@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/tape.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L208"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # .swingLow()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[tape]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

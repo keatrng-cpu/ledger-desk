@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-live-lesson.mjs"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 205"
-location: "L295"
+community: "verify-rh-desk-job.mjs"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/verify-rh-desk-jobmjs
 ---
 
 # read()
 
 ## Connections
-- [[mkDesk()]] - `calls` [EXTRACTED]
-- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_205
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

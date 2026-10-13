@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-apex-sim.mjs"
+source_file: "scripts/verify-rh-desk-job.mjs"
 type: "code"
-community: "Community 243"
-location: "L24"
+community: "verify-rh-desk-job.mjs"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_243
+  - community/verify-rh-desk-jobmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-apex-sim.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_243
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

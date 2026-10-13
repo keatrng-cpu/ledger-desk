@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/probe-closest.mjs"
+source_file: "scripts/calibration.mts"
 type: "code"
-community: "Community 20"
-location: "L36"
+community: "getSql"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/getSql
 ---
 
 # rows
 
 ## Connections
-- [[probe-closest.mjs]] - `contains` [EXTRACTED]
+- [[calibration.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/getSql

@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/desk/tf-ladder-panel.tsx"
+source_file: "src/components/desk/trade-debrief-panel.tsx"
 type: "code"
-community: "Community 101"
-location: "L17"
+community: "ghost-book.ts"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_101
+  - community/ghost-bookts
 ---
 
 # tone()
 
 ## Connections
-- [[Rungs()]] - `calls` [EXTRACTED]
-- [[tf-ladder-panel.tsx]] - `contains` [EXTRACTED]
+- [[DebriefBody()]] - `calls` [EXTRACTED]
+- [[trade-debrief-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_101
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

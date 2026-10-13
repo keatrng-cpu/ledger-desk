@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 162"
+community: "live-world.ts"
 location: "L86"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-worldts
 ---
 
 # StudyInput
@@ -17,4 +17,4 @@ tags:
 - [[PredictLite]] - `references` [EXTRACTED]
 - [[off-hours-study.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-worldts

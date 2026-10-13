@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 180"
+community: "build_floor.py"
 location: "L1540"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # opts: switches from the command line (see main). Everything on by default…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build_office()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_180
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

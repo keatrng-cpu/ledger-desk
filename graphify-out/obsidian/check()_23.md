@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-desk-enhancements.mjs"
+source_file: "scripts/verify-race-talk.mjs"
 type: "code"
-community: "Community 164"
-location: "L30"
+community: "verify-race-talk.mjs"
+location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/verify-race-talkmjs
 ---
 
 # check()
 
 ## Connections
-- [[ok()_9]] - `calls` [EXTRACTED]
-- [[verify-desk-enhancements.mjs]] - `contains` [EXTRACTED]
+- [[verify-race-talk.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/verify-race-talkmjs

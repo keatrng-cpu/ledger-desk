@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 155"
+community: "dual-index-charts.tsx"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/dual-index-chartstsx
 ---
 
 # AnalyticsTrade
@@ -18,4 +18,4 @@ tags:
 - [[discretion.ts]] - `imports` [EXTRACTED]
 - [[journalanalytics.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

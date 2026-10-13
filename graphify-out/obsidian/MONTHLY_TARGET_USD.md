@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/income-target.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L303"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # MONTHLY_TARGET_USD
@@ -15,4 +15,4 @@ tags:
 - [[income-target.ts]] - `contains` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/db.ts"
 type: "code"
-community: "Community 11"
+community: "getSql"
 location: "L292"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/getSql
 ---
 
 # createSql()
@@ -17,4 +17,4 @@ tags:
 - [[db.ts]] - `contains` [EXTRACTED]
 - [[getSql()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/getSql

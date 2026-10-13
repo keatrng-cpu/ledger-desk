@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 173"
+community: "render-mead-attachments.mjs"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_173
+  - community/render-mead-attachmentsmjs
 ---
 
 # ref_node_module
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[render-mead-attachments.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_173
+#graphify/concept #graphify/EXTRACTED #community/render-mead-attachmentsmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/learn-figure.tsx"
 type: "code"
-community: "Community 148"
+community: "figures.ts"
 location: "L117"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_148
+  - community/figurests
 ---
 
 # LearnFigure()
@@ -20,4 +20,4 @@ tags:
 - [[placeLevelLabels()]] - `calls` [EXTRACTED]
 - [[toneColor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_148
+#graphify/code #graphify/EXTRACTED #community/figurests

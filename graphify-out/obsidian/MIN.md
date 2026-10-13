@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/lib/mead-world.mjs"
+source_file: "src/lib/smc/mtf-arrays.ts"
 type: "code"
-community: "Community 142"
-location: "L11"
+community: "buildTradingDesk"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/buildTradingDesk
 ---
 
 # MIN
 
 ## Connections
-- [[mead-world.mjs]] - `contains` [EXTRACTED]
+- [[mtf-arrays.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

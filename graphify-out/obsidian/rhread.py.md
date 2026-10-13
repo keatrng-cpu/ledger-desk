@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/rhread.py"
 type: "code"
-community: "Community 306"
+community: "rhread.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_306
+  - community/rhreadpy
 ---
 
 # rhread.py
@@ -20,4 +20,4 @@ tags:
 - [[os]] - `imports` [EXTRACTED]
 - [[selfcheck.py]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_306
+#graphify/code #graphify/EXTRACTED #community/rhreadpy

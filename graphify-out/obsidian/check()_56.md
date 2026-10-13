@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-options-live-ticket.mjs"
+source_file: "scripts/verify-autofire-gates.mjs"
 type: "code"
-community: "Community 239"
-location: "L51"
+community: "ref_node_path"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_239
+  - community/ref_node_path
 ---
 
 # check()
 
 ## Connections
-- [[eq()_1]] - `calls` [EXTRACTED]
-- [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
+- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_239
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

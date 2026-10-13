@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/canon.ts"
 type: "code"
-community: "Community 305"
+community: "canon.ts"
 location: "L355"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_305
+  - community/canonts
 ---
 
 # canonSources()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[canon.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_305
+#graphify/code #graphify/EXTRACTED #community/canonts

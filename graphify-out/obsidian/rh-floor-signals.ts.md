@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-floor-signals.ts"
 type: "code"
-community: "Community 56"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/rh-autofirets
 ---
 
 # rh-floor-signals.ts
@@ -23,4 +23,4 @@ tags:
 - [[root()]] - `contains` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

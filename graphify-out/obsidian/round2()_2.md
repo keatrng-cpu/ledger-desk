@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/journal/analytics.ts"
+source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 106"
-location: "L925"
+community: "claude-server.ts"
+location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_106
+  - community/claude-serverts
 ---
 
 # round2()
 
 ## Connections
-- [[bucketOf()]] - `calls` [EXTRACTED]
-- [[buildEquityCurve()]] - `calls` [EXTRACTED]
-- [[journalanalytics.ts]] - `contains` [EXTRACTED]
-- [[strategyVerdict]] - `calls` [EXTRACTED]
+- [[computeDiscretion()]] - `calls` [EXTRACTED]
+- [[discretion.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_106
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

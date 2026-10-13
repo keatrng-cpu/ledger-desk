@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L100"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # SweepVerdict
@@ -16,4 +16,4 @@ tags:
 - [[ledger.ts]] - `imports` [EXTRACTED]
 - [[policy.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

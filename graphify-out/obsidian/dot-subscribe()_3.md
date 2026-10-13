@@ -1,18 +1,18 @@
 ---
-source_file: "src/components/mead/mead-feed.ts"
+source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 41"
-location: "L24"
+community: ".constructor"
+location: "L287"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/constructor
 ---
 
 # .subscribe()
 
 ## Connections
-- [[MeadFeed]] - `method` [EXTRACTED]
-- [[PredictionMarketFeedState]] - `references` [EXTRACTED]
+- [[dot-constructor()_12]] - `calls` [INFERRED]
+- [[ManagerFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/constructor

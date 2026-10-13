@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 40"
-location: "L374"
+community: "smc-master.ts"
+location: "L380"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # has()
@@ -18,4 +18,4 @@ tags:
 - [[sequenceGaps()]] - `calls` [EXTRACTED]
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

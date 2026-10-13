@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/confluence.ts"
 type: "code"
-community: "Community 127"
+community: "strategy-grade.ts"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/strategy-gradets
 ---
 
 # ConfluenceKnowledge
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[confluence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

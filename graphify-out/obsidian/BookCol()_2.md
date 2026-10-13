@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/price-path-board.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L52"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # BookCol()
@@ -21,7 +21,7 @@ tags:
 - [[cn()]] - `calls` [EXTRACTED]
 - [[ladderFrom()]] - `calls` [EXTRACTED]
 - [[price-path-board.tsx]] - `contains` [EXTRACTED]
-- [[px()_12]] - `calls` [EXTRACTED]
+- [[px()_11]] - `calls` [EXTRACTED]
 - [[tone()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

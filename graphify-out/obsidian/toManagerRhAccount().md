@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/manager-account.ts"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L78"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # toManagerRhAccount()
@@ -21,4 +21,4 @@ tags:
 - [[rh-dispatch.ts]] - `imports` [EXTRACTED]
 - [[runRhDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

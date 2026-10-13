@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/month-ahead-panel.tsx"
 type: "code"
-community: "Community 152"
+community: "month-ahead.ts"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_152
+  - community/month-aheadts
 ---
 
 # MonthAheadPanel()
@@ -19,4 +19,4 @@ tags:
 - [[month-ahead-panel.tsx]] - `contains` [EXTRACTED]
 - [[premarket-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_152
+#graphify/code #graphify/EXTRACTED #community/month-aheadts

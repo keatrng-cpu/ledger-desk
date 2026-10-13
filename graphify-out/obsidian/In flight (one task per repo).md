@@ -1,12 +1,12 @@
 ---
 source_file: "ai/NOW.md"
 type: "document"
-community: "Community 158"
+community: "Log"
 location: "L27"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Log
 ---
 
 # In flight (one task per repo)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[NOW — ledger-desk current truth]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_158
+#graphify/document #graphify/EXTRACTED #community/Log

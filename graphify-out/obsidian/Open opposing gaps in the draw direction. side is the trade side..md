@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "rationale"
-community: "Community 131"
+community: "direction-book.py"
 location: "L132"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # Open opposing gaps in the draw direction. side is the trade side.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[open_gaps()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_131
+#graphify/rationale #graphify/EXTRACTED #community/direction-bookpy

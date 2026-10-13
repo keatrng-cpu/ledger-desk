@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 34"
+community: "book.ts"
 location: "L164"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/bookts
 ---
 
 # RebalanceAction
@@ -15,4 +15,4 @@ tags:
 - [[Sleeve]] - `references` [EXTRACTED]
 - [[book.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/bookts

@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/learn/scenarios.ts"
+source_file: "src/lib/trading/tf-ladder.ts"
 type: "code"
-community: "Community 124"
-location: "L114"
+community: "tf-ladder.ts"
+location: "L338"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tf-ladderts
 ---
 
 # structureOf()
 
 ## Connections
-- [[scenarios.ts]] - `contains` [EXTRACTED]
-- [[swingPoints()]] - `calls` [EXTRACTED]
-- [[verify-figures.mjs]] - `imports` [EXTRACTED]
+- [[readRung()]] - `calls` [EXTRACTED]
+- [[swings()]] - `calls` [EXTRACTED]
+- [[tf-ladder.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tf-ladderts

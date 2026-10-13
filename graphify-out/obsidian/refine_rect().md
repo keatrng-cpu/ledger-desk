@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_ao.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L114"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # refine_rect()
@@ -17,8 +17,8 @@ tags:
 - [[_occlusion()]] - `calls` [EXTRACTED]
 - [[_rect_tris()]] - `calls` [EXTRACTED]
 - [[build_floors()]] - `calls` [EXTRACTED]
-- [[build_walls()]] - `calls` [EXTRACTED]
+- [[build_walls()_1]] - `calls` [EXTRACTED]
 - [[floor_ao.py]] - `contains` [EXTRACTED]
 - [[numpy]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

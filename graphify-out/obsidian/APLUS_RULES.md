@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/config.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # APLUS_RULES
@@ -15,10 +15,10 @@ tags:
 - [[analytics-server.ts]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `imports` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports` [EXTRACTED]
 - [[cases.ts]] - `imports` [EXTRACTED]
 - [[claude-handoff.ts]] - `imports` [EXTRACTED]
-- [[config.ts]] - `contains` [EXTRACTED]
 - [[curriculum.ts]] - `imports` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports` [EXTRACTED]
 - [[entry-state.ts]] - `imports` [EXTRACTED]
@@ -65,4 +65,4 @@ tags:
 - [[verify-take-census.mjs]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

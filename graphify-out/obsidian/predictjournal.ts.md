@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/predict/journal.ts"
 type: "code"
-community: "Community 2"
+community: "mead-screens.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # predict/journal.ts
 
 ## Connections
 - [[BUCKETS]] - `contains` [EXTRACTED]
-- [[Bucket_3]] - `contains` [EXTRACTED]
+- [[Bucket]] - `contains` [EXTRACTED]
 - [[DEFAULT_FEES]] - `imports` [EXTRACTED]
 - [[FeeModel]] - `imports` [EXTRACTED]
 - [[JournalRead]] - `contains` [EXTRACTED]
@@ -35,10 +35,10 @@ tags:
 - [[predict-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[readJournal()]] - `contains` [EXTRACTED]
-- [[save()_3]] - `contains` [EXTRACTED]
+- [[save()]] - `contains` [EXTRACTED]
 - [[sideFee()]] - `imports` [EXTRACTED]
 - [[subscribePredict()]] - `contains` [EXTRACTED]
 - [[tradePnl()]] - `contains` [EXTRACTED]
 - [[verify-predict.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

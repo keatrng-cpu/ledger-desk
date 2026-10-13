@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/canon-box.tsx"
 type: "code"
-community: "Community 305"
+community: "canon.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_305
+  - community/canonts
 ---
 
 # canon-box.tsx
@@ -18,8 +18,8 @@ tags:
 - [[CanonStatus]] - `imports` [EXTRACTED]
 - [[canon.ts]] - `imports_from` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[statusStyle()]] - `contains` [EXTRACTED]
 - [[whoColor()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_305
+#graphify/code #graphify/EXTRACTED #community/canonts

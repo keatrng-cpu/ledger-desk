@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/trace-session.mjs"
+source_file: "scripts/diagnose-path.mjs"
 type: "code"
-community: "Community 20"
-location: "L30"
+community: "detectors.ts"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # dayChangePct()
 
 ## Connections
-- [[dayKey()_10]] - `calls` [EXTRACTED]
-- [[trace-session.mjs]] - `contains` [EXTRACTED]
+- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

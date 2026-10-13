@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/databento.ts"
 type: "code"
-community: "Community 98"
+community: "databento.ts"
 location: "L179"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_98
+  - community/databentots
 ---
 
 # parseMaxEnd()
@@ -19,4 +19,4 @@ tags:
 - [[parseIsoToMs()]] - `calls` [EXTRACTED]
 - [[parseMaxEndFromText()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_98
+#graphify/code #graphify/EXTRACTED #community/databentots

@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 69"
+community: "react"
 location: "L97"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/react
 ---
 
 # lucide-react
@@ -76,4 +76,4 @@ tags:
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 - [[week-ahead-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_69
+#graphify/concept #graphify/EXTRACTED #community/react

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "code"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # .desk_gates()
@@ -18,4 +18,4 @@ tags:
 - [[model_validator]] - `references` [EXTRACTED]
 - [[noise_z()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/client.ts"
 type: "code"
-community: "Community 19"
+community: "alerts/server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/alerts/serverts
 ---
 
 # alerts/client.ts
@@ -27,4 +27,4 @@ tags:
 - [[unsubscribeFromAlerts]] - `imports` [EXTRACTED]
 - [[urlBase64ToUint8Array()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/alerts/serverts

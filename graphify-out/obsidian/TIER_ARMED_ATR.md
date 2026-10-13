@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # TIER_ARMED_ATR
@@ -16,4 +16,4 @@ tags:
 - [[entry-trigger.ts]] - `contains` [EXTRACTED]
 - [[replay-drill.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

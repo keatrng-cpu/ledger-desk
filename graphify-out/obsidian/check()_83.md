@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-detectors.mjs"
+source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 348"
-location: "L36"
+community: "verify-predict.mjs"
+location: "L19"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_348
+  - community/verify-predictmjs
 ---
 
 # check()
 
 ## Connections
-- [[eq()_2]] - `calls` [EXTRACTED]
-- [[verify-detectors.mjs]] - `contains` [EXTRACTED]
+- [[ok()_27]] - `calls` [EXTRACTED]
+- [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_348
+#graphify/code #graphify/EXTRACTED #community/verify-predictmjs

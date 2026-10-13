@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/curriculum.ts"
 type: "code"
-community: "Community 26"
+community: "curriculum.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/curriculumts
 ---
 
 # curriculum.ts
@@ -36,7 +36,7 @@ tags:
 - [[SHOCK_RANGE_MULT]] - `imports` [EXTRACTED]
 - [[TIER_ARMED_ATR]] - `imports` [EXTRACTED]
 - [[TP1_FRACTION]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[learn-tab.tsx]] - `imports_from` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[verify-curriculum.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-figures.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/curriculumts

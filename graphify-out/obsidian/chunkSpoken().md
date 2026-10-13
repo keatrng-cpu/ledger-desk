@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 275"
+community: "floor-voice.ts"
 location: "L409"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_275
+  - community/floor-voicets
 ---
 
 # chunkSpoken()
@@ -19,4 +19,4 @@ tags:
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 - [[wc()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_275
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

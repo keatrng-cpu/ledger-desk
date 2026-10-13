@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/confluence.ts"
 type: "code"
-community: "Community 127"
+community: "strategy-grade.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/strategy-gradets
 ---
 
 # confluence.ts
@@ -19,9 +19,9 @@ tags:
 - [[ConfluenceKnowledge]] - `contains` [EXTRACTED]
 - [[RAW_WEIGHTS]] - `imports` [EXTRACTED]
 - [[STRATEGY_CATALOG]] - `contains` [EXTRACTED]
-- [[WEIGHTS]] - `imports` [EXTRACTED]
+- [[WEIGHTS_1]] - `imports` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports_from` [EXTRACTED]
 - [[engine-weights.ts]] - `imports_from` [EXTRACTED]
 - [[sample-run.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/strategy-gradets

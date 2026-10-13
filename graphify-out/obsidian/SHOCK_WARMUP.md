@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-event.ts"
 type: "code"
-community: "Community 115"
+community: "cases.ts"
 location: "L50"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_115
+  - community/casests
 ---
 
 # SHOCK_WARMUP
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[session-event.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_115
+#graphify/code #graphify/EXTRACTED #community/casests

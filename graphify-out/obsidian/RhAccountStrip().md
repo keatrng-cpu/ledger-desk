@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/rh-account-strip.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # RhAccountStrip()
@@ -23,7 +23,7 @@ tags:
 - [[rh-account-strip.tsx]] - `contains` [EXTRACTED]
 - [[rhLinkStatus]] - `calls` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
-- [[usd()_5]] - `calls` [EXTRACTED]
+- [[usd()_3]] - `calls` [EXTRACTED]
 - [[useRhAccount()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

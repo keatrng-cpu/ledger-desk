@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/server.ts"
 type: "code"
-community: "Community 19"
+community: "alerts/server.ts"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/alerts/serverts
 ---
 
 # getAlertStatus
@@ -20,4 +20,4 @@ tags:
 - [[enablePushAlerts()]] - `calls` [EXTRACTED]
 - [[pushConfig()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/alerts/serverts

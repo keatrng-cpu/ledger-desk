@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 120"
+community: "build_floor.py"
 location: "L796"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_120
+  - community/build_floorpy
 ---
 
 # key_name()
@@ -15,4 +15,4 @@ tags:
 - [[build_floor.py]] - `contains` [EXTRACTED]
 - [[f_keyboard()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_120
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

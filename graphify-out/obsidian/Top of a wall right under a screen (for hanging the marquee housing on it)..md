@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 234"
+community: "build_floor.py"
 location: "L542"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_234
+  - community/build_floorpy
 ---
 
 # Top of a wall right under a screen (for hanging the marquee housing on it).
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[wall_top_below()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_234
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

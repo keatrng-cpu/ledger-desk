@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-canon.ts"
 type: "code"
-community: "Community 127"
-location: "L401"
+community: "smc-canon.ts"
+location: "L407"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/smc-canonts
 ---
 
 # MODEL_REQUIREMENTS
@@ -15,4 +15,4 @@ tags:
 - [[smc-canon.ts]] - `contains` [EXTRACTED]
 - [[strategy-grade.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/smc-canonts

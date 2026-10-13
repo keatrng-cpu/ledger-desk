@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/sessions.ts"
 type: "code"
-community: "Community 58"
+community: "room-engine.ts"
 location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/room-enginets
 ---
 
 # etWallParts
@@ -28,22 +28,22 @@ tags:
 - [[clockOf()]] - `calls` [EXTRACTED]
 - [[considerEntryAlarm()]] - `calls` [EXTRACTED]
 - [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[dayKey()_3]] - `calls` [EXTRACTED]
+- [[dayKey()_14]] - `calls` [EXTRACTED]
 - [[discuss-tab.tsx]] - `imports` [EXTRACTED]
 - [[dueAiSyncSlot()]] - `calls` [EXTRACTED]
 - [[entry-state.ts]] - `imports` [EXTRACTED]
 - [[etClockLabel()]] - `calls` [EXTRACTED]
 - [[etDateKey()_1]] - `calls` [EXTRACTED]
 - [[etDateKey()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
 - [[etDateOf()_1]] - `calls` [EXTRACTED]
+- [[etDateOf()]] - `calls` [EXTRACTED]
 - [[etMinOf()_3]] - `calls` [EXTRACTED]
-- [[etMinOf()]] - `calls` [EXTRACTED]
+- [[etMinOf()_2]] - `calls` [EXTRACTED]
 - [[etMinOfMs()]] - `calls` [EXTRACTED]
 - [[etSessionKey()]] - `calls` [EXTRACTED]
 - [[etStamp()_1]] - `calls` [EXTRACTED]
 - [[etStampShort()]] - `calls` [EXTRACTED]
-- [[etTime()_1]] - `calls` [EXTRACTED]
+- [[etTime()]] - `calls` [EXTRACTED]
 - [[fillRestingLimits()]] - `calls` [EXTRACTED]
 - [[floor-props.ts]] - `imports` [EXTRACTED]
 - [[floor-screens.ts]] - `imports` [EXTRACTED]
@@ -114,4 +114,4 @@ tags:
 - [[week-ahead.ts]] - `imports` [EXTRACTED]
 - [[worldFromDesk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/room-enginets

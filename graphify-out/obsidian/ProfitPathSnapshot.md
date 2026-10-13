@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 14"
+community: "profit-path.ts"
 location: "L322"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/profit-pathts
 ---
 
 # ProfitPathSnapshot
@@ -16,4 +16,4 @@ tags:
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

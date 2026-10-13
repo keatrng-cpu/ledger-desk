@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/og/SKILL.md"
 type: "document"
-community: "Community 205"
+community: "verify-live-lesson.mjs"
 location: "L30"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_205
+  - community/verify-live-lessonmjs
 ---
 
 # Parallelize the brand-asset pass (default)
@@ -15,4 +15,4 @@ tags:
 - [[Share cards, favicon, and app icons]] - `contains` [EXTRACTED]
 - [[head()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_205
+#graphify/document #graphify/EXTRACTED #community/verify-live-lessonmjs

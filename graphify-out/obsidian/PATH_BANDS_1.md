@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/desk/entry-trigger-panel.tsx"
+source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 82"
-location: "L51"
+community: "veteran-brain.ts"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/veteran-braints
 ---
 
 # PATH_BANDS
 
 ## Connections
-- [[entry-trigger-panel.tsx]] - `contains` [EXTRACTED]
+- [[profit-rules.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

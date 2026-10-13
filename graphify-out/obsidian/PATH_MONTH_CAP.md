@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-rules.ts"
 type: "code"
-community: "Community 26"
+community: "floor-school-contracts.ts"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/floor-school-contractsts
 ---
 
 # PATH_MONTH_CAP
@@ -24,4 +24,4 @@ tags:
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

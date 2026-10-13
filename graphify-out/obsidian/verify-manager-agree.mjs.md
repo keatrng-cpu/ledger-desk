@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-manager-agree.mjs"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # verify-manager-agree.mjs
@@ -16,4 +16,4 @@ tags:
 - [[verify-rh-autofire-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verifyManagerAgree()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "rationale"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L62"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # Real pivots only. No fallback to first/last bar.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[pivots()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_64
+#graphify/rationale #graphify/EXTRACTED #community/build-learn-figurespy

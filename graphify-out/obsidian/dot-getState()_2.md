@@ -1,22 +1,17 @@
 ---
-source_file: "src/lib/room/manager-feed.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 28"
-location: "L286"
+community: "prediction-market-feed.ts"
+location: "L168"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_28
+  - graphify/EXTRACTED
+  - community/prediction-market-feedts
 ---
 
 # .getState()
 
 ## Connections
-- [[dot-constructor()_17]] - `calls` [INFERRED]
-- [[dot-getManagerState()]] - `calls` [INFERRED]
-- [[dot-interactProximity()]] - `calls` [INFERRED]
-- [[dot-onUp()]] - `calls` [INFERRED]
-- [[ManagerFeed]] - `method` [EXTRACTED]
-- [[managerStateForAgree()]] - `calls` [EXTRACTED]
+- [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

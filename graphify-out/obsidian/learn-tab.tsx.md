@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/learn-tab.tsx"
 type: "code"
-community: "Community 280"
+community: "learn-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_280
+  - community/learn-tabtsx
 ---
 
 # learn-tab.tsx
@@ -46,7 +46,7 @@ tags:
 - [[live-example.tsx]] - `imports_from` [EXTRACTED]
 - [[live-lessons.tsx]] - `imports_from` [EXTRACTED]
 - [[liveFacts()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readDone()_1]] - `contains` [EXTRACTED]
 - [[replay-drill.tsx]] - `imports_from` [EXTRACTED]
 - [[scenarioCall()]] - `imports` [EXTRACTED]
@@ -56,4 +56,4 @@ tags:
 - [[verdictStyle()]] - `contains` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_280
+#graphify/code #graphify/EXTRACTED #community/learn-tabtsx

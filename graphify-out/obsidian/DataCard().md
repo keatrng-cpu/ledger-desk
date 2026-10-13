@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/data-card.tsx"
 type: "code"
-community: "Community 34"
+community: "invest-panel.tsx"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/invest-paneltsx
 ---
 
 # DataCard()
@@ -20,4 +20,4 @@ tags:
 - [[importLedger()]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

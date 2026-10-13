@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-keep-live.mjs"
 type: "code"
-community: "Community 71"
+community: "capture-history.mjs"
 location: "L66"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/capture-historymjs
 ---
 
 # intervals
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-keep-live.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

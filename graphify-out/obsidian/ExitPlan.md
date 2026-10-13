@@ -1,21 +1,17 @@
 ---
-source_file: "src/lib/room/orchestrator.ts"
+source_file: "src/lib/smc/exec-context.ts"
 type: "code"
-community: "Community 0"
-location: "L325"
+community: "buildTradingDesk"
+location: "L107"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/buildTradingDesk
 ---
 
 # ExitPlan
 
 ## Connections
-- [[Facts]] - `references` [EXTRACTED]
-- [[OptionQuote]] - `references` [EXTRACTED]
-- [[exits.ts]] - `imports` [EXTRACTED]
-- [[meeting.ts]] - `imports` [EXTRACTED]
-- [[orchestrator.ts]] - `contains` [EXTRACTED]
+- [[exec-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

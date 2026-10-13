@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # index.tsx
@@ -25,7 +25,7 @@ tags:
 - [[BrainWord()]] - `imports` [EXTRACTED]
 - [[BridgeStatus()]] - `imports` [EXTRACTED]
 - [[BuildingDesk()]] - `contains` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CATEGORIES]] - `contains` [EXTRACTED]
 - [[CalibrationPanel()]] - `imports` [EXTRACTED]
 - [[CardTape]] - `imports` [EXTRACTED]
@@ -78,7 +78,7 @@ tags:
 - [[RiskFetchState]] - `imports` [EXTRACTED]
 - [[RiskPanel()]] - `imports` [EXTRACTED]
 - [[RiskState]] - `imports` [EXTRACTED]
-- [[Route_13]] - `contains` [EXTRACTED]
+- [[Route_14]] - `contains` [EXTRACTED]
 - [[SYNAPSE_TABS]] - `imports` [EXTRACTED]
 - [[ScreenFlash()]] - `imports` [EXTRACTED]
 - [[SectionHead()_1]] - `contains` [EXTRACTED]
@@ -101,12 +101,14 @@ tags:
 - [[TradingCoach()]] - `imports` [EXTRACTED]
 - [[TradingFloorTab]] - `contains` [EXTRACTED]
 - [[VeteranBrainPanel()]] - `imports` [EXTRACTED]
+- [[WatcherTab()]] - `imports` [EXTRACTED]
 - [[alerts-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[allSeries()]] - `imports` [EXTRACTED]
 - [[analytics-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
 - [[apex-sim-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[aplus-ops.tsx]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyQuoteToLastBar()]] - `imports` [EXTRACTED]
 - [[applyWordHysteresis()]] - `imports` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
@@ -129,7 +131,6 @@ tags:
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
 - [[checkScheduledJobs]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[confirmPendingFill()]] - `imports` [EXTRACTED]
 - [[considerEntryAlarm()]] - `imports` [EXTRACTED]
 - [[considerPathAlarm()]] - `imports` [EXTRACTED]
@@ -242,7 +243,7 @@ tags:
 - [[raiseNewsBlackoutAlert]] - `imports` [EXTRACTED]
 - [[raisePositionFlattenedAlert]] - `imports` [EXTRACTED]
 - [[raiseSetupArmedAlert]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readRiskGoverned()]] - `imports` [EXTRACTED]
 - [[reconcilePaperBookToMemory()]] - `imports` [EXTRACTED]
 - [[recordArmedShadow()]] - `contains` [EXTRACTED]
@@ -310,10 +311,11 @@ tags:
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
+- [[watcher-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[withClientTimeout()]] - `imports` [EXTRACTED]
 - [[withOrderLevels()]] - `imports` [EXTRACTED]
 - [[word-hysteresis.ts]] - `imports_from` [EXTRACTED]
 - [[wordHold]] - `contains` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

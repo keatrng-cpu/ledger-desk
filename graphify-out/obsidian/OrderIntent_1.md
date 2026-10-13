@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "code"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # OrderIntent
@@ -16,8 +16,8 @@ tags:
 - [[dot-debit_at_limit()]] - `method` [EXTRACTED]
 - [[dot-desk_gates()]] - `method` [EXTRACTED]
 - [[dot-limit_px()]] - `method` [EXTRACTED]
-- [[BaseModel_1]] - `inherits` [EXTRACTED]
+- [[BaseModel]] - `inherits` [EXTRACTED]
 - [[gate.py]] - `contains` [EXTRACTED]
 - [[review()]] - `uses` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

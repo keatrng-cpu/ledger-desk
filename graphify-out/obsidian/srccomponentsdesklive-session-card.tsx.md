@@ -1,12 +1,12 @@
 ---
 source_file: "docs/code-index.md"
 type: "document"
-community: "Community 42"
+community: "Code index"
 location: "L99"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_42
+  - community/Code_index
 ---
 
 # src\components\desk\live-session-card.tsx
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Code index_1]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_42
+#graphify/document #graphify/EXTRACTED #community/Code_index

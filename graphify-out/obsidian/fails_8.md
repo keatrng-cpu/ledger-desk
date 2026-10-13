@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-sleeve-migration.mjs"
 type: "code"
-community: "Community 85"
+community: "sleeve-sizing.ts"
 location: "L46"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/sleeve-sizingts
 ---
 
 # fails
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-sleeve-migration.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/sleeve-sizingts

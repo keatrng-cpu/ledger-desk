@@ -1,18 +1,18 @@
 ---
 source_file: "docs/ENGINE_BRIDGE.md"
 type: "document"
-community: "Community 294"
+community: "Engine bridge — Trading-Automation → Ledger desk"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_294
+  - community/Engine_bridge__Trading-Automation__Ledger_desk
 ---
 
 # Engine bridge — Trading-Automation → Ledger desk
 
 ## Connections
-- [[Auth]] - `contains` [EXTRACTED]
+- [[Auth_1]] - `contains` [EXTRACTED]
 - [[ENGINE_BRIDGE]] - `contains` [EXTRACTED]
 - [[Environment (desk side)]] - `contains` [EXTRACTED]
 - [[Python (requests)]] - `contains` [EXTRACTED]
@@ -20,4 +20,4 @@ tags:
 - [[`POST apiengineheartbeat`]] - `contains` [EXTRACTED]
 - [[`POST apienginejournal`]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_294
+#graphify/document #graphify/EXTRACTED #community/Engine_bridge__Trading-Automation__Ledger_desk

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/paper-backfill.ts"
 type: "code"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L400"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # syncPaperBookToDb()
@@ -25,4 +25,4 @@ tags:
 - [[planPaperBackfill()]] - `calls` [EXTRACTED]
 - [[unmirroredCount()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/paper-backfillts

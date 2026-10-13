@@ -1,12 +1,12 @@
 ---
 source_file: ".claude/skills/desk-data/SKILL.md"
 type: "document"
-community: "Community 331"
+community: "Desk data — where a number comes from"
 location: "L6"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_331
+  - community/Desk_data__where_a_number_comes_from
 ---
 
 # Desk data — where a number comes from
@@ -18,4 +18,4 @@ tags:
 - [[The number sources]] - `contains` [EXTRACTED]
 - [[desk-dataSKILL]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_331
+#graphify/document #graphify/EXTRACTED #community/Desk_data__where_a_number_comes_from

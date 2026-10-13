@@ -1,23 +1,23 @@
 ---
 source_file: "src/lib/trading/shadow-book.ts"
 type: "code"
-community: "Community 126"
+community: "shadow-book.ts"
 location: "L276"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_126
+  - community/shadow-bookts
 ---
 
 # openShadows()
 
 ## Connections
-- [[etDayKey()]] - `calls` [EXTRACTED]
-- [[etTime()_1]] - `calls` [EXTRACTED]
+- [[etDayKey()_2]] - `calls` [EXTRACTED]
+- [[etTime()]] - `calls` [EXTRACTED]
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
 - [[observeShadows()]] - `calls` [EXTRACTED]
-- [[px()_3]] - `calls` [EXTRACTED]
-- [[r2()_2]] - `calls` [EXTRACTED]
+- [[px()]] - `calls` [EXTRACTED]
+- [[r2()_1]] - `calls` [EXTRACTED]
 - [[readSession()]] - `calls` [EXTRACTED]
 - [[refusingLayer()]] - `calls` [EXTRACTED]
 - [[riskDollarsForGrade()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[shadowId()]] - `calls` [EXTRACTED]
 - [[shadowTags()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_126
+#graphify/code #graphify/EXTRACTED #community/shadow-bookts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/profit-path.ts"
 type: "code"
-community: "Community 127"
+community: "aplus/config.ts"
 location: "L432"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_127
+  - community/aplus/configts
 ---
 
 # demoGradedTrades()
@@ -15,4 +15,4 @@ tags:
 - [[profit-path.ts]] - `contains` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_127
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-off-hours-study.mjs"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # verify-off-hours-study.mjs
@@ -24,4 +24,4 @@ tags:
 - [[voice]] - `contains` [EXTRACTED]
 - [[yesCentsOf()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

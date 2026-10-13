@@ -1,20 +1,23 @@
 ---
-source_file: "package.json"
-type: "concept"
-community: "Community 190"
-location: "L61"
+source_file: "@electric-sql/pglite"
+type: "code"
+community: "verify-rh-desk-job.mjs"
 tags:
-  - graphify/concept
+  - graphify/code
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/verify-rh-desk-jobmjs
 ---
 
 # @electric-sql/pglite
 
 ## Connections
-- [[createPgliteSql()]] - `imports_from` [EXTRACTED]
-- [[package.json]] - `imports` [EXTRACTED]
-- [[pglite-dialect.ts]] - `imports_from` [EXTRACTED]
-- [[verify-rh-oauth.mjs]] - `imports_from` [EXTRACTED]
+- [[db.ts]] - `dynamic_import` [EXTRACTED]
+- [[verify-attestation.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-live-gateway.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-paper-step.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-desk-job.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
+- [[verify-room-snapshot.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_190
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

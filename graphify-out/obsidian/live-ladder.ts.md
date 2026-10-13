@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/live-ladder.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # live-ladder.ts
@@ -15,7 +15,7 @@ tags:
 - [[DATABENTO_QUOTE_FRESH_SEC]] - `imports` [EXTRACTED]
 - [[IndexSymbol]] - `imports` [EXTRACTED]
 - [[LiveQuote]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SymbolSeries]] - `imports` [EXTRACTED]
 - [[YAHOO_MAP]] - `imports` [EXTRACTED]
 - [[YahooInterval]] - `imports` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[within()]] - `contains` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

@@ -1,19 +1,18 @@
 ---
-source_file: "scripts/forming-bar.test.mjs"
+source_file: "scripts/measure-loss-patterns.mts"
 type: "code"
-community: "Community 40"
-location: "L17"
+community: "measure-loss-patterns.mts"
+location: "L16"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_40
+  - graphify/EXTRACTED
+  - community/measure-loss-patternsmts
 ---
 
 # bars()
 
 ## Connections
-- [[0b. UNOWNED  MULTI-CLAIMED FILES — ONE AGENT EACH]] - `references` [INFERRED]
-- [[6. THE SMALLEST SAFE FIRST WAVE]] - `references` [INFERRED]
-- [[forming-bar.test.mjs]] - `contains` [EXTRACTED]
+- [[ctx()]] - `calls` [EXTRACTED]
+- [[measure-loss-patterns.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/measure-loss-patternsmts

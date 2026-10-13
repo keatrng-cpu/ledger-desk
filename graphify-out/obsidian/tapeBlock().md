@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 25"
+community: "floor-screens.ts"
 location: "L617"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-screensts
 ---
 
 # tapeBlock()
@@ -14,9 +14,9 @@ tags:
 ## Connections
 - [[clear()]] - `calls` [EXTRACTED]
 - [[drawMonitor()]] - `calls` [EXTRACTED]
-- [[fit()_5]] - `calls` [EXTRACTED]
+- [[fit()_4]] - `calls` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[fmt()_4]] - `calls` [EXTRACTED]
+- [[fmt()_3]] - `calls` [EXTRACTED]
 - [[header()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-screensts

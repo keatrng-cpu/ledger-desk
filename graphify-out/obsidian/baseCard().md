@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/mcp.ts"
 type: "code"
-community: "Community 184"
+community: "grok-report.ts"
 location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/grok-reportts
 ---
 
 # baseCard()
@@ -17,4 +17,4 @@ tags:
 - [[loadCard()]] - `calls` [EXTRACTED]
 - [[mcp.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

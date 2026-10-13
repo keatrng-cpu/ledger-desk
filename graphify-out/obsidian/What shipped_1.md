@@ -1,17 +1,27 @@
 ---
-source_file: "INTEGRATION-P2.md"
+source_file: "INTEGRATION-P1.md"
 type: "document"
-community: "Community 334"
-location: "L8"
+community: "jsonResponse"
+location: "L7"
 tags:
   - graphify/document
-  - graphify/EXTRACTED
-  - community/Community_334
+  - graphify/INFERRED
+  - community/jsonResponse
 ---
 
 # What shipped
 
 ## Connections
-- [[INTEGRATION-P2 — wiring instructions for the deskscanner integrator]] - `contains` [EXTRACTED]
+- [[HaltBanner()]] - `references` [INFERRED]
+- [[INTEGRATION-P1 — Journal + active risk governor]] - `contains` [EXTRACTED]
+- [[JournalPanel()]] - `references` [INFERRED]
+- [[LogSetupDialog()]] - `references` [INFERRED]
+- [[RiskState]] - `references` [INFERRED]
+- [[SetupCandidate]] - `references` [INFERRED]
+- [[closeTrade()]] - `references` [INFERRED]
+- [[computeRiskFlags()]] - `references` [INFERRED]
+- [[currentKillzoneWindow()]] - `references` [INFERRED]
+- [[tradingDayStart()]] - `references` [INFERRED]
+- [[tradingWeekStart()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_334
+#graphify/document #graphify/INFERRED #community/jsonResponse

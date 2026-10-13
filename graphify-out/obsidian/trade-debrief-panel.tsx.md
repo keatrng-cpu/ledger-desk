@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/trade-debrief-panel.tsx"
 type: "code"
-community: "Community 44"
+community: "ghost-book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/ghost-bookts
 ---
 
 # trade-debrief-panel.tsx
@@ -24,12 +24,12 @@ tags:
 - [[loadPaperTrades()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_14]] - `contains` [EXTRACTED]
+- [[pct()_2]] - `contains` [EXTRACTED]
 - [[pushDebrief()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[subscribeDebriefs()]] - `imports` [EXTRACTED]
-- [[tone()_3]] - `contains` [EXTRACTED]
+- [[tone()]] - `contains` [EXTRACTED]
 - [[trade-debrief.ts]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

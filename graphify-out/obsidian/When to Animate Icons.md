@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/animations.md"
 type: "document"
-community: "Community 332"
+community: "Contextual Icon Animations"
 location: "L266"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_332
+  - community/Contextual_Icon_Animations
 ---
 
 # When to Animate Icons
@@ -15,4 +15,4 @@ tags:
 - [[Contextual Icon Animations]] - `contains` [EXTRACTED]
 - [[scale()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_332
+#graphify/document #graphify/EXTRACTED #community/Contextual_Icon_Animations

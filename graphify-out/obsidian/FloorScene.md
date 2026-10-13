@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
+community: "FloorScene"
 location: "L1684"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # FloorScene
@@ -26,10 +26,10 @@ tags:
 - [[dot-clearWalkKeys()]] - `method` [EXTRACTED]
 - [[dot-clockMs()]] - `method` [EXTRACTED]
 - [[dot-closeShot()]] - `method` [EXTRACTED]
-- [[dot-constructor()_17]] - `method` [EXTRACTED]
+- [[dot-constructor()_12]] - `method` [EXTRACTED]
 - [[dot-debugReach()]] - `method` [EXTRACTED]
 - [[dot-directorShot()]] - `method` [EXTRACTED]
-- [[dot-dispose()_6]] - `method` [EXTRACTED]
+- [[dot-dispose()_4]] - `method` [EXTRACTED]
 - [[dot-drawAll()]] - `method` [EXTRACTED]
 - [[dot-engageOwner()]] - `method` [EXTRACTED]
 - [[dot-flashKey()]] - `method` [EXTRACTED]
@@ -75,7 +75,7 @@ tags:
 - [[dot-resolveCoplanar()]] - `method` [EXTRACTED]
 - [[dot-resolveWing()]] - `method` [EXTRACTED]
 - [[dot-revealWhiteboard()]] - `method` [EXTRACTED]
-- [[dot-say()_3]] - `method` [EXTRACTED]
+- [[dot-say()_1]] - `method` [EXTRACTED]
 - [[dot-screenAlong()]] - `method` [EXTRACTED]
 - [[dot-sendHome()]] - `method` [EXTRACTED]
 - [[dot-setCamera()]] - `method` [EXTRACTED]
@@ -123,4 +123,4 @@ tags:
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 - [[use-mead-feed.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

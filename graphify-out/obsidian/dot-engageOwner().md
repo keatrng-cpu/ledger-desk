@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 28"
+community: "FloorScene"
 location: "L3425"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_28
+  - community/FloorScene
 ---
 
 # .engageOwner()
@@ -16,4 +16,4 @@ tags:
 - [[dot-setWalkMode()]] - `calls` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_28
+#graphify/code #graphify/EXTRACTED #community/FloorScene

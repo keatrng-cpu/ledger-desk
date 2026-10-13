@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 74"
+community: "databento_live_gateway.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # signal
@@ -14,4 +14,4 @@ tags:
 - [[databento_live_gateway.py]] - `imports` [EXTRACTED]
 - [[main()_9]] - `calls` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_74
+#graphify/concept #graphify/EXTRACTED #community/databento_live_gatewaypy

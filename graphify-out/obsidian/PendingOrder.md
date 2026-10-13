@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/pending-order.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # PendingOrder
@@ -16,4 +16,4 @@ tags:
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[pending-order.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 41"
+community: "mead-hall-build.ts"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # src_components_mead_mead_hall_build_reaction
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_41
+#graphify/concept #graphify/EXTRACTED #community/mead-hall-buildts

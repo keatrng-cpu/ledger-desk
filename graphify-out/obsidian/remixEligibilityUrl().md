@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/created-with-grok-banner.tsx"
 type: "code"
-community: "Community 54"
+community: "routeTree.gen.ts"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/routeTreegents
 ---
 
 # remixEligibilityUrl()
@@ -15,4 +15,4 @@ tags:
 - [[created-with-grok-banner.tsx]] - `contains` [EXTRACTED]
 - [[fetchRemixEligible()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/routeTreegents

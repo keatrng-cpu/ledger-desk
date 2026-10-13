@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/push-server.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L187"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # encryptPayload()
@@ -16,4 +16,4 @@ tags:
 - [[push-server.ts]] - `contains` [EXTRACTED]
 - [[sendPush()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

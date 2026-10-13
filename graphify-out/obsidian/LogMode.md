@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-scanner.tsx"
 type: "code"
-community: "Community 46"
+community: "react"
 location: "L335"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/react
 ---
 
 # LogMode
@@ -15,4 +15,4 @@ tags:
 - [[setup-scanner.tsx]] - `contains` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/react

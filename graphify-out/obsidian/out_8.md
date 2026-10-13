@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/code-index.mjs"
+source_file: "scripts/capture-learn-history.mjs"
 type: "code"
-community: "Community 304"
-location: "L16"
+community: "ref_node_path"
+location: "L35"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_304
+  - community/ref_node_path
 ---
 
 # out
 
 ## Connections
-- [[code-index.mjs]] - `contains` [EXTRACTED]
+- [[capture-learn-history.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_304
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

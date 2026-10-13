@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 59"
+community: "apex-sim-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/apex-sim-paneltsx
 ---
 
 # apex-sim-panel.tsx
@@ -25,11 +25,11 @@ tags:
 - [[ApexSimResult]] - `imports` [EXTRACTED]
 - [[ApexSize]] - `imports` [EXTRACTED]
 - [[ApexSizeRules]] - `imports` [EXTRACTED]
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CAP_OPTIONS]] - `contains` [EXTRACTED]
 - [[CONFIDENCE_LABEL]] - `imports` [EXTRACTED]
 - [[CONTRACTS]] - `imports` [EXTRACTED]
-- [[Card()_1]] - `imports` [EXTRACTED]
+- [[Card()]] - `imports` [EXTRACTED]
 - [[CardContent()]] - `imports` [EXTRACTED]
 - [[CardDescription()]] - `imports` [EXTRACTED]
 - [[CardHeader()]] - `imports` [EXTRACTED]
@@ -59,12 +59,12 @@ tags:
 - [[TRADES_PER_WEEK_MIN]] - `imports` [EXTRACTED]
 - [[apex-sim.ts]] - `imports_from` [EXTRACTED]
 - [[apexRulesFor()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[autofire-gates.ts]] - `imports_from` [EXTRACTED]
 - [[button.tsx]] - `imports_from` [EXTRACTED]
 - [[card.tsx]] - `imports_from` [EXTRACTED]
 - [[clampTradesPerWeek()]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[defaultSimInput()]] - `imports` [EXTRACTED]
 - [[diffTone()]] - `contains` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
@@ -72,12 +72,12 @@ tags:
 - [[loadEvidenceDist()]] - `imports` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
 - [[money()_14]] - `contains` [EXTRACTED]
-- [[num()_15]] - `contains` [EXTRACTED]
-- [[pct()_16]] - `contains` [EXTRACTED]
-- [[persist()_1]] - `contains` [EXTRACTED]
+- [[num()_16]] - `contains` [EXTRACTED]
+- [[pct()_15]] - `contains` [EXTRACTED]
+- [[persist()]] - `contains` [EXTRACTED]
 - [[pp()]] - `contains` [EXTRACTED]
 - [[rMult()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[restore()]] - `contains` [EXTRACTED]
 - [[roomToLiquidation()]] - `imports` [EXTRACTED]
 - [[runApexSim()]] - `imports` [EXTRACTED]
@@ -85,4 +85,4 @@ tags:
 - [[simHonestyLine()]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-mead.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # LIQ_SAY
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[live-voices-mead.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

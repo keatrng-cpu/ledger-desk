@@ -1,23 +1,23 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 25"
-location: "L1025"
+community: "mead-screens.ts"
+location: "L698"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/mead-screensts
 ---
 
 # drawLedger()
 
 ## Connections
-- [[clear()]] - `calls` [EXTRACTED]
-- [[drawScreen()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[header()]] - `calls` [EXTRACTED]
-- [[pct()_9]] - `calls` [EXTRACTED]
-- [[signed()_1]] - `calls` [EXTRACTED]
-- [[wrap()_4]] - `calls` [EXTRACTED]
+- [[buildHallExtras()]] - `calls` [EXTRACTED]
+- [[fit()]] - `calls` [EXTRACTED]
+- [[gradeColor()]] - `calls` [EXTRACTED]
+- [[knotBorder()]] - `calls` [EXTRACTED]
+- [[mead-hall-extras.ts]] - `imports` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
+- [[plate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

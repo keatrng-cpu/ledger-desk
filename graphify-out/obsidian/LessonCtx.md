@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/live-lesson.ts"
 type: "code"
-community: "Community 89"
+community: "options-desk.ts"
 location: "L201"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_89
+  - community/options-deskts
 ---
 
 # LessonCtx
@@ -15,4 +15,4 @@ tags:
 - [[OptionsDesk]] - `references` [EXTRACTED]
 - [[live-lesson.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_89
+#graphify/code #graphify/EXTRACTED #community/options-deskts

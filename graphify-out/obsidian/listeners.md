@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "src/lib/ui/plain-english.ts"
 type: "code"
-community: "Community 48"
-location: "L79"
+community: "use-entry-state.ts"
+location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/use-entry-statets
 ---
 
 # listeners
 
 ## Connections
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[plain-english.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

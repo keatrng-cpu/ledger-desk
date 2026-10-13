@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/school-contract.ts"
 type: "code"
-community: "Community 24"
+community: "floor-overhaul.ts"
 location: "L313"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_24
+  - community/floor-overhaults
 ---
 
 # debatePanel
@@ -18,4 +18,4 @@ tags:
 - [[floor-overhaul-school.ts]] - `imports` [EXTRACTED]
 - [[school-contract.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_24
+#graphify/code #graphify/EXTRACTED #community/floor-overhaults

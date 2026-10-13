@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-live-loop.ts"
 type: "code"
-community: "Community 56"
+community: "rh-dispatch.ts"
 location: "L191"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/rh-dispatchts
 ---
 
 # rhCycleOnDesk()
@@ -23,4 +23,4 @@ tags:
 - [[schoolGate()]] - `calls` [EXTRACTED]
 - [[schoolReads()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/rh-dispatchts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/meeting.ts"
 type: "code"
-community: "Community 3"
+community: "meeting.ts"
 location: "L131"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/meetingts
 ---
 
 # vixTxt()
@@ -16,6 +16,6 @@ tags:
 - [[closed()]] - `calls` [EXTRACTED]
 - [[idleLine()]] - `calls` [EXTRACTED]
 - [[meeting.ts]] - `contains` [EXTRACTED]
-- [[vixOf()_1]] - `calls` [EXTRACTED]
+- [[vixOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/meetingts

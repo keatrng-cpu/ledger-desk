@@ -1,20 +1,17 @@
 ---
-source_file: "src/components/room/floor-scene.ts"
+source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 223"
-location: "L111"
+community: "Avatar"
+location: "L103"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_223
+  - community/Avatar
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-cellOf()]] - `calls` [EXTRACTED]
-- [[dot-center()]] - `calls` [EXTRACTED]
-- [[dot-markDisc()]] - `calls` [EXTRACTED]
-- [[NavGrid]] - `method` [EXTRACTED]
+- [[Confetti]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_223
+#graphify/code #graphify/EXTRACTED #community/Avatar

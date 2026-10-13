@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/auth/SKILL.md"
 type: "document"
-community: "Community 79"
+community: "auth/client.ts"
 location: "L164"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_79
+  - community/auth/clientts
 ---
 
 # Reading the user / protecting routes
@@ -21,4 +21,4 @@ tags:
 - [[useCurrentUser()]] - `references` [INFERRED]
 - [[useCurrentUserState()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_79
+#graphify/document #graphify/INFERRED #community/auth/clientts

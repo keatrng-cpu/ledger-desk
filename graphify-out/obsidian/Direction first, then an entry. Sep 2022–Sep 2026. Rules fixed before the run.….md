@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/direction-book.py"
 type: "rationale"
-community: "Community 131"
+community: "direction-book.py"
 location: "L2"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/direction-bookpy
 ---
 
 # Direction first, then an entry. Sep 2022–Sep 2026. Rules fixed before the run.…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[direction-book.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_131
+#graphify/rationale #graphify/EXTRACTED #community/direction-bookpy

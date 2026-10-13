@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # trading/scanner.ts
@@ -18,13 +18,14 @@ tags:
 - [[DISPLACEMENT_RULE]] - `imports` [EXTRACTED]
 - [[DetectorSummary]] - `imports` [EXTRACTED]
 - [[FvgResult]] - `imports` [EXTRACTED]
-- [[GATE_4]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
 - [[HIGH_CONFLUENCE_THRESHOLD]] - `contains` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[LiquidityTarget]] - `imports` [EXTRACTED]
 - [[MarketConditions]] - `imports` [EXTRACTED]
 - [[NOTE `applyProfitPathToCandidate` recomputes `actionable` from scratch]] - `rationale_for` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
+- [[SCORE_KEYS]] - `imports` [EXTRACTED]
 - [[ScanResult]] - `contains` [EXTRACTED]
 - [[ScoreCandidatesOptions]] - `contains` [EXTRACTED]
 - [[SessionClock]] - `imports` [EXTRACTED]
@@ -36,9 +37,11 @@ tags:
 - [[StrategyMarketGrade]] - `imports` [EXTRACTED]
 - [[analysis-to-candidate.ts]] - `imports_from` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyProfitPathToCandidate()]] - `imports` [EXTRACTED]
 - [[applyTapeTrust()]] - `imports` [EXTRACTED]
 - [[applyVeto()]] - `contains` [EXTRACTED]
+- [[armingRaid]] - `imports` [EXTRACTED]
 - [[assessConditions()]] - `imports` [EXTRACTED]
 - [[auto-paper.ts]] - `imports_from` [EXTRACTED]
 - [[autofire-gates.ts]] - `imports_from` [EXTRACTED]
@@ -55,7 +58,6 @@ tags:
 - [[classify()]] - `imports` [EXTRACTED]
 - [[compareForBoard()]] - `contains` [EXTRACTED]
 - [[conditions.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[confirmSweepOnTape()]] - `imports` [EXTRACTED]
 - [[consequentEncroachment()]] - `imports` [EXTRACTED]
 - [[curriculum.ts]] - `imports_from` [EXTRACTED]
@@ -75,6 +77,7 @@ tags:
 - [[entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[etMinutesOf()]] - `contains` [EXTRACTED]
 - [[etSessionKey()]] - `imports` [EXTRACTED]
+- [[exec-context.ts]] - `dynamic_import` [EXTRACTED]
 - [[extensionAllows()]] - `imports` [EXTRACTED]
 - [[fib.ts]] - `imports_from` [EXTRACTED]
 - [[gap-direction.ts]] - `imports_from` [EXTRACTED]
@@ -99,10 +102,11 @@ tags:
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[noteOnly()]] - `contains` [EXTRACTED]
 - [[openingBiasFrom()]] - `contains` [EXTRACTED]
-- [[openingRange()]] - `contains` [EXTRACTED]
+- [[openingRange()_1]] - `contains` [EXTRACTED]
 - [[options-desk.ts]] - `imports_from` [EXTRACTED]
 - [[oteZoneOverlap()]] - `imports` [EXTRACTED]
 - [[overnightRange()]] - `contains` [EXTRACTED]
+- [[ownTemplateMissing()]] - `imports` [EXTRACTED]
 - [[pairedDisplacement()]] - `imports` [EXTRACTED]
 - [[paper-manager.ts]] - `imports_from` [EXTRACTED]
 - [[path-alarm.ts]] - `imports_from` [EXTRACTED]
@@ -134,6 +138,7 @@ tags:
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
 - [[simulate-path-trade.ts]] - `imports_from` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[smc-canon.ts]] - `imports_from` [EXTRACTED]
@@ -151,6 +156,7 @@ tags:
 - [[tape-trust.ts]] - `imports_from` [EXTRACTED]
 - [[tapeHitsForSide()]] - `imports` [EXTRACTED]
 - [[tapeTrust]] - `imports` [EXTRACTED]
+- [[templateFor()]] - `imports` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports_from` [EXTRACTED]
 - [[trace-session.mjs]] - `dynamic_import` [EXTRACTED]
 - [[tradezella-chat.tsx]] - `imports_from` [EXTRACTED]
@@ -165,4 +171,4 @@ tags:
 - [[veteran-brain.ts]] - `imports_from` [EXTRACTED]
 - [[weeklyPdBias()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

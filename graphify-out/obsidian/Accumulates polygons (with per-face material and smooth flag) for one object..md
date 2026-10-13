@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "rationale"
-community: "Community 180"
+community: "build_floor.py"
 location: "L256"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # Accumulates polygons (with per-face material and smooth flag) for one object.
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Geo]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_180
+#graphify/rationale #graphify/EXTRACTED #community/build_floorpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/paper-step.ts"
 type: "code"
-community: "Community 4"
+community: "verify-paper-step.mjs"
 location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/verify-paper-stepmjs
 ---
 
 # PAPER_STEP_READ_SQL
@@ -16,4 +16,4 @@ tags:
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[verify-paper-step.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/verify-paper-stepmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 150"
+community: "gates.ts"
 location: "L182"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/gatests
 ---
 
 # checkExit()
@@ -16,7 +16,7 @@ tags:
 - [[execStep()]] - `calls` [EXTRACTED]
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[gates.ts]] - `contains` [EXTRACTED]
-- [[r2()_3]] - `calls` [EXTRACTED]
-- [[symbolOf()]] - `calls` [EXTRACTED]
+- [[r2()_6]] - `calls` [EXTRACTED]
+- [[symbolOf()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/gatests

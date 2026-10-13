@@ -1,20 +1,24 @@
 ---
-source_file: "src/components/lab/evidence-table.tsx"
+source_file: "src/components/desk/shadow-book-panel.tsx"
 type: "code"
-community: "Community 14"
-location: "L32"
+community: "shadow-book-panel.tsx"
+location: "L56"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/shadow-book-paneltsx
 ---
 
 # Row()
 
 ## Connections
-- [[EvidenceTable()]] - `calls` [EXTRACTED]
-- [[cn()]] - `calls` [EXTRACTED]
-- [[evidence-table.tsx]] - `contains` [EXTRACTED]
-- [[r()]] - `calls` [EXTRACTED]
+- [[ShadowBookPanel()]] - `calls` [EXTRACTED]
+- [[etTime()]] - `calls` [EXTRACTED]
+- [[fmtR()_2]] - `calls` [EXTRACTED]
+- [[fmtUsd()_1]] - `calls` [EXTRACTED]
+- [[liveR()]] - `calls` [EXTRACTED]
+- [[px()_10]] - `calls` [EXTRACTED]
+- [[shadow-book-panel.tsx]] - `contains` [EXTRACTED]
+- [[statusTone()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/shadow-book-paneltsx

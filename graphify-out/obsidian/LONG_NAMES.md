@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/long-board.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # LONG_NAMES
@@ -19,4 +19,4 @@ tags:
 - [[long-board.ts]] - `contains` [EXTRACTED]
 - [[off-hours-study.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

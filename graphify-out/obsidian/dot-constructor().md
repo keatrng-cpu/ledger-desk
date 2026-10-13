@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/exec/exec-sql.ts"
+source_file: "src/lib/auth/verify.server.ts"
 type: "code"
-community: "Community 110"
-location: "L64"
+community: "auth/server.ts"
+location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_110
+  - community/auth/serverts
 ---
 
 # .constructor()
 
 ## Connections
-- [[PgExecStore]] - `method` [EXTRACTED]
+- [[UnauthorizedError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_110
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

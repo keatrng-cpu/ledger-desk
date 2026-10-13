@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/references/surfaces.md"
 type: "document"
-community: "Community 276"
+community: "Surfaces"
 location: "L5"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_276
+  - community/Surfaces
 ---
 
 # Concentric Border Radius
@@ -16,4 +16,4 @@ tags:
 - [[Surfaces_1]] - `contains` [EXTRACTED]
 - [[Tailwind Example]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_276
+#graphify/document #graphify/EXTRACTED #community/Surfaces

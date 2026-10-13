@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L1159"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # .span()
 
 ## Connections
-- [[dot-add()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
 - [[exCalendar()]] - `calls` [INFERRED]
 - [[exFeed()]] - `calls` [INFERRED]
 - [[exHallBoard()]] - `calls` [INFERRED]
@@ -23,4 +23,4 @@ tags:
 - [[exNews()]] - `calls` [INFERRED]
 - [[exTape()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_198
+#graphify/code #graphify/INFERRED #community/live-voices-meadts

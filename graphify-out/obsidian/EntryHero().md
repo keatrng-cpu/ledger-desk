@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/desk/entry-hero.tsx"
 type: "code"
-community: "Community 33"
+community: "use-entry-state.ts"
 location: "L44"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_33
+  - community/use-entry-statets
 ---
 
 # EntryHero()
 
 ## Connections
 - [[ConflictChip()]] - `calls` [EXTRACTED]
-- [[Countdown()]] - `calls` [EXTRACTED]
+- [[Countdown()_1]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[Plain()]] - `calls` [EXTRACTED]
 - [[PlainToggle()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[useAutomation()]] - `calls` [EXTRACTED]
 - [[useEntryState()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_33
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

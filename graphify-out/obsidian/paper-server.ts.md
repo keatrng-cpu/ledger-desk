@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/bridge/paper-server.ts"
 type: "code"
-community: "Community 95"
+community: "getSql"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/getSql
 ---
 
 # paper-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[BridgeStatusError]] - `contains` [EXTRACTED]
 - [[BridgeStatusPayload]] - `contains` [EXTRACTED]
 - [[NOTE this is the SERVER book. The desk UI's `listOpenPaperTrades` is a]] - `rationale_for` [EXTRACTED]
@@ -28,9 +28,9 @@ tags:
 - [[ingest-server.ts]] - `imports_from` [EXTRACTED]
 - [[listOpenPaperTrades]] - `contains` [EXTRACTED]
 - [[middleware.ts]] - `imports_from` [EXTRACTED]
-- [[num()_20]] - `contains` [EXTRACTED]
+- [[num()_9]] - `contains` [EXTRACTED]
 - [[readEngineStatus()]] - `imports` [EXTRACTED]
 - [[setPaperEnabled()]] - `imports` [EXTRACTED]
 - [[togglePaperMode]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/getSql

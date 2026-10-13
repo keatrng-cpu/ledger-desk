@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-target-odds.mjs"
+source_file: "scripts/dump-desk-fvgs.mjs"
 type: "code"
-community: "Community 138"
-location: "L161"
+community: "ref_node_fs"
+location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_138
+  - community/ref_node_fs
 ---
 
 # hist
 
 ## Connections
-- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[dump-desk-fvgs.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

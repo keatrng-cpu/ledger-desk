@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 194"
+community: "rnd.ts"
 location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/rndts
 ---
 
 # SeatId
@@ -16,4 +16,4 @@ tags:
 - [[rnd.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/rndts

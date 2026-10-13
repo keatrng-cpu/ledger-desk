@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/hall-read.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L104"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # pullHall()
@@ -20,4 +20,4 @@ tags:
 - [[useRoomEngine()]] - `calls` [EXTRACTED]
 - [[withBudget()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

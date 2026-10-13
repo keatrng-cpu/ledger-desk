@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/off-hours-study.ts"
 type: "code"
-community: "Community 103"
+community: "live-talk.ts"
 location: "L219"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_103
+  - community/live-talkts
 ---
 
 # linkScore()
@@ -18,4 +18,4 @@ tags:
 - [[predictsOf()]] - `calls` [EXTRACTED]
 - [[tokens()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_103
+#graphify/code #graphify/EXTRACTED #community/live-talkts

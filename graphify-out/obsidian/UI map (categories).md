@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 85"
+community: "CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)"
 location: "L135"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_85
+  - community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace
 ---
 
 # UI map (categories)
@@ -17,4 +17,4 @@ tags:
 - [[sizeFromStop()]] - `references` [INFERRED]
 - [[useRoomEngine()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_85
+#graphify/document #graphify/INFERRED #community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace

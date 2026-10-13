@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/analytics.ts"
 type: "code"
-community: "Community 106"
+community: "journal/analytics.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_106
+  - community/journal/analyticsts
 ---
 
 # journal/analytics.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[AnalyticsReport]] - `contains` [EXTRACTED]
 - [[AnalyticsTrade]] - `contains` [EXTRACTED]
-- [[Bucket]] - `contains` [EXTRACTED]
+- [[Bucket_1]] - `contains` [EXTRACTED]
 - [[ClosedTrade]] - `imports` [EXTRACTED]
 - [[EquityPoint]] - `contains` [EXTRACTED]
 - [[KILLZONE_ORDER]] - `contains` [EXTRACTED]
@@ -57,10 +57,10 @@ tags:
 - [[groupBy()]] - `contains` [EXTRACTED]
 - [[normalizeKey()]] - `contains` [EXTRACTED]
 - [[orderedBy()]] - `contains` [EXTRACTED]
-- [[round2()_2]] - `contains` [EXTRACTED]
+- [[round2()_1]] - `contains` [EXTRACTED]
 - [[round4()]] - `contains` [EXTRACTED]
 - [[strategyVerdict]] - `contains` [EXTRACTED]
 - [[strategyVerdicts()]] - `contains` [EXTRACTED]
 - [[worst()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_106
+#graphify/code #graphify/EXTRACTED #community/journal/analyticsts

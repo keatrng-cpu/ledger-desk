@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 47"
+community: "dependencies"
 location: "L60"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_47
+  - community/dependencies
 ---
 
 # dependencies
@@ -38,7 +38,7 @@ tags:
 - [[@tailwindcssvite_1]] - `contains` [EXTRACTED]
 - [[@tanstackreact-query_1]] - `contains` [EXTRACTED]
 - [[@tanstackreact-router]] - `contains` [EXTRACTED]
-- [[@tanstackreact-start]] - `contains` [EXTRACTED]
+- [[@tanstackreact-start_1]] - `contains` [EXTRACTED]
 - [[@tanstackreact-table_1]] - `contains` [EXTRACTED]
 - [[@tanstackrouter-plugin_1]] - `contains` [EXTRACTED]
 - [[better-auth]] - `contains` [EXTRACTED]
@@ -51,7 +51,7 @@ tags:
 - [[lucide-react]] - `contains` [EXTRACTED]
 - [[package.json]] - `contains` [EXTRACTED]
 - [[pg_2]] - `contains` [EXTRACTED]
-- [[react_2]] - `contains` [EXTRACTED]
+- [[react_1]] - `contains` [EXTRACTED]
 - [[react-day-picker_1]] - `contains` [EXTRACTED]
 - [[react-dom_2]] - `contains` [EXTRACTED]
 - [[react-hook-form_1]] - `contains` [EXTRACTED]
@@ -66,4 +66,4 @@ tags:
 - [[zod_1]] - `contains` [EXTRACTED]
 - [[zustand_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_47
+#graphify/code #graphify/EXTRACTED #community/dependencies

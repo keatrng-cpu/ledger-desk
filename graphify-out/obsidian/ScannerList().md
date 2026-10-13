@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-scanner.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L189"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # ScannerList()
@@ -20,4 +20,4 @@ tags:
 - [[sc()_1]] - `calls` [EXTRACTED]
 - [[topSetups()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-cases.mjs"
+source_file: "scripts/verify-setup-memory.mjs"
 type: "code"
-community: "Community 143"
-location: "L21"
+community: "verify-setup-memory.mjs"
+location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/verify-setup-memorymjs
 ---
 
 # ok()
 
 ## Connections
-- [[verify-cases.mjs]] - `contains` [EXTRACTED]
+- [[check()_11]] - `calls` [EXTRACTED]
+- [[verify-setup-memory.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/verify-setup-memorymjs

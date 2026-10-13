@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/alerts/send-server.ts"
+source_file: "src/lib/market/overnight.ts"
 type: "code"
-community: "Community 23"
-location: "L145"
+community: "build-desk.ts"
+location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/build-deskts
 ---
 
 # etDay()
 
 ## Connections
-- [[haltHitAlert()]] - `calls` [EXTRACTED]
-- [[send-server.ts]] - `contains` [EXTRACTED]
+- [[loadOvernight5m()]] - `calls` [EXTRACTED]
+- [[overnight.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/build-deskts

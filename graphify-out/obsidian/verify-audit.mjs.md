@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-audit.mjs"
 type: "code"
-community: "Community 18"
+community: "verify-audit.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/verify-auditmjs
 ---
 
 # verify-audit.mjs
@@ -15,7 +15,7 @@ tags:
 - [[WHY the trader wants the five analyzing the ledger desk and looking for fixes…]] - `rationale_for` [EXTRACTED]
 - [[audit.ts]] - `dynamic_import` [EXTRACTED]
 - [[auditSrc]] - `contains` [EXTRACTED]
-- [[check()_30]] - `contains` [EXTRACTED]
+- [[check()_42]] - `contains` [EXTRACTED]
 - [[data-fresh.ts]] - `dynamic_import` [EXTRACTED]
 - [[empty_1]] - `contains` [EXTRACTED]
 - [[feed()]] - `contains` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[live-voices-race.ts]] - `dynamic_import` [EXTRACTED]
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/verify-auditmjs

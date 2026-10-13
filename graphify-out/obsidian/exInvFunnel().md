@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/live-voices-invest.ts"
 type: "code"
-community: "Community 49"
+community: "live-voices-invest.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-investts
 ---
 
 # exInvFunnel()
 
 ## Connections
-- [[AT()_11]] - `calls` [EXTRACTED]
+- [[AT()_12]] - `calls` [EXTRACTED]
 - [[cash()_1]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
@@ -21,4 +21,4 @@ tags:
 - [[pick()]] - `calls` [EXTRACTED]
 - [[plural()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

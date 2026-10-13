@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 77"
+community: "order-intent.ts"
 location: "L226"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_77
+  - community/order-intentts
 ---
 
 # buildOrderIntent()
@@ -23,7 +23,7 @@ tags:
 - [[order-intent.ts]] - `contains` [EXTRACTED]
 - [[orderIntentFromPaperLevels()]] - `calls` [EXTRACTED]
 - [[orderIntentFromPaperTrade()]] - `calls` [EXTRACTED]
-- [[round2()_10]] - `calls` [EXTRACTED]
+- [[round2()_12]] - `calls` [EXTRACTED]
 - [[round4()_4]] - `calls` [EXTRACTED]
 - [[toIso()_1]] - `calls` [EXTRACTED]
 - [[trimOrNull()]] - `calls` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[tryBuildOrderIntent()]] - `calls` [EXTRACTED]
 - [[validateOrderIntent()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_77
+#graphify/code #graphify/EXTRACTED #community/order-intentts

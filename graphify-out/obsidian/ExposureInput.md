@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # ExposureInput
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[exposure.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

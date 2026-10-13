@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 95"
+community: "getSql"
 location: "L224"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_95
+  - community/getSql
 ---
 
 # A4 — the dead second paper engine is gone
@@ -19,4 +19,4 @@ tags:
 - [[computeTradePnl()]] - `references` [INFERRED]
 - [[listOpenPaperTrades()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_95
+#graphify/document #graphify/INFERRED #community/getSql

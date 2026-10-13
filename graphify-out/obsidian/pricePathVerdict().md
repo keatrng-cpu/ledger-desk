@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/price-path-board.tsx"
 type: "code"
-community: "Community 69"
+community: "cn"
 location: "L220"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/cn
 ---
 
 # pricePathVerdict()
@@ -23,11 +23,11 @@ tags:
 - [[listOpenPaperTrades()]] - `calls` [EXTRACTED]
 - [[price-path-board.tsx]] - `contains` [EXTRACTED]
 - [[pricePathHudLine()]] - `calls` [EXTRACTED]
-- [[px()_12]] - `calls` [EXTRACTED]
+- [[px()_11]] - `calls` [EXTRACTED]
 - [[readJudas()]] - `calls` [EXTRACTED]
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 - [[sessionLive()]] - `calls` [EXTRACTED]
 - [[use-entry-state.ts]] - `imports` [EXTRACTED]
 - [[useEntryState()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/cn

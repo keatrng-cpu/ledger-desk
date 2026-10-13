@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 29"
-location: "L1267"
+community: "live-world.ts"
+location: "L1291"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # compareForBoard()
@@ -18,9 +18,9 @@ tags:
 - [[cardRead()]] - `indirect_call` [INFERRED]
 - [[desk-read.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
-- [[order()]] - `indirect_call` [INFERRED]
+- [[order()_1]] - `indirect_call` [INFERRED]
 - [[scannerCards()]] - `indirect_call` [INFERRED]
 - [[scoreCandidates()]] - `indirect_call` [INFERRED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_29
+#graphify/code #graphify/INFERRED #community/live-worldts

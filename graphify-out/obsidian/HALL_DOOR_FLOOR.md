@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/mead-hall-layout.ts"
 type: "code"
-community: "Community 147"
+community: "mead-hall-layout.ts"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/mead-hall-layoutts
 ---
 
 # HALL_DOOR_FLOOR
@@ -15,4 +15,4 @@ tags:
 - [[build-mead-plan.mjs]] - `imports` [EXTRACTED]
 - [[mead-hall-layout.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/mead-hall-layoutts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/evidence.ts"
 type: "code"
-community: "Community 99"
+community: "replay-drill.ts"
 location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_99
+  - community/replay-drillts
 ---
 
 # riskAtrBucket()
@@ -22,4 +22,4 @@ tags:
 - [[scoreProcess()]] - `calls` [EXTRACTED]
 - [[tradingevidence.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_99
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

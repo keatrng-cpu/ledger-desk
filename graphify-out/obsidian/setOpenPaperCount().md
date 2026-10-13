@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-memory.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L620"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # setOpenPaperCount()
@@ -21,4 +21,4 @@ tags:
 - [[reconcilePaperBookToMemory()]] - `calls` [EXTRACTED]
 - [[saveDeskMemory()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

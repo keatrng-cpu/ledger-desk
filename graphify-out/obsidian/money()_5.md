@@ -1,19 +1,19 @@
 ---
-source_file: "src/components/journal/discipline-panel.tsx"
+source_file: "src/components/journal/journal-panel.tsx"
 type: "code"
-community: "Community 23"
-location: "L21"
+community: "journal/server.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_23
+  - community/journal/serverts
 ---
 
 # money()
 
 ## Connections
-- [[DisciplinePanel()]] - `calls` [EXTRACTED]
-- [[SplitCell()]] - `calls` [EXTRACTED]
-- [[discipline-panel.tsx]] - `contains` [EXTRACTED]
+- [[JournalPanel()]] - `calls` [EXTRACTED]
+- [[PnlText()]] - `calls` [EXTRACTED]
+- [[journal-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_23
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

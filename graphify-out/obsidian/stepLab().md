@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/lab.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L145"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # stepLab()
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[applyLab()]] - `calls` [EXTRACTED]
 - [[clockEt()]] - `calls` [EXTRACTED]
-- [[etDateOf()]] - `calls` [EXTRACTED]
+- [[etDateOf()_1]] - `calls` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[etWallToEpochMs()]] - `calls` [EXTRACTED]
 - [[ghostFrom()]] - `calls` [EXTRACTED]
@@ -25,4 +25,4 @@ tags:
 - [[resolveWatch()]] - `calls` [EXTRACTED]
 - [[stepGhost()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

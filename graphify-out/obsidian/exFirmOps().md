@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/live-voices-invest-firm.ts"
 type: "code"
-community: "Community 215"
+community: "live-voices-invest-firm.ts"
 location: "L324"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_215
+  - community/live-voices-invest-firmts
 ---
 
 # exFirmOps()
 
 ## Connections
-- [[AT()_7]] - `calls` [EXTRACTED]
+- [[AT()_8]] - `calls` [EXTRACTED]
 - [[cash()]] - `calls` [EXTRACTED]
 - [[clip()_1]] - `calls` [EXTRACTED]
 - [[compact()]] - `calls` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[plural()_2]] - `calls` [EXTRACTED]
 - [[stop()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_215
+#graphify/code #graphify/EXTRACTED #community/live-voices-invest-firmts

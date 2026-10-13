@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-sound.ts"
 type: "code"
-community: "Community 113"
+community: "FloorSound"
 location: "L238"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_113
+  - community/FloorSound
 ---
 
 # .bindVoices()
@@ -20,4 +20,4 @@ tags:
 - [[FloorSound]] - `method` [EXTRACTED]
 - [[loadCast()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_113
+#graphify/code #graphify/EXTRACTED #community/FloorSound

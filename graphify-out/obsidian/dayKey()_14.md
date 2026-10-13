@@ -1,20 +1,19 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "src/lib/trading/take-moments.ts"
 type: "code"
-community: "Community 55"
-location: "L102"
+community: "index.tsx"
+location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/indextsx
 ---
 
 # dayKey()
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[monthKey()]] - `calls` [EXTRACTED]
-- [[runAccount()]] - `calls` [EXTRACTED]
-- [[score()]] - `calls` [EXTRACTED]
+- [[etWallParts]] - `calls` [EXTRACTED]
+- [[observeTakeMoments()]] - `calls` [EXTRACTED]
+- [[take-moments.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/indextsx

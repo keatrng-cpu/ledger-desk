@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/scenarios.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L129"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # swingMarks()
@@ -16,4 +16,4 @@ tags:
 - [[scenarios.ts]] - `contains` [EXTRACTED]
 - [[swingPoints()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

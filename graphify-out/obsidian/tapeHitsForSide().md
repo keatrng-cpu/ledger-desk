@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 130"
+community: "ghost-book.ts"
 location: "L372"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/ghost-bookts
 ---
 
 # tapeHitsForSide()
@@ -18,4 +18,4 @@ tags:
 - [[smc-board.ts]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

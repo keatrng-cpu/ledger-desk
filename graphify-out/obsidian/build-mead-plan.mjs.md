@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-mead-plan.mjs"
 type: "code"
-community: "Community 147"
+community: "mead-hall-layout.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_147
+  - community/mead-hall-layoutts
 ---
 
 # build-mead-plan.mjs
@@ -15,7 +15,7 @@ tags:
 - [[BOUNDS_X1]] - `contains` [EXTRACTED]
 - [[CHECK]] - `contains` [EXTRACTED]
 - [[EAST]] - `contains` [EXTRACTED]
-- [[FILE_2]] - `contains` [EXTRACTED]
+- [[FILE_1]] - `contains` [EXTRACTED]
 - [[FLOOR_OVERVIEW]] - `imports` [EXTRACTED]
 - [[HALL_AT]] - `imports` [EXTRACTED]
 - [[HALL_BLOCKS]] - `imports` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[wallS]] - `contains` [EXTRACTED]
 - [[wallW]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_147
+#graphify/code #graphify/EXTRACTED #community/mead-hall-layoutts

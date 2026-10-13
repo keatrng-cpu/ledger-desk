@@ -1,20 +1,18 @@
 ---
-source_file: "scripts/direction-book.py"
+source_file: "scripts/verify-repo-guards.mjs"
 type: "code"
-community: "Community 131"
-location: "L203"
+community: "ref_node_url"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_131
+  - community/ref_node_url
 ---
 
 # walk()
 
 ## Connections
-- [[collect()]] - `calls` [EXTRACTED]
-- [[day_key()]] - `calls` [EXTRACTED]
-- [[direction-book.py]] - `contains` [EXTRACTED]
-- [[minute_of()]] - `calls` [EXTRACTED]
+- [[verify-repo-guards.mjs]] - `contains` [EXTRACTED]
+- [[walk()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_131
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

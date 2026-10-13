@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-props.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L332"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # statProps()
@@ -16,6 +16,6 @@ tags:
 - [[floorProps]] - `calls` [EXTRACTED]
 - [[fmtPct()]] - `calls` [EXTRACTED]
 - [[toneOf()]] - `calls` [EXTRACTED]
-- [[usd()_4]] - `calls` [EXTRACTED]
+- [[usd()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

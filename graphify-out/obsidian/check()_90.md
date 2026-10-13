@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-pm-signal-engine.mjs"
+source_file: "scripts/verify-card-geometry.mjs"
 type: "code"
-community: "Community 68"
-location: "L14"
+community: "simulate-path-trade.ts"
+location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_68
+  - community/simulate-path-tradets
 ---
 
 # check()
 
 ## Connections
-- [[ok()_29]] - `calls` [EXTRACTED]
-- [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
+- [[verify-card-geometry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_68
+#graphify/code #graphify/EXTRACTED #community/simulate-path-tradets

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/gate.py"
 type: "rationale"
-community: "Community 273"
+community: "smoke_live.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # The order schema. A bad quote, a wide spread, a debit outside the envelope, or…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[gate.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_273
+#graphify/rationale #graphify/EXTRACTED #community/smoke_livepy

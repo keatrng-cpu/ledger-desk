@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
-location: "L444"
+community: "trading/scanner.ts"
+location: "L462"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # impulseZone()
@@ -19,4 +19,4 @@ tags:
 - [[scoreDirection()]] - `calls` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

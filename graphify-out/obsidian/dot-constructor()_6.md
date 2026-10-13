@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/auth/pglite-dialect.ts"
+source_file: "src/lib/room/exec/alpaca.ts"
 type: "code"
-community: "Community 190"
-location: "L41"
+community: "alpaca.ts"
+location: "L40"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_190
+  - community/alpacats
 ---
 
 # .constructor()
 
 ## Connections
-- [[LazyPGliteDriver]] - `method` [EXTRACTED]
+- [[AlpacaError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_190
+#graphify/code #graphify/EXTRACTED #community/alpacats

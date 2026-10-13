@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-master.ts"
 type: "code"
-community: "Community 40"
+community: "smc-master.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # smc-master.ts
@@ -16,12 +16,13 @@ tags:
 - [[CanonStack]] - `imports` [EXTRACTED]
 - [[DealingRead]] - `contains` [EXTRACTED]
 - [[DrawRead]] - `imports` [EXTRACTED]
-- [[GATE_4]] - `imports` [EXTRACTED]
+- [[GATE_5]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[JUDAS_MIN_CONFLUENCE]] - `imports` [EXTRACTED]
 - [[LiquidityTarget]] - `imports` [EXTRACTED]
 - [[MarketNarrative]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
+- [[RankedDraw]] - `imports` [EXTRACTED]
 - [[SEQUENCE_PARTS]] - `contains` [EXTRACTED]
 - [[ScanResult]] - `imports` [EXTRACTED]
 - [[SequencePart]] - `contains` [EXTRACTED]
@@ -36,7 +37,11 @@ tags:
 - [[SmtStack]] - `imports` [EXTRACTED]
 - [[TradePlan]] - `imports` [EXTRACTED]
 - [[allSeries()]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[applyRunnerPool()]] - `imports` [EXTRACTED]
+- [[atr15Of()]] - `imports` [EXTRACTED]
+- [[brain-draw.test.mjs]] - `dynamic_import` [EXTRACTED]
+- [[brainDrawPick()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[build-replay-drills.mjs]] - `dynamic_import` [EXTRACTED]
 - [[build-shadow-replay.mjs]] - `dynamic_import` [EXTRACTED]
@@ -48,7 +53,7 @@ tags:
 - [[cases.ts]] - `imports_from` [EXTRACTED]
 - [[chart-overlay.ts]] - `imports_from` [EXTRACTED]
 - [[chart-timeframes.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
+- [[continuationArray]] - `imports` [EXTRACTED]
 - [[diagnose-path.mjs]] - `dynamic_import` [EXTRACTED]
 - [[diagnose-sequence.mjs]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
@@ -57,6 +62,7 @@ tags:
 - [[entry-state.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
+- [[exec-context.ts]] - `imports_from` [EXTRACTED]
 - [[factorState()]] - `contains` [EXTRACTED]
 - [[fib.ts]] - `imports_from` [EXTRACTED]
 - [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
@@ -72,6 +78,8 @@ tags:
 - [[judas-window.ts]] - `imports_from` [EXTRACTED]
 - [[market-narrative.ts]] - `imports_from` [EXTRACTED]
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
+- [[mtf-arrays.ts]] - `imports_from` [EXTRACTED]
+- [[mtf-context.ts]] - `imports_from` [EXTRACTED]
 - [[must-ring.tsx]] - `imports_from` [EXTRACTED]
 - [[news.ts]] - `imports_from` [EXTRACTED]
 - [[newsRead]] - `imports` [EXTRACTED]
@@ -80,6 +88,7 @@ tags:
 - [[pickCandidate()]] - `contains` [EXTRACTED]
 - [[planHitOdds()]] - `imports` [EXTRACTED]
 - [[planStopText()]] - `imports` [EXTRACTED]
+- [[poolArms()]] - `imports` [EXTRACTED]
 - [[preferZone()]] - `imports` [EXTRACTED]
 - [[price-path-board.tsx]] - `imports_from` [EXTRACTED]
 - [[probe-closest.mjs]] - `dynamic_import` [EXTRACTED]
@@ -96,8 +105,11 @@ tags:
 - [[setup-memory.ts]] - `imports_from` [EXTRACTED]
 - [[setup-steps.ts]] - `imports_from` [EXTRACTED]
 - [[shadow-book.ts]] - `imports_from` [EXTRACTED]
+- [[shared.ts]] - `imports_from` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[smc-canon.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
+- [[smtFightsContinuation()]] - `imports` [EXTRACTED]
 - [[structure.ts]] - `imports_from` [EXTRACTED]
 - [[take-census.ts]] - `imports_from` [EXTRACTED]
 - [[take-moments.ts]] - `imports_from` [EXTRACTED]
@@ -112,4 +124,4 @@ tags:
 - [[word-hysteresis.ts]] - `imports_from` [EXTRACTED]
 - [[worthLine()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

@@ -1,16 +1,16 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 226"
+community: "smoke_live.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/smoke_livepy
 ---
 
 # BaseModel
 
 ## Connections
-- [[ResearchFacts]] - `inherits` [EXTRACTED]
+- [[OrderIntent_1]] - `inherits` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/smoke_livepy

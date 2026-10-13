@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/use-mead-feed.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # use-mead-feed.ts
@@ -19,9 +19,9 @@ tags:
 - [[hall-store.ts]] - `imports_from` [EXTRACTED]
 - [[loadHallBoard()]] - `imports` [EXTRACTED]
 - [[mead-signal-feed.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[setHall()]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[useMeadFloorFeed()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

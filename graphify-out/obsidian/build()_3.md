@@ -1,20 +1,24 @@
 ---
-source_file: "scripts/oracle/bs_oracle.py"
+source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 226"
-location: "L57"
+community: "json"
+location: "L486"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_226
+  - graphify/INFERRED
+  - community/json
 ---
 
 # build()
 
 ## Connections
-- [[bs()]] - `calls` [EXTRACTED]
-- [[bs_oracle.py]] - `contains` [EXTRACTED]
-- [[ncdf()]] - `calls` [EXTRACTED]
-- [[render()_1]] - `calls` [EXTRACTED]
+- [[dot-cables()]] - `calls` [INFERRED]
+- [[dot-clutter()]] - `calls` [INFERRED]
+- [[dot-decals()]] - `calls` [INFERRED]
+- [[dot-plants()]] - `calls` [INFERRED]
+- [[dot-posters()]] - `calls` [INFERRED]
+- [[dot-shelf()]] - `calls` [INFERRED]
+- [[Dress]] - `calls` [EXTRACTED]
+- [[floor_dress.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/INFERRED #community/json

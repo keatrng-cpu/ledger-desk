@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # isPathFire()
@@ -29,4 +29,4 @@ tags:
 - [[scannerCards()]] - `calls` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

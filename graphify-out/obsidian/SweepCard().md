@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/sweep-card.tsx"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # SweepCard()
@@ -24,8 +24,8 @@ tags:
 - [[rentVsSweep()]] - `calls` [EXTRACTED]
 - [[rhMonth()]] - `calls` [EXTRACTED]
 - [[sweep-card.tsx]] - `contains` [EXTRACTED]
-- [[usd()_6]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 - [[usd0()]] - `calls` [EXTRACTED]
 - [[validateSweepMonth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

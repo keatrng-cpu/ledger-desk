@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-link.ts"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # floor-link.ts
@@ -19,4 +19,4 @@ tags:
 - [[takePredictFocus()]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

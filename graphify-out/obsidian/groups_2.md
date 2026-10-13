@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/export-brain-vault.mjs"
 type: "code"
-community: "Community 328"
+community: "export-brain-vault.mjs"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_328
+  - community/export-brain-vaultmjs
 ---
 
 # groups
@@ -15,4 +15,4 @@ tags:
 - [[export-brain-vault.mjs]] - `contains` [EXTRACTED]
 - [[stem()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_328
+#graphify/code #graphify/EXTRACTED #community/export-brain-vaultmjs

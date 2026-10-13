@@ -1,23 +1,21 @@
 ---
-source_file: "src/lib/trading/discretion-memory.ts"
+source_file: "src/lib/propfirm/apex-sim.ts"
 type: "code"
-community: "Community 111"
-location: "L351"
+community: "runApexSim"
+location: "L1312"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_111
+  - community/runApexSim
 ---
 
 # fmtUsd()
 
 ## Connections
-- [[ReasonRow()]] - `calls` [EXTRACTED]
-- [[Row()_1]] - `calls` [EXTRACTED]
-- [[ShadowBookPanel()]] - `calls` [EXTRACTED]
-- [[Totals()]] - `calls` [EXTRACTED]
-- [[discretion-memory.ts]] - `contains` [EXTRACTED]
-- [[legLine()]] - `calls` [EXTRACTED]
-- [[shadow-book-panel.tsx]] - `imports` [EXTRACTED]
+- [[apex-sim.ts]] - `contains` [EXTRACTED]
+- [[apexContracts()]] - `calls` [EXTRACTED]
+- [[roomToLiquidation()]] - `calls` [EXTRACTED]
+- [[runApexSim()]] - `calls` [EXTRACTED]
+- [[simCaveats()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_111
+#graphify/code #graphify/EXTRACTED #community/runApexSim

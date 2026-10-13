@@ -1,20 +1,20 @@
 ---
 source_file: "scripts/verify-board-rank.mjs"
 type: "code"
-community: "Community 29"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/trading/scannerts
 ---
 
 # verify-board-rank.mjs
 
 ## Connections
-- [[card()_5]] - `contains` [EXTRACTED]
-- [[check()_71]] - `contains` [EXTRACTED]
-- [[order()]] - `contains` [EXTRACTED]
+- [[card()_7]] - `contains` [EXTRACTED]
+- [[check()_84]] - `contains` [EXTRACTED]
+- [[order()_1]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

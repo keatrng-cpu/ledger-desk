@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/journal/risk.ts"
 type: "code"
-community: "Community 31"
+community: "jsonResponse"
 location: "L84"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/jsonResponse
 ---
 
 # tradingDayStart()
 
 ## Connections
 - [[3 · build-desk checklist risk item + scanner suppression]] - `references` [INFERRED]
-- [[What shipped]] - `references` [INFERRED]
+- [[What shipped_1]] - `references` [INFERRED]
 - [[auto-paper.ts]] - `imports` [EXTRACTED]
 - [[bookTakenToday()]] - `calls` [EXTRACTED]
 - [[checklist.ts]] - `imports` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[tradingWeekStart()]] - `calls` [EXTRACTED]
 - [[trigger-server.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/jsonResponse

@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "src/lib/smc/day-context.ts"
 type: "code"
-community: "Community 53"
-location: "L333"
+community: "day-context.ts"
+location: "L172"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/day-contextts
 ---
 
 # overlaps()
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
-- [[tryTake()]] - `calls` [EXTRACTED]
+- [[day-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/day-contextts

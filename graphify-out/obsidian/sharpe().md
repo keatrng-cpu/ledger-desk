@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 14"
+community: "profit-path.ts"
 location: "L74"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/profit-pathts
 ---
 
 # sharpe()
@@ -15,4 +15,4 @@ tags:
 - [[aplusanalytics.ts]] - `contains` [EXTRACTED]
 - [[computeMetrics()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

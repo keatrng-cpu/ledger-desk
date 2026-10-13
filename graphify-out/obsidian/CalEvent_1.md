@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/news/schedule.ts"
+source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 284"
-location: "L19"
+community: "live-types.ts"
+location: "L149"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/live-typests
 ---
 
 # CalEvent
 
 ## Connections
-- [[schedule.ts]] - `contains` [EXTRACTED]
+- [[live-types.ts]] - `contains` [EXTRACTED]
+- [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_284
+#graphify/code #graphify/EXTRACTED #community/live-typests

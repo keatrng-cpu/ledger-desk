@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/conditions.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # conditions.ts
@@ -19,7 +19,7 @@ tags:
 - [[DEFAULT_MAX_ATR_RATIO]] - `contains` [EXTRACTED]
 - [[DEFAULT_MIN_ATR_RATIO]] - `contains` [EXTRACTED]
 - [[MarketConditions]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[assessConditions()]] - `contains` [EXTRACTED]
 - [[atr()_1]] - `contains` [EXTRACTED]
 - [[efficiencyRatio()]] - `contains` [EXTRACTED]
@@ -27,4 +27,4 @@ tags:
 - [[session-backtest.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

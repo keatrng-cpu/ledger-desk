@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-desk-mcp.mjs"
+source_file: "scripts/verify-school-brief.mjs"
 type: "code"
-community: "Community 184"
-location: "L21"
+community: "verify-entry-alarm.mjs"
+location: "L29"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/verify-entry-alarmmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-desk-mcp.mjs]] - `contains` [EXTRACTED]
+- [[verify-school-brief.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

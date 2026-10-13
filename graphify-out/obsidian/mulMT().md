@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 288"
+community: "floor-ik.ts"
 location: "L174"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_288
+  - community/floor-ikts
 ---
 
 # mulMT()
@@ -15,4 +15,4 @@ tags:
 - [[armAngles]] - `calls` [EXTRACTED]
 - [[floor-ik.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_288
+#graphify/code #graphify/EXTRACTED #community/floor-ikts

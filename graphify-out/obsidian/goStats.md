@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/go-ledger.ts"
 type: "code"
-community: "Community 16"
+community: "hall-read.ts"
 location: "L109"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/hall-readts
 ---
 
 # goStats
@@ -22,4 +22,4 @@ tags:
 - [[readHallRecord()_1]] - `calls` [EXTRACTED]
 - [[readHallRecord()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/hall-readts

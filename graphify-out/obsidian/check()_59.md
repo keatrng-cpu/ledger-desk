@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-focus-pick.mjs"
+source_file: "scripts/verify-rh-dispatch.mjs"
 type: "code"
-community: "Community 244"
-location: "L23"
+community: "verify-rh-desk-job.mjs"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_244
+  - community/verify-rh-desk-jobmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-focus-pick.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_244
+#graphify/code #graphify/EXTRACTED #community/verify-rh-desk-jobmjs

@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/verify-invest.mjs"
 type: "code"
-community: "Community 107"
+community: "verify-invest.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_107
+  - community/verify-investmjs
 ---
 
 # verify-invest.mjs
 
 ## Connections
-- [[NOW_1]] - `contains` [EXTRACTED]
+- [[NOW]] - `contains` [EXTRACTED]
 - [[NOW2]] - `contains` [EXTRACTED]
 - [[allRestore]] - `contains` [EXTRACTED]
 - [[balanced]] - `contains` [EXTRACTED]
@@ -24,7 +24,7 @@ tags:
 - [[book_1]] - `contains` [EXTRACTED]
 - [[book.ts]] - `dynamic_import` [EXTRACTED]
 - [[cc]] - `contains` [EXTRACTED]
-- [[check()_3]] - `contains` [EXTRACTED]
+- [[check()_1]] - `contains` [EXTRACTED]
 - [[combined]] - `contains` [EXTRACTED]
 - [[dirty]] - `contains` [EXTRACTED]
 - [[dossiers.ts]] - `dynamic_import` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[fakeVoo]] - `contains` [EXTRACTED]
 - [[investevidence.ts]] - `dynamic_import` [EXTRACTED]
 - [[kill-watch.ts]] - `dynamic_import` [EXTRACTED]
-- [[live_1]] - `contains` [EXTRACTED]
+- [[live]] - `contains` [EXTRACTED]
 - [[losing]] - `contains` [EXTRACTED]
 - [[msft]] - `contains` [EXTRACTED]
 - [[noPrice]] - `contains` [EXTRACTED]
@@ -53,4 +53,4 @@ tags:
 - [[words]] - `contains` [EXTRACTED]
 - [[young]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_107
+#graphify/code #graphify/EXTRACTED #community/verify-investmjs

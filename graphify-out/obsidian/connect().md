@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/quotes.py"
 type: "code"
-community: "Community 226"
+community: "json"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # connect()
@@ -16,4 +16,4 @@ tags:
 - [[_on_message()]] - `indirect_call` [INFERRED]
 - [[quotes.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_226
+#graphify/code #graphify/EXTRACTED #community/json

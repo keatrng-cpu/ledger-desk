@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-A.md"
 type: "document"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # INTEGRATION-A.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[INTEGRATION-A — Phase A one scoring path]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_40
+#graphify/document #graphify/EXTRACTED #community/trading/scannerts

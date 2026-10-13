@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "code"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L161"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # assert_figure()
@@ -17,4 +17,4 @@ tags:
 - [[structure_strict()]] - `calls` [EXTRACTED]
 - [[well_formed()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/build-learn-figurespy

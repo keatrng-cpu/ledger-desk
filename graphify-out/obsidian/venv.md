@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/lab.mjs"
 type: "code"
-community: "Community 191"
+community: "ref_node_path"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_191
+  - community/ref_node_path
 ---
 
 # venv
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[lab.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_191
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

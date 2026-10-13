@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-pm-signal-engine.mjs"
 type: "code"
-community: "Community 68"
+community: "verify-pm-signal-engine.mjs"
 location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_68
+  - community/verify-pm-signal-enginemjs
 ---
 
 # far
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-pm-signal-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_68
+#graphify/code #graphify/EXTRACTED #community/verify-pm-signal-enginemjs

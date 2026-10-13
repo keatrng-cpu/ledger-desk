@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/signals.ts"
 type: "code"
-community: "Community 63"
+community: "verify-mead-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/verify-mead-talkmjs
 ---
 
 # signals.ts
@@ -22,4 +22,4 @@ tags:
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-pm-signal-engine.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/verify-mead-talkmjs

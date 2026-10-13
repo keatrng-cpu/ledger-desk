@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/quant.ts"
 type: "code"
-community: "Community 0"
+community: "orchestrator.ts"
 location: "L327"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_0
+  - community/orchestratorts
 ---
 
 # ContractChoice
 
 ## Connections
-- [[StrikeOffset]] - `references` [EXTRACTED]
+- [[StrikeOffset_1]] - `references` [EXTRACTED]
 - [[orchestrator.ts]] - `imports` [EXTRACTED]
 - [[quant.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_0
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

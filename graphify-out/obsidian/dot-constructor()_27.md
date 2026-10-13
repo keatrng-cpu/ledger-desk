@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/desk-fetch-guard.ts"
+source_file: "scripts/verify-keep-live.mjs"
 type: "code"
-community: "Community 8"
-location: "L57"
+community: "capture-history.mjs"
+location: "L30"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/capture-historymjs
 ---
 
 # .constructor()
 
 ## Connections
-- [[ClientTimeoutError]] - `method` [EXTRACTED]
+- [[FakeWorker]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

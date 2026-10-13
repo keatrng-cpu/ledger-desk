@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 212"
+community: "startDay"
 location: "L157"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_212
+  - community/startDay
 ---
 
 # startDay()
@@ -16,4 +16,4 @@ tags:
 - [[startDay()]] - `calls` [EXTRACTED]
 - [[tickets()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_212
+#graphify/code #graphify/EXTRACTED #community/startDay

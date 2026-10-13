@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/tradezella-analyze.ts"
 type: "code"
-community: "Community 46"
+community: "tradezella-analyze.ts"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/tradezella-analyzets
 ---
 
 # TradezellaStats
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[tradezella-analyze.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/tradezella-analyzets

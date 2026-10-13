@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-rh-dispatch.mjs"
+source_file: "scripts/verify-word-hold.mjs"
 type: "code"
-community: "Community 309"
-location: "L52"
+community: "word-hysteresis.ts"
+location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_309
+  - community/word-hysteresists
 ---
 
 # desk()
 
 ## Connections
-- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
+- [[book()_5]] - `calls` [EXTRACTED]
+- [[verify-word-hold.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_309
+#graphify/code #graphify/EXTRACTED #community/word-hysteresists

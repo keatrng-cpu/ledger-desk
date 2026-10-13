@@ -1,28 +1,20 @@
 ---
-source_file: "src/components/room/floor-screens.ts"
+source_file: "src/components/room/floor-overhaul-war.ts"
 type: "code"
-community: "Community 25"
-location: "L1273"
+community: "floor-overhaul-war.ts"
+location: "L13"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_25
+  - community/floor-overhaul-warts
 ---
 
 # fit()
 
 ## Connections
-- [[drawAudit()]] - `calls` [EXTRACTED]
-- [[drawCalendar()]] - `calls` [EXTRACTED]
-- [[drawLeague()]] - `calls` [EXTRACTED]
-- [[drawRndBoard()]] - `calls` [EXTRACTED]
-- [[drawScanner()]] - `calls` [EXTRACTED]
-- [[drawSeatLeague()]] - `calls` [EXTRACTED]
-- [[drawSwing()]] - `calls` [EXTRACTED]
-- [[drawVote()]] - `calls` [EXTRACTED]
-- [[drawWhiteboard()]] - `calls` [EXTRACTED]
-- [[floor-screens.ts]] - `contains` [EXTRACTED]
-- [[header()]] - `calls` [EXTRACTED]
-- [[tapeBlock()]] - `calls` [EXTRACTED]
+- [[drawDiscretionBoard()]] - `calls` [EXTRACTED]
+- [[drawManagerArms()]] - `calls` [EXTRACTED]
+- [[floor-overhaul-war.ts]] - `contains` [EXTRACTED]
+- [[wrap()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_25
+#graphify/code #graphify/EXTRACTED #community/floor-overhaul-warts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/diagnose-path.mjs"
 type: "code"
-community: "Community 20"
+community: "detectors.ts"
 location: "L16"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # stride
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[diagnose-path.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

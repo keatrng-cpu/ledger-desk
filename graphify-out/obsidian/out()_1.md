@@ -1,18 +1,18 @@
 ---
-source_file: "src/routes/api/mcp.ts"
+source_file: "src/lib/trading/judas-window.ts"
 type: "code"
-community: "Community 184"
-location: "L35"
+community: "react"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/react
 ---
 
 # out()
 
 ## Connections
-- [[mcp.ts]] - `contains` [EXTRACTED]
-- [[post()]] - `calls` [EXTRACTED]
+- [[judas-window.ts]] - `contains` [EXTRACTED]
+- [[readJudas()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/react

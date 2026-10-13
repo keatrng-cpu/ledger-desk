@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/utils.ts"
 type: "code"
-community: "Community 14"
+community: "cn"
 location: "L8"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/cn
 ---
 
 # formatCurrency()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[utils.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/cn

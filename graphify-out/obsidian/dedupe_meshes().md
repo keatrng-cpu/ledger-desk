@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_opt.py"
 type: "code"
-community: "Community 140"
+community: "floor_ao.py"
 location: "L182"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/floor_aopy
 ---
 
 # dedupe_meshes()
@@ -16,4 +16,4 @@ tags:
 - [[_mesh_key()]] - `calls` [EXTRACTED]
 - [[floor_opt.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/floor_aopy

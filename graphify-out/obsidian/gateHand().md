@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L2111"
+community: "evaluateOptionsDesk"
+location: "L2166"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/evaluateOptionsDesk
 ---
 
 # gateHand()
@@ -16,4 +16,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[ticketHolds()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/evaluateOptionsDesk

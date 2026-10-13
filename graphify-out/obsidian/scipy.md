@@ -1,11 +1,11 @@
 ---
 source_file: ""
 type: "concept"
-community: "Community 273"
+community: "smoke_live.py"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/smoke_livepy
 ---
 
 # scipy
@@ -13,4 +13,4 @@ tags:
 ## Connections
 - [[gate.py]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_273
+#graphify/concept #graphify/EXTRACTED #community/smoke_livepy

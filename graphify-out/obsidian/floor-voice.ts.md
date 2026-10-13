@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/room/floor-voice.ts"
 type: "code"
-community: "Community 275"
+community: "floor-voice.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_275
+  - community/floor-voicets
 ---
 
 # floor-voice.ts
 
 ## Connections
-- [[CREW_1]] - `contains` [EXTRACTED]
+- [[CREW]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[FEMALE_NAMES]] - `contains` [EXTRACTED]
 - [[MALE_NAMES]] - `contains` [EXTRACTED]
@@ -28,7 +28,7 @@ tags:
 - [[assignVoices()]] - `contains` [EXTRACTED]
 - [[betterThanRobotic()]] - `contains` [EXTRACTED]
 - [[chunkSpoken()]] - `imports` [EXTRACTED]
-- [[clamp()_8]] - `contains` [EXTRACTED]
+- [[clamp()_7]] - `contains` [EXTRACTED]
 - [[digitsHeld()]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `imports_from` [EXTRACTED]
 - [[floor-school-contracts.ts]] - `re_exports` [EXTRACTED]
@@ -55,4 +55,4 @@ tags:
 - [[voiceGender()]] - `contains` [EXTRACTED]
 - [[voiceQuality()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_275
+#graphify/code #graphify/EXTRACTED #community/floor-voicets

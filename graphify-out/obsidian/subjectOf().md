@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 198"
+community: "live-voices-mead.ts"
 location: "L387"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_198
+  - community/live-voices-meadts
 ---
 
 # subjectOf()
@@ -16,4 +16,4 @@ tags:
 - [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 - [[subj()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_198
+#graphify/code #graphify/EXTRACTED #community/live-voices-meadts

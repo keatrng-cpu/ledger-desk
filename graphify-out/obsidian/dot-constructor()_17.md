@@ -1,38 +1,20 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 283"
-location: "L1812"
+community: ".path"
+location: "L111"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_283
+  - community/path
 ---
 
 # .constructor()
 
 ## Connections
-- [[dot-applyManagerFeed()]] - `calls` [EXTRACTED]
-- [[dot-buildScreens()]] - `calls` [EXTRACTED]
-- [[dot-buildWingFloors()]] - `calls` [EXTRACTED]
-- [[dot-dispose()_6]] - `calls` [EXTRACTED]
-- [[dot-flashKey()]] - `calls` [EXTRACTED]
-- [[dot-getState()_2]] - `calls` [INFERRED]
-- [[dot-heightAt()]] - `calls` [EXTRACTED]
-- [[dot-loadEnvironment()]] - `calls` [EXTRACTED]
-- [[dot-loop()_1]] - `calls` [EXTRACTED]
-- [[dot-meadReacted()]] - `calls` [EXTRACTED]
-- [[dot-resize()]] - `calls` [EXTRACTED]
-- [[dot-screenRecs()]] - `calls` [INFERRED]
-- [[dot-subscribe()_2]] - `calls` [INFERRED]
-- [[Avatar]] - `calls` [EXTRACTED]
-- [[Cat]] - `calls` [EXTRACTED]
-- [[FloorMead]] - `calls` [EXTRACTED]
-- [[FloorOverhaul]] - `calls` [EXTRACTED]
-- [[FloorScene]] - `method` [EXTRACTED]
-- [[ManagerAvatar]] - `calls` [EXTRACTED]
-- [[OwnerAvatar]] - `calls` [EXTRACTED]
-- [[contactBlob()]] - `calls` [EXTRACTED]
-- [[createStubManagerFeed()]] - `calls` [EXTRACTED]
+- [[dot-cellOf()]] - `calls` [EXTRACTED]
+- [[dot-center()]] - `calls` [EXTRACTED]
+- [[dot-markDisc()]] - `calls` [EXTRACTED]
+- [[NavGrid]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_283
+#graphify/code #graphify/EXTRACTED #community/path

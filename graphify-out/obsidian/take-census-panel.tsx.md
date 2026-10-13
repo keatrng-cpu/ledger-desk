@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/take-census-panel.tsx"
 type: "code"
-community: "Community 229"
+community: "index.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/indextsx
 ---
 
 # take-census-panel.tsx
@@ -17,9 +17,9 @@ tags:
 - [[census]] - `imports` [EXTRACTED]
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[loadCensus()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[shadow-store.ts]] - `imports_from` [EXTRACTED]
 - [[take-census.ts]] - `imports_from` [EXTRACTED]
 - [[useShadowBook()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/indextsx

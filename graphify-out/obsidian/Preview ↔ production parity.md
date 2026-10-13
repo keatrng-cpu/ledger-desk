@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/neon/SKILL.md"
 type: "document"
-community: "Community 19"
+community: "getSql"
 location: "L106"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_19
+  - community/getSql
 ---
 
 # Preview ↔ production parity
@@ -16,4 +16,4 @@ tags:
 - [[getSql()]] - `references` [INFERRED]
 - [[text()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_19
+#graphify/document #graphify/INFERRED #community/getSql

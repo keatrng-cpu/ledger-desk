@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hi-alert-brain.ts"
 type: "code"
-community: "Community 21"
+community: "hi-alert.ts"
 location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/hi-alertts
 ---
 
 # feedHiAlert()
@@ -22,4 +22,4 @@ tags:
 - [[schoolNodeId()]] - `calls` [EXTRACTED]
 - [[worked()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

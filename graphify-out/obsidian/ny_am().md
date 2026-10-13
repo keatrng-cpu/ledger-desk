@@ -1,19 +1,19 @@
 ---
 source_file: "scripts/build-learn-figures.py"
 type: "code"
-community: "Community 64"
+community: "build-learn-figures.py"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_64
+  - community/build-learn-figurespy
 ---
 
 # ny_am()
 
 ## Connections
 - [[build-learn-figures.py]] - `contains` [EXTRACTED]
-- [[et()_4]] - `calls` [EXTRACTED]
+- [[et()_5]] - `calls` [EXTRACTED]
 - [[find_against()]] - `calls` [EXTRACTED]
 - [[find_breakout()]] - `calls` [EXTRACTED]
 - [[find_fvg()]] - `calls` [EXTRACTED]
@@ -28,4 +28,4 @@ tags:
 - [[find_structure()]] - `calls` [EXTRACTED]
 - [[find_sweep_stale()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_64
+#graphify/code #graphify/EXTRACTED #community/build-learn-figurespy

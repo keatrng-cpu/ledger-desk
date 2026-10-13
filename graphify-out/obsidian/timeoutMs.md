@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/browser-smoke.mjs"
 type: "code"
-community: "Community 277"
+community: "ref_node_path"
 location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_277
+  - community/ref_node_path
 ---
 
 # timeoutMs
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[browser-smoke.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_277
+#graphify/code #graphify/EXTRACTED #community/ref_node_path

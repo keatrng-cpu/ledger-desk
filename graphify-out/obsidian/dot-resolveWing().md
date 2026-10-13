@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 214"
+community: "floor-scene.ts"
 location: "L2010"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/floor-scenets
 ---
 
 # .resolveWing()
@@ -16,4 +16,4 @@ tags:
 - [[FloorLight]] - `references` [EXTRACTED]
 - [[FloorScene]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/desk-fetch-guard.ts"
 type: "code"
-community: "Community 69"
+community: "ghost-book.ts"
 location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/ghost-bookts
 ---
 
 # effectiveLagSec()
@@ -16,4 +16,4 @@ tags:
 - [[desk-fetch-guard.ts]] - `contains` [EXTRACTED]
 - [[session-hud.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

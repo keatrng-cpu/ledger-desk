@@ -1,20 +1,20 @@
 ---
-source_file: "src/lib/trading/scanner.ts"
+source_file: "src/lib/smc/day-context.ts"
 type: "code"
-community: "Community 40"
-location: "L427"
+community: "day-context.ts"
+location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/day-contextts
 ---
 
 # openingRange()
 
 ## Connections
-- [[etMinutesOf()]] - `calls` [EXTRACTED]
-- [[etSessionKey()]] - `calls` [EXTRACTED]
-- [[scoreDirection()]] - `calls` [EXTRACTED]
-- [[tradingscanner.ts]] - `contains` [EXTRACTED]
+- [[day-context.ts]] - `contains` [EXTRACTED]
+- [[hi()]] - `calls` [EXTRACTED]
+- [[lo()]] - `calls` [EXTRACTED]
+- [[sessions()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/day-contextts

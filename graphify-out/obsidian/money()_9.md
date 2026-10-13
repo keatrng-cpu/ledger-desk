@@ -1,22 +1,18 @@
 ---
-source_file: "src/lib/room/paper-book.ts"
+source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 4"
-location: "L143"
+community: "audit.ts"
+location: "L25"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/auditts
 ---
 
 # money()
 
 ## Connections
-- [[applyCycle()]] - `calls` [EXTRACTED]
-- [[bookRealized()]] - `calls` [EXTRACTED]
-- [[equityOf()]] - `calls` [EXTRACTED]
-- [[markBook()]] - `calls` [EXTRACTED]
-- [[paper-book.ts]] - `contains` [EXTRACTED]
-- [[voidPosition()]] - `calls` [EXTRACTED]
+- [[audit.ts]] - `contains` [EXTRACTED]
+- [[deskAudit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/auditts

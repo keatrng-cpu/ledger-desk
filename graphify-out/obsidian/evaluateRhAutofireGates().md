@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 56"
-location: "L419"
+community: "manager-live-loop.ts"
+location: "L421"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # evaluateRhAutofireGates()
@@ -22,4 +22,4 @@ tags:
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 - [[rhPathFloorForBand()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/manager-live-loopts

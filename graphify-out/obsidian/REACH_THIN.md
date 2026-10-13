@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 82"
+community: "entry-trigger.ts"
 location: "L328"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # REACH_THIN
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[entry-trigger.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 18"
+community: "live-types.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/live-typests
 ---
 
 # live-types.ts
@@ -18,7 +18,7 @@ tags:
 - [[Beat]] - `imports` [EXTRACTED]
 - [[BookRead]] - `contains` [EXTRACTED]
 - [[CATALYST_MAX_AGE_DAYS]] - `contains` [EXTRACTED]
-- [[CalEvent]] - `contains` [EXTRACTED]
+- [[CalEvent_1]] - `contains` [EXTRACTED]
 - [[CalRead]] - `contains` [EXTRACTED]
 - [[CardRead]] - `contains` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
@@ -26,7 +26,7 @@ tags:
 - [[DataFreshness]] - `contains` [EXTRACTED]
 - [[DialogueLine]] - `imports` [EXTRACTED]
 - [[EntryTier]] - `imports` [EXTRACTED]
-- [[Facts_1]] - `contains` [EXTRACTED]
+- [[Facts]] - `contains` [EXTRACTED]
 - [[FeedRead]] - `contains` [EXTRACTED]
 - [[FirmBoard]] - `contains` [EXTRACTED]
 - [[FirmCompliance]] - `contains` [EXTRACTED]
@@ -127,4 +127,4 @@ tags:
 - [[verify-spoken-form.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/live-typests

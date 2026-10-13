@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/durability.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L88"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # GAP_BAND_PTS
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[durability.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/intake.py"
 type: "rationale"
-community: "Community 225"
+community: "selfcheck.py"
 location: "L26"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_225
+  - community/selfcheckpy
 ---
 
 # Collapse whitespace, drop links, and break @mentions and HTML so the comment…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[safe_text()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_225
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/desk-budget.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L121"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # startFetch()
@@ -16,4 +16,4 @@ tags:
 - [[desk-budget.ts]] - `contains` [EXTRACTED]
 - [[setLastGood()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

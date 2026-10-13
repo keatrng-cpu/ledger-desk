@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/brain-traffic.ts"
 type: "code"
-community: "Community 251"
+community: "floor-brains.tsx"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_251
+  - community/floor-brainstsx
 ---
 
 # clearNerves()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[brain-traffic.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_251
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

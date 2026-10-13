@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L210"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # effectiveWeight()
@@ -18,4 +18,4 @@ tags:
 - [[memoOf()]] - `calls` [EXTRACTED]
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

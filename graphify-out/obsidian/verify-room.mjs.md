@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room.mjs"
 type: "code"
-community: "Community 22"
+community: "verify-room.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/verify-roommjs
 ---
 
 # verify-room.mjs
@@ -16,7 +16,7 @@ tags:
 - [[ERRAND]] - `contains` [EXTRACTED]
 - [[LAYOUT_4]] - `contains` [EXTRACTED]
 - [[argsQ]] - `contains` [EXTRACTED]
-- [[at()_9]] - `contains` [EXTRACTED]
+- [[at()_10]] - `contains` [EXTRACTED]
 - [[atr8]] - `contains` [EXTRACTED]
 - [[bad_2]] - `contains` [EXTRACTED]
 - [[badEv]] - `contains` [EXTRACTED]
@@ -30,7 +30,7 @@ tags:
 - [[ceoDesk]] - `contains` [EXTRACTED]
 - [[chCal]] - `contains` [EXTRACTED]
 - [[chairsFace]] - `contains` [EXTRACTED]
-- [[check()_48]] - `contains` [EXTRACTED]
+- [[check()_38]] - `contains` [EXTRACTED]
 - [[chops]] - `contains` [EXTRACTED]
 - [[closedGhost()]] - `contains` [EXTRACTED]
 - [[cronSrc]] - `contains` [EXTRACTED]
@@ -46,7 +46,7 @@ tags:
 - [[exits.ts]] - `dynamic_import` [EXTRACTED]
 - [[f_1]] - `contains` [EXTRACTED]
 - [[facesIt()]] - `contains` [EXTRACTED]
-- [[file_3]] - `contains` [EXTRACTED]
+- [[file_2]] - `contains` [EXTRACTED]
 - [[fileFB]] - `contains` [EXTRACTED]
 - [[flatQ]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `dynamic_import` [EXTRACTED]
@@ -55,7 +55,7 @@ tags:
 - [[g956]] - `contains` [EXTRACTED]
 - [[gHeld]] - `contains` [EXTRACTED]
 - [[glb_1]] - `contains` [EXTRACTED]
-- [[halted]] - `contains` [EXTRACTED]
+- [[halted_1]] - `contains` [EXTRACTED]
 - [[inLounge()]] - `contains` [EXTRACTED]
 - [[lab.ts]] - `dynamic_import` [EXTRACTED]
 - [[labX]] - `contains` [EXTRACTED]
@@ -65,7 +65,7 @@ tags:
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
 - [[noneHi]] - `contains` [EXTRACTED]
 - [[noneLo]] - `contains` [EXTRACTED]
-- [[now_9]] - `contains` [EXTRACTED]
+- [[now_7]] - `contains` [EXTRACTED]
 - [[nowQ]] - `contains` [EXTRACTED]
 - [[option-math.ts]] - `dynamic_import` [EXTRACTED]
 - [[orchestrator.ts]] - `dynamic_import` [EXTRACTED]
@@ -78,9 +78,10 @@ tags:
 - [[quoteQ]] - `contains` [EXTRACTED]
 - [[rel]] - `contains` [EXTRACTED]
 - [[roomdrill.ts]] - `dynamic_import` [EXTRACTED]
+- [[s()_1]] - `indirect_call` [INFERRED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[staleTape()]] - `contains` [EXTRACTED]
-- [[step]] - `contains` [EXTRACTED]
+- [[step_1]] - `contains` [EXTRACTED]
 - [[steps_1]] - `contains` [EXTRACTED]
 - [[stopped]] - `contains` [EXTRACTED]
 - [[t1m]] - `contains` [EXTRACTED]
@@ -99,8 +100,8 @@ tags:
 - [[w2]] - `contains` [EXTRACTED]
 - [[wFB]] - `contains` [EXTRACTED]
 - [[wH]] - `contains` [EXTRACTED]
-- [[watch()_1]] - `contains` [EXTRACTED]
+- [[watch()]] - `contains` [EXTRACTED]
 - [[weekend]] - `contains` [EXTRACTED]
 - [[withMark()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/verify-roommjs

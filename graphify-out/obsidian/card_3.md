@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-desk-mcp.mjs"
 type: "code"
-community: "Community 184"
+community: "grok-report.ts"
 location: "L7"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/grok-reportts
 ---
 
 # card
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-desk-mcp.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 69"
-location: "L556"
+community: "veteran-brain.ts"
+location: "L584"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/veteran-braints
 ---
 
 # narrativeCoachLines()
@@ -18,4 +18,4 @@ tags:
 - [[runVeteranBrain()]] - `calls` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

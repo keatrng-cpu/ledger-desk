@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/strategy-grade.ts"
 type: "code"
-community: "Community 46"
+community: "session-backtest.ts"
 location: "L523"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/session-backtestts
 ---
 
 # isPathTake()
@@ -16,4 +16,4 @@ tags:
 - [[session-backtest.ts]] - `imports` [EXTRACTED]
 - [[strategy-grade.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

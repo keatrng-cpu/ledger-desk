@@ -1,19 +1,17 @@
 ---
-source_file: "scripts/verify-rh-dispatch.mjs"
+source_file: "scripts/verify-board-rank.mjs"
 type: "code"
-community: "Community 309"
-location: "L24"
+community: "trading/scanner.ts"
+location: "L33"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_309
+  - community/trading/scannerts
 ---
 
 # card()
 
 ## Connections
-- [[frame()_1]] - `calls` [EXTRACTED]
-- [[manager()_1]] - `calls` [EXTRACTED]
-- [[verify-rh-dispatch.mjs]] - `contains` [EXTRACTED]
+- [[verify-board-rank.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_309
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

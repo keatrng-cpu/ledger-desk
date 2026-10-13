@@ -1,12 +1,12 @@
 ---
 source_file: "docs/FLOOR_BACKLOG.md"
 type: "document"
-community: "Community 324"
+community: "The Floor — 66 fixes, by category (2026-10-05)"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_324
+  - community/The_Floor__66_fixes_by_category_2026-10-05
 ---
 
 # The Floor — 66 fixes, by category (2026-10-05)
@@ -21,4 +21,4 @@ tags:
 - [[FLOOR_BACKLOG]] - `contains` [EXTRACTED]
 - [[G. The investment wing (the trader's request, 2026-10-05)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_324
+#graphify/document #graphify/EXTRACTED #community/The_Floor__66_fixes_by_category_2026-10-05

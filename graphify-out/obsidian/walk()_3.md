@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/perfect-entry-backtest.py"
 type: "code"
-community: "Community 192"
+community: "perfect-entry-backtest.py"
 location: "L149"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_192
+  - community/perfect-entry-backtestpy
 ---
 
 # walk()
@@ -14,8 +14,8 @@ tags:
 ## Connections
 - [[collect()_2]] - `calls` [EXTRACTED]
 - [[day_key()_2]] - `calls` [EXTRACTED]
-- [[main()_4]] - `calls` [EXTRACTED]
+- [[main()_5]] - `calls` [EXTRACTED]
 - [[minute_of()_2]] - `calls` [EXTRACTED]
 - [[perfect-entry-backtest.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_192
+#graphify/code #graphify/EXTRACTED #community/perfect-entry-backtestpy

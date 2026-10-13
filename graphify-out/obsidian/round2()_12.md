@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/trading/sleeve-sizing.ts"
+source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 85"
-location: "L113"
+community: "order-intent.ts"
+location: "L476"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_85
+  - community/order-intentts
 ---
 
 # round2()
 
 ## Connections
-- [[sizeFromLiveContract()]] - `calls` [EXTRACTED]
-- [[sizeFromStop()]] - `calls` [EXTRACTED]
-- [[sleeve-sizing.ts]] - `contains` [EXTRACTED]
+- [[buildOrderIntent()]] - `calls` [EXTRACTED]
+- [[order-intent.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_85
+#graphify/code #graphify/EXTRACTED #community/order-intentts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 196"
+community: "Avatar"
 location: "L1123"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_196
+  - community/Avatar
 ---
 
 # .goTo()
@@ -15,4 +15,4 @@ tags:
 - [[dot-path()]] - `calls` [EXTRACTED]
 - [[Avatar]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_196
+#graphify/code #graphify/EXTRACTED #community/Avatar

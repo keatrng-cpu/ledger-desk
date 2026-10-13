@@ -1,17 +1,17 @@
 ---
-source_file: "src/components/desk/tf-ladder-panel.tsx"
+source_file: "src/lib/room/invest-themes.ts"
 type: "code"
-community: "Community 101"
-location: "L43"
+community: "invest-office.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_101
+  - community/invest-officets
 ---
 
 # TIERS
 
 ## Connections
-- [[tf-ladder-panel.tsx]] - `contains` [EXTRACTED]
+- [[invest-themes.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_101
+#graphify/code #graphify/EXTRACTED #community/invest-officets

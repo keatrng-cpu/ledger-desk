@@ -1,21 +1,21 @@
 ---
 source_file: "src/components/dashboard/dual-index-charts.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # dual-index-charts.tsx
 
 ## Connections
-- [[Button]] - `imports` [EXTRACTED]
+- [[Button_1]] - `imports` [EXTRACTED]
 - [[CandleHover]] - `imports` [EXTRACTED]
 - [[CandlestickPane()]] - `imports` [EXTRACTED]
-- [[Card()_1]] - `imports` [EXTRACTED]
+- [[Card()]] - `imports` [EXTRACTED]
 - [[CardContent()]] - `imports` [EXTRACTED]
 - [[CardDescription()]] - `imports` [EXTRACTED]
 - [[CardHeader()]] - `imports` [EXTRACTED]
@@ -56,7 +56,7 @@ tags:
 - [[markettypes.ts]] - `imports_from` [EXTRACTED]
 - [[normalizedPct()]] - `imports` [EXTRACTED]
 - [[paneMarkup()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[recharts]] - `imports_from` [EXTRACTED]
 - [[rollingCorr()]] - `contains` [EXTRACTED]
 - [[use-bias-flip.ts]] - `imports_from` [EXTRACTED]
@@ -64,4 +64,4 @@ tags:
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[yahoo.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

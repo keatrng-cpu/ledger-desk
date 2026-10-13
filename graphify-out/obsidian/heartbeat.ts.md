@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/engine/heartbeat.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # heartbeat.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
 - [[ENGINE_MODES]] - `imports` [EXTRACTED]
-- [[Route_11]] - `contains` [EXTRACTED]
+- [[Route_20]] - `contains` [EXTRACTED]
 - [[auth-server.ts]] - `imports_from` [EXTRACTED]
 - [[authorizeBridgeRequest()]] - `imports` [EXTRACTED]
 - [[formatIssues()]] - `imports` [EXTRACTED]
@@ -26,4 +26,4 @@ tags:
 - [[routeTree.gen.ts]] - `imports_from` [EXTRACTED]
 - [[schema.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/scenarios.ts"
 type: "code"
-community: "Community 124"
+community: "tape"
 location: "L151"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_124
+  - community/tape
 ---
 
 # biasScenarios()
@@ -17,4 +17,4 @@ tags:
 - [[swingMarks()]] - `calls` [EXTRACTED]
 - [[tape]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_124
+#graphify/code #graphify/EXTRACTED #community/tape

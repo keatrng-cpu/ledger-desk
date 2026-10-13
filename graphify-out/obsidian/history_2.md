@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/diagnose-path.mjs"
+source_file: "scripts/build-learn-cases.mjs"
 type: "code"
-community: "Community 20"
-location: "L17"
+community: "build-learn-cases.mjs"
+location: "L20"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/build-learn-casesmjs
 ---
 
 # history
 
 ## Connections
-- [[diagnose-path.mjs]] - `contains` [EXTRACTED]
+- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/build-learn-casesmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart-panel.tsx"
 type: "code"
-community: "Community 139"
+community: "setup-chart-panel.tsx"
 location: "L702"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_139
+  - community/setup-chart-paneltsx
 ---
 
 # Key()
@@ -15,4 +15,4 @@ tags:
 - [[SetupChartPanel()]] - `calls` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_139
+#graphify/code #graphify/EXTRACTED #community/setup-chart-paneltsx

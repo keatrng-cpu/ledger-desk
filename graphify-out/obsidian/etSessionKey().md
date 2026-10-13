@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 58"
+community: "OhlcBar"
 location: "L449"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/OhlcBar
 ---
 
 # etSessionKey()
@@ -17,10 +17,10 @@ tags:
 - [[draw.ts]] - `imports` [EXTRACTED]
 - [[etWallParts]] - `calls` [EXTRACTED]
 - [[groupSessions()]] - `calls` [EXTRACTED]
-- [[openingRange()]] - `calls` [EXTRACTED]
+- [[openingRange()_1]] - `calls` [EXTRACTED]
 - [[pad2()_6]] - `calls` [EXTRACTED]
 - [[replay.ts]] - `imports` [EXTRACTED]
 - [[structure.ts]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

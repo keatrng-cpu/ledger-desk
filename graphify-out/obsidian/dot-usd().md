@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 13"
+community: "compact"
 location: "L1152"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_13
+  - community/compact
 ---
 
 # .usd()
 
 ## Connections
-- [[dot-add()]] - `calls` [EXTRACTED]
-- [[Facts_1]] - `method` [EXTRACTED]
+- [[dot-add()_1]] - `calls` [EXTRACTED]
+- [[Facts]] - `method` [EXTRACTED]
 - [[exCouncil()]] - `calls` [INFERRED]
 - [[exFinish()]] - `calls` [INFERRED]
 - [[exGhost()]] - `calls` [INFERRED]
@@ -37,4 +37,4 @@ tags:
 - [[exTape()]] - `calls` [INFERRED]
 - [[exTouchRound()]] - `calls` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_13
+#graphify/code #graphify/INFERRED #community/compact

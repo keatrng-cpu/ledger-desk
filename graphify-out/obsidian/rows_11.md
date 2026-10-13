@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-shadow-replay.mjs"
+source_file: "scripts/sweep-gates.mjs"
 type: "code"
-community: "Community 20"
-location: "L138"
+community: "cases.ts"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/casests
 ---
 
 # rows
 
 ## Connections
-- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
+- [[sweep-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/casests

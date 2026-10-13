@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "live-world.ts"
 location: "L362"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/live-worldts
 ---
 
 # recallHiAlerts()
@@ -17,4 +17,4 @@ tags:
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/live-worldts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 153"
-location: "L2234"
+community: "options-swing-panel.tsx"
+location: "L2303"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # optionsDeskPlaybook()
@@ -16,4 +16,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

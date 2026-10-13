@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-race-replay.ts"
 type: "code"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # floor-race-replay.ts
@@ -45,6 +45,6 @@ tags:
 - [[seatMomentText()]] - `contains` [EXTRACTED]
 - [[sessionMoments()]] - `contains` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports_from` [EXTRACTED]
-- [[usd()_4]] - `imports` [EXTRACTED]
+- [[usd()_2]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_10
+#graphify/code #graphify/EXTRACTED #community/floor-school-contractsts

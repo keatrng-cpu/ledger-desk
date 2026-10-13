@@ -1,19 +1,17 @@
 ---
-source_file: "scripts/code-index.mjs"
+source_file: "scripts/learning-backfill.mts"
 type: "code"
-community: "Community 304"
-location: "L48"
+community: "learning-backfill.mts"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_304
+  - community/learning-backfillmts
 ---
 
 # rows
 
 ## Connections
-- [[code-index.mjs]] - `contains` [EXTRACTED]
-- [[exportsOf()]] - `calls` [EXTRACTED]
-- [[purpose()]] - `calls` [EXTRACTED]
+- [[learning-backfill.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_304
+#graphify/code #graphify/EXTRACTED #community/learning-backfillmts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/htf-invalidation.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # htf-invalidation.ts
@@ -16,7 +16,7 @@ tags:
 - [[DetectorSummary]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[NOT_DISRESPECTED]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[biasDisrespect]] - `contains` [EXTRACTED]
 - [[detectDisplacements()]] - `imports` [EXTRACTED]
 - [[detectFvgs()]] - `imports` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-desk-enhancements.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

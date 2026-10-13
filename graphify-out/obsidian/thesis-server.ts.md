@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 129"
+community: "thesis-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_129
+  - community/thesis-serverts
 ---
 
 # thesis-server.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[ALL_DOSSIERS]] - `imports` [EXTRACTED]
 - [[THESIS_INSTRUCTIONS]] - `imports` [EXTRACTED]
 - [[ThesisContext]] - `imports` [EXTRACTED]
@@ -27,7 +27,7 @@ tags:
 - [[dedupe()]] - `imports` [EXTRACTED]
 - [[dossiers.ts]] - `imports_from` [EXTRACTED]
 - [[etDate()]] - `contains` [EXTRACTED]
-- [[etTime()_2]] - `contains` [EXTRACTED]
+- [[etTime()_4]] - `contains` [EXTRACTED]
 - [[exposure.ts]] - `imports_from` [EXTRACTED]
 - [[feed.ts]] - `imports_from` [EXTRACTED]
 - [[fundProfile]] - `imports` [EXTRACTED]
@@ -42,7 +42,7 @@ tags:
 - [[parseEspnScoreboard()]] - `imports` [EXTRACTED]
 - [[parseThesis()]] - `imports` [EXTRACTED]
 - [[parseXaiResponse()]] - `imports` [EXTRACTED]
-- [[pct()_1]] - `contains` [EXTRACTED]
+- [[pct()_16]] - `contains` [EXTRACTED]
 - [[runClaude()]] - `contains` [EXTRACTED]
 - [[runGrok()]] - `contains` [EXTRACTED]
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[timeline()]] - `imports` [EXTRACTED]
 - [[weekday()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_129
+#graphify/code #graphify/EXTRACTED #community/thesis-serverts

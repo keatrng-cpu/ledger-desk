@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L327"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # monthIndex()
@@ -17,4 +17,4 @@ tags:
 - [[policy.ts]] - `contains` [EXTRACTED]
 - [[validateSweepMonth()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

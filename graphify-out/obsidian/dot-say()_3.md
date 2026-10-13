@@ -1,20 +1,17 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 214"
-location: "L2430"
+community: "Avatar"
+location: "L1067"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/Avatar
 ---
 
 # .say()
 
 ## Connections
-- [[dot-speaking()]] - `calls` [EXTRACTED]
-- [[dot-startBatch()]] - `calls` [EXTRACTED]
-- [[dot-tick()_2]] - `calls` [EXTRACTED]
-- [[FloorScene]] - `method` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/Avatar

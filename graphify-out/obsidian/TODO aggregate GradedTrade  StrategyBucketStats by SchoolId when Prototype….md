@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-school-contracts.ts"
 type: "rationale"
-community: "Community 10"
+community: "floor-school-contracts.ts"
 location: "L366"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_10
+  - community/floor-school-contractsts
 ---
 
 # TODO: aggregate GradedTrade / StrategyBucketStats by SchoolId when Prototype…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[floor-school-contracts.ts]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_10
+#graphify/rationale #graphify/EXTRACTED #community/floor-school-contractsts

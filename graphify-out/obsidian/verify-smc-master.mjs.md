@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-smc-master.mjs"
 type: "code"
-community: "Community 119"
+community: "verify-smc-master.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_119
+  - community/verify-smc-mastermjs
 ---
 
 # verify-smc-master.mjs
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[allSwept]] - `contains` [EXTRACTED]
 - [[allowedIncomplete]] - `contains` [EXTRACTED]
-- [[bare]] - `contains` [EXTRACTED]
+- [[bare_1]] - `contains` [EXTRACTED]
 - [[bareCisd]] - `contains` [EXTRACTED]
 - [[bars_1]] - `contains` [EXTRACTED]
 - [[basePlan]] - `contains` [EXTRACTED]
@@ -23,7 +23,7 @@ tags:
 - [[canonIn()]] - `contains` [EXTRACTED]
 - [[card]] - `contains` [EXTRACTED]
 - [[card-plan.ts]] - `dynamic_import` [EXTRACTED]
-- [[check()_7]] - `contains` [EXTRACTED]
+- [[check()_82]] - `contains` [EXTRACTED]
 - [[complete70]] - `contains` [EXTRACTED]
 - [[completeA]] - `contains` [EXTRACTED]
 - [[cp]] - `contains` [EXTRACTED]
@@ -51,7 +51,7 @@ tags:
 - [[narr]] - `contains` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
-- [[ok()_1]] - `contains` [EXTRACTED]
+- [[ok()_26]] - `contains` [EXTRACTED]
 - [[onlyLocations]] - `contains` [EXTRACTED]
 - [[orSweep]] - `contains` [EXTRACTED]
 - [[ordered]] - `contains` [EXTRACTED]
@@ -79,4 +79,4 @@ tags:
 - [[withHtf]] - `contains` [EXTRACTED]
 - [[withSwing]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_119
+#graphify/code #graphify/EXTRACTED #community/verify-smc-mastermjs

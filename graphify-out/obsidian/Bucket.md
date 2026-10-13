@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/journal/analytics.ts"
+source_file: "src/lib/predict/journal.ts"
 type: "code"
-community: "Community 106"
-location: "L87"
+community: "mead-screens.ts"
+location: "L107"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_106
+  - community/mead-screensts
 ---
 
 # Bucket
 
 ## Connections
-- [[StrategyScore]] - `inherits` [EXTRACTED]
-- [[analytics-panel.tsx]] - `imports` [EXTRACTED]
-- [[journalanalytics.ts]] - `contains` [EXTRACTED]
+- [[predictjournal.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_106
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

@@ -1,21 +1,18 @@
 ---
-source_file: "src/lib/trading/session-backtest.ts"
+source_file: "src/lib/trading/trade-note.ts"
 type: "code"
-community: "Community 46"
-location: "L339"
+community: "index.tsx"
+location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/indextsx
 ---
 
 # etParts()
 
 ## Connections
-- [[dateKeyEt()]] - `calls` [EXTRACTED]
-- [[nySessionWindowBars()]] - `calls` [EXTRACTED]
-- [[parseBacktestIntent()]] - `calls` [EXTRACTED]
-- [[session-backtest.ts]] - `contains` [EXTRACTED]
-- [[tradingDaysInWindow()]] - `calls` [EXTRACTED]
+- [[buildTradeNote()]] - `calls` [EXTRACTED]
+- [[trade-note.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/indextsx

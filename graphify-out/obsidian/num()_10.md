@@ -1,20 +1,18 @@
 ---
-source_file: "src/lib/execution/rh-mcp.ts"
+source_file: "scripts/capture-invest-universe.mjs"
 type: "code"
-community: "Community 274"
-location: "L17"
+community: "capture-invest-universe.mjs"
+location: "L81"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_274
+  - community/capture-invest-universemjs
 ---
 
 # num()
 
 ## Connections
-- [[instrumentIdFrom()]] - `calls` [EXTRACTED]
-- [[positionsFromPayload()]] - `calls` [EXTRACTED]
-- [[quoteFromPayload()]] - `calls` [EXTRACTED]
-- [[rh-mcp.ts]] - `contains` [EXTRACTED]
+- [[capture-invest-universe.mjs]] - `contains` [EXTRACTED]
+- [[captureEtfProfiles()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_274
+#graphify/code #graphify/EXTRACTED #community/capture-invest-universemjs

@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/selfcheck.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L279"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # load_portfolio_profile()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[_fake_login()]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/INFERRED #community/Community_146
+#graphify/code #graphify/INFERRED #community/selfcheckpy

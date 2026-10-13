@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-goal.mjs"
 type: "code"
-community: "Community 212"
+community: "verify-goal.mjs"
 location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_212
+  - community/verify-goalmjs
 ---
 
 # TIMES
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-goal.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_212
+#graphify/code #graphify/EXTRACTED #community/verify-goalmjs

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_tex.py"
 type: "rationale"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L57"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # name -> float array (N, N) in 0..1, as the bytes will be (sRGB-encoded grey).
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[make_tiles()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/floor_packpy

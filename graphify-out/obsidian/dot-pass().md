@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L214"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # .pass()
@@ -16,4 +16,4 @@ tags:
 - [[dot-setFar()]] - `calls` [INFERRED]
 - [[FloorMead]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_41
+#graphify/code #graphify/INFERRED #community/mead-hall-buildts

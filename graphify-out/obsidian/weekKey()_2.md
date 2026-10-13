@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/backtest-account.mjs"
+source_file: "src/lib/trading/smt-level.ts"
 type: "code"
-community: "Community 55"
-location: "L107"
+community: "trading/scanner.ts"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_55
+  - community/trading/scannerts
 ---
 
 # weekKey()
 
 ## Connections
-- [[backtest-account.mjs]] - `contains` [EXTRACTED]
-- [[runAccount()]] - `calls` [EXTRACTED]
+- [[majorLevels()]] - `calls` [EXTRACTED]
+- [[smt-level.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_55
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

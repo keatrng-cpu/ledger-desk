@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-exit-rules.mjs"
+source_file: "scripts/smc-shared.test.mjs"
 type: "code"
-community: "Community 211"
-location: "L33"
+community: "smc-shared.test.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_211
+  - community/smc-sharedtestmjs
 ---
 
 # bar()
 
 ## Connections
-- [[verify-exit-rules.mjs]] - `contains` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `contains` [EXTRACTED]
+- [[tape()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_211
+#graphify/code #graphify/EXTRACTED #community/smc-sharedtestmjs

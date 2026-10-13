@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
-community: "Community 27"
+community: "setup-chart.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_27
+  - community/setup-charttsx
 ---
 
 # setup-chart.tsx
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[ArrayGroup]] - `contains` [EXTRACTED]
 - [[ChartOverlay]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OverlayPool]] - `imports` [EXTRACTED]
 - [[PlanLine()]] - `contains` [EXTRACTED]
 - [[RangeRail()]] - `contains` [EXTRACTED]
@@ -27,7 +27,7 @@ tags:
 - [[TradePlan]] - `imports` [EXTRACTED]
 - [[VISIBLE_BARS]] - `contains` [EXTRACTED]
 - [[arrayFill()]] - `contains` [EXTRACTED]
-- [[arrayName()]] - `contains` [EXTRACTED]
+- [[arrayName()_1]] - `contains` [EXTRACTED]
 - [[badgeWidth()]] - `contains` [EXTRACTED]
 - [[buildScale()_1]] - `contains` [EXTRACTED]
 - [[chart-overlay.ts]] - `imports_from` [EXTRACTED]
@@ -44,16 +44,16 @@ tags:
 - [[poolColor()]] - `contains` [EXTRACTED]
 - [[poolPriority()]] - `contains` [EXTRACTED]
 - [[rLabel()]] - `contains` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[render-setup-chart.mjs]] - `dynamic_import` [EXTRACTED]
 - [[resolveKillzone()]] - `imports` [EXTRACTED]
 - [[sessions.ts]] - `imports_from` [EXTRACTED]
 - [[setup-chart-panel.tsx]] - `imports_from` [EXTRACTED]
-- [[shortName()]] - `contains` [EXTRACTED]
+- [[shortName()_1]] - `contains` [EXTRACTED]
 - [[smc-board.ts]] - `imports_from` [EXTRACTED]
 - [[trade-plan.ts]] - `imports_from` [EXTRACTED]
 - [[verify-chart-labels.mjs]] - `imports_from` [EXTRACTED]
 - [[verify-trade-plan.mjs]] - `dynamic_import` [EXTRACTED]
 - [[walkthroughs.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_27
+#graphify/code #graphify/EXTRACTED #community/setup-charttsx

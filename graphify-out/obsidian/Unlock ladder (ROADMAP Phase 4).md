@@ -1,12 +1,12 @@
 ---
 source_file: "docs/ENGINE_BRIDGE.md"
 type: "document"
-community: "Community 294"
+community: "Engine bridge — Trading-Automation → Ledger desk"
 location: "L210"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_294
+  - community/Engine_bridge__Trading-Automation__Ledger_desk
 ---
 
 # Unlock ladder (ROADMAP Phase 4)
@@ -15,4 +15,4 @@ tags:
 - [[Engine bridge — Trading-Automation → Ledger desk]] - `contains` [EXTRACTED]
 - [[computeMetrics()]] - `references` [INFERRED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_294
+#graphify/document #graphify/EXTRACTED #community/Engine_bridge__Trading-Automation__Ledger_desk

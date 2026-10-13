@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/school-brief.ts"
+source_file: "src/lib/smc/mtf-context.ts"
 type: "code"
-community: "Community 102"
-location: "L66"
+community: "buildTradingDesk"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/buildTradingDesk
 ---
 
 # Dir
 
 ## Connections
-- [[school-brief.ts]] - `contains` [EXTRACTED]
+- [[mtf-context.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

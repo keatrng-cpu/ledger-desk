@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # HALL_LAYER
@@ -15,4 +15,4 @@ tags:
 - [[floor-mead.ts]] - `contains` [EXTRACTED]
 - [[floor-scene.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

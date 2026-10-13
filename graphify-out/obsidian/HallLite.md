@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 114"
+community: "live-world.ts"
 location: "L848"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/live-worldts
 ---
 
 # HallLite
@@ -20,4 +20,4 @@ tags:
 - [[live-voices-mead.ts]] - `imports` [EXTRACTED]
 - [[live-world.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/live-worldts

@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 274"
+community: "rh-mcp.ts"
 location: "L250"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_274
+  - community/rh-mcpts
 ---
 
 # Where the Robinhood refresh token actually lives
@@ -18,4 +18,4 @@ tags:
 - [[readOauth()]] - `references` [INFERRED]
 - [[toolingForDesk()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_274
+#graphify/document #graphify/INFERRED #community/rh-mcpts

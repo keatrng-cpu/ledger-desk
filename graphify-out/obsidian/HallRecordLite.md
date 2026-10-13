@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 114"
+community: "hall-read.ts"
 location: "L826"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-readts
 ---
 
 # HallRecordLite
@@ -19,4 +19,4 @@ tags:
 - [[hall-store.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-readts

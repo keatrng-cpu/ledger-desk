@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-types.ts"
 type: "code"
-community: "Community 49"
+community: "live-talk.ts"
 location: "L468"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-talkts
 ---
 
 # FirmReviewId
@@ -17,4 +17,4 @@ tags:
 - [[live-talk.ts]] - `imports` [EXTRACTED]
 - [[live-types.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-talkts

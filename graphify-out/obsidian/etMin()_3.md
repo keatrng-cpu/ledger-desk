@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/measure-room-ev.mjs"
+source_file: "scripts/measure-news-bias.mjs"
 type: "code"
-community: "Community 91"
-location: "L154"
+community: "measure-news-bias.mjs"
+location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_91
+  - community/measure-news-biasmjs
 ---
 
 # etMin()
 
 ## Connections
-- [[measure-room-ev.mjs]] - `contains` [EXTRACTED]
+- [[measure-news-bias.mjs]] - `contains` [EXTRACTED]
+- [[windowMove()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_91
+#graphify/code #graphify/EXTRACTED #community/measure-news-biasmjs

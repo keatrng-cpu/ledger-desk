@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/export-brain-vault.mjs"
 type: "code"
-community: "Community 328"
+community: "export-brain-vault.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_328
+  - community/export-brain-vaultmjs
 ---
 
 # export-brain-vault.mjs
@@ -23,4 +23,4 @@ tags:
 - [[shelves_1]] - `contains` [EXTRACTED]
 - [[stem()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_328
+#graphify/code #graphify/EXTRACTED #community/export-brain-vaultmjs

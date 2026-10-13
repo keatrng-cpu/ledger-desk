@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L595"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # resolveMemories()
@@ -18,4 +18,4 @@ tags:
 - [[planAgents()]] - `calls` [EXTRACTED]
 - [[quoteOption()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

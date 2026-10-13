@@ -1,18 +1,18 @@
 ---
 source_file: "src/components/room/floor-fx.ts"
 type: "code"
-community: "Community 196"
+community: "Avatar"
 location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_196
+  - community/Avatar
 ---
 
 # textSprite()
 
 ## Connections
-- [[dot-constructor()_11]] - `calls` [EXTRACTED]
+- [[dot-constructor()_15]] - `calls` [EXTRACTED]
 - [[floor-fx.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_196
+#graphify/code #graphify/EXTRACTED #community/Avatar

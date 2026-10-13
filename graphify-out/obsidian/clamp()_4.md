@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/trading/hit-odds.ts"
+source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 178"
-location: "L160"
+community: "desk-atlas.ts"
+location: "L261"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_178
+  - community/desk-atlasts
 ---
 
 # clamp()
 
 ## Connections
-- [[hit-odds.ts]] - `contains` [EXTRACTED]
-- [[oddsFeatures()]] - `calls` [EXTRACTED]
+- [[desk-atlas.ts]] - `contains` [EXTRACTED]
+- [[gradeAtlas()]] - `calls` [EXTRACTED]
+- [[rewrite()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_178
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

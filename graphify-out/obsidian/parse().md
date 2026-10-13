@@ -1,18 +1,18 @@
 ---
 source_file: "scripts/capture-1m-history.mjs"
 type: "code"
-community: "Community 207"
+community: "capture-1m-history.mjs"
 location: "L128"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_207
+  - community/capture-1m-historymjs
 ---
 
 # parse()
 
 ## Connections
 - [[capture-1m-history.mjs]] - `contains` [EXTRACTED]
-- [[etMin()_1]] - `calls` [EXTRACTED]
+- [[etMin()_2]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_207
+#graphify/code #graphify/EXTRACTED #community/capture-1m-historymjs

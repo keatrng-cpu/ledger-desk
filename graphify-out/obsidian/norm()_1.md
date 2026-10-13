@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/floor-ik.ts"
 type: "code"
-community: "Community 288"
+community: "floor-ik.ts"
 location: "L63"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_288
+  - community/floor-ikts
 ---
 
 # norm()
@@ -16,4 +16,4 @@ tags:
 - [[floor-ik.ts]] - `contains` [EXTRACTED]
 - [[unit()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_288
+#graphify/code #graphify/EXTRACTED #community/floor-ikts

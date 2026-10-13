@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-rh-autofire-gates.mjs"
+source_file: "scripts/verify-card-freshness.mjs"
 type: "code"
-community: "Community 15"
+community: "verify-card-freshness.mjs"
 location: "L18"
 tags:
   - graphify/code
-  - graphify/INFERRED
-  - community/Community_15
+  - graphify/EXTRACTED
+  - community/verify-card-freshnessmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-rh-autofire-gates.mjs]] - `indirect_call` [INFERRED]
+- [[ok()_11]] - `calls` [EXTRACTED]
+- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/verify-card-freshnessmjs

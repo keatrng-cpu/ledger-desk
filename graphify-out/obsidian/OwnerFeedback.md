@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/manager-feed.ts"
 type: "code"
-community: "Community 38"
+community: "manager-feed.ts"
 location: "L272"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_38
+  - community/manager-feedts
 ---
 
 # OwnerFeedback
@@ -16,4 +16,4 @@ tags:
 - [[manager-room-feed.ts]] - `imports` [EXTRACTED]
 - [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_38
+#graphify/code #graphify/EXTRACTED #community/manager-feedts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/trading-coach.tsx"
 type: "code"
-community: "Community 14"
+community: "react"
 location: "L11"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/react
 ---
 
 # buildCoachNotes()
@@ -16,4 +16,4 @@ tags:
 - [[sessionLive()]] - `calls` [EXTRACTED]
 - [[trading-coach.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/react

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L248"
+community: "paper-manager.ts"
+location: "L249"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # sessionAim()
@@ -17,4 +17,4 @@ tags:
 - [[futuresPaperShouldTake()]] - `calls` [EXTRACTED]
 - [[nextBandAfter()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

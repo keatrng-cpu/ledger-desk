@@ -1,16 +1,16 @@
 ---
 source_file: ""
 type: "code"
-community: "Community 273"
+community: "retain.py"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_273
+  - community/retainpy
 ---
 
 # BaseModel
 
 ## Connections
-- [[OrderIntent_1]] - `inherits` [EXTRACTED]
+- [[ResearchFacts]] - `inherits` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_273
+#graphify/code #graphify/EXTRACTED #community/retainpy

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-learn-cases.mjs"
+source_file: "scripts/kill-tune.mts"
 type: "code"
-community: "Community 143"
-location: "L65"
+community: "buildTradingDesk"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/buildTradingDesk
 ---
 
 # out
 
 ## Connections
-- [[build-learn-cases.mjs]] - `contains` [EXTRACTED]
+- [[kill-tune.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

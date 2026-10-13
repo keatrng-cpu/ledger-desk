@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/structure.ts"
 type: "code"
-community: "Community 58"
+community: "structure.ts"
 location: "L582"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_58
+  - community/structurets
 ---
 
 # analyzeStructure()
@@ -31,4 +31,4 @@ tags:
 - [[trendFromSwings()]] - `calls` [EXTRACTED]
 - [[voteBias()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_58
+#graphify/code #graphify/EXTRACTED #community/structurets

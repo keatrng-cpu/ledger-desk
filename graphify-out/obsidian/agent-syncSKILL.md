@@ -1,12 +1,12 @@
 ---
 source_file: ".claude/skills/agent-sync/SKILL.md"
 type: "document"
-community: "Community 346"
+community: "agent-sync/SKILL.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_346
+  - community/agent-sync/SKILLmd
 ---
 
 # agent-sync/SKILL.md
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Agent sync_1]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_346
+#graphify/document #graphify/EXTRACTED #community/agent-sync/SKILLmd

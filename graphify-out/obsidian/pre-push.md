@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/hooks/pre-push"
 type: "code"
-community: "Community 260"
+community: "pre-push"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_260
+  - community/pre-push
 ---
 
 # pre-push
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[pre-push script]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_260
+#graphify/code #graphify/EXTRACTED #community/pre-push

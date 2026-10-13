@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/mandate.ts"
 type: "code"
-community: "Community 52"
+community: "orchestrator.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/orchestratorts
 ---
 
 # mandate.ts
@@ -38,4 +38,4 @@ tags:
 - [[verify-goal.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-lab-constants.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

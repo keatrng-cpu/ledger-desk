@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/funnel.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # splitSweep()
@@ -19,6 +19,6 @@ tags:
 - [[funnelPlan()]] - `calls` [EXTRACTED]
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 - [[nextInSleeve()]] - `calls` [EXTRACTED]
-- [[round2()_13]] - `calls` [EXTRACTED]
+- [[round2()_8]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

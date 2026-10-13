@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/live-says.ts"
 type: "code"
-community: "Community 164"
+community: "index.tsx"
 location: "L21"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_164
+  - community/indextsx
 ---
 
 # LiveSays
@@ -18,4 +18,4 @@ tags:
 - [[live-says-panel.tsx]] - `imports` [EXTRACTED]
 - [[live-says.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_164
+#graphify/code #graphify/EXTRACTED #community/indextsx

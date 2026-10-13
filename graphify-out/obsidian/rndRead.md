@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/rnd.ts"
 type: "code"
-community: "Community 194"
+community: "rnd.ts"
 location: "L110"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/rndts
 ---
 
 # rndRead
@@ -25,6 +25,6 @@ tags:
 - [[tOne()_1]] - `calls` [EXTRACTED]
 - [[tTxt()]] - `calls` [EXTRACTED]
 - [[tWelch()]] - `calls` [EXTRACTED]
-- [[usd()_3]] - `calls` [EXTRACTED]
+- [[usd()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/rndts

@@ -1,18 +1,20 @@
 ---
-source_file: "brainlab/rhread.py"
+source_file: "src/lib/execution/rh-mcp.ts"
 type: "code"
-community: "Community 306"
-location: "L44"
+community: "rh-mcp.ts"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_306
+  - community/rh-mcpts
 ---
 
 # num()
 
 ## Connections
-- [[option_quote()]] - `contains` [EXTRACTED]
-- [[row()_2]] - `indirect_call` [INFERRED]
+- [[instrumentIdFrom()]] - `calls` [EXTRACTED]
+- [[positionsFromPayload()]] - `calls` [EXTRACTED]
+- [[quoteFromPayload()]] - `calls` [EXTRACTED]
+- [[rh-mcp.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_306
+#graphify/code #graphify/EXTRACTED #community/rh-mcpts

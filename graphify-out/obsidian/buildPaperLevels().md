@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/paper-manager.ts"
 type: "code"
-community: "Community 44"
+community: "paper-manager.ts"
 location: "L254"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_44
+  - community/paper-managerts
 ---
 
 # buildPaperLevels()
@@ -37,4 +37,4 @@ tags:
 - [[tryApexAutofire]] - `calls` [EXTRACTED]
 - [[zoneMid()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_44
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/auth/verify.server.ts"
 type: "code"
-community: "Community 65"
+community: "auth/server.ts"
 location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_65
+  - community/auth/serverts
 ---
 
 # databaseConfigured
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify.server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_65
+#graphify/code #graphify/EXTRACTED #community/auth/serverts

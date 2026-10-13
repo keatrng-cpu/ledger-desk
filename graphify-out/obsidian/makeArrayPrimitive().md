@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/candlestick-pane.tsx"
 type: "code"
-community: "Community 272"
+community: "candlestick-pane.tsx"
 location: "L102"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_272
+  - community/candlestick-panetsx
 ---
 
 # makeArrayPrimitive()
@@ -15,4 +15,4 @@ tags:
 - [[CandlestickPane()]] - `calls` [EXTRACTED]
 - [[candlestick-pane.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_272
+#graphify/code #graphify/EXTRACTED #community/candlestick-panetsx

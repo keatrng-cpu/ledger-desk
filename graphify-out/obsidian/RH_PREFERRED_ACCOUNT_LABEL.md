@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire-gates.ts"
 type: "code"
-community: "Community 15"
-location: "L149"
+community: "rh-autofire.ts"
+location: "L151"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # RH_PREFERRED_ACCOUNT_LABEL
@@ -16,4 +16,4 @@ tags:
 - [[rh-autofire-gates.ts]] - `contains` [EXTRACTED]
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

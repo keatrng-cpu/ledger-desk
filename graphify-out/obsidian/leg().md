@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 239"
+community: "verify-options-live-ticket.mjs"
 location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_239
+  - community/verify-options-live-ticketmjs
 ---
 
 # leg()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-options-live-ticket.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_239
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

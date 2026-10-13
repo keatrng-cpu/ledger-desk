@@ -1,19 +1,17 @@
 ---
-source_file: "src/lib/trading/entry-trigger.ts"
+source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 187"
-location: "L75"
+community: "mead-screens.ts"
+location: "L161"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/mead-screensts
 ---
 
 # EntryRead
 
 ## Connections
-- [[entry-trigger.ts]] - `contains` [EXTRACTED]
-- [[fourFacts]] - `references` [EXTRACTED]
-- [[ticket-facts.ts]] - `imports` [EXTRACTED]
+- [[math.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

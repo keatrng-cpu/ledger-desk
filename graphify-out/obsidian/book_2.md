@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-brain-vault.mjs"
+source_file: "scripts/backtest.mts"
 type: "code"
-community: "Community 143"
-location: "L19"
+community: "day-context.ts"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/day-contextts
 ---
 
 # book
 
 ## Connections
-- [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
+- [[backtest.mts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/day-contextts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 269"
+community: "json"
 location: "L180"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_269
+  - community/json
 ---
 
 # .clutter()
@@ -18,6 +18,6 @@ tags:
 - [[Rx()_1]] - `calls` [EXTRACTED]
 - [[Ry()_1]] - `calls` [EXTRACTED]
 - [[Rz()_1]] - `calls` [EXTRACTED]
-- [[build()_5]] - `calls` [INFERRED]
+- [[build()_3]] - `calls` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_269
+#graphify/code #graphify/EXTRACTED #community/json

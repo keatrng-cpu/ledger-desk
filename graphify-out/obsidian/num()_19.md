@@ -1,17 +1,18 @@
 ---
-source_file: "src/lib/execution/rh-http.ts"
+source_file: "src/lib/trading/trade-note.ts"
 type: "code"
-community: "Community 94"
-location: "L13"
+community: "index.tsx"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_94
+  - community/indextsx
 ---
 
 # num()
 
 ## Connections
-- [[rh-http.ts]] - `contains` [EXTRACTED]
+- [[buildTradeNote()]] - `calls` [EXTRACTED]
+- [[trade-note.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_94
+#graphify/code #graphify/EXTRACTED #community/indextsx

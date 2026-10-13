@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/long-board.tsx"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # LongBoard()
@@ -21,4 +21,4 @@ tags:
 - [[sleeveLoad()]] - `calls` [EXTRACTED]
 - [[stateClass()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

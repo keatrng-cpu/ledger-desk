@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/lab/apex-sim-panel.tsx"
 type: "code"
-community: "Community 59"
+community: "apex-sim-panel.tsx"
 location: "L281"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_59
+  - community/apex-sim-paneltsx
 ---
 
 # ResultsTable()
@@ -17,8 +17,8 @@ tags:
 - [[cn()]] - `calls` [EXTRACTED]
 - [[diffTone()]] - `calls` [EXTRACTED]
 - [[money()_14]] - `calls` [EXTRACTED]
-- [[pct()_16]] - `calls` [EXTRACTED]
+- [[pct()_15]] - `calls` [EXTRACTED]
 - [[pp()]] - `calls` [EXTRACTED]
 - [[rMult()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_59
+#graphify/code #graphify/EXTRACTED #community/apex-sim-paneltsx

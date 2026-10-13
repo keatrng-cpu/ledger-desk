@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/learn/live-lessons.tsx"
 type: "code"
-community: "Community 14"
+community: "live-lesson.ts"
 location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/live-lessonts
 ---
 
 # LessonCard()
@@ -17,4 +17,4 @@ tags:
 - [[live-lessons.tsx]] - `contains` [EXTRACTED]
 - [[stateChip()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

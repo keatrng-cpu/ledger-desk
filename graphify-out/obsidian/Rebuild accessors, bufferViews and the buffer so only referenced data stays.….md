@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_pack.py"
 type: "rationale"
-community: "Community 202"
+community: "floor_pack.py"
 location: "L124"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_202
+  - community/floor_packpy
 ---
 
 # Rebuild accessors, bufferViews and the buffer so only referenced data stays.…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[compact()_1]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_202
+#graphify/rationale #graphify/EXTRACTED #community/floor_packpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/index.tsx"
 type: "code"
-community: "Community 82"
-location: "L487"
+community: "entry-trigger.ts"
+location: "L488"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_82
+  - community/entry-triggerts
 ---
 
 # restPaperLimit()
@@ -20,4 +20,4 @@ tags:
 - [[restableFromCard()]] - `calls` [EXTRACTED]
 - [[restingFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_82
+#graphify/code #graphify/EXTRACTED #community/entry-triggerts

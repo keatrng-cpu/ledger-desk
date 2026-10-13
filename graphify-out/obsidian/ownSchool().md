@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 21"
+community: "school-brief.ts"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_21
+  - community/school-briefts
 ---
 
 # ownSchool()
@@ -17,4 +17,4 @@ tags:
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 - [[schoolGate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_21
+#graphify/code #graphify/EXTRACTED #community/school-briefts

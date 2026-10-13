@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/live-session-card.tsx"
 type: "code"
-community: "Community 48"
+community: "react"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/react
 ---
 
 # live-session-card.tsx
@@ -17,7 +17,7 @@ tags:
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[live-session.ts]] - `imports_from` [EXTRACTED]
 - [[lucide-react_1]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[ritualWindow]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/react

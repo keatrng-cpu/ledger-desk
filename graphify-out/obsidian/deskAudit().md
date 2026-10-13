@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/audit.ts"
 type: "code"
-community: "Community 18"
+community: "audit.ts"
 location: "L90"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/auditts
 ---
 
 # deskAudit()
@@ -17,8 +17,8 @@ tags:
 - [[freshnessItems()]] - `calls` [EXTRACTED]
 - [[heartbeats()]] - `calls` [EXTRACTED]
 - [[live-talk.ts]] - `imports` [EXTRACTED]
-- [[money()_3]] - `calls` [EXTRACTED]
+- [[money()_9]] - `calls` [EXTRACTED]
 - [[raceScreenOf()]] - `calls` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/auditts

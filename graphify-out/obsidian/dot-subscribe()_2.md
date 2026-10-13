@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/room/manager-feed.ts"
+source_file: "src/lib/predict/prediction-market-feed.ts"
 type: "code"
-community: "Community 193"
-location: "L287"
+community: "prediction-market-feed.ts"
+location: "L169"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/prediction-market-feedts
 ---
 
 # .subscribe()
 
 ## Connections
-- [[dot-constructor()_17]] - `calls` [INFERRED]
-- [[ManagerFeed]] - `method` [EXTRACTED]
+- [[PredictionMarketFeed]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/prediction-market-feedts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-room-seats.mjs"
 type: "rationale"
-community: "Community 125"
+community: "snapshot.ts"
 location: "L6"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_125
+  - community/snapshotts
 ---
 
 # WHY: the trader asked for the five to be agents that compete with each other on…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-room-seats.mjs]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_125
+#graphify/rationale #graphify/EXTRACTED #community/snapshotts

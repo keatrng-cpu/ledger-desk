@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/grok-pwa-shared.mjs"
 type: "code"
-community: "Community 135"
+community: "grok-pwa-plugin.mjs"
 location: "L10"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_135
+  - community/grok-pwa-pluginmjs
 ---
 
 # escapeHtml()
@@ -16,4 +16,4 @@ tags:
 - [[grokPwaHeadTags()]] - `calls` [EXTRACTED]
 - [[renderInstallPageHtml()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_135
+#graphify/code #graphify/EXTRACTED #community/grok-pwa-pluginmjs

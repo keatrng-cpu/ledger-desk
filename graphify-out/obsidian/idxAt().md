@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/build-learn-engine.mjs"
 type: "code"
-community: "Community 203"
+community: "build-learn-engine.mjs"
 location: "L122"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_203
+  - community/build-learn-enginemjs
 ---
 
 # idxAt()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[build-learn-engine.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_203
+#graphify/code #graphify/EXTRACTED #community/build-learn-enginemjs

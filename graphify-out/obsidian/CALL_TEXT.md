@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/hi-alert-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "veteran-brain.ts"
 location: "L6"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/veteran-braints
 ---
 
 # CALL_TEXT
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[hi-alert-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

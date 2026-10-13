@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-setup-anticipation.mjs"
+source_file: "scripts/build-shadow-replay.mjs"
 type: "code"
-community: "Community 66"
-location: "L336"
+community: "detectors.ts"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_66
+  - community/detectorsts
 ---
 
 # all
 
 ## Connections
-- [[verify-setup-anticipation.mjs]] - `contains` [EXTRACTED]
+- [[build-shadow-replay.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_66
+#graphify/code #graphify/EXTRACTED #community/detectorsts

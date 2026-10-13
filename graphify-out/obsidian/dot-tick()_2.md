@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 214"
+community: "floor-scene.ts"
 location: "L3001"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_214
+  - community/floor-scenets
 ---
 
 # .tick()
@@ -16,7 +16,7 @@ tags:
 - [[dot-chaseRide()]] - `calls` [EXTRACTED]
 - [[dot-clockMs()]] - `calls` [EXTRACTED]
 - [[dot-directorShot()]] - `calls` [EXTRACTED]
-- [[dot-dispose()_6]] - `calls` [EXTRACTED]
+- [[dot-dispose()_4]] - `calls` [EXTRACTED]
 - [[dot-drawScreens()]] - `calls` [INFERRED]
 - [[dot-goTo()_1]] - `calls` [INFERRED]
 - [[dot-loop()_1]] - `calls` [EXTRACTED]
@@ -26,17 +26,17 @@ tags:
 - [[dot-pickCatTarget()]] - `calls` [EXTRACTED]
 - [[dot-resolveWing()]] - `calls` [EXTRACTED]
 - [[dot-revealWhiteboard()]] - `calls` [EXTRACTED]
-- [[dot-say()_3]] - `calls` [EXTRACTED]
+- [[dot-say()_1]] - `calls` [EXTRACTED]
 - [[dot-sendHome()]] - `calls` [EXTRACTED]
 - [[dot-speaking()]] - `calls` [EXTRACTED]
 - [[dot-spotId()]] - `calls` [EXTRACTED]
 - [[dot-startNext()]] - `calls` [EXTRACTED]
 - [[dot-sync()]] - `calls` [INFERRED]
 - [[dot-tickOwnerManager()]] - `calls` [EXTRACTED]
-- [[dot-update()_2]] - `calls` [EXTRACTED]
-- [[dot-update()_7]] - `calls` [INFERRED]
+- [[dot-update()_3]] - `calls` [EXTRACTED]
+- [[dot-update()_6]] - `calls` [INFERRED]
+- [[dot-update()_12]] - `calls` [INFERRED]
 - [[dot-update()_13]] - `calls` [INFERRED]
-- [[dot-update()_8]] - `calls` [INFERRED]
 - [[dot-wallSec()]] - `calls` [EXTRACTED]
 - [[dot-wantsTarget()]] - `calls` [INFERRED]
 - [[FloorScene]] - `method` [EXTRACTED]
@@ -53,4 +53,4 @@ tags:
 - [[speakHoldSec()]] - `calls` [EXTRACTED]
 - [[wingPose()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_214
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

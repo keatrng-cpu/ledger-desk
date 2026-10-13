@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L383"
+community: "options-desk.ts"
+location: "L386"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # roundTripCost()
@@ -16,4 +16,4 @@ tags:
 - [[options-desk.ts]] - `contains` [EXTRACTED]
 - [[sizeProduct()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

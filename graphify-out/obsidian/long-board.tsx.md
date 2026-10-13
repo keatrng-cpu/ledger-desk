@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/long-board.tsx"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # long-board.tsx
@@ -27,9 +27,9 @@ tags:
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[long-board.ts]] - `imports_from` [EXTRACTED]
 - [[marks.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[sleeveLoad()]] - `imports` [EXTRACTED]
 - [[stateClass()]] - `contains` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

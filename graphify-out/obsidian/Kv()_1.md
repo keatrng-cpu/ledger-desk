@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/aplus-ops.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # Kv()
@@ -16,4 +16,4 @@ tags:
 - [[aplus-ops.tsx]] - `contains` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

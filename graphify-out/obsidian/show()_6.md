@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-evidence-pack.mjs"
+source_file: "scripts/blender/glb-stats.mjs"
 type: "code"
-community: "Community 181"
-location: "L486"
+community: "glb-stats.mjs"
+location: "L89"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_181
+  - community/glb-statsmjs
 ---
 
 # show()
 
 ## Connections
-- [[build-evidence-pack.mjs]] - `contains` [EXTRACTED]
+- [[glb-stats.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_181
+#graphify/code #graphify/EXTRACTED #community/glb-statsmjs

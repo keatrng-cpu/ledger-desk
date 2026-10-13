@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/time-odds.ts"
 type: "code"
-community: "Community 52"
+community: "time-odds.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/time-oddsts
 ---
 
 # time-odds.ts
@@ -19,7 +19,7 @@ tags:
 - [[TimeCurve]] - `contains` [EXTRACTED]
 - [[TimeHeadline]] - `contains` [EXTRACTED]
 - [[TimeOddsFile]] - `contains` [EXTRACTED]
-- [[at()_12]] - `contains` [EXTRACTED]
+- [[at()_11]] - `contains` [EXTRACTED]
 - [[barGrid()]] - `contains` [EXTRACTED]
 - [[barsBetween()]] - `contains` [EXTRACTED]
 - [[before()]] - `contains` [EXTRACTED]
@@ -32,4 +32,4 @@ tags:
 - [[verify-room.mjs]] - `dynamic_import` [EXTRACTED]
 - [[windowOdds]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/time-oddsts

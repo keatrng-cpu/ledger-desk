@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/funnel-card.tsx"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # funnel-card.tsx
@@ -22,8 +22,8 @@ tags:
 - [[funnelPlan()]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[marks.ts]] - `imports_from` [EXTRACTED]
-- [[money()_4]] - `contains` [EXTRACTED]
+- [[money()_3]] - `contains` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[workedMonth()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

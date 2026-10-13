@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-floor-signals.ts"
 type: "code"
-community: "Community 56"
+community: "rh-autofire.ts"
 location: "L51"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/rh-autofirets
 ---
 
 # rhCeTouchFromDesk()
@@ -18,4 +18,4 @@ tags:
 - [[rhFloorSignals]] - `calls` [EXTRACTED]
 - [[root()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

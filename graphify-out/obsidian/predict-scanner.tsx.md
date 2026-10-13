@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-scanner.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # predict-scanner.tsx
@@ -27,16 +27,16 @@ tags:
 - [[c()_3]] - `contains` [EXTRACTED]
 - [[go-ledger.ts]] - `imports_from` [EXTRACTED]
 - [[goStats]] - `imports` [EXTRACTED]
-- [[pc()_2]] - `contains` [EXTRACTED]
+- [[pc()_1]] - `contains` [EXTRACTED]
 - [[predict-parts.tsx]] - `imports_from` [EXTRACTED]
 - [[predict-tab.tsx]] - `imports_from` [EXTRACTED]
 - [[predictjournal.ts]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readiness]] - `imports` [EXTRACTED]
 - [[sc()_1]] - `contains` [EXTRACTED]
 - [[scanStats]] - `imports` [EXTRACTED]
 - [[seedOf()]] - `contains` [EXTRACTED]
 - [[topSetups()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

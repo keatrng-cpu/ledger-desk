@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/school-brief.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L415"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # schoolSentence()
@@ -16,4 +16,4 @@ tags:
 - [[school-brief.ts]] - `contains` [EXTRACTED]
 - [[schoolsOf()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

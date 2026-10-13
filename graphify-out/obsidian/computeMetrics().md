@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/aplus/analytics.ts"
 type: "code"
-community: "Community 14"
+community: "profit-path.ts"
 location: "L83"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/profit-pathts
 ---
 
 # computeMetrics()
@@ -28,4 +28,4 @@ tags:
 - [[sample-run.ts]] - `imports` [EXTRACTED]
 - [[sharpe()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/profit-pathts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-autofire-gates.mjs"
+source_file: "scripts/install-hooks.mjs"
 type: "code"
-community: "Community 11"
-location: "L24"
+community: "ref_node_url"
+location: "L14"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/ref_node_url
 ---
 
 # ROOT
 
 ## Connections
-- [[verify-autofire-gates.mjs]] - `contains` [EXTRACTED]
+- [[install-hooks.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/ref_node_url

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-intrabar.mjs"
 type: "code"
-community: "Community 319"
+community: "capture-intrabar.mjs"
 location: "L54"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_319
+  - community/capture-intrabarmjs
 ---
 
 # bars
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[capture-intrabar.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_319
+#graphify/code #graphify/EXTRACTED #community/capture-intrabarmjs

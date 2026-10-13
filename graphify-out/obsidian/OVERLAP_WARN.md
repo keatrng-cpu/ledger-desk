@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/exposure.ts"
 type: "code"
-community: "Community 209"
+community: "invest-panel.tsx"
 location: "L64"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_209
+  - community/invest-paneltsx
 ---
 
 # OVERLAP_WARN
@@ -16,4 +16,4 @@ tags:
 - [[exposure.ts]] - `contains` [EXTRACTED]
 - [[invest-firm.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_209
+#graphify/code #graphify/EXTRACTED #community/invest-paneltsx

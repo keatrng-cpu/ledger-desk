@@ -1,12 +1,12 @@
 ---
 source_file: "docs/RH_LIVE_ROUTINE.md"
 type: "document"
-community: "Community 56"
+community: "manager-live-loop.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/manager-live-loopts
 ---
 
 # Robinhood live options routine (live-when-armed)
@@ -27,4 +27,4 @@ tags:
 - [[Trigger model (Keaton 2026-10-06)]] - `contains` [EXTRACTED]
 - [[Triple agreement (all required)]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_56
+#graphify/document #graphify/EXTRACTED #community/manager-live-loopts

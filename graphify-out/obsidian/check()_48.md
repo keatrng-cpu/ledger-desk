@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-room.mjs"
+source_file: "scripts/verify-sponsored-gap.mjs"
 type: "code"
-community: "Community 22"
-location: "L22"
+community: "SmcArray"
+location: "L24"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_22
+  - community/SmcArray
 ---
 
 # check()
 
 ## Connections
-- [[verify-room.mjs]] - `contains` [EXTRACTED]
+- [[verify-sponsored-gap.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_22
+#graphify/code #graphify/EXTRACTED #community/SmcArray

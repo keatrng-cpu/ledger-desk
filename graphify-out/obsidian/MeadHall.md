@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-hall-build.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L99"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # MeadHall
@@ -21,9 +21,9 @@ tags:
 - [[dot-buildPoolTable()]] - `method` [EXTRACTED]
 - [[dot-buildRoom()]] - `method` [EXTRACTED]
 - [[dot-buildScreens()_1]] - `method` [EXTRACTED]
-- [[dot-constructor()_18]] - `calls` [EXTRACTED]
-- [[dot-constructor()_21]] - `calls` [EXTRACTED]
-- [[dot-constructor()_19]] - `method` [EXTRACTED]
+- [[dot-constructor()_20]] - `calls` [EXTRACTED]
+- [[dot-constructor()_23]] - `calls` [EXTRACTED]
+- [[dot-constructor()_21]] - `method` [EXTRACTED]
 - [[dot-dispose()_10]] - `method` [EXTRACTED]
 - [[dot-emptyState()]] - `method` [EXTRACTED]
 - [[dot-flashArg()]] - `method` [EXTRACTED]
@@ -35,9 +35,9 @@ tags:
 - [[dot-setCrowd()]] - `method` [EXTRACTED]
 - [[dot-setExtras()]] - `method` [EXTRACTED]
 - [[dot-setFar()]] - `method` [EXTRACTED]
-- [[dot-setFeed()_1]] - `method` [EXTRACTED]
+- [[dot-setFeed()]] - `method` [EXTRACTED]
 - [[dot-ticketFor()]] - `method` [EXTRACTED]
-- [[dot-update()_10]] - `method` [EXTRACTED]
+- [[dot-update()_9]] - `method` [EXTRACTED]
 - [[Code map]] - `references` [INFERRED]
 - [[FloorMead]] - `references` [EXTRACTED]
 - [[HallExtras]] - `references` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[mead-hall-build.ts]] - `contains` [EXTRACTED]
 - [[mead-scene.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

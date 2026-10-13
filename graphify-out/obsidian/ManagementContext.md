@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/management.ts"
 type: "code"
-community: "Community 179"
+community: "news.ts"
 location: "L143"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_179
+  - community/newsts
 ---
 
 # ManagementContext
@@ -16,4 +16,4 @@ tags:
 - [[SessionClock]] - `references` [EXTRACTED]
 - [[management.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_179
+#graphify/code #graphify/EXTRACTED #community/newsts

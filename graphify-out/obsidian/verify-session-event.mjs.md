@@ -1,22 +1,22 @@
 ---
 source_file: "scripts/verify-session-event.mjs"
 type: "code"
-community: "Community 20"
+community: "cases.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/casests
 ---
 
 # verify-session-event.mjs
 
 ## Connections
-- [[check()_38]] - `contains` [EXTRACTED]
+- [[check()_27]] - `contains` [EXTRACTED]
 - [[clockAt()_4]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[gradeAt()_1]] - `contains` [EXTRACTED]
+- [[gradeAt()]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `dynamic_import` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
 - [[nodefs]] - `dynamic_import` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 - [[withShock()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/casests

@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-income-target.mjs"
+source_file: "scripts/verify-invest-book.mjs"
 type: "code"
-community: "Community 26"
-location: "L17"
+community: "verify-invest-book.mjs"
+location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/verify-invest-bookmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-income-target.mjs]] - `contains` [EXTRACTED]
+- [[ok()_24]] - `calls` [EXTRACTED]
+- [[verify-invest-book.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/verify-invest-bookmjs

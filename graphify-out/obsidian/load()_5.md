@@ -1,23 +1,21 @@
 ---
-source_file: "src/lib/alerts/path-alarm.ts"
+source_file: "scripts/crew-year-backtest.py"
 type: "code"
-community: "Community 48"
-location: "L90"
+community: "crew-year-backtest.py"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_48
+  - community/crew-year-backtestpy
 ---
 
 # load()
 
 ## Connections
-- [[armPathAlarm()]] - `calls` [EXTRACTED]
-- [[considerEntryAlarm()]] - `calls` [EXTRACTED]
-- [[considerPathAlarm()]] - `calls` [EXTRACTED]
-- [[disarmPathAlarm()]] - `calls` [EXTRACTED]
-- [[getPathAlarmState()]] - `calls` [EXTRACTED]
-- [[mutePathAlarm()]] - `calls` [EXTRACTED]
-- [[path-alarm.ts]] - `contains` [EXTRACTED]
+- [[crew-year-backtest.py]] - `contains` [EXTRACTED]
+- [[json_1]] - `calls` [EXTRACTED]
+- [[main()_4]] - `calls` [EXTRACTED]
+- [[minute_of()_1]] - `calls` [EXTRACTED]
+- [[weekday()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_48
+#graphify/code #graphify/EXTRACTED #community/crew-year-backtestpy

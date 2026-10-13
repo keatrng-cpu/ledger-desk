@@ -1,19 +1,19 @@
 ---
-source_file: "src/lib/trading/draw.ts"
+source_file: "src/lib/trading/override-log.ts"
 type: "code"
-community: "Community 20"
-location: "L394"
+community: "trade-log.ts"
+location: "L98"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/trade-logts
 ---
 
 # round2()
 
 ## Connections
-- [[draw.ts]] - `contains` [EXTRACTED]
-- [[drawOnLiquidity()]] - `calls` [EXTRACTED]
-- [[expectedR()]] - `calls` [EXTRACTED]
+- [[override-log.ts]] - `contains` [EXTRACTED]
+- [[overrideScorecard()]] - `calls` [EXTRACTED]
+- [[summarise()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/trade-logts

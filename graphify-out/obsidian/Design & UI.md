@@ -1,12 +1,12 @@
 ---
 source_file: ".grok/skills/design-ui/SKILL.md"
 type: "document"
-community: "Community 313"
+community: "Design & UI"
 location: "L15"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_313
+  - community/Design__UI
 ---
 
 # Design & UI
@@ -21,4 +21,4 @@ tags:
 - [[Finish checklist (before you call UI done)]] - `contains` [EXTRACTED]
 - [[design-uiSKILL]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_313
+#graphify/document #graphify/EXTRACTED #community/Design__UI

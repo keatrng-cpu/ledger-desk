@@ -1,19 +1,19 @@
 ---
 source_file: "src/components/mead/mead-scene.ts"
 type: "code"
-community: "Community 37"
+community: "MeadScene"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_37
+  - community/MeadScene
 ---
 
 # MeadScene
 
 ## Connections
 - [[dot-clearKeys()]] - `method` [EXTRACTED]
-- [[dot-constructor()_18]] - `method` [EXTRACTED]
+- [[dot-constructor()_20]] - `method` [EXTRACTED]
 - [[dot-dispose()_8]] - `method` [EXTRACTED]
 - [[dot-getMood()_1]] - `method` [EXTRACTED]
 - [[dot-look()]] - `method` [EXTRACTED]
@@ -34,7 +34,7 @@ tags:
 - [[dot-screenHit()]] - `method` [EXTRACTED]
 - [[dot-setCrowd()_1]] - `method` [EXTRACTED]
 - [[dot-setExtras()_1]] - `method` [EXTRACTED]
-- [[dot-setFeed()_2]] - `method` [EXTRACTED]
+- [[dot-setFeed()_1]] - `method` [EXTRACTED]
 - [[dot-setFocused()_1]] - `method` [EXTRACTED]
 - [[dot-setHover()_1]] - `method` [EXTRACTED]
 - [[dot-snapshot()]] - `method` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[mead-scene.ts]] - `contains` [EXTRACTED]
 - [[pm-analyzer.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_37
+#graphify/code #graphify/EXTRACTED #community/MeadScene

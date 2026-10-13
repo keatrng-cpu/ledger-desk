@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/journal/paper-backfill.ts"
 type: "code"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # paper-backfill.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[BackfillPaperTradesInput]] - `contains` [EXTRACTED]
 - [[MIRRORED_LOOKBACK]] - `contains` [EXTRACTED]
 - [[MirrorCloseInput]] - `imports` [EXTRACTED]
@@ -55,4 +55,4 @@ tags:
 - [[unmirroredCount()]] - `contains` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/paper-backfillts

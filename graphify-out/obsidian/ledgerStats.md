@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "veteran-brain.ts"
 location: "L431"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/veteran-braints
 ---
 
 # ledgerStats
@@ -17,4 +17,4 @@ tags:
 - [[hi-alert-panel.tsx]] - `imports` [EXTRACTED]
 - [[hi-alert.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/kill-watch.ts"
 type: "code"
-community: "Community 80"
+community: "kill-watch.ts"
 location: "L95"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_80
+  - community/kill-watchts
 ---
 
 # sinceDaysFor()
@@ -17,4 +17,4 @@ tags:
 - [[kill-watch-panel.tsx]] - `imports` [EXTRACTED]
 - [[kill-watch.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_80
+#graphify/code #graphify/EXTRACTED #community/kill-watchts

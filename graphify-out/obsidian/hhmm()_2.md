@@ -1,18 +1,17 @@
 ---
-source_file: "src/lib/room/exec/gates.ts"
+source_file: "scripts/verify-gateway-window.mjs"
 type: "code"
-community: "Community 150"
-location: "L89"
+community: "verify-gateway-window.mjs"
+location: "L68"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/verify-gateway-windowmjs
 ---
 
 # hhmm()
 
 ## Connections
-- [[checkEntry()]] - `calls` [EXTRACTED]
-- [[gates.ts]] - `contains` [EXTRACTED]
+- [[verify-gateway-window.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/verify-gateway-windowmjs

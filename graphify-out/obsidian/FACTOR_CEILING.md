@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 155"
+community: "veteran-brain.ts"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/veteran-braints
 ---
 
 # FACTOR_CEILING
@@ -15,4 +15,4 @@ tags:
 - [[discretion.ts]] - `contains` [EXTRACTED]
 - [[research-retain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

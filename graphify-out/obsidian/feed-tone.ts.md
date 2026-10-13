@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/ui/feed-tone.ts"
 type: "code"
-community: "Community 69"
+community: "ghost-book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/ghost-bookts
 ---
 
 # feed-tone.ts
 
 ## Connections
 - [[FeedToneKind]] - `contains` [EXTRACTED]
-- [[KNOWN_1]] - `contains` [EXTRACTED]
+- [[KNOWN]] - `contains` [EXTRACTED]
 - [[dual-index-charts.tsx]] - `imports_from` [EXTRACTED]
 - [[feed-tone.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[feedDotTone]] - `contains` [EXTRACTED]
@@ -24,4 +24,4 @@ tags:
 - [[session-hud.tsx]] - `imports_from` [EXTRACTED]
 - [[sourceTag()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-take-census.mjs"
+source_file: "scripts/verify-entry-alarm.mjs"
 type: "code"
-community: "Community 229"
-location: "L19"
+community: "verify-entry-alarm.mjs"
+location: "L72"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/verify-entry-alarmmjs
 ---
 
 # fails
 
 ## Connections
-- [[verify-take-census.mjs]] - `contains` [EXTRACTED]
+- [[verify-entry-alarm.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/verify-entry-alarmmjs

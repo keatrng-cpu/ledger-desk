@@ -1,12 +1,12 @@
 ---
 source_file: ".ai/system_map.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # System map
@@ -18,4 +18,4 @@ tags:
 - [[What each folder owns]] - `contains` [EXTRACTED]
 - [[system_map]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

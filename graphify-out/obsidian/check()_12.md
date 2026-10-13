@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-invest-office.mjs"
+source_file: "brainlab/selfcheck.py"
 type: "code"
-community: "Community 137"
-location: "L48"
+community: "selfcheck.py"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_137
+  - community/selfcheckpy
 ---
 
 # check()
 
 ## Connections
-- [[verify-invest-office.mjs]] - `contains` [EXTRACTED]
+- [[selfcheck.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_137
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

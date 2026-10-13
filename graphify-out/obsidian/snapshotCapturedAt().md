@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/universe.ts"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L195"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # snapshotCapturedAt()
@@ -22,4 +22,4 @@ tags:
 - [[research-card.tsx]] - `imports` [EXTRACTED]
 - [[universe.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

@@ -1,21 +1,21 @@
 ---
 source_file: "src/lib/room/live-voices-invest.ts"
 type: "code"
-community: "Community 49"
+community: "live-voices-invest.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_49
+  - community/live-voices-investts
 ---
 
 # live-voices-invest.ts
 
 ## Connections
 - [[ANIM]] - `imports` [EXTRACTED]
-- [[AT()_11]] - `contains` [EXTRACTED]
+- [[AT()_12]] - `contains` [EXTRACTED]
 - [[BOOK_MEANINGFUL_USD]] - `imports` [EXTRACTED]
-- [[Ctx_1]] - `imports` [EXTRACTED]
+- [[Ctx]] - `imports` [EXTRACTED]
 - [[Ex]] - `imports` [EXTRACTED]
 - [[FIRM_REVIEW_NAME]] - `imports` [EXTRACTED]
 - [[HALL_STUDY_MOVES]] - `imports` [EXTRACTED]
@@ -70,4 +70,4 @@ tags:
 - [[whenPhrase()]] - `imports` [EXTRACTED]
 - [[yesLine()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_49
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

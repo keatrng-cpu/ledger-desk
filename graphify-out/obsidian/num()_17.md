@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/trade-note.ts"
+source_file: "src/components/learn/replay-drill.tsx"
 type: "code"
-community: "Community 8"
-location: "L89"
+community: "replay-drill.ts"
+location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/replay-drillts
 ---
 
 # num()
 
 ## Connections
-- [[buildTradeNote()]] - `calls` [EXTRACTED]
-- [[trade-note.ts]] - `contains` [EXTRACTED]
+- [[Decide()]] - `calls` [EXTRACTED]
+- [[replay-drill.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/replay-drillts

@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/measure-room-ev.mjs"
+source_file: "scripts/verify-attestation.mjs"
 type: "code"
-community: "Community 91"
-location: "L269"
+community: "verify-attestation.mjs"
+location: "L326"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_91
+  - community/verify-attestationmjs
 ---
 
 # trades
 
 ## Connections
-- [[measure-room-ev.mjs]] - `contains` [EXTRACTED]
+- [[verify-attestation.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_91
+#graphify/code #graphify/EXTRACTED #community/verify-attestationmjs

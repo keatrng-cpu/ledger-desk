@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-E.md"
 type: "document"
-community: "Community 87"
+community: "paper-backfill.ts"
 location: "L25"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/paper-backfillts
 ---
 
 # D1 — what was actually broken
@@ -17,4 +17,4 @@ tags:
 - [[Wiring step 1 — backfill on login  on mount when signed in]] - `contains` [EXTRACTED]
 - [[Wiring step 2 — the not yet saved badge]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_87
+#graphify/document #graphify/EXTRACTED #community/paper-backfillts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/invest-firm.ts"
 type: "code"
-community: "Community 100"
+community: "invest-office.ts"
 location: "L53"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/invest-officets
 ---
 
 # FirmInputs
@@ -21,4 +21,4 @@ tags:
 - [[invest-firm.ts]] - `contains` [EXTRACTED]
 - [[rateLadder]] - `references` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/invest-officets

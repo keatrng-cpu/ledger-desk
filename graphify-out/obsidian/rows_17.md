@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "scripts/verify-predict.mjs"
 type: "code"
-community: "Community 53"
-location: "L130"
+community: "verify-predict.mjs"
+location: "L258"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/verify-predictmjs
 ---
 
 # rows
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
+- [[verify-predict.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/verify-predictmjs

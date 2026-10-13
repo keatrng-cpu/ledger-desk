@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/ipo-card.tsx"
 type: "code"
-community: "Community 86"
+community: "invest-firm.ts"
 location: "L39"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/invest-firmts
 ---
 
 # IpoCard()
@@ -24,4 +24,4 @@ tags:
 - [[pricedIpos()]] - `calls` [EXTRACTED]
 - [[upcomingIpos()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/invest-firmts

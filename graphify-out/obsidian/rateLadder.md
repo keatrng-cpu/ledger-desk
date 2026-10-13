@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 100"
+community: "policy.ts"
 location: "L403"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/policyts
 ---
 
 # rateLadder
@@ -25,4 +25,4 @@ tags:
 - [[readInvestOffice()]] - `calls` [EXTRACTED]
 - [[sweepRate()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/policyts

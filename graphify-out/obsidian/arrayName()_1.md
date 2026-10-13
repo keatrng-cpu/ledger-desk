@@ -1,17 +1,18 @@
 ---
-source_file: "src/components/dashboard/candlestick-pane.tsx"
+source_file: "src/components/desk/setup-chart.tsx"
 type: "code"
-community: "Community 272"
-location: "L84"
+community: "setup-chart.tsx"
+location: "L308"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_272
+  - community/setup-charttsx
 ---
 
 # arrayName()
 
 ## Connections
-- [[candlestick-pane.tsx]] - `contains` [EXTRACTED]
+- [[groupName()]] - `calls` [EXTRACTED]
+- [[setup-chart.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_272
+#graphify/code #graphify/EXTRACTED #community/setup-charttsx

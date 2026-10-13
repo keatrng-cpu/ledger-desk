@@ -1,12 +1,12 @@
 ---
 source_file: ".ai/locator.md"
 type: "document"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # Locator
@@ -26,6 +26,7 @@ tags:
 - [[loadHallBoard()]] - `references` [INFERRED]
 - [[locator]] - `contains` [EXTRACTED]
 - [[meadBeats()]] - `references` [INFERRED]
+- [[mtfArrays()]] - `references` [INFERRED]
 - [[namingSweep()]] - `references` [INFERRED]
 - [[openPredictAt()]] - `references` [INFERRED]
 - [[pairedDisplacement()]] - `references` [INFERRED]
@@ -33,6 +34,7 @@ tags:
 - [[polaritySweep()]] - `references` [INFERRED]
 - [[preferZone()]] - `references` [INFERRED]
 - [[protectiveInvalidation()]] - `references` [INFERRED]
+- [[raidReadForCard()]] - `references` [INFERRED]
 - [[readEntry()]] - `references` [INFERRED]
 - [[readJudas()]] - `references` [INFERRED]
 - [[readLiveLessons()]] - `references` [INFERRED]
@@ -41,4 +43,4 @@ tags:
 - [[splitSweep()]] - `references` [INFERRED]
 - [[strongExtension()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_40
+#graphify/document #graphify/INFERRED #community/trading/scannerts

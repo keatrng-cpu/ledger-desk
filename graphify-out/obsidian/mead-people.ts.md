@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/mead/mead-people.ts"
 type: "code"
-community: "Community 41"
+community: "mead-hall-build.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_41
+  - community/mead-hall-buildts
 ---
 
 # mead-people.ts
@@ -20,11 +20,11 @@ tags:
 - [[V2_6]] - `contains` [EXTRACTED]
 - [[bakeLocal()]] - `imports` [EXTRACTED]
 - [[damp()_2]] - `imports` [EXTRACTED]
-- [[drawBubble()_1]] - `imports` [EXTRACTED]
+- [[drawBubble()]] - `imports` [EXTRACTED]
 - [[floor-mead.ts]] - `imports_from` [EXTRACTED]
 - [[mead-hall-build.ts]] - `re_exports` [EXTRACTED]
 - [[mead-hall-kit.ts]] - `imports_from` [EXTRACTED]
 - [[mead-screens.ts]] - `imports_from` [EXTRACTED]
 - [[three]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/EXTRACTED #community/mead-hall-buildts

@@ -1,19 +1,20 @@
 ---
-source_file: "src/components/room/floor-proto-avatars.ts"
+source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 193"
-location: "L597"
+community: "floor-scene.ts"
+location: "L1347"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_193
+  - community/floor-scenets
 ---
 
 # .update()
 
 ## Connections
-- [[dot-tickOwnerManager()]] - `calls` [INFERRED]
-- [[ManagerAvatar]] - `method` [EXTRACTED]
-- [[damp()_1]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [EXTRACTED]
+- [[Cat]] - `method` [EXTRACTED]
+- [[angleLerp()]] - `calls` [EXTRACTED]
+- [[damp()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_193
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

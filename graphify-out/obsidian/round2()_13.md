@@ -1,19 +1,18 @@
 ---
-source_file: "src/lib/invest/funnel.ts"
+source_file: "src/lib/journal/pnl.ts"
 type: "code"
-community: "Community 86"
-location: "L46"
+community: "order-intent.ts"
+location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/order-intentts
 ---
 
 # round2()
 
 ## Connections
-- [[funnel.ts]] - `contains` [EXTRACTED]
-- [[splitSweep()]] - `calls` [EXTRACTED]
-- [[workedMonth()]] - `calls` [EXTRACTED]
+- [[computeTradePnl()]] - `calls` [EXTRACTED]
+- [[pnl.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/order-intentts

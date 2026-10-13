@@ -1,12 +1,12 @@
 ---
 source_file: "gateway/databento_live_gateway.py"
 type: "code"
-community: "Community 74"
+community: "databento_live_gateway.py"
 location: "L385"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_74
+  - community/databento_live_gatewaypy
 ---
 
 # .touch_ticks()
@@ -17,4 +17,4 @@ tags:
 - [[LiveGateway]] - `method` [EXTRACTED]
 - [[Re-stamp `received_at` on every tick row whose last print is recent. Called…]] - `rationale_for` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_74
+#graphify/code #graphify/EXTRACTED #community/databento_live_gatewaypy

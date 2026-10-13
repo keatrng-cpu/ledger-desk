@@ -1,18 +1,17 @@
 ---
-source_file: "src/components/predict/predict-parts.tsx"
+source_file: "src/lib/predict/math.ts"
 type: "code"
-community: "Community 2"
-location: "L23"
+community: "mead-screens.ts"
+location: "L85"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/mead-screensts
 ---
 
 # cents()
 
 ## Connections
-- [[SideRow()]] - `calls` [EXTRACTED]
-- [[predict-parts.tsx]] - `contains` [EXTRACTED]
+- [[math.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/capture-history.mjs"
 type: "code"
-community: "Community 71"
+community: "capture-history.mjs"
 location: "L77"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_71
+  - community/capture-historymjs
 ---
 
 # months()
@@ -15,4 +15,4 @@ tags:
 - [[capture-history.mjs]] - `contains` [EXTRACTED]
 - [[iso()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_71
+#graphify/code #graphify/EXTRACTED #community/capture-historymjs

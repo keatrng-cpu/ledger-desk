@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/screen-table.tsx"
 type: "code"
-community: "Community 5"
+community: "universe.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_5
+  - community/universets
 ---
 
 # screen-table.tsx
@@ -17,7 +17,7 @@ tags:
 - [[Col]] - `contains` [EXTRACTED]
 - [[Note()]] - `imports` [EXTRACTED]
 - [[RISK_FREE]] - `imports` [EXTRACTED]
-- [[SHORT_5]] - `contains` [EXTRACTED]
+- [[SHORT_4]] - `contains` [EXTRACTED]
 - [[ScreenTable()]] - `contains` [EXTRACTED]
 - [[allFundamentals()]] - `imports` [EXTRACTED]
 - [[dossierFor()]] - `imports` [EXTRACTED]
@@ -30,11 +30,11 @@ tags:
 - [[impliedGrowth]] - `imports` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[investformat.ts]] - `imports_from` [EXTRACTED]
-- [[pct()_15]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[pct()_14]] - `imports` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[requiredVsDelivered]] - `imports` [EXTRACTED]
 - [[ui.tsx]] - `imports_from` [EXTRACTED]
 - [[universe.ts]] - `imports_from` [EXTRACTED]
 - [[weightInFund()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_5
+#graphify/code #graphify/EXTRACTED #community/universets

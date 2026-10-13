@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/trading-floor-tab.tsx"
 type: "code"
-community: "Community 51"
+community: "trading-floor-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_51
+  - community/trading-floor-tabtsx
 ---
 
 # trading-floor-tab.tsx
@@ -17,8 +17,8 @@ tags:
 - [[Bar()_10]] - `contains` [EXTRACTED]
 - [[BedLayer]] - `imports` [EXTRACTED]
 - [[CAMERAS_1]] - `contains` [EXTRACTED]
-- [[COLOR]] - `contains` [EXTRACTED]
-- [[CREW_3]] - `imports` [EXTRACTED]
+- [[COLOR_1]] - `contains` [EXTRACTED]
+- [[CREW_2]] - `imports` [EXTRACTED]
 - [[CameraPreset]] - `imports` [EXTRACTED]
 - [[Character]] - `imports` [EXTRACTED]
 - [[DecisionStrip()]] - `contains` [EXTRACTED]
@@ -75,7 +75,7 @@ tags:
 - [[beatWord()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[displayEntry]] - `imports` [EXTRACTED]
-- [[etTime()_5]] - `contains` [EXTRACTED]
+- [[etTime()_3]] - `contains` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exec-card.tsx]] - `imports_from` [EXTRACTED]
 - [[floor-link.ts]] - `imports_from` [EXTRACTED]
@@ -107,7 +107,7 @@ tags:
 - [[playedStories]] - `contains` [EXTRACTED]
 - [[race-panel.tsx]] - `imports_from` [EXTRACTED]
 - [[rankTitle()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[recordLine()]] - `imports` [EXTRACTED]
 - [[relationWord()]] - `imports` [EXTRACTED]
 - [[reportRhAccount()]] - `imports` [EXTRACTED]
@@ -134,4 +134,4 @@ tags:
 - [[useWireReactions()]] - `imports` [EXTRACTED]
 - [[wire-chat.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_51
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

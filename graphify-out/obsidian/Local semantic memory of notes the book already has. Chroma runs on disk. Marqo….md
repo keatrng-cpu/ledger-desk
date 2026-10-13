@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "rationale"
-community: "Community 268"
+community: "memory.py"
 location: "L1"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # Local semantic memory of notes the book already has. Chroma runs on disk. Marqo…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[memory.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_268
+#graphify/rationale #graphify/EXTRACTED #community/memorypy

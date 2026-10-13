@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/dashboard/dual-index-charts.tsx"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L315"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # DualIndexCharts()
 
 ## Connections
-- [[Button]] - `calls` [EXTRACTED]
+- [[Button_1]] - `calls` [EXTRACTED]
 - [[CandlestickPane()]] - `calls` [EXTRACTED]
-- [[Card()_1]] - `calls` [EXTRACTED]
+- [[Card()]] - `calls` [EXTRACTED]
 - [[CardContent()]] - `calls` [EXTRACTED]
 - [[CardDescription()]] - `calls` [EXTRACTED]
 - [[CardHeader()]] - `calls` [EXTRACTED]
@@ -36,4 +36,4 @@ tags:
 - [[rollingCorr()]] - `calls` [EXTRACTED]
 - [[useBiasFlip()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

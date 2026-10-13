@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/trade-log.ts"
 type: "code"
-community: "Community 216"
+community: "trade-log.ts"
 location: "L226"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_216
+  - community/trade-logts
 ---
 
 # readTradeLog()
@@ -22,4 +22,4 @@ tags:
 - [[trade-log-panel.tsx]] - `imports` [EXTRACTED]
 - [[trade-log.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_216
+#graphify/code #graphify/EXTRACTED #community/trade-logts

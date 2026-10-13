@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/trading/gate-tuning.ts"
 type: "code"
-community: "Community 40"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/detectorsts
 ---
 
 # gate-tuning.ts
 
 ## Connections
-- [[GATE_4]] - `contains` [EXTRACTED]
+- [[GATE_5]] - `contains` [EXTRACTED]
 - [[GateTuning]] - `contains` [EXTRACTED]
 - [[HalfZone]] - `contains` [EXTRACTED]
 - [[ORIGINAL_GATE]] - `contains` [EXTRACTED]
@@ -26,9 +26,10 @@ tags:
 - [[raid-pair.ts]] - `imports_from` [EXTRACTED]
 - [[setGate()]] - `contains` [EXTRACTED]
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
+- [[smc-shared.test.mjs]] - `dynamic_import` [EXTRACTED]
 - [[sweep-gates.mjs]] - `dynamic_import` [EXTRACTED]
 - [[sweep-regimes.mjs]] - `dynamic_import` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-detectors.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/detectorsts

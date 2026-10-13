@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-world.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L134"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # levelsFor()
@@ -16,4 +16,4 @@ tags:
 - [[live-world.ts]] - `contains` [EXTRACTED]
 - [[tapeBook()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

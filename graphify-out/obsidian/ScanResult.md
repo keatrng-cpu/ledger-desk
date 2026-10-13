@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 40"
-location: "L234"
+community: "smc-master.ts"
+location: "L252"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/smc-masterts
 ---
 
 # ScanResult
@@ -23,4 +23,4 @@ tags:
 - [[smtRead()]] - `references` [EXTRACTED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/smc-masterts

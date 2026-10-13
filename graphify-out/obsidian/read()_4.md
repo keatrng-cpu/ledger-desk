@@ -1,18 +1,18 @@
 ---
-source_file: "scripts/verify-hit-odds.mjs"
+source_file: "scripts/verify-live-lesson.mjs"
 type: "code"
-community: "Community 151"
-location: "L33"
+community: "verify-live-lesson.mjs"
+location: "L295"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_151
+  - community/verify-live-lessonmjs
 ---
 
 # read()
 
 ## Connections
-- [[code()]] - `calls` [EXTRACTED]
-- [[verify-hit-odds.mjs]] - `contains` [EXTRACTED]
+- [[mkDesk()]] - `calls` [EXTRACTED]
+- [[verify-live-lesson.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_151
+#graphify/code #graphify/EXTRACTED #community/verify-live-lessonmjs

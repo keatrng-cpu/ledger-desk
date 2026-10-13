@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/replay.ts"
 type: "code"
-community: "Community 87"
+community: "@tanstack/react-start"
 location: "L390"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/tanstack/react-start
 ---
 
 # calibrationReport
@@ -16,6 +16,6 @@ tags:
 - [[replay-server.ts]] - `imports` [EXTRACTED]
 - [[replay.ts]] - `contains` [EXTRACTED]
 - [[runReplay]] - `calls` [EXTRACTED]
-- [[stats()_4]] - `calls` [EXTRACTED]
+- [[stats()_3]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/tanstack/react-start

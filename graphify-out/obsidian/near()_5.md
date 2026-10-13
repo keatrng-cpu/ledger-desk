@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-apex-sim.mjs"
+source_file: "scripts/verify-rnd.mjs"
 type: "code"
-community: "Community 243"
-location: "L29"
+community: "verify-rnd.mjs"
+location: "L31"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_243
+  - community/verify-rndmjs
 ---
 
 # near()
 
 ## Connections
-- [[verify-apex-sim.mjs]] - `contains` [EXTRACTED]
+- [[verify-rnd.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_243
+#graphify/code #graphify/EXTRACTED #community/verify-rndmjs

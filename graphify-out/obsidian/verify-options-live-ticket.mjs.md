@@ -1,24 +1,24 @@
 ---
 source_file: "scripts/verify-options-live-ticket.mjs"
 type: "code"
-community: "Community 239"
+community: "verify-options-live-ticket.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_239
+  - community/verify-options-live-ticketmjs
 ---
 
 # verify-options-live-ticket.mjs
 
 ## Connections
-- [[NOW_10]] - `contains` [EXTRACTED]
+- [[NOW_8]] - `contains` [EXTRACTED]
 - [[arr()_1]] - `contains` [EXTRACTED]
 - [[base_8]] - `contains` [EXTRACTED]
 - [[ceilBound]] - `contains` [EXTRACTED]
 - [[chain()]] - `contains` [EXTRACTED]
-- [[check()_56]] - `contains` [EXTRACTED]
-- [[eq()_1]] - `contains` [EXTRACTED]
+- [[check()_45]] - `contains` [EXTRACTED]
+- [[eq()_2]] - `contains` [EXTRACTED]
 - [[geo()]] - `contains` [EXTRACTED]
 - [[geoBase]] - `contains` [EXTRACTED]
 - [[leg()]] - `contains` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[wideStop]] - `contains` [EXTRACTED]
 - [[work()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_239
+#graphify/code #graphify/EXTRACTED #community/verify-options-live-ticketmjs

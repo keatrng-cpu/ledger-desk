@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/draw.ts"
 type: "code"
-community: "Community 187"
+community: "OhlcBar"
 location: "L62"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/OhlcBar
 ---
 
 # atrOf()
@@ -23,4 +23,4 @@ tags:
 - [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

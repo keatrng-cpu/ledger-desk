@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ltf-reaction.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L78"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # readLtfReaction()
@@ -23,4 +23,4 @@ tags:
 - [[ticket-facts.ts]] - `imports` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

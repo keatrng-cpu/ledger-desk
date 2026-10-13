@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ghost-book.ts"
 type: "code"
-community: "Community 130"
+community: "ghost-book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/ghost-bookts
 ---
 
 # ghost-book.ts
@@ -18,15 +18,15 @@ tags:
 - [[GhostAnalysis]] - `contains` [EXTRACTED]
 - [[GhostStatus]] - `contains` [EXTRACTED]
 - [[GhostTrade]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[analyze()]] - `contains` [EXTRACTED]
 - [[analyzeExpired()]] - `contains` [EXTRACTED]
 - [[analyzeMissed()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[bookOf()]] - `contains` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[buildPaperLevels()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[dayKeyEt()]] - `contains` [EXTRACTED]
 - [[debriefGhost()]] - `imports` [EXTRACTED]
 - [[desk-memory.ts]] - `imports_from` [EXTRACTED]
@@ -50,7 +50,7 @@ tags:
 - [[path-alarm.ts]] - `imports_from` [EXTRACTED]
 - [[pinNote()]] - `imports` [EXTRACTED]
 - [[pushDebrief()]] - `imports` [EXTRACTED]
-- [[px()_4]] - `contains` [EXTRACTED]
+- [[px()_1]] - `contains` [EXTRACTED]
 - [[remember()_2]] - `imports` [EXTRACTED]
 - [[rememberGhost()]] - `contains` [EXTRACTED]
 - [[resolveAgainst()]] - `contains` [EXTRACTED]
@@ -69,4 +69,4 @@ tags:
 - [[trade-debrief.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/ghost-bookts

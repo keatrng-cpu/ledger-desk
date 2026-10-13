@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-desk.ts"
 type: "code"
-community: "Community 73"
-location: "L670"
+community: "options-desk.ts"
+location: "L674"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_73
+  - community/options-deskts
 ---
 
 # scoreLeg()
@@ -19,4 +19,4 @@ tags:
 - [[qtyInBand()]] - `calls` [EXTRACTED]
 - [[strikeReach()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_73
+#graphify/code #graphify/EXTRACTED #community/options-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/entry-trigger.ts"
 type: "code"
-community: "Community 29"
+community: "live-world.ts"
 location: "L125"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_29
+  - community/live-worldts
 ---
 
 # readEntry()
@@ -39,4 +39,4 @@ tags:
 - [[take-moments.ts]] - `imports` [EXTRACTED]
 - [[ticket-facts.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_29
+#graphify/code #graphify/EXTRACTED #community/live-worldts

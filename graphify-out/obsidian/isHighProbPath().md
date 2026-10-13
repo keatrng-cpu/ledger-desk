@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/path-alarm.ts"
 type: "code"
-community: "Community 130"
+community: "use-entry-state.ts"
 location: "L178"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_130
+  - community/use-entry-statets
 ---
 
 # isHighProbPath()
@@ -33,4 +33,4 @@ tags:
 - [[shadow-book.ts]] - `imports` [EXTRACTED]
 - [[smc-master.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_130
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

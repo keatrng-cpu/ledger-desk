@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/desk-read.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # desk-read.ts
@@ -21,7 +21,7 @@ tags:
 - [[HeldLevels]] - `imports` [EXTRACTED]
 - [[HtfBiasRead]] - `imports` [EXTRACTED]
 - [[NEWS_CALENDAR]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OptionType]] - `imports` [EXTRACTED]
 - [[OptionsDesk]] - `imports` [EXTRACTED]
 - [[RhStrategyCard]] - `imports` [EXTRACTED]
@@ -45,7 +45,7 @@ tags:
 - [[cycle.ts]] - `imports_from` [EXTRACTED]
 - [[entry-trigger.ts]] - `imports_from` [EXTRACTED]
 - [[estimateSpot()]] - `imports` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[etWallToEpochMs()]] - `imports` [EXTRACTED]
 - [[exit-rules.ts]] - `imports_from` [EXTRACTED]
 - [[failedHold()]] - `imports` [EXTRACTED]
@@ -78,4 +78,4 @@ tags:
 - [[underlierOfSymbol()]] - `contains` [EXTRACTED]
 - [[volumeRatio()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

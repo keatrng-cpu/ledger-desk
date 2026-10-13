@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-rh-autofire-gates.mjs"
 type: "code"
-community: "Community 15"
+community: "rh-autofire.ts"
 location: "L57"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # MANAGER_OK
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-rh-autofire-gates.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

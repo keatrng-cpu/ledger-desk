@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/types.ts"
 type: "code"
-community: "Community 150"
+community: "executor.ts"
 location: "L80"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_150
+  - community/executorts
 ---
 
 # BrokerAccount
@@ -18,4 +18,4 @@ tags:
 - [[executor.ts]] - `imports` [EXTRACTED]
 - [[gates.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_150
+#graphify/code #graphify/EXTRACTED #community/executorts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/book.ts"
 type: "code"
-community: "Community 100"
+community: "book.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_100
+  - community/bookts
 ---
 
 # book.ts
@@ -59,4 +59,4 @@ tags:
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 - [[washSaleBan()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_100
+#graphify/code #graphify/EXTRACTED #community/bookts

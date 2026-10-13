@@ -1,18 +1,18 @@
 ---
 source_file: "src/lib/execution/tradovate-orders.ts"
 type: "code"
-community: "Community 43"
+community: "tradovate-orders.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_43
+  - community/tradovate-ordersts
 ---
 
 # tradovate-orders.ts
 
 ## Connections
-- [[@tanstackreact-start_2]] - `imports_from` [EXTRACTED]
+- [[@tanstackreact-start]] - `imports_from` [EXTRACTED]
 - [[ACTION]] - `contains` [EXTRACTED]
 - [[BrokerPosition_1]] - `contains` [EXTRACTED]
 - [[CONTRACTS]] - `imports` [EXTRACTED]
@@ -24,8 +24,8 @@ tags:
 - [[TradovateAccount]] - `imports` [EXTRACTED]
 - [[apex-autofire.ts]] - `imports_from` [EXTRACTED]
 - [[apexAccountRisk]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[authMiddleware]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[db.ts]] - `imports_from` [EXTRACTED]
 - [[execution-gate.ts]] - `imports_from` [EXTRACTED]
 - [[executionEnv]] - `imports` [EXTRACTED]
@@ -50,4 +50,4 @@ tags:
 - [[tradovateToken()]] - `imports` [EXTRACTED]
 - [[zod]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_43
+#graphify/code #graphify/EXTRACTED #community/tradovate-ordersts

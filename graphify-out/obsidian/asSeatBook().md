@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/seats.ts"
 type: "code"
-community: "Community 4"
+community: "room-engine.ts"
 location: "L240"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/room-enginets
 ---
 
 # asSeatBook()
@@ -14,11 +14,11 @@ tags:
 ## Connections
 - [[computeRace()]] - `calls` [EXTRACTED]
 - [[ensureSeats()]] - `calls` [EXTRACTED]
-- [[handle()_3]] - `calls` [EXTRACTED]
+- [[handle()_4]] - `calls` [EXTRACTED]
 - [[race.ts]] - `imports` [EXTRACTED]
 - [[room-engine.ts]] - `imports` [EXTRACTED]
 - [[room-step.ts]] - `imports` [EXTRACTED]
 - [[seats.ts]] - `contains` [EXTRACTED]
 - [[useRoomStore]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/room-enginets

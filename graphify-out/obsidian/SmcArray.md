@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 102"
+community: "SmcArray"
 location: "L37"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_102
+  - community/SmcArray
 ---
 
 # SmcArray
@@ -27,4 +27,4 @@ tags:
 - [[sponsored-gap.ts]] - `imports` [EXTRACTED]
 - [[trade-plan.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_102
+#graphify/code #graphify/EXTRACTED #community/SmcArray

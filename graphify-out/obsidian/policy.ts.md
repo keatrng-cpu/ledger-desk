@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/policy.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # policy.ts
@@ -46,7 +46,7 @@ tags:
 - [[realizedNeededFor()]] - `contains` [EXTRACTED]
 - [[rentVsSweep()]] - `contains` [EXTRACTED]
 - [[rh-income.ts]] - `re_exports` [EXTRACTED]
-- [[round2()_14]] - `contains` [EXTRACTED]
+- [[round2()_9]] - `contains` [EXTRACTED]
 - [[store.ts]] - `imports_from` [EXTRACTED]
 - [[sweep-card.tsx]] - `imports_from` [EXTRACTED]
 - [[sweepRate()]] - `contains` [EXTRACTED]
@@ -55,4 +55,4 @@ tags:
 - [[verify-invest-office.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-invest.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

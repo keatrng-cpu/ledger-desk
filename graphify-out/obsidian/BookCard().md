@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/invest/book-card.tsx"
 type: "code"
-community: "Community 34"
+community: "store.ts"
 location: "L41"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_34
+  - community/storets
 ---
 
 # BookCard()
@@ -24,9 +24,9 @@ tags:
 - [[heldPositions()]] - `calls` [EXTRACTED]
 - [[invest-panel.tsx]] - `imports` [EXTRACTED]
 - [[longTermFrom()]] - `calls` [EXTRACTED]
-- [[pct()_15]] - `calls` [EXTRACTED]
+- [[pct()_14]] - `calls` [EXTRACTED]
 - [[signed()_3]] - `calls` [EXTRACTED]
 - [[taxYear()]] - `calls` [EXTRACTED]
-- [[usd()_6]] - `calls` [EXTRACTED]
+- [[usd()_4]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_34
+#graphify/code #graphify/EXTRACTED #community/storets

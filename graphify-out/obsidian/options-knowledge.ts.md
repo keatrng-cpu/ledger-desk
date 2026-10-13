@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/options-knowledge.ts"
 type: "code"
-community: "Community 153"
+community: "options-swing-panel.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_153
+  - community/options-swing-paneltsx
 ---
 
 # options-knowledge.ts
@@ -16,4 +16,4 @@ tags:
 - [[OptionLesson]] - `contains` [EXTRACTED]
 - [[options-swing-panel.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_153
+#graphify/code #graphify/EXTRACTED #community/options-swing-paneltsx

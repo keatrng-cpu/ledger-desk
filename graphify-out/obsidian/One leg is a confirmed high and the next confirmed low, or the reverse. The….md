@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/legs.py"
 type: "rationale"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L53"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # One leg is a confirmed high and the next confirmed low, or the reverse. The…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[legs()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_146
+#graphify/rationale #graphify/EXTRACTED #community/selfcheckpy

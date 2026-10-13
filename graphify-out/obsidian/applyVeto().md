@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/scanner.ts"
 type: "code"
-community: "Community 35"
-location: "L1248"
+community: "detectors.ts"
+location: "L1272"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # applyVeto()
@@ -16,4 +16,4 @@ tags:
 - [[Code map]] - `references` [INFERRED]
 - [[tradingscanner.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_35
+#graphify/code #graphify/INFERRED #community/detectorsts

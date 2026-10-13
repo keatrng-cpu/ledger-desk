@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/hi-alert.ts"
 type: "code"
-community: "Community 92"
+community: "hi-alert.ts"
 location: "L325"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_92
+  - community/hi-alertts
 ---
 
 # callOf()
@@ -21,4 +21,4 @@ tags:
 - [[lessonOf()]] - `calls` [EXTRACTED]
 - [[recallHiAlerts()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_92
+#graphify/code #graphify/EXTRACTED #community/hi-alertts

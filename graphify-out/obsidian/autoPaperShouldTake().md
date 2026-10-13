@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L115"
+community: "index.tsx"
+location: "L116"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # autoPaperShouldTake()
@@ -22,9 +22,9 @@ tags:
 - [[isHighProbPath()]] - `calls` [EXTRACTED]
 - [[isJudasWindow()]] - `calls` [EXTRACTED]
 - [[listOpenPaperTrades()]] - `calls` [EXTRACTED]
-- [[load()_6]] - `calls` [EXTRACTED]
+- [[load()_10]] - `calls` [EXTRACTED]
 - [[loadDeskMemory()]] - `calls` [EXTRACTED]
 - [[pathTakeGate()]] - `calls` [EXTRACTED]
 - [[weekDayFor()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

@@ -1,18 +1,24 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 283"
-location: "L1271"
+community: "Avatar"
+location: "L740"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_283
+  - community/Avatar
 ---
 
 # .constructor()
 
 ## Connections
-- [[Cat]] - `method` [EXTRACTED]
+- [[dot-accessory()]] - `calls` [EXTRACTED]
+- [[dot-hairMesh()]] - `calls` [EXTRACTED]
+- [[dot-makeTag()]] - `calls` [EXTRACTED]
+- [[Avatar]] - `method` [EXTRACTED]
+- [[Character]] - `references` [EXTRACTED]
 - [[contactBlob()]] - `calls` [EXTRACTED]
+- [[mat()]] - `calls` [EXTRACTED]
+- [[yawTo()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_283
+#graphify/code #graphify/EXTRACTED #community/Avatar

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/exit-rules.ts"
 type: "code"
-community: "Community 160"
+community: "paper-manager.ts"
 location: "L38"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_160
+  - community/paper-managerts
 ---
 
 # FAILED_HOLD_ENABLED
@@ -16,4 +16,4 @@ tags:
 - [[paper-manager.ts]] - `imports` [EXTRACTED]
 - [[setup-scanner.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_160
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

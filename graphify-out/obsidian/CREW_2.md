@@ -1,17 +1,19 @@
 ---
-source_file: "src/lib/room/lab.ts"
+source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 52"
-location: "L38"
+community: "trading-floor-tab.tsx"
+location: "L49"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_52
+  - community/trading-floor-tabtsx
 ---
 
 # CREW
 
 ## Connections
-- [[lab.ts]] - `contains` [EXTRACTED]
+- [[agents.ts]] - `contains` [EXTRACTED]
+- [[meeting.ts]] - `imports` [EXTRACTED]
+- [[trading-floor-tab.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_52
+#graphify/code #graphify/EXTRACTED #community/trading-floor-tabtsx

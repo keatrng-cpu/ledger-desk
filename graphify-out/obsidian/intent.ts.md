@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/intent.ts"
 type: "code"
-community: "Community 177"
+community: "intent.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_177
+  - community/intentts
 ---
 
 # intent.ts
@@ -20,7 +20,7 @@ tags:
 - [[clientOrderId()]] - `contains` [EXTRACTED]
 - [[desiredOf()]] - `contains` [EXTRACTED]
 - [[entryKey()]] - `contains` [EXTRACTED]
-- [[etDateOf()]] - `imports` [EXTRACTED]
+- [[etDateOf()_1]] - `imports` [EXTRACTED]
 - [[exec-bridge.ts]] - `imports_from` [EXTRACTED]
 - [[exectypes.ts]] - `imports_from` [EXTRACTED]
 - [[executor.ts]] - `imports_from` [EXTRACTED]
@@ -38,4 +38,4 @@ tags:
 - [[symbolOfPosition()]] - `contains` [EXTRACTED]
 - [[verify-room-exec.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_177
+#graphify/code #graphify/EXTRACTED #community/intentts

@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/hall-lite.ts"
+source_file: "src/components/mead/mead-screens.ts"
 type: "code"
-community: "Community 114"
-location: "L77"
+community: "mead-screens.ts"
+location: "L15"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/mead-screensts
 ---
 
 # SERIES
 
 ## Connections
-- [[hall-lite.ts]] - `contains` [EXTRACTED]
+- [[mead-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/mead-screensts

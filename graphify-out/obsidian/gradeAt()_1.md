@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/verify-session-event.mjs"
+source_file: "scripts/verify-judas-window.mjs"
 type: "code"
-community: "Community 20"
-location: "L210"
+community: "detectors.ts"
+location: "L214"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/detectorsts
 ---
 
 # gradeAt()
 
 ## Connections
-- [[verify-session-event.mjs]] - `contains` [EXTRACTED]
+- [[verify-judas-window.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/detectorsts

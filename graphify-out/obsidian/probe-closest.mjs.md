@@ -1,27 +1,27 @@
 ---
 source_file: "scripts/probe-closest.mjs"
 type: "code"
-community: "Community 20"
+community: "news.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_20
+  - community/newsts
 ---
 
 # probe-closest.mjs
 
 ## Connections
 - [[cases.ts]] - `dynamic_import` [EXTRACTED]
-- [[dayChangePct()_4]] - `contains` [EXTRACTED]
-- [[dayKey()_9]] - `contains` [EXTRACTED]
+- [[dayChangePct()]] - `contains` [EXTRACTED]
+- [[dayKey()_5]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `dynamic_import` [EXTRACTED]
 - [[draw.ts]] - `dynamic_import` [EXTRACTED]
-- [[history_4]] - `contains` [EXTRACTED]
+- [[history]] - `contains` [EXTRACTED]
 - [[market-narrative.ts]] - `dynamic_import` [EXTRACTED]
 - [[news.ts]] - `dynamic_import` [EXTRACTED]
 - [[ref_node_fs]] - `imports_from` [EXTRACTED]
-- [[rows_12]] - `contains` [EXTRACTED]
+- [[rows_7]] - `contains` [EXTRACTED]
 - [[sessions.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-board.ts]] - `dynamic_import` [EXTRACTED]
 - [[smc-master.ts]] - `dynamic_import` [EXTRACTED]
@@ -29,4 +29,4 @@ tags:
 - [[top]] - `contains` [EXTRACTED]
 - [[tradingscanner.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_20
+#graphify/code #graphify/EXTRACTED #community/newsts

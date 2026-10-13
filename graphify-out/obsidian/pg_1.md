@@ -1,21 +1,16 @@
 ---
-source_file: "package.json"
-type: "concept"
-community: "Community 11"
-location: "L98"
+source_file: "pg"
+type: "code"
+community: "getSql"
 tags:
-  - graphify/concept
+  - graphify/code
   - graphify/EXTRACTED
-  - community/Community_11
+  - community/getSql
 ---
 
 # pg
 
 ## Connections
-- [[authserver.ts]] - `imports_from` [EXTRACTED]
-- [[createNeonSql()]] - `imports_from` [EXTRACTED]
-- [[migrate.mjs]] - `imports_from` [EXTRACTED]
-- [[package.json]] - `imports` [EXTRACTED]
-- [[seal-chain.mjs]] - `imports_from` [EXTRACTED]
+- [[db.ts]] - `dynamic_import` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_11
+#graphify/code #graphify/EXTRACTED #community/getSql

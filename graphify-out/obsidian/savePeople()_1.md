@@ -1,18 +1,19 @@
 ---
-source_file: "src/lib/room/brain-fuel.ts"
+source_file: "src/lib/room/desk-atlas.ts"
 type: "code"
-community: "Community 300"
-location: "L42"
+community: "desk-atlas.ts"
+location: "L596"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_300
+  - community/desk-atlasts
 ---
 
 # savePeople()
 
 ## Connections
-- [[brain-fuel.ts]] - `contains` [EXTRACTED]
-- [[fuelBrains()]] - `calls` [EXTRACTED]
+- [[desk-atlas.ts]] - `contains` [EXTRACTED]
+- [[offerToBrains()]] - `calls` [EXTRACTED]
+- [[syncPeople()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_300
+#graphify/code #graphify/EXTRACTED #community/desk-atlasts

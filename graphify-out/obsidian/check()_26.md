@@ -1,17 +1,18 @@
 ---
-source_file: "scripts/verify-floor-presence.mjs"
+source_file: "scripts/verify-kill-watch.mjs"
 type: "code"
-community: "Community 17"
-location: "L8"
+community: "verify-kill-watch.mjs"
+location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/verify-kill-watchmjs
 ---
 
 # check()
 
 ## Connections
-- [[verify-floor-presence.mjs]] - `contains` [EXTRACTED]
+- [[ok()_12]] - `calls` [EXTRACTED]
+- [[verify-kill-watch.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/verify-kill-watchmjs

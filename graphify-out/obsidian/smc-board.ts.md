@@ -1,19 +1,19 @@
 ---
 source_file: "src/lib/trading/smc-board.ts"
 type: "code"
-community: "Community 35"
+community: "detectors.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/detectorsts
 ---
 
 # smc-board.ts
 
 ## Connections
 - [[FvgResult]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OrderBlock]] - `imports` [EXTRACTED]
 - [[SmcAlert]] - `contains` [EXTRACTED]
 - [[SmcAlertKind]] - `contains` [EXTRACTED]
@@ -73,4 +73,4 @@ tags:
 - [[verify-smc-master.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-sponsored-gap.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/detectorsts

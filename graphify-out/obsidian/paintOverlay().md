@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/dashboard/candlestick-pane.tsx"
 type: "code"
-community: "Community 272"
+community: "candlestick-pane.tsx"
 location: "L338"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_272
+  - community/candlestick-panetsx
 ---
 
 # paintOverlay()
@@ -14,6 +14,6 @@ tags:
 ## Connections
 - [[CandlestickPane()]] - `contains` [EXTRACTED]
 - [[barTimeSec()]] - `calls` [EXTRACTED]
-- [[shortName()_1]] - `calls` [EXTRACTED]
+- [[shortName()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_272
+#graphify/code #graphify/EXTRACTED #community/candlestick-panetsx

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/predict/paper-scorer.ts"
 type: "code"
-community: "Community 63"
+community: "pm-analyzer.tsx"
 location: "L298"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_63
+  - community/pm-analyzertsx
 ---
 
 # scorePaper()
@@ -28,4 +28,4 @@ tags:
 - [[readHallRecord()_1]] - `calls` [EXTRACTED]
 - [[readHallRecord()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_63
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

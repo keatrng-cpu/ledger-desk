@@ -1,20 +1,20 @@
 ---
 source_file: "src/components/desk/tf-ladder-panel.tsx"
 type: "code"
-community: "Community 8"
+community: "index.tsx"
 location: "L121"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # TfLadderPanel()
 
 ## Connections
-- [[Book()]] - `calls` [EXTRACTED]
+- [[Book()_3]] - `calls` [EXTRACTED]
 - [[MasterplacePage()]] - `calls` [EXTRACTED]
 - [[index.tsx]] - `imports` [EXTRACTED]
 - [[tf-ladder-panel.tsx]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

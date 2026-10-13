@@ -1,20 +1,19 @@
 ---
-source_file: "brainlab/smc_ref.py"
+source_file: "brainlab/retain.py"
 type: "code"
-community: "Community 296"
-location: "L79"
+community: "retain.py"
+location: "L154"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_296
+  - community/retainpy
 ---
 
 # main()
 
 ## Connections
-- [[crosscheck_fvg()]] - `calls` [EXTRACTED]
-- [[frame()]] - `calls` [EXTRACTED]
 - [[json_1]] - `calls` [EXTRACTED]
-- [[smc_ref.py]] - `contains` [EXTRACTED]
+- [[retain.py]] - `contains` [EXTRACTED]
+- [[write_note()_1]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_296
+#graphify/code #graphify/EXTRACTED #community/retainpy

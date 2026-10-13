@@ -1,12 +1,12 @@
 ---
 source_file: "ai/NOW.md"
 type: "document"
-community: "Community 158"
+community: "Log"
 location: "L73"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_158
+  - community/Log
 ---
 
 # Owners (desk map, from HANDOFF `ceb62b7` / issue #7)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[NOW — ledger-desk current truth]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_158
+#graphify/document #graphify/EXTRACTED #community/Log

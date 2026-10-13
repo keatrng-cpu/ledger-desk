@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices-invest.ts"
 type: "code"
-community: "Community 13"
+community: "live-voices-invest.ts"
 location: "L418"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_13
+  - community/live-voices-investts
 ---
 
 # yesLine()
@@ -16,4 +16,4 @@ tags:
 - [[exStudyPredict()]] - `calls` [EXTRACTED]
 - [[live-voices-invest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_13
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

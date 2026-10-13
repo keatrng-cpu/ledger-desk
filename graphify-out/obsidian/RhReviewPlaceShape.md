@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-autofire.ts"
 type: "code"
-community: "Community 15"
-location: "L186"
+community: "rh-autofire.ts"
+location: "L192"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_15
+  - community/rh-autofirets
 ---
 
 # RhReviewPlaceShape
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[rh-autofire.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_15
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

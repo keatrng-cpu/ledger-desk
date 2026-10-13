@@ -1,12 +1,12 @@
 ---
 source_file: "src/data/news-calendar.md"
 type: "document"
-community: "Community 284"
+community: "invest-office.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_284
+  - community/invest-officets
 ---
 
 # news-calendar.md
@@ -16,4 +16,4 @@ tags:
 - [[news.ts]] - `imports_from` [EXTRACTED]
 - [[schedule.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_284
+#graphify/document #graphify/EXTRACTED #community/invest-officets

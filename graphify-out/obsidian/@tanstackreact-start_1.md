@@ -1,17 +1,17 @@
 ---
-source_file: "src/routeTree.gen.ts"
+source_file: "package.json"
 type: "code"
-community: "Community 54"
-location: "L403"
+community: "dependencies"
+location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_54
+  - community/dependencies
 ---
 
 # @tanstack/react-start
 
 ## Connections
-- [[routeTree.gen.ts]] - `contains` [EXTRACTED]
+- [[dependencies_1]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_54
+#graphify/code #graphify/EXTRACTED #community/dependencies

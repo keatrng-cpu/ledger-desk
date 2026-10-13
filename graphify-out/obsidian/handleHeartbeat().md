@@ -1,12 +1,12 @@
 ---
 source_file: "src/routes/api/engine/heartbeat.ts"
 type: "code"
-community: "Community 95"
+community: "schema.ts"
 location: "L23"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_95
+  - community/schemats
 ---
 
 # handleHeartbeat()
@@ -18,4 +18,4 @@ tags:
 - [[jsonResponse()]] - `calls` [EXTRACTED]
 - [[recordHeartbeat()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_95
+#graphify/code #graphify/EXTRACTED #community/schemats

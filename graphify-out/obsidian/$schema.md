@@ -1,12 +1,12 @@
 ---
 source_file: "vercel.json"
 type: "code"
-community: "Community 255"
+community: "vercel.json"
 location: "L2"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_255
+  - community/verceljson
 ---
 
 # $schema
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[vercel.json]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_255
+#graphify/code #graphify/EXTRACTED #community/verceljson

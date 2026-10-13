@@ -1,12 +1,12 @@
 ---
 source_file: "docs/DESK_25_BUILD_PLAN.md"
 type: "document"
-community: "Community 35"
+community: "trading/scanner.ts"
 location: "L9"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/trading/scannerts
 ---
 
 # LEDGER-DESK — ONE BUILD PLAN FROM SEVEN REPORTS
@@ -22,4 +22,4 @@ tags:
 - [[6. THE SMALLEST SAFE FIRST WAVE]] - `contains` [EXTRACTED]
 - [[DESK_25_BUILD_PLAN]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_35
+#graphify/document #graphify/EXTRACTED #community/trading/scannerts

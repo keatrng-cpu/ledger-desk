@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/store-server.ts"
 type: "code"
-community: "Community 19"
+community: "send-server.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_19
+  - community/send-serverts
 ---
 
 # store-server.ts
@@ -34,4 +34,4 @@ tags:
 - [[saveSubscription()]] - `contains` [EXTRACTED]
 - [[send-server.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_19
+#graphify/code #graphify/EXTRACTED #community/send-serverts

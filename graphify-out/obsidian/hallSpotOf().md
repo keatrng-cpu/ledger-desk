@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 40"
+community: "agents.ts"
 location: "L191"
 tags:
   - graphify/code
   - graphify/INFERRED
-  - community/Community_40
+  - community/agentsts
 ---
 
 # hallSpotOf()
@@ -16,4 +16,4 @@ tags:
 - [[Locator_1]] - `references` [INFERRED]
 - [[agents.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/INFERRED #community/Community_40
+#graphify/code #graphify/INFERRED #community/agentsts

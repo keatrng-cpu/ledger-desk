@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/hi-alert-panel.tsx"
 type: "code"
-community: "Community 14"
+community: "veteran-brain.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/veteran-braints
 ---
 
 # hi-alert-panel.tsx
@@ -23,8 +23,8 @@ tags:
 - [[ledgerStats]] - `imports` [EXTRACTED]
 - [[loadHiAlerts()]] - `imports` [EXTRACTED]
 - [[onBeat()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 - [[veteran-brain.tsx]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/veteran-braints

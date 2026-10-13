@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 162"
+community: "live-voices.ts"
 location: "L865"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_162
+  - community/live-voicests
 ---
 
 # exTier()
@@ -20,4 +20,4 @@ tags:
 - [[line()]] - `calls` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_162
+#graphify/code #graphify/EXTRACTED #community/live-voicests

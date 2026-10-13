@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/alerts/send-server.ts"
 type: "code"
-community: "Community 31"
+community: "send-server.ts"
 location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_31
+  - community/send-serverts
 ---
 
 # sendAlert()
@@ -37,4 +37,4 @@ tags:
 - [[trigger-server.ts]] - `imports` [EXTRACTED]
 - [[weekly.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_31
+#graphify/code #graphify/EXTRACTED #community/send-serverts

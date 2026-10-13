@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-prediction-market-feed.mjs"
+source_file: "scripts/verify-discipline.mjs"
 type: "code"
-community: "Community 204"
-location: "L15"
+community: "journal/server.ts"
+location: "L17"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_204
+  - community/journal/serverts
 ---
 
 # check()
 
 ## Connections
-- [[ok()_15]] - `calls` [EXTRACTED]
-- [[verify-prediction-market-feed.mjs]] - `contains` [EXTRACTED]
+- [[verify-discipline.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_204
+#graphify/code #graphify/EXTRACTED #community/journal/serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-screens.ts"
 type: "code"
-community: "Community 17"
+community: "floor-scene.ts"
 location: "L2377"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_17
+  - community/floor-scenets
 ---
 
 # ANIMATED_SCREENS
@@ -15,4 +15,4 @@ tags:
 - [[floor-scene.ts]] - `imports` [EXTRACTED]
 - [[floor-screens.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_17
+#graphify/code #graphify/EXTRACTED #community/floor-scenets

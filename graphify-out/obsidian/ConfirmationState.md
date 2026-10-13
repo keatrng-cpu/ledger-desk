@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/market-narrative.ts"
 type: "code"
-community: "Community 35"
-location: "L41"
+community: "trading/scanner.ts"
+location: "L42"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_35
+  - community/trading/scannerts
 ---
 
 # ConfirmationState
@@ -17,4 +17,4 @@ tags:
 - [[pairedDisplacement()]] - `calls` [EXTRACTED]
 - [[polaritySweep()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_35
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

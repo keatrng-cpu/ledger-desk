@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/trading/session-backtest.ts"
+source_file: "src/lib/room/invest-read.ts"
 type: "code"
-community: "Community 46"
-location: "L102"
+community: "live-voices-invest.ts"
+location: "L65"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/live-voices-investts
 ---
 
 # MONTHS
 
 ## Connections
-- [[session-backtest.ts]] - `contains` [EXTRACTED]
+- [[invest-read.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/live-voices-investts

@@ -1,22 +1,22 @@
 ---
 source_file: "scripts/verify-research-retain.mjs"
 type: "code"
-community: "Community 297"
+community: "verify-research-retain.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_297
+  - community/verify-research-retainmjs
 ---
 
 # verify-research-retain.mjs
 
 ## Connections
+- [[aplusconfig.ts]] - `dynamic_import` [EXTRACTED]
 - [[base_11]] - `contains` [EXTRACTED]
 - [[cases]] - `contains` [EXTRACTED]
-- [[check()_73]] - `contains` [EXTRACTED]
-- [[config.ts]] - `dynamic_import` [EXTRACTED]
-- [[dir_1]] - `contains` [EXTRACTED]
+- [[check()_64]] - `contains` [EXTRACTED]
+- [[dir_3]] - `contains` [EXTRACTED]
 - [[discretion.ts]] - `dynamic_import` [EXTRACTED]
 - [[markettypes.ts]] - `dynamic_import` [EXTRACTED]
 - [[py()]] - `contains` [EXTRACTED]
@@ -31,4 +31,4 @@ tags:
 - [[snake()]] - `contains` [EXTRACTED]
 - [[written]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_297
+#graphify/code #graphify/EXTRACTED #community/verify-research-retainmjs

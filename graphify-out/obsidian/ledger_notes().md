@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "code"
-community: "Community 268"
+community: "memory.py"
 location: "L73"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # ledger_notes()
@@ -17,4 +17,4 @@ tags:
 - [[index_ledger()]] - `calls` [EXTRACTED]
 - [[memory.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_268
+#graphify/code #graphify/EXTRACTED #community/memorypy

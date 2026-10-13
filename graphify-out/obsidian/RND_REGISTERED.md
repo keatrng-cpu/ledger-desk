@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/rnd.ts"
 type: "code"
-community: "Community 194"
+community: "rnd.ts"
 location: "L26"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_194
+  - community/rndts
 ---
 
 # RND_REGISTERED
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[rnd.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_194
+#graphify/code #graphify/EXTRACTED #community/rndts

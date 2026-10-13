@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/predict-tab.tsx"
 type: "code"
-community: "Community 2"
+community: "predict-tab.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_2
+  - community/predict-tabtsx
 ---
 
 # predict-tab.tsx
@@ -45,7 +45,7 @@ tags:
 - [[predictevidence.ts]] - `imports_from` [EXTRACTED]
 - [[predictjournal.ts]] - `imports_from` [EXTRACTED]
 - [[predictscanner.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readJournal()]] - `imports` [EXTRACTED]
 - [[recordGo()]] - `imports` [EXTRACTED]
 - [[resolveGo()]] - `imports` [EXTRACTED]
@@ -54,4 +54,4 @@ tags:
 - [[subscribePredict()]] - `imports` [EXTRACTED]
 - [[tone()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_2
+#graphify/code #graphify/EXTRACTED #community/predict-tabtsx

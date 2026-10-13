@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/income-target.ts"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L189"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # planIncome()
@@ -17,4 +17,4 @@ tags:
 - [[incomeLadder()]] - `calls` [EXTRACTED]
 - [[profit-path.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

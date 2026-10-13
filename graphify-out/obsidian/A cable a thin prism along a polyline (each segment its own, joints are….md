@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_dress.py"
 type: "rationale"
-community: "Community 269"
+community: "json"
 location: "L107"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_269
+  - community/json
 ---
 
 # A cable: a thin prism along a polyline (each segment its own, joints are…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[dot-tube()]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_269
+#graphify/rationale #graphify/EXTRACTED #community/json

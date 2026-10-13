@@ -1,18 +1,19 @@
 ---
-source_file: "src/components/mead/mead-people.ts"
+source_file: "src/components/room/floor-mead.ts"
 type: "code"
-community: "Community 41"
-location: "L176"
+community: "mead-hall-build.ts"
+location: "L178"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_41
+  - graphify/INFERRED
+  - community/mead-hall-buildts
 ---
 
 # .update()
 
 ## Connections
-- [[Person]] - `method` [EXTRACTED]
-- [[damp()_2]] - `calls` [EXTRACTED]
+- [[dot-tick()_2]] - `calls` [INFERRED]
+- [[dot-update()_9]] - `calls` [INFERRED]
+- [[FloorMead]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_41
+#graphify/code #graphify/INFERRED #community/mead-hall-buildts

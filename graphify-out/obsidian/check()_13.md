@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-target-odds.mjs"
+source_file: "scripts/verify-rh-autofire-gates.mjs"
 type: "code"
-community: "Community 138"
-location: "L22"
+community: "rh-autofire.ts"
+location: "L18"
 tags:
   - graphify/code
-  - graphify/EXTRACTED
-  - community/Community_138
+  - graphify/INFERRED
+  - community/rh-autofirets
 ---
 
 # check()
 
 ## Connections
-- [[ok()_4]] - `calls` [EXTRACTED]
-- [[verify-target-odds.mjs]] - `contains` [EXTRACTED]
+- [[verify-rh-autofire-gates.mjs]] - `indirect_call` [INFERRED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_138
+#graphify/code #graphify/INFERRED #community/rh-autofirets

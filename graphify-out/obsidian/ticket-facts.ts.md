@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/ticket-facts.ts"
 type: "code"
-community: "Community 187"
+community: "OhlcBar"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/OhlcBar
 ---
 
 # ticket-facts.ts
@@ -16,21 +16,21 @@ tags:
 - [[BookSide]] - `contains` [EXTRACTED]
 - [[CounterRead]] - `contains` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
-- [[EntryRead]] - `imports` [EXTRACTED]
+- [[EntryRead_1]] - `imports` [EXTRACTED]
 - [[FactCondition]] - `contains` [EXTRACTED]
 - [[LiquidityTarget]] - `imports` [EXTRACTED]
 - [[LtfReaction]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[SmcMasterBook]] - `imports` [EXTRACTED]
 - [[SweepEvent]] - `imports` [EXTRACTED]
 - [[UNDERLIER_OF]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[atrOf()]] - `imports` [EXTRACTED]
 - [[bothFacts()]] - `contains` [EXTRACTED]
 - [[brain-word.tsx]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
 - [[candidateFor()]] - `contains` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[counterOf()]] - `contains` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
 - [[draw.ts]] - `imports_from` [EXTRACTED]
@@ -52,4 +52,4 @@ tags:
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 - [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/OhlcBar

@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/measure-micro-entry.mjs"
 type: "code"
-community: "Community 199"
+community: "measure-micro-entry.mjs"
 location: "L155"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_199
+  - community/measure-micro-entrymjs
 ---
 
 # findConfirm()
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[measure-micro-entry.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_199
+#graphify/code #graphify/EXTRACTED #community/measure-micro-entrymjs

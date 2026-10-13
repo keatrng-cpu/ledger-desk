@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-card-freshness.mjs"
+source_file: "scripts/verify-day-change.mjs"
 type: "code"
-community: "Community 175"
-location: "L106"
+community: "verify-day-change.mjs"
+location: "L34"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_175
+  - community/verify-day-changemjs
 ---
 
 # bar()
 
 ## Connections
-- [[bars_9]] - `calls` [EXTRACTED]
-- [[verify-card-freshness.mjs]] - `contains` [EXTRACTED]
+- [[verify-day-change.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_175
+#graphify/code #graphify/EXTRACTED #community/verify-day-changemjs

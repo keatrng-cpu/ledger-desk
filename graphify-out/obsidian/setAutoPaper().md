@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
-location: "L68"
+community: "index.tsx"
+location: "L69"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/indextsx
 ---
 
 # setAutoPaper()
@@ -14,8 +14,8 @@ tags:
 ## Connections
 - [[PathAlarmBar()]] - `calls` [EXTRACTED]
 - [[auto-paper.ts]] - `contains` [EXTRACTED]
-- [[load()_6]] - `calls` [EXTRACTED]
+- [[load()_10]] - `calls` [EXTRACTED]
 - [[path-alarm-bar.tsx]] - `imports` [EXTRACTED]
 - [[save()_6]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/indextsx

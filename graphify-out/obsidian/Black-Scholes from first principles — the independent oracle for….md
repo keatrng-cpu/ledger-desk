@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/oracle/bs_oracle.py"
 type: "rationale"
-community: "Community 226"
+community: "json"
 location: "L2"
 tags:
   - graphify/rationale
   - graphify/EXTRACTED
-  - community/Community_226
+  - community/json
 ---
 
 # Black-Scholes from first principles — the independent oracle for…
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[bs_oracle.py]] - `rationale_for` [EXTRACTED]
 
-#graphify/rationale #graphify/EXTRACTED #community/Community_226
+#graphify/rationale #graphify/EXTRACTED #community/json

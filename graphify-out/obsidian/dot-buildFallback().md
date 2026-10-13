@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/room/floor-scene.ts"
 type: "code"
-community: "Community 283"
+community: "FloorScene"
 location: "L2204"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_283
+  - community/FloorScene
 ---
 
 # .buildFallback()
@@ -16,4 +16,4 @@ tags:
 - [[FloorScene]] - `method` [EXTRACTED]
 - [[fallbackPiece()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_283
+#graphify/code #graphify/EXTRACTED #community/FloorScene

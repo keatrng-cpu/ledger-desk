@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/exec/executor.ts"
 type: "code"
-community: "Community 291"
+community: "execStep"
 location: "L45"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_291
+  - community/execStep
 ---
 
 # ExecStore
@@ -21,9 +21,9 @@ tags:
 - [[dot-recent()_1]] - `method` [EXTRACTED]
 - [[dot-reserve()_1]] - `method` [EXTRACTED]
 - [[dot-state()_1]] - `method` [EXTRACTED]
-- [[dot-update()_9]] - `method` [EXTRACTED]
+- [[dot-update()_1]] - `method` [EXTRACTED]
 - [[PgExecStore]] - `implements` [EXTRACTED]
 - [[exec-sql.ts]] - `imports` [EXTRACTED]
 - [[executor.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_291
+#graphify/code #graphify/EXTRACTED #community/execStep

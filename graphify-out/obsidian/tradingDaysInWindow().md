@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/trading/session-backtest.ts"
 type: "code"
-community: "Community 46"
+community: "session-backtest.ts"
 location: "L396"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_46
+  - community/session-backtestts
 ---
 
 # tradingDaysInWindow()
 
 ## Connections
-- [[etParts()_2]] - `calls` [EXTRACTED]
+- [[etParts()_1]] - `calls` [EXTRACTED]
 - [[pad()]] - `calls` [EXTRACTED]
 - [[runWeekBacktest()]] - `calls` [EXTRACTED]
 - [[session-backtest.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_46
+#graphify/code #graphify/EXTRACTED #community/session-backtestts

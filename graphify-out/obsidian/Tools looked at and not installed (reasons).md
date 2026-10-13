@@ -1,12 +1,12 @@
 ---
 source_file: "docs/TOOLING_PLAN.md"
 type: "document"
-community: "Community 268"
+community: "memory.py"
 location: "L85"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # Tools looked at and not installed (reasons)
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[Tooling plan the GitHub apps, skills and libraries, what they do for the floor and the brain, and where each stands]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_268
+#graphify/document #graphify/EXTRACTED #community/memorypy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/invest/funnel.ts"
 type: "code"
-community: "Community 86"
+community: "policy.ts"
 location: "L36"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_86
+  - community/policyts
 ---
 
 # SlicePlan
@@ -16,4 +16,4 @@ tags:
 - [[funnel-card.tsx]] - `imports` [EXTRACTED]
 - [[funnel.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_86
+#graphify/code #graphify/EXTRACTED #community/policyts

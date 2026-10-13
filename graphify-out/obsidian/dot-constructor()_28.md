@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/auth/isolation.server.ts"
+source_file: "src/lib/execution/order-intent.ts"
 type: "code"
-community: "Community 87"
-location: "L27"
+community: "order-intent.ts"
+location: "L115"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_87
+  - community/order-intentts
 ---
 
 # .constructor()
 
 ## Connections
-- [[CrossSiteRequestError]] - `method` [EXTRACTED]
+- [[OrderIntentError]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_87
+#graphify/code #graphify/EXTRACTED #community/order-intentts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/predict/pm-analyzer.tsx"
 type: "code"
-community: "Community 16"
+community: "pm-analyzer.tsx"
 location: "L336"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_16
+  - community/pm-analyzertsx
 ---
 
 # PmAnalyzer()
@@ -28,4 +28,4 @@ tags:
 - [[takePredictFocus()]] - `calls` [EXTRACTED]
 - [[useSignalHall()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_16
+#graphify/code #graphify/EXTRACTED #community/pm-analyzertsx

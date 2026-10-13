@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/memory.py"
 type: "code"
-community: "Community 268"
+community: "memory.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_268
+  - community/memorypy
 ---
 
 # memory.py
@@ -25,4 +25,4 @@ tags:
 - [[remember()_1]] - `contains` [EXTRACTED]
 - [[selfcheck.py]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_268
+#graphify/code #graphify/EXTRACTED #community/memorypy

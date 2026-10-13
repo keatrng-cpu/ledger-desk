@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/ui/plain-english.ts"
 type: "code"
-community: "Community 69"
+community: "use-entry-state.ts"
 location: "L120"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_69
+  - community/use-entry-statets
 ---
 
 # TERM_RE
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[plain-english.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_69
+#graphify/code #graphify/EXTRACTED #community/use-entry-statets

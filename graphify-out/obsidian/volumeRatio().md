@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/session-event.ts"
 type: "code"
-community: "Community 4"
+community: "live-world.ts"
 location: "L87"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_4
+  - community/live-worldts
 ---
 
 # volumeRatio()
@@ -19,4 +19,4 @@ tags:
 - [[session-event.ts]] - `contains` [EXTRACTED]
 - [[tapeBook()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_4
+#graphify/code #graphify/EXTRACTED #community/live-worldts

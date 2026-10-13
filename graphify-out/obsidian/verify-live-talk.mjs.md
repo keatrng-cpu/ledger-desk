@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 142"
+community: "verify-live-talk.mjs"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_142
+  - community/verify-live-talkmjs
 ---
 
 # verify-live-talk.mjs
@@ -24,7 +24,7 @@ tags:
 - [[T_AM]] - `contains` [EXTRACTED]
 - [[WHY the Floor looped — it opened on a scripted drill, replayed a three-variant…]] - `rationale_for` [EXTRACTED]
 - [[at()_2]] - `contains` [EXTRACTED]
-- [[check()_14]] - `contains` [EXTRACTED]
+- [[check()_9]] - `contains` [EXTRACTED]
 - [[clockAt()_2]] - `contains` [EXTRACTED]
 - [[hallBoard()]] - `contains` [EXTRACTED]
 - [[legal()_1]] - `contains` [EXTRACTED]
@@ -47,4 +47,4 @@ tags:
 - [[unsourced()_1]] - `contains` [EXTRACTED]
 - [[walker()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_142
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

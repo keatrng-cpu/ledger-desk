@@ -1,21 +1,22 @@
 ---
 source_file: "src/routes/api/desk/card.ts"
 type: "code"
-community: "Community 184"
+community: "buildTradingDesk"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/buildTradingDesk
 ---
 
 # card.ts
 
 ## Connections
 - [[@tanstackreact-router_3]] - `imports_from` [EXTRACTED]
-- [[Route]] - `contains` [EXTRACTED]
+- [[Route_9]] - `contains` [EXTRACTED]
 - [[attachGrokReport()]] - `imports` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
+- [[card-journal.ts]] - `dynamic_import` [EXTRACTED]
 - [[cron.ts]] - `imports_from` [EXTRACTED]
 - [[db.ts]] - `dynamic_import` [EXTRACTED]
 - [[desk-listen.ts]] - `imports_from` [EXTRACTED]
@@ -24,8 +25,14 @@ tags:
 - [[grok-report.ts]] - `imports_from` [EXTRACTED]
 - [[handle()]] - `indirect_call` [INFERRED]
 - [[jsonResponse()]] - `imports` [EXTRACTED]
+- [[learning-live.ts]] - `dynamic_import` [EXTRACTED]
+- [[libdeskfast.ts]] - `dynamic_import` [EXTRACTED]
+- [[master-seat.ts]] - `imports_from` [EXTRACTED]
+- [[masterInputOf()]] - `imports` [EXTRACTED]
+- [[masterSeat]] - `imports` [EXTRACTED]
 - [[routeTree.gen.ts]] - `imports_from` [EXTRACTED]
 - [[src_lib_alerts_cron_jsonresponse]] - `imports` [EXTRACTED]
+- [[withJournal()]] - `contains` [EXTRACTED]
 - [[withReport()]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/buildTradingDesk

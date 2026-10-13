@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/execution/rh-floor-signals.ts"
 type: "code"
-community: "Community 56"
+community: "rh-autofire.ts"
 location: "L28"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_56
+  - community/rh-autofirets
 ---
 
 # RhDeskSlice
@@ -17,4 +17,4 @@ tags:
 - [[rh-autofire.ts]] - `re_exports` [EXTRACTED]
 - [[rh-floor-signals.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_56
+#graphify/code #graphify/EXTRACTED #community/rh-autofirets

@@ -1,17 +1,17 @@
 ---
-source_file: "src/lib/room/exec/alpaca.ts"
+source_file: "scripts/verify-live-talk.mjs"
 type: "code"
-community: "Community 154"
-location: "L40"
+community: "verify-live-talk.mjs"
+location: "L167"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_154
+  - community/verify-live-talkmjs
 ---
 
 # .constructor()
 
 ## Connections
-- [[AlpacaError]] - `method` [EXTRACTED]
+- [[Sim_1]] - `method` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_154
+#graphify/code #graphify/EXTRACTED #community/verify-live-talkmjs

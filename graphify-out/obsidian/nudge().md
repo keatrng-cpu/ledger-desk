@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/agents.ts"
 type: "code"
-community: "Community 81"
+community: "agents.ts"
 location: "L590"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_81
+  - community/agentsts
 ---
 
 # nudge()
@@ -17,4 +17,4 @@ tags:
 - [[recordEvents()]] - `calls` [EXTRACTED]
 - [[resolveMemories()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_81
+#graphify/code #graphify/EXTRACTED #community/agentsts

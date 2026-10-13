@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/bars.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L27"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # yahoo_bars()
@@ -17,4 +17,4 @@ tags:
 - [[_flatten()]] - `calls` [EXTRACTED]
 - [[bars.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

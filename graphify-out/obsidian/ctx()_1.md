@@ -1,17 +1,19 @@
 ---
-source_file: "scripts/verify-hi-alert.mjs"
+source_file: "scripts/verify-room-exec.mjs"
 type: "code"
-community: "Community 308"
-location: "L27"
+community: "verify-room-exec.mjs"
+location: "L61"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_308
+  - community/verify-room-execmjs
 ---
 
 # ctx()
 
 ## Connections
-- [[verify-hi-alert.mjs]] - `contains` [EXTRACTED]
+- [[account()]] - `calls` [EXTRACTED]
+- [[quote()_1]] - `calls` [EXTRACTED]
+- [[verify-room-exec.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_308
+#graphify/code #graphify/EXTRACTED #community/verify-room-execmjs

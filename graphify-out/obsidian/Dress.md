@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/floor_dress.py"
 type: "code"
-community: "Community 269"
+community: "json"
 location: "L48"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_269
+  - community/json
 ---
 
 # Dress
@@ -26,7 +26,7 @@ tags:
 - [[dot-room_at()]] - `method` [EXTRACTED]
 - [[dot-shelf()]] - `method` [EXTRACTED]
 - [[dot-tube()]] - `method` [EXTRACTED]
-- [[build()_5]] - `calls` [EXTRACTED]
+- [[build()_3]] - `calls` [EXTRACTED]
 - [[floor_dress.py]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_269
+#graphify/code #graphify/EXTRACTED #community/json

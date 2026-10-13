@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/floor-brains.tsx"
 type: "code"
-community: "Community 88"
+community: "floor-brains.tsx"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_88
+  - community/floor-brainstsx
 ---
 
 # floor-brains.tsx
@@ -16,7 +16,7 @@ tags:
 - [[ATLAS_SHELVES]] - `imports` [EXTRACTED]
 - [[AtlasShelf]] - `imports` [EXTRACTED]
 - [[BRAIN_CREW]] - `imports` [EXTRACTED]
-- [[Bar()_11]] - `contains` [EXTRACTED]
+- [[Bar()_13]] - `contains` [EXTRACTED]
 - [[BrainWho]] - `imports` [EXTRACTED]
 - [[Bundle()]] - `contains` [EXTRACTED]
 - [[CREW_4]] - `contains` [EXTRACTED]
@@ -49,10 +49,10 @@ tags:
 - [[loadAtlas()]] - `imports` [EXTRACTED]
 - [[mergeAtlas()]] - `imports` [EXTRACTED]
 - [[peopleKnown()]] - `imports` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readPeople()]] - `contains` [EXTRACTED]
 - [[recentNerves()]] - `imports` [EXTRACTED]
 - [[shelfOf()]] - `imports` [EXTRACTED]
 - [[src_data_perfect_entry_book]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_88
+#graphify/code #graphify/EXTRACTED #community/floor-brainstsx

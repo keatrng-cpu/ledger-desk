@@ -1,12 +1,12 @@
 ---
 source_file: "CLAUDE.md"
 type: "document"
-community: "Community 301"
+community: "CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_301
+  - community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace
 ---
 
 # CLAUDE.md — Ledger Desk (private MNQ/ES masterplace)
@@ -25,4 +25,4 @@ tags:
 - [[When coding]] - `contains` [EXTRACTED]
 - [[When the trader asks “is this a shortlong”]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_301
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd__Ledger_Desk_private_MNQ/ES_masterplace

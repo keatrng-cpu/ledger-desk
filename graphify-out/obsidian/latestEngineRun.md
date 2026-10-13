@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/engine/ingest.ts"
 type: "code"
-community: "Community 14"
+community: "dual-index-charts.tsx"
 location: "L303"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # latestEngineRun
@@ -20,4 +20,4 @@ tags:
 - [[replay-report.tsx]] - `imports` [EXTRACTED]
 - [[toIso()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

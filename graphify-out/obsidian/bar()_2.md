@@ -1,17 +1,17 @@
 ---
-source_file: "scripts/blender/floor_doors.py"
+source_file: "scripts/verify-spot-cross.mjs"
 type: "code"
-community: "Community 140"
-location: "L84"
+community: "spot-cross.ts"
+location: "L32"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_140
+  - community/spot-crossts
 ---
 
 # bar()
 
 ## Connections
-- [[build()_1]] - `contains` [EXTRACTED]
+- [[verify-spot-cross.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_140
+#graphify/code #graphify/EXTRACTED #community/spot-crossts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/live-voices.ts"
 type: "code"
-community: "Community 18"
+community: "live-types.ts"
 location: "L55"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_18
+  - community/live-typests
 ---
 
 # Ex
@@ -22,4 +22,4 @@ tags:
 - [[live-voices-race.ts]] - `imports` [EXTRACTED]
 - [[live-voices.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_18
+#graphify/code #graphify/EXTRACTED #community/live-typests

@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "code"
-community: "Community 62"
+community: "scripts"
 location: "L9"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_62
+  - community/scripts
 ---
 
 # scripts
@@ -63,4 +63,4 @@ tags:
 - [[verifysleeve]] - `contains` [EXTRACTED]
 - [[verifytargets]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_62
+#graphify/code #graphify/EXTRACTED #community/scripts

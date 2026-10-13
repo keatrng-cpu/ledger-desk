@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/auto-paper.ts"
 type: "code"
-community: "Community 8"
+community: "paper-manager.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_8
+  - community/paper-managerts
 ---
 
 # auto-paper.ts
@@ -17,7 +17,8 @@ tags:
 - [[AutoPaperPick]] - `contains` [EXTRACTED]
 - [[AutoPaperState]] - `contains` [EXTRACTED]
 - [[DeskPayload]] - `imports` [EXTRACTED]
-- [[Listener_2]] - `contains` [EXTRACTED]
+- [[JUDAS_BLOCKS]] - `imports` [EXTRACTED]
+- [[Listener]] - `contains` [EXTRACTED]
 - [[SetupCandidate]] - `imports` [EXTRACTED]
 - [[autoPaperKey()]] - `contains` [EXTRACTED]
 - [[autoPaperShouldTake()]] - `contains` [EXTRACTED]
@@ -33,9 +34,10 @@ tags:
 - [[index.tsx]] - `imports_from` [EXTRACTED]
 - [[isHighProbPath()]] - `imports` [EXTRACTED]
 - [[isJudasWindow()]] - `imports` [EXTRACTED]
+- [[judas-window.ts]] - `imports_from` [EXTRACTED]
 - [[listOpenPaperTrades()]] - `imports` [EXTRACTED]
-- [[listeners_3]] - `contains` [EXTRACTED]
-- [[load()_6]] - `contains` [EXTRACTED]
+- [[listeners_1]] - `contains` [EXTRACTED]
+- [[load()_10]] - `contains` [EXTRACTED]
 - [[loadDeskMemory()]] - `imports` [EXTRACTED]
 - [[nextBandAfter()]] - `contains` [EXTRACTED]
 - [[noteAutoPaperSkip()]] - `contains` [EXTRACTED]
@@ -62,4 +64,4 @@ tags:
 - [[week-ahead.ts]] - `imports_from` [EXTRACTED]
 - [[weekDayFor()]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_8
+#graphify/code #graphify/EXTRACTED #community/paper-managerts

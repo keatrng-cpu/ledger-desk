@@ -1,19 +1,18 @@
 ---
-source_file: "src/components/room/exec-card.tsx"
+source_file: "src/lib/news/thesis-server.ts"
 type: "code"
-community: "Community 222"
-location: "L39"
+community: "predict-server.ts"
+location: "L47"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_222
+  - community/predict-serverts
 ---
 
 # etTime()
 
 ## Connections
-- [[ExecCard()]] - `calls` [EXTRACTED]
-- [[OrderRow()]] - `calls` [EXTRACTED]
-- [[exec-card.tsx]] - `contains` [EXTRACTED]
+- [[nflGames()]] - `calls` [EXTRACTED]
+- [[thesis-server.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_222
+#graphify/code #graphify/EXTRACTED #community/predict-serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/learn/live-lesson.ts"
 type: "code"
-community: "Community 187"
+community: "live-lesson.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_187
+  - community/live-lessonts
 ---
 
 # live-lesson.ts
@@ -22,17 +22,17 @@ tags:
 - [[LessonId]] - `contains` [EXTRACTED]
 - [[LessonState]] - `contains` [EXTRACTED]
 - [[LiveLesson]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OptionsDesk]] - `imports` [EXTRACTED]
 - [[RH_MAX_DEBIT_TOTAL]] - `imports` [EXTRACTED]
 - [[RH_MIN_DEBIT_TOTAL]] - `imports` [EXTRACTED]
 - [[RH_SLEEVE_DEFAULT]] - `imports` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[arrayRead()]] - `contains` [EXTRACTED]
 - [[askRead()]] - `contains` [EXTRACTED]
 - [[barsOf()]] - `contains` [EXTRACTED]
 - [[brain-word.tsx]] - `imports_from` [EXTRACTED]
 - [[build-desk.ts]] - `imports_from` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[counterRead()]] - `contains` [EXTRACTED]
 - [[detectMechanicalModel()]] - `imports` [EXTRACTED]
 - [[detectors.ts]] - `imports_from` [EXTRACTED]
@@ -67,4 +67,4 @@ tags:
 - [[ticketHolds()]] - `imports` [EXTRACTED]
 - [[verify-live-lesson.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_187
+#graphify/code #graphify/EXTRACTED #community/live-lessonts

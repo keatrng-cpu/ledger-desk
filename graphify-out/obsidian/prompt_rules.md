@@ -1,12 +1,12 @@
 ---
 source_file: ".ai/prompt_rules.md"
 type: "document"
-community: "Community 271"
+community: "CLAUDE.md"
 location: "L1"
 tags:
   - graphify/document
   - graphify/EXTRACTED
-  - community/Community_271
+  - community/CLAUDEmd
 ---
 
 # prompt_rules.md
@@ -15,4 +15,4 @@ tags:
 - [[CLAUDE]] - `references` [EXTRACTED]
 - [[Cross-model edit rules]] - `contains` [EXTRACTED]
 
-#graphify/document #graphify/EXTRACTED #community/Community_271
+#graphify/document #graphify/EXTRACTED #community/CLAUDEmd

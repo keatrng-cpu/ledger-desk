@@ -1,18 +1,20 @@
 ---
-source_file: "scripts/build-replay-drills.mjs"
+source_file: "src/lib/market/macro.ts"
 type: "code"
-community: "Community 53"
-location: "L252"
+community: "build-desk.ts"
+location: "L12"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_53
+  - community/build-deskts
 ---
 
 # dayPct()
 
 ## Connections
-- [[build-replay-drills.mjs]] - `contains` [EXTRACTED]
-- [[rerun()]] - `calls` [EXTRACTED]
+- [[loadMacro()]] - `calls` [EXTRACTED]
+- [[macro.ts]] - `contains` [EXTRACTED]
+- [[parseYahooChart()]] - `calls` [EXTRACTED]
+- [[yahooChart()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_53
+#graphify/code #graphify/EXTRACTED #community/build-deskts

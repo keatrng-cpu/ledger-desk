@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/format.ts"
 type: "code"
-community: "Community 3"
+community: "orchestrator.ts"
 location: "L22"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_3
+  - community/orchestratorts
 ---
 
 # STOP_TXT
@@ -17,4 +17,4 @@ tags:
 - [[orchestrator.ts]] - `imports` [EXTRACTED]
 - [[roomformat.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_3
+#graphify/code #graphify/EXTRACTED #community/orchestratorts

@@ -1,18 +1,18 @@
 ---
-source_file: "src/lib/trading/take-census.ts"
+source_file: "src/lib/room/exec/gates.ts"
 type: "code"
-community: "Community 229"
-location: "L201"
+community: "gates.ts"
+location: "L250"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_229
+  - community/gatests
 ---
 
 # median()
 
 ## Connections
-- [[census]] - `calls` [EXTRACTED]
-- [[take-census.ts]] - `contains` [EXTRACTED]
+- [[evidenceOf()]] - `calls` [EXTRACTED]
+- [[gates.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_229
+#graphify/code #graphify/EXTRACTED #community/gatests

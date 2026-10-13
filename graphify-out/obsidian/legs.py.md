@@ -1,12 +1,12 @@
 ---
 source_file: "brainlab/legs.py"
 type: "code"
-community: "Community 146"
+community: "selfcheck.py"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_146
+  - community/selfcheckpy
 ---
 
 # legs.py
@@ -22,4 +22,4 @@ tags:
 - [[selfcheck.py]] - `imports_from` [EXTRACTED]
 - [[swings()_2]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_146
+#graphify/code #graphify/EXTRACTED #community/selfcheckpy

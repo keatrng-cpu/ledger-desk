@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/verify-brain-vault.mjs"
 type: "code"
-community: "Community 143"
+community: "ref_node_fs"
 location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_143
+  - community/ref_node_fs
 ---
 
 # graph
@@ -14,4 +14,4 @@ tags:
 ## Connections
 - [[verify-brain-vault.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_143
+#graphify/code #graphify/EXTRACTED #community/ref_node_fs

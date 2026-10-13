@@ -1,12 +1,12 @@
 ---
 source_file: "scripts/blender/build_floor.py"
 type: "code"
-community: "Community 180"
+community: "build_floor.py"
 location: "L1333"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_180
+  - community/build_floorpy
 ---
 
 # build_screens()
@@ -20,4 +20,4 @@ tags:
 - [[new_mat()]] - `calls` [EXTRACTED]
 - [[quad()]] - `calls` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_180
+#graphify/code #graphify/EXTRACTED #community/build_floorpy

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/room/hall-lite.ts"
 type: "code"
-community: "Community 114"
+community: "hall-lite.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_114
+  - community/hall-litets
 ---
 
 # hall-lite.ts
@@ -36,13 +36,13 @@ tags:
 - [[PredictLite]] - `imports` [EXTRACTED]
 - [[QUARTER]] - `contains` [EXTRACTED]
 - [[SCAN_1]] - `imports` [EXTRACTED]
-- [[SERIES]] - `contains` [EXTRACTED]
+- [[SERIES_2]] - `contains` [EXTRACTED]
 - [[ScanRow]] - `imports` [EXTRACTED]
 - [[SignalBoard]] - `imports` [EXTRACTED]
 - [[TOO_FEW]] - `imports` [EXTRACTED]
 - [[VELOCITY_WINDOW_MS]] - `imports` [EXTRACTED]
 - [[VENUES]] - `imports` [EXTRACTED]
-- [[cents()]] - `contains` [EXTRACTED]
+- [[cents()_3]] - `contains` [EXTRACTED]
 - [[cents1()]] - `contains` [EXTRACTED]
 - [[crowdReaction()]] - `contains` [EXTRACTED]
 - [[eventWords()]] - `contains` [EXTRACTED]
@@ -67,7 +67,7 @@ tags:
 - [[predictLiteFromBoard()]] - `contains` [EXTRACTED]
 - [[prediction-market-feed.ts]] - `imports_from` [EXTRACTED]
 - [[r1()]] - `contains` [EXTRACTED]
-- [[r2()]] - `contains` [EXTRACTED]
+- [[r2()_2]] - `contains` [EXTRACTED]
 - [[recordLiteFrom()]] - `contains` [EXTRACTED]
 - [[room-engine.ts]] - `imports_from` [EXTRACTED]
 - [[rowOf()_1]] - `contains` [EXTRACTED]
@@ -82,4 +82,4 @@ tags:
 - [[titleCase()]] - `contains` [EXTRACTED]
 - [[verify-mead-talk.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_114
+#graphify/code #graphify/EXTRACTED #community/hall-litets

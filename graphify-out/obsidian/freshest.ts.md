@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/market/freshest.ts"
 type: "code"
-community: "Community 1"
+community: "build-desk.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_1
+  - community/build-deskts
 ---
 
 # freshest.ts
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[DATABENTO_QUOTE_FRESH_SEC]] - `contains` [EXTRACTED]
 - [[LiveQuote]] - `imports` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[SymbolSeries]] - `imports` [EXTRACTED]
 - [[aggregateBars()]] - `contains` [EXTRACTED]
 - [[applyQuoteToLastBar()]] - `contains` [EXTRACTED]
@@ -43,4 +43,4 @@ tags:
 - [[verify-live-gateway.mjs]] - `dynamic_import` [EXTRACTED]
 - [[verify-live-ladder.mjs]] - `dynamic_import` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_1
+#graphify/code #graphify/EXTRACTED #community/build-deskts

@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/desk/mcp-server.ts"
 type: "code"
-community: "Community 184"
+community: "grok-report.ts"
 location: "L79"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_184
+  - community/grok-reportts
 ---
 
 # handleMcpMessage()
@@ -20,4 +20,4 @@ tags:
 - [[slice()]] - `calls` [EXTRACTED]
 - [[verify-desk-mcp.mjs]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_184
+#graphify/code #graphify/EXTRACTED #community/grok-reportts

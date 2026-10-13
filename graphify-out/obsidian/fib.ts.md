@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/trading/fib.ts"
 type: "code"
-community: "Community 40"
+community: "trading/scanner.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_40
+  - community/trading/scannerts
 ---
 
 # fib.ts
@@ -18,7 +18,7 @@ tags:
 - [[OTE_DEEP]] - `contains` [EXTRACTED]
 - [[OTE_OPTIMAL]] - `contains` [EXTRACTED]
 - [[OTE_SHALLOW]] - `contains` [EXTRACTED]
-- [[OhlcBar]] - `imports` [EXTRACTED]
+- [[OhlcBar_1]] - `imports` [EXTRACTED]
 - [[OteRead]] - `contains` [EXTRACTED]
 - [[RETRACEMENT_LEVELS]] - `contains` [EXTRACTED]
 - [[buildImpulseLeg()]] - `contains` [EXTRACTED]
@@ -35,4 +35,4 @@ tags:
 - [[smc-master.ts]] - `imports_from` [EXTRACTED]
 - [[tradingscanner.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_40
+#graphify/code #graphify/EXTRACTED #community/trading/scannerts

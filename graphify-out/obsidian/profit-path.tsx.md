@@ -1,12 +1,12 @@
 ---
 source_file: "src/components/desk/profit-path.tsx"
 type: "code"
-community: "Community 26"
+community: "aplus/config.ts"
 location: "L1"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_26
+  - community/aplus/configts
 ---
 
 # profit-path.tsx
@@ -14,7 +14,7 @@ tags:
 ## Connections
 - [[APLUS_PROBE_RISK]] - `imports` [EXTRACTED]
 - [[APLUS_RULES]] - `imports` [EXTRACTED]
-- [[EVIDENCE_1]] - `imports` [EXTRACTED]
+- [[EVIDENCE_2]] - `imports` [EXTRACTED]
 - [[GradedTrade]] - `imports` [EXTRACTED]
 - [[IncomeGauge()]] - `contains` [EXTRACTED]
 - [[JournalTrade]] - `imports` [EXTRACTED]
@@ -25,9 +25,9 @@ tags:
 - [[ProfitPathPanel()]] - `contains` [EXTRACTED]
 - [[ProfitPathSnapshot]] - `imports` [EXTRACTED]
 - [[Tile()]] - `contains` [EXTRACTED]
+- [[aplusconfig.ts]] - `imports_from` [EXTRACTED]
 - [[buildProfitPath()]] - `imports` [EXTRACTED]
 - [[cn()]] - `imports` [EXTRACTED]
-- [[config.ts]] - `imports_from` [EXTRACTED]
 - [[demoGradedTrades()]] - `imports` [EXTRACTED]
 - [[desk-synapse.ts]] - `imports_from` [EXTRACTED]
 - [[income-target.ts]] - `imports_from` [EXTRACTED]
@@ -39,11 +39,11 @@ tags:
 - [[planIncome()]] - `imports` [EXTRACTED]
 - [[profit-path.ts]] - `imports_from` [EXTRACTED]
 - [[profit-rules.ts]] - `imports_from` [EXTRACTED]
-- [[react]] - `imports_from` [EXTRACTED]
+- [[react_2]] - `imports_from` [EXTRACTED]
 - [[readCadence()]] - `imports` [EXTRACTED]
 - [[toGraded()]] - `contains` [EXTRACTED]
 - [[tradingevidence.ts]] - `imports_from` [EXTRACTED]
 - [[useDeskSynapse]] - `imports` [EXTRACTED]
 - [[utils.ts]] - `imports_from` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_26
+#graphify/code #graphify/EXTRACTED #community/aplus/configts

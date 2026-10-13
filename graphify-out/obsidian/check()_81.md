@@ -1,18 +1,17 @@
 ---
-source_file: "scripts/verify-lab-constants.mjs"
+source_file: "scripts/verify-shadow-book.mjs"
 type: "code"
-community: "Community 335"
-location: "L25"
+community: "verify-shadow-book.mjs"
+location: "L18"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_335
+  - community/verify-shadow-bookmjs
 ---
 
 # check()
 
 ## Connections
-- [[same()_1]] - `calls` [EXTRACTED]
-- [[verify-lab-constants.mjs]] - `contains` [EXTRACTED]
+- [[verify-shadow-book.mjs]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_335
+#graphify/code #graphify/EXTRACTED #community/verify-shadow-bookmjs

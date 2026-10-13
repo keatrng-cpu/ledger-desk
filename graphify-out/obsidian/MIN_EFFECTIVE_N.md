@@ -1,12 +1,12 @@
 ---
 source_file: "src/lib/journal/discretion.ts"
 type: "code"
-community: "Community 155"
+community: "claude-server.ts"
 location: "L58"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_155
+  - community/claude-serverts
 ---
 
 # MIN_EFFECTIVE_N
@@ -15,4 +15,4 @@ tags:
 - [[discretion.ts]] - `contains` [EXTRACTED]
 - [[veteran-brain.ts]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_155
+#graphify/code #graphify/EXTRACTED #community/claude-serverts

@@ -1,12 +1,12 @@
 ---
 source_file: "INTEGRATION-P0.md"
 type: "document"
-community: "Community 58"
+community: "structure.ts"
 location: "L1"
 tags:
   - graphify/document
   - graphify/INFERRED
-  - community/Community_58
+  - community/structurets
 ---
 
 # INTEGRATION-P0 — Truth & safety (branch agents/phase-p0)
@@ -16,4 +16,4 @@ tags:
 - [[scanSetups()]] - `references` [INFERRED]
 - [[voteBias()]] - `references` [INFERRED]
 
-#graphify/document #graphify/INFERRED #community/Community_58
+#graphify/document #graphify/INFERRED #community/structurets

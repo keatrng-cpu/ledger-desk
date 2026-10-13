@@ -1,20 +1,20 @@
 ---
 source_file: "src/lib/room/spoken-form.ts"
 type: "code"
-community: "Community 96"
+community: "spoken-form.ts"
 location: "L130"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_96
+  - community/spoken-formts
 ---
 
 # moneyWords()
 
 ## Connections
 - [[money()_16]] - `calls` [EXTRACTED]
-- [[num()_21]] - `calls` [EXTRACTED]
+- [[num()_22]] - `calls` [EXTRACTED]
 - [[plural()_4]] - `calls` [EXTRACTED]
 - [[spoken-form.ts]] - `contains` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_96
+#graphify/code #graphify/EXTRACTED #community/spoken-formts

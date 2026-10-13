@@ -1,20 +1,26 @@
 ---
-source_file: "src/components/desk/htf-bias-board.tsx"
+source_file: "src/components/ui/card.tsx"
 type: "code"
-community: "Community 14"
-location: "L34"
+community: "dual-index-charts.tsx"
+location: "L4"
 tags:
   - graphify/code
   - graphify/EXTRACTED
-  - community/Community_14
+  - community/dual-index-chartstsx
 ---
 
 # Card()
 
 ## Connections
-- [[BiasChip()]] - `calls` [EXTRACTED]
-- [[HtfBiasBoard()]] - `calls` [EXTRACTED]
+- [[ApexSimPanel()]] - `calls` [EXTRACTED]
+- [[AplusOps()]] - `calls` [EXTRACTED]
+- [[DualIndexCharts()]] - `calls` [EXTRACTED]
+- [[ReplayReport()]] - `calls` [EXTRACTED]
+- [[apex-sim-panel.tsx]] - `imports` [EXTRACTED]
+- [[aplus-ops.tsx]] - `imports` [EXTRACTED]
+- [[card.tsx]] - `contains` [EXTRACTED]
 - [[cn()]] - `calls` [EXTRACTED]
-- [[htf-bias-board.tsx]] - `contains` [EXTRACTED]
+- [[dual-index-charts.tsx]] - `imports` [EXTRACTED]
+- [[replay-report.tsx]] - `imports` [EXTRACTED]
 
-#graphify/code #graphify/EXTRACTED #community/Community_14
+#graphify/code #graphify/EXTRACTED #community/dual-index-chartstsx

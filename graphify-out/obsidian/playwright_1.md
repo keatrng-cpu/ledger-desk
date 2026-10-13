@@ -1,12 +1,12 @@
 ---
 source_file: "package.json"
 type: "concept"
-community: "Community 189"
+community: "preview-glb.mjs"
 location: "L130"
 tags:
   - graphify/concept
   - graphify/EXTRACTED
-  - community/Community_189
+  - community/preview-glbmjs
 ---
 
 # playwright
@@ -18,4 +18,4 @@ tags:
 - [[png-diff.mjs]] - `imports_from` [EXTRACTED]
 - [[preview-glb.mjs]] - `imports_from` [EXTRACTED]
 
-#graphify/concept #graphify/EXTRACTED #community/Community_189
+#graphify/concept #graphify/EXTRACTED #community/preview-glbmjs
