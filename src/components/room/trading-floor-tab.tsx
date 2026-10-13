@@ -8,6 +8,7 @@
  * so and the room says so. Paper only.
  */
 
+import { kzSeatNote } from "@/lib/desk/kz-disp";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Copy, Expand, Footprints, RotateCcw, Users, Volume2, VolumeX, X } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
@@ -1365,6 +1366,7 @@ function DecisionStrip({
         </span>
       </button>
       <RhAccountStrip />
+      <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="kz-seat" title="kzDisp item 49 (shadow note, never a vote)">{kzSeatNote()}</div>
     </div>
   );
 }
