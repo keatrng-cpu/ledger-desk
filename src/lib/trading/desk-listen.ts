@@ -1,3 +1,4 @@
+import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
 /**
@@ -95,6 +96,15 @@ export interface DeskWire {
     stop: string | null;
     draw: string | null;
     entryResting: boolean;
+    /** Which plan target `target` is (T1 unless T1 < 1R and T2 clears it). */
+    targetWhich: "t1" | "t2" | null;
+    /** R:R to `target`. */
+    rr: number | null;
+    rr1: number | null;
+    rr2: number | null;
+    t2: number | null;
+    /** The plan's stop as a number (the text stays on `stop`). Null without a plan. */
+    stopPx: number | null;
     /** R7 chop on this book (15m overlap / range). */
     chop: boolean;
     qRaw: number | null;
@@ -212,7 +222,13 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           stop: top.invalidation || null,
           draw: top.draw?.name ?? null,
           displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy),
-          target: top.plan?.t1 ?? null,
+          target: primaryTarget(top.plan).price,
+          targetWhich: primaryTarget(top.plan).which,
+          rr: primaryTarget(top.plan).rr,
+          rr1: top.plan?.rr1 ?? null,
+          rr2: top.plan?.rr2 ?? null,
+          t2: top.plan?.t2 ?? null,
+          stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,
         }
       : null,
