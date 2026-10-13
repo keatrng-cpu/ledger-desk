@@ -108,6 +108,10 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
+    /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
+    sizeMult: number;
+    sweep: boolean | null;
+    loss: Record<string, unknown> | null;
     regime: string | null;
     /** Fix 39: trend / reversal / range — the regime the card was graded in. */
     regimeLabel: string | null;
@@ -272,6 +276,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           judas,
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
+          sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
+          sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
+          loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
           regime: top.setupRegime ?? null,
           regimeLabel: (top as { regimeLabel?: string }).regimeLabel ?? null,
           setups: (top as { setups?: string[] }).setups ?? [],
