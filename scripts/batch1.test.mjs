@@ -28,12 +28,15 @@ test("review line carries the context", () => {
 });
 const card = { symbol: "ES", side: "long", band: "A", q: 0.7, actionable: true, entry: 100, entryResting: false, stopPx: 98, target: 104, rr: 2, chop: false, bias1h: "bull", bias4h: "bull", dispScore: 0.75, ltfKilled: false, reversal: null };
 const base = { card, brainWord: "TAKE", brainBook: { symbol: "ES", side: "long" }, floorVerdict: "ARMED", align: 1, smtLead: null, shockActive: false, topDraw: null, governor: "normal" };
-test("Master TAKE only when every check passes", () => {
+test("Master: TAKE on critical+safety; chop is a caution; WAIT on an open critical; SKIP when dead", () => {
   assert.equal(ms.masterSeat(base).verdict, "TAKE");
-  const p = ms.masterSeat({ ...base, card: { ...card, chop: true } });
-  assert.equal(p.verdict, "PASS"); assert.ok(p.failed.includes("not chop"));
-  assert.equal(ms.masterSeat({ ...base, governor: "A+ only" }).verdict, "PASS");
-  assert.equal(ms.masterSeat({ ...base, card: null }).verdict, "PASS");
+  const ch = ms.masterSeat({ ...base, card: { ...card, chop: true } });
+  assert.equal(ch.verdict, "TAKE"); assert.ok(ch.cautions.includes("not chop"));
+  assert.equal(ms.masterSeat({ ...base, card: { ...card, entry: null } }).verdict, "WAIT");
+  assert.equal(ms.masterSeat({ ...base, governor: "A+ only" }).verdict, "WAIT");
+  assert.equal(ms.masterSeat({ ...base, brainBook: { symbol: "ES", side: "short" } }).verdict, "SKIP");
+  assert.equal(ms.masterSeat({ ...base, card: { ...card, ltfKilled: true } }).verdict, "SKIP");
+  assert.equal(ms.masterSeat({ ...base, card: null }).verdict, "SKIP");
 });
 test("exit plan: kill flag, time stop, null trail without tape", () => {
   const e = ex.exitPlanOf([], "long", 100, { why: ["x"] });
@@ -45,7 +48,9 @@ test("displacement strength is null without tape", () => {
 test("rankDraws: equal-high touches rank up", () => {
   const t = (name, price, score) => ({ name, price, kind: "x", side: "above", distancePoints: 1, distanceAtr: 1, liquidityWeight: 1, swept: false, reachProbability: 0.5, score, why: [] });
   const draw = { primary: t("PDH (external BSL)", 110, 0.5), above: null, below: null, alternates: [t("EQH ×2", 105, 0.45)], atr: 1 };
-  const bars = [{ h: 105, l: 100 }, { h: 105.05, l: 101 }, { h: 104, l: 100 }].map((b, i) => ({ t: i, o: 0, c: 0, v: 0, ...b }));
+  // two swing highs at 105 (EQH) inside the window
+  const hs = [101, 102, 105, 102, 101, 102, 105.05, 102, 101];
+  const bars = hs.map((h, i) => ({ t: i, o: 0, c: 0, v: 0, h, l: h - 3 }));
   const r = ex.rankDraws(draw, bars);
   assert.equal(r[0].name, "EQH ×2"); assert.equal(r[0].touches, 2); assert.equal(r[1].scope, "external");
 });

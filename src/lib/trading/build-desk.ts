@@ -1,3 +1,4 @@
+import { primaryTarget } from "./card-plan";
 import { displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
@@ -1228,7 +1229,35 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // AUDIT R2-4: the brain is graded AFTER discipline and the band seal, so
     // its book reads the same capped, sealed cards as the wire and the Floor.
     // The plans the cards already carry stay (discipline judged those).
-    smcMaster = gradeSmcMaster(smcInput);
+    // R3-b: ONE book. The brain grades the board's best card on its own book
+    // (that symbol's other cards are withheld from this pass), and that book
+    // is the brain's one book — so card, brain and Master name the same
+    // symbol and side, and the brain's word is its view of THAT card.
+    {
+      const lead = payload.scan.candidates[0];
+      if (lead) {
+        const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
+        smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+        const own = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
+        smcMaster.oneBook = own;
+      } else {
+        smcMaster = gradeSmcMaster(smcInput);
+      }
+      // R3-e: re-attach the plans the re-graded brain priced.
+      attachPlansToCards(payload.scan.candidates, smcMaster, {
+        [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
+        [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
+      });
+      // R3-c: actionable needs a priced entry, stop and target.
+      for (const c of payload.scan.candidates) {
+        const entry = c.entryPx ?? c.plan?.entry ?? null;
+        const tgt = primaryTarget(c.plan).price;
+        if (c.actionable && (entry == null || c.plan?.stop == null || tgt == null)) {
+          c.actionable = false;
+          c.reasons.push("Not actionable: entry, stop and target must all be priced");
+        }
+      }
+    }
     {
       // The brain reads the same LTF reversal: its book on the reversed side stands.
       for (const bk of [smcMaster.left, smcMaster.right]) {
@@ -1241,6 +1270,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       if (smcMaster.oneBook) {
         const ob = smcMaster.oneBook;
         smcMaster.thesis = `${ob.word} ${ob.symbol} ${ob.side ?? ""} · ${ob.mustPass}/${ob.mustNeed} · ${ob.missing}`.trim();
+      }
+      // Re-sort after the actionable gate so candidates[0] stays the best card.
+      {
+        const br = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
+        const lead0 = payload.scan.candidates[0];
+        payload.scan.candidates.sort((a, b) => Number(b === lead0) - Number(a === lead0) || Number(b.actionable) - Number(a.actionable) || br(a.pathBand) - br(b.pathBand) || b.confluence - a.confluence);
       }
     }
     const mtf = {

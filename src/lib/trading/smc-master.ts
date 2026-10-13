@@ -477,7 +477,6 @@ function gradeBook(
   // displaced against it — and only for the side that failed raid points at.
   // No sub-15m tape, no release. See JUDAS_MIN_CONFLUENCE below for the grade
   // it additionally has to carry.
-  const judas = judasRead.blocked;
   const retestReady =
     narrative.liquidity.lastSweep !== "none" &&
     (narrative.confirmation === "armed_entry" || narrative.confirmation === "confirmed");

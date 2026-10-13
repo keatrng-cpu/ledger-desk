@@ -88,7 +88,7 @@ export function reviewOf(status: string, r: number | null, ctx: Record<string, u
   if (ctx.master) bits.push(`Master said ${ctx.master}`);
   if (status === "loss" && ctx.chop) bits.push("lesson: A-band in chop lost");
   if (status === "loss" && Number(ctx.mtfAlign ?? 1) < 0.67) bits.push("lesson: alignment under 2/3");
-  if (status === "win" && ctx.master === "PASS") bits.push("lesson: Master passed a winner");
+  if (status === "win" && (ctx.master === "SKIP" || ctx.master === "WAIT")) bits.push(`lesson: Master said ${ctx.master} on a winner`);
   return bits.join(" · ");
 }
 

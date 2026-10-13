@@ -76,15 +76,13 @@ export function rankDraws(draw: DrawRead | null | undefined, bars15: OhlcBar[]):
     const k = `${d.name}@${d.price}`;
     if (seen.has(k)) continue;
     seen.add(k);
-    let touches = 0;
-    let first: number | null = null;
-    bars15.forEach((b, i) => {
-      if (Math.abs(b.h - d.price) <= tol || Math.abs(b.l - d.price) <= tol) {
-        touches++;
-        if (first == null) first = i;
-      }
-    });
-    const ageBars = first == null ? null : bars15.length - 1 - (first as number);
+    // R3-d: touches = SWING highs/lows within tol over the last session
+    // (TOUCH_WINDOW 15m bars), not every bar of the month that grazed it.
+    const win = bars15.slice(-TOUCH_WINDOW);
+    const sw = fractalSwings(win, 2).filter((p) => Math.abs(p.price - d.price) <= tol);
+    const touches = sw.length;
+    const first = sw.length ? sw[0]!.index : null;
+    const ageBars = first == null ? null : win.length - 1 - first;
     const scope = /external/i.test(d.name) ? "external" : /internal/i.test(d.name) ? "internal" : null;
     const rank = +(d.score + 0.1 * Math.min(Math.max(touches - 1, 0), 3) - 0.002 * (ageBars ?? 0)).toFixed(3);
     out.push({ name: d.name, price: d.price, side: String(d.side), scope, touches, ageBars, distanceAtr: +d.distanceAtr.toFixed(2), swept: d.swept, rank });
@@ -105,6 +103,8 @@ export interface ExitPlan {
 }
 
 export const TIME_STOP_BARS = 12;
+/** One Globex session of 15m bars. */
+export const TOUCH_WINDOW = 92;
 
 /** Fix 16–18. */
 export function exitPlanOf(minute: OhlcBar[] | null | undefined, side: Side, price: number | null, kill: { why: string[] } | null): ExitPlan {
