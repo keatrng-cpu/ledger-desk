@@ -1,4 +1,5 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { RULES_HASH } from "@/lib/desk/rules-hash";
 import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
@@ -63,6 +64,8 @@ export interface DeskListenCard {
 }
 
 export interface DeskWire {
+  /** sha256 (16 hex) of the shared rules this card was graded on — the watcher fails closed on mismatch. */
+  rulesHash?: string;
   /** PD arrays on 1m–4h for both books, live first, capped (mtf-arrays.ts). */
   arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
@@ -222,6 +225,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .slice(0, WIRE_ARRAYS_CAP)
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
+    rulesHash: RULES_HASH,
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
     htf: top ? htfBiasOf(desk.mtfContext, top.symbol) : null,

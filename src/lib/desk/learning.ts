@@ -15,6 +15,8 @@
  * ran ≥ 2R (or ≥ 1 ATR at +120m with no plan) is logged with the reasons it
  * was not A-.
  */
+import RULES from "../../../shared/desk-rules.json";
+import { isHoldout, checkpoints, statsReport } from "@/lib/desk/learning-stats";
 import type { Sql } from "@/lib/db";
 import type { OhlcBar } from "@/lib/market/types";
 import { etDayKey } from "./card-journal";
@@ -235,6 +237,8 @@ export async function gradeSnapshots(sql: Sql, minute: Record<string, OhlcBar[]>
     else if (c.price != null && c.atr) g = gradeDirection({ side: c.side, price: c.price, atr: c.atr }, opened, bars, nowMs);
     if (!g) { await sql.query(`update desk_card_snap set status = 'ungradable', hows = 'no plan and no price/ATR at snapshot', graded_ms = $2 where id = $1`, [r.id, nowMs]); n++; continue; }
     if (g.status === "open") continue;
+    // item 1: MFE/MAE checkpoints at +15m / +60m / end of day
+    (g as Grade & { checkpoints?: unknown }).checkpoints = checkpoints(c, opened, bars, nowMs);
     await sql.query(`update desk_card_snap set status = $2, grade = $3::jsonb, failure_mode = $4, hows = $5, missed = $6, graded_ms = $7 where id = $1`,
       [r.id, g.status, JSON.stringify(g), failureMode(c, g), howsWhys(c, g), missedTrade(c, g), nowMs]);
     n++;
@@ -250,10 +254,14 @@ export async function appliedCalibration(sql: Sql) {
   return { version: r[0]!.version, weightScales: j<Record<string, number>>(r[0]!.weight_scales, {}), bandEdges: j<Record<string, number>>(r[0]!.band_edges, {}), createdMs: Number(r[0]!.created_ms) };
 }
 
-async function gradedRows(sql: Sql) {
+async function allGraded(sql: Sql) {
   const rows = await sql.query<SnapRow & { status: string; grade: unknown }>(`select * from desk_card_snap where status in ('win','loss','timeout','right','wrong','flat')`);
-  return rows.map((r) => { const g = j<Grade>(r.grade, { kind: "dir", status: "flat", moves: {} }); return { c: rowToSnap(r), g }; })
+  return rows.map((r) => { const g = j<Grade>(r.grade, { kind: "dir", status: "flat", moves: {} }); return { id: r.id, c: rowToSnap(r), g, openedMs: Number(r.opened_ms) }; })
     .filter(({ g }) => isWin(g) || isLoss(g));
+}
+/** Rows the loop LEARNS from: never the holdout (item 25), only the last decayDays (item 20). */
+async function gradedRows(sql: Sql, nowMs = Date.now()) {
+  return (await allGraded(sql)).filter((r) => !isHoldout(r.id) && nowMs - r.openedMs <= RULES.learning.decayDays * 86_400_000);
 }
 
 /** Weekly: compute, and write a new version only if something passed n ≥ 30. */
@@ -261,7 +269,7 @@ export async function maybeCalibrate(sql: Sql, nowMs: number, baseline: Record<s
   const cur = await appliedCalibration(sql);
   const last = await sql.query<{ created_ms: string | number }>(`select created_ms from desk_calibration order by version desc limit 1`);
   if (!force && last.length && nowMs - Number(last[0]!.created_ms) < LEARN_EVERY_MS) return null;
-  const rows = await gradedRows(sql);
+  const rows = await gradedRows(sql, nowMs);
   const lifts = factorLifts(rows.map(({ c, g }) => ({ present: c.present, win: isWin(g) })), cur.weightScales);
   const edgesNow = { ...baseline, ...cur.bandEdges };
   const bands = bandEdgeMoves(rows.map(({ c, g }) => ({ band: c.band ?? "?", win: isWin(g), r: g.kind === "plan" ? g.r : null })), edgesNow, baseline);
@@ -271,11 +279,38 @@ export async function maybeCalibrate(sql: Sql, nowMs: number, baseline: Record<s
   const edges = Object.fromEntries(Object.entries(bands).map(([k, b]) => [k, b.to]));
   await sql.query(
     `insert into desk_calibration (version, created_ms, applied, weight_scales, band_edges, prior, report, note) values ($1,$2,$3,$4::jsonb,$5::jsonb,$6::jsonb,$7::jsonb,$8)`,
-    [Number(version) + 1, nowMs, changed, JSON.stringify(changed ? scales : cur.weightScales), JSON.stringify(changed ? edges : cur.bandEdges),
+    // item 18: a change is a PROPOSAL (applied=false) until approved after the shadow week (item 19)
+    [Number(version) + 1, nowMs, changed && !RULES.learning.requireApproval, JSON.stringify(changed ? scales : cur.weightScales), JSON.stringify(changed ? edges : cur.bandEdges),
       JSON.stringify({ version: cur.version, weightScales: cur.weightScales, bandEdges: cur.bandEdges }), JSON.stringify({ n: rows.length, lifts, bands }),
-      changed ? "applied: factors/bands past n ≥ 30, shrunk, ±20% cap" : `report only: nothing reached n ≥ ${LEARN_MIN_N} (n graded = ${rows.length})`],
+      changed ? (RULES.learning.requireApproval ? `PROPOSED (shadow ${RULES.learning.shadowDays}d, then approval): factors/bands past n ≥ 30, shrunk, ±20% cap` : "applied: factors/bands past n ≥ 30, shrunk, ±20% cap") : `report only: nothing reached n ≥ ${LEARN_MIN_N} (n graded = ${rows.length})`],
   );
   return { version: Number(version) + 1, changed };
+}
+
+/** Item 19: shadow score of a proposal — on rows graded since it was proposed, does it rank winners above losers better than the applied set? */
+export async function shadowOf(sql: Sql, version: number, nowMs: number) {
+  const p = await sql.query<{ weight_scales: unknown; created_ms: string | number }>(`select weight_scales, created_ms from desk_calibration where version = $1`, [version]);
+  if (!p.length) return null;
+  const since = Number(p[0]!.created_ms); const cur = await appliedCalibration(sql);
+  const prop = j<Record<string, number>>(p[0]!.weight_scales, {});
+  const rows = (await gradedRows(sql, nowMs)).filter((r) => r.openedMs >= since);
+  const score = (sc: Record<string, number>, present: string[]) => present.reduce((a, f) => a + (sc[f] ?? 1), 0) / Math.max(1, present.length);
+  const sep = (sc: Record<string, number>) => {
+    const w = rows.filter((r) => isWin(r.g)).map((r) => score(sc, r.c.present)), l = rows.filter((r) => isLoss(r.g)).map((r) => score(sc, r.c.present));
+    const m = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+    return m(w) != null && m(l) != null ? +(m(w)! - m(l)!).toFixed(4) : null;
+  };
+  const days = (nowMs - since) / 86_400_000;
+  return { version, n: rows.length, days: +days.toFixed(1), shadowDone: days >= RULES.learning.shadowDays, separationProposed: sep(prop), separationApplied: sep(cur.weightScales) };
+}
+/** Item 18: owner approval — only after the shadow week, and only if the proposal separates at least as well. */
+export async function approveCalibration(sql: Sql, version: number, nowMs: number) {
+  const sh = await shadowOf(sql, version, nowMs);
+  if (!sh) return { ok: false, why: "no such version" };
+  if (!sh.shadowDone) return { ok: false, why: `shadow ${sh.days}d < ${RULES.learning.shadowDays}d` };
+  if (sh.separationProposed != null && sh.separationApplied != null && sh.separationProposed < sh.separationApplied) return { ok: false, why: "proposal separated winners/losers worse than the applied set in shadow", shadow: sh };
+  await sql.query(`update desk_calibration set applied = true, note = note || ' · APPROVED' where version = $1`, [version]);
+  return { ok: true, shadow: sh };
 }
 
 /** Reversible: mark a version reverted; the next-highest applied version (or baseline) takes over. */
@@ -288,7 +323,7 @@ export async function learningReport(sql: Sql, nowMs: number, baseline: Record<s
   await ensureLearning(sql);
   const applied = await appliedCalibration(sql);
   const versions = await sql.query(`select version, created_ms, applied, reverted, note from desk_calibration order by version desc limit 10`);
-  const rows = await gradedRows(sql);
+  const rows = await gradedRows(sql, nowMs);
   const lifts = factorLifts(rows.map(({ c, g }) => ({ present: c.present, win: isWin(g) })), applied.weightScales);
   const bands = bandEdgeMoves(rows.map(({ c, g }) => ({ band: c.band ?? "?", win: isWin(g), r: g.kind === "plan" ? g.r : null })), { ...baseline, ...applied.bandEdges }, baseline);
   const modes: Record<string, number> = {};
@@ -299,6 +334,8 @@ export async function learningReport(sql: Sql, nowMs: number, baseline: Record<s
   return {
     appliedVersion: applied.version, appliedAt: applied.createdMs, weightScales: applied.weightScales, bandEdges: { ...baseline, ...applied.bandEdges },
     versions, counts: Object.fromEntries(counts.map((c) => [c.status, Number(c.n)])), graded: rows.length,
+    stats: statsReport(await allGraded(sql), nowMs, etDayKey),
+    proposals: await Promise.all(((await sql.query<{ version: number }>(`select version from desk_calibration where not applied and not reverted and note like 'PROPOSED%' order by version desc limit 3`))).map((v) => shadowOf(sql, v.version, nowMs))),
     calibration: { minN: LEARN_MIN_N, maxStep: LEARN_MAX_STEP, shrinkK: LEARN_SHRINK_K, lifts, bands }, failureModes: modes, recent, missed,
   };
 }

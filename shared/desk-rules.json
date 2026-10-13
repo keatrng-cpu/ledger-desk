@@ -80,5 +80,22 @@
     "replayHorizonS": 600,
     "dispVelWeight": 0.15,
     "dispVolWeight": 0.15
+  },
+  "learning": {
+    "_doc": "Brain/learning loop. Scoring changes are PROPOSALS: shadow-scored for shadowDays, then applied only on approval (POST /api/desk/journal/approve).",
+    "minN": 30,
+    "maxStep": 0.2,
+    "shrinkK": 50,
+    "decayDays": 60,
+    "holdoutFrac": 0.2,
+    "shadowDays": 7,
+    "requireApproval": true,
+    "checkpointsMin": [
+      15,
+      60
+    ],
+    "fatigueLosses": 2,
+    "journalEt": "16:05",
+    "qCiZ": 1.96
   }
 }

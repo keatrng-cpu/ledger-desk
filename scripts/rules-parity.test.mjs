@@ -30,3 +30,9 @@ test("RH gate quote ages come from shared rules (parity with the watcher)", asyn
   assert.equal(a.RH_ORDER_REVIEW_MAX_AGE_MS, RULES.fire.orderReviewMaxAgeS * 1000);
   assert.equal(g.RH_PATH_FIRE_MAX_AGE_MS, RULES.fire.quoteMaxAgeS * 1000);
 });
+test("rules hash: TS canonical hash == Python canonical hash", async () => {
+  const { RULES_HASH } = await import("../src/lib/desk/rules-hash.ts");
+  const { execFileSync } = await import("node:child_process");
+  const py = `import json,hashlib\nr=json.load(open('shared/desk-rules.json'))\ndef n(v):\n  if isinstance(v,float) and v.is_integer(): return int(v)\n  if isinstance(v,dict): return {k:n(x) for k,x in v.items()}\n  if isinstance(v,list): return [n(x) for x in v]\n  return v\nprint(hashlib.sha256(json.dumps(n(r),sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()[:16])`;
+  assert.equal(execFileSync("python3", ["-c", py]).toString().trim(), RULES_HASH);
+});
