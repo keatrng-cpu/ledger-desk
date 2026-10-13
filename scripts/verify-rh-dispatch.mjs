@@ -148,6 +148,20 @@ console.log("open");
   check("a fill that has not listed yet is not opened twice", second.sent === false && !again.calls.some((c) => Array.isArray(c) && c[0] === "place"), second.cycle.reason);
 }
 
+console.log("review age runs to the send (after ledger.claim)");
+{
+  // calls 1-3: review stamp, quote readAtMs, mayPlace — all NOW; call 4 (after claim) is 1.5s later
+  let n = 0; const late = () => (++n <= 3 ? NOW : NOW + 1_500);
+  const t = tooling();
+  const out = await runRhDesk({ desk: desk(), manager: manager(), nowMs: NOW, clock: late, tooling: t, ledger: memoryLedger() });
+  check("claim took >1s: not sent, place never called", out.sent === false && !t.calls.some((c) => Array.isArray(c) && c[0] === "place"), out.why);
+  check("why names the send age", /at send/.test(out.why), out.why);
+  let k = 0; const quick = () => (++k <= 3 ? NOW : NOW + 400);
+  const t2 = tooling();
+  const ok = await runRhDesk({ desk: desk(), manager: manager(), nowMs: NOW, clock: quick, tooling: t2, ledger: memoryLedger() });
+  check("claim 0.4s: sent", ok.sent === true, ok.why);
+}
+
 console.log("blocking review does not open");
 {
   const t = tooling({ review: { ok: false, blocking: true, alerts: ["Robinhood review is not available on this session."] } });

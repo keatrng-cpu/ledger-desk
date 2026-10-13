@@ -9,7 +9,7 @@
  *
  * propose / the cycle return a shape. They do not call this.
  */
-import { mayPlaceAfterReview, rhAutofireEnabled, rhLiveArmed } from "./rh-autofire";
+import { mayPlaceAfterReview, rhAutofireEnabled, rhLiveArmed, RH_ORDER_REVIEW_MAX_AGE_MS } from "./rh-autofire";
 import { rhAccountFromPortfolio } from "./rh-account";
 import { toManagerRhAccount, type ManagerRhAccount } from "./manager-account";
 import { failedHoldClose, type RhCycle, type RhHeld, type RhOrder } from "./rh-cycle";
@@ -398,6 +398,12 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
   if (!may.ok) return { cycle, sent: false, why: may.reason, orderId: null };
   const claimed = await args.ledger.claim(nowMs);
   if (!claimed) return { cycle, sent: false, why: "A placement is already in flight. Nothing new was sent.", orderId: null };
+  // Order-review age up to the SEND (Accuracy 7cc00057 note 2): ledger.claim is a round trip, so re-check the
+  // review-time quote read right before place_option_order. Fail-closed; the claimed slot just ages out (throttle).
+  const sendAge = reviewQuote?.readAtMs == null ? null : clock() - reviewQuote.readAtMs;
+  if (sendAge == null || !(sendAge <= RH_ORDER_REVIEW_MAX_AGE_MS)) {
+    return { cycle, sent: false, why: `Review quote is ${sendAge == null ? "missing" : `${sendAge}ms old`} at send (> ${RH_ORDER_REVIEW_MAX_AGE_MS}ms). Nothing was sent.`, orderId: null };
+  }
   const side = optType === "put" ? "put" : "call";
   const u: "QQQ" | "SPY" = underlier === "SPY" ? "SPY" : "QQQ";
   const futSide = sig?.futSide === "short" || sig?.futSide === "long" ? sig.futSide : side === "put" ? "short" : "long";
