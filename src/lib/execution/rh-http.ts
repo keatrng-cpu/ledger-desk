@@ -1,3 +1,4 @@
+import { quoteTimeMs } from "./rh-mcp";
 /**
  * Robinhood session for the desk sender.
  * RH_ACCESS_TOKEN is a bearer for api.robinhood.com. Unset → null (nothing is sent).
@@ -108,7 +109,8 @@ export function toolingFromEnv(
       const res = await get(`/marketdata/options/?instruments=${encodeURIComponent(optionId)}`);
       const row = resultsOf(res.body)[0] ?? (res.body as Record<string, unknown> | null);
       if (!row || res.status >= 400) return null;
-      const q: RhQuote = { bid: num(row.bid_price), ask: num(row.ask_price), asOfMs: Date.now() };
+      // RH quote time (updated_at) when present, else fetch time (old behaviour).
+      const q: RhQuote = { bid: num(row.bid_price), ask: num(row.ask_price), asOfMs: quoteTimeMs(row) ?? Date.now() };
       return q;
     },
     async findOption(q) {

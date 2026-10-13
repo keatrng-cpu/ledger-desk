@@ -610,5 +610,115 @@
         "15:00"
       ]
     }
+  },
+  "fireFix": {
+    "_doc": "Make-top-cards-fire fixes (Keaton 2026-10-13 evening). mode live = acts, shadow = logged as shadow:fx:* rows only. Restrictions and size-ups start shadow; promoted only when tools/replay_fx.py shows win rate, R, option PnL and fires/week not worse. Band edges are rise-only and unchanged here. Safety stops (account, position, working order, live quote, BP, tape, card age, news, entry cutoff, daily cap, weekly lock, rules parity, kill switch, flat-by) stay hard.",
+    "deadZone": {
+      "mode": "live",
+      "_doc": "q clamped by BAND_CEIL (qRaw > q) is not a near miss: no NEAR MISS alert; pre-clamp q logged as q_raw in gates.log."
+    },
+    "rulesPin": {
+      "mode": "live",
+      "_doc": "First card hash seen in a session is pinned; a card with a different hash later that day fails rules_pin (deploys land outside RTH)."
+    },
+    "soleBlocker": {
+      "mode": "live",
+      "_doc": "status.json and the desk Watcher tab show the single failing hard gate of the top card (or the count when several fail)."
+    },
+    "bplusWindow": {
+      "mode": "shadow",
+      "lastEt": "13:00",
+      "priority": [
+        "10:00",
+        "12:00"
+      ],
+      "_doc": "B+ entries refused at/after lastEt ET."
+    },
+    "riskCap": {
+      "mode": "shadow",
+      "equityPct": 0.25,
+      "stopLossFrac": 0.5,
+      "equityFallback": 1000,
+      "_doc": "Max debit = equity x equityPct / stopLossFrac (loss at the option stop <= 25% of equity). Equity = RH buying power + open cost."
+    },
+    "sizeToFit": {
+      "mode": "shadow",
+      "deltaStep": [
+        0.45,
+        0.5
+      ],
+      "nextExpiry": true,
+      "spread": true,
+      "spyForQqq": true,
+      "_doc": "Over the cap: delta 0.45-0.50, then next expiry, then a 1-wide debit spread, then SPY for QQQ; skip only if none fit."
+    },
+    "htfOneStep": {
+      "mode": "shadow",
+      "_doc": "ONE of 1h/4h opposing = caps of the next band down (A+ -> A caps, A -> A-, A- -> B+); BOTH opposing keeps loss.htf."
+    },
+    "upsize": {
+      "mode": "shadow",
+      "bands": [
+        "A-",
+        "B+"
+      ],
+      "maxDebit": 350,
+      "minT1Mult": 1.5,
+      "_doc": "A-/B+ cap rises to maxDebit when projected T1 option value >= minT1Mult x (theta to T1 + spread)."
+    },
+    "persistGrace": {
+      "mode": "shadow",
+      "maxDipCards": 1,
+      "_doc": "fast:persist hold survives one card whose q dips under minBand while price is still within entryAtr of entry."
+    },
+    "nearMissFire": {
+      "mode": "shadow",
+      "qMin": 0.58,
+      "contracts": 1,
+      "maxDebit": 250,
+      "_doc": "q in [qMin, B+ edge): fire 1 contract when fast, brain same side, Floor ARMED/WATCH not STAND, 1h+4h not both against."
+    },
+    "reentry": {
+      "mode": "shadow",
+      "minBand": "A",
+      "_doc": "After a clean stop (no trim), one re-entry same symbol/side if band >= minBand and the second-entry rule passes."
+    },
+    "restingLimit": {
+      "mode": "shadow",
+      "maxMin": 20,
+      "_doc": "Armed card: resting limit at FVG/OB entry, cancelled after maxMin. Shadow logs the would-fill only."
+    },
+    "bplusFloor": {
+      "mode": "shadow",
+      "minCap": 250,
+      "_doc": "B+ debit cap floor (B+ $150 is under ATM 1DTE SPY $189-214)."
+    },
+    "gateHand": {
+      "mode": "live",
+      "bands": [
+        "A+",
+        "A"
+      ],
+      "_doc": "Desk gateHand: brain/SMT/direction holds on A+/A hand to the watcher with sizeCut (one band step) instead of WATCH; B+/A- keep WATCH. Watcher: brain STAND/WAIT on A+/A = one-step size cut."
+    },
+    "costGate": {
+      "mode": "shadow",
+      "_doc": "Option cost gate = optExec.t1VsCost (T1 option value >= 2x theta+spread). Mode mirrored into optExec.t1VsCost."
+    },
+    "envelope": {
+      "maxDebit": 650,
+      "minDebit": 50,
+      "_doc": "ONE debit envelope for desk (RH_MAX_DEBIT_TOTAL) and watcher (A+ $650 band cap). Was $550 desk vs $650 watcher."
+    },
+    "dayLoss": {
+      "mode": "live",
+      "usd": 150,
+      "pctOfEquity": 0.15,
+      "_doc": "Strictest daily loss cap: min($usd, desk APLUS dailyLossLimitPct 0.15 x equity) of realized option PnL today -> no new entries (watcher day_loss, hard). Weekly -$300 loss lock (weekly.lossLock) stays live."
+    },
+    "oneLotT1": {
+      "mode": "live",
+      "_doc": "1 contract: full exit at T1 (watcher manage parity with paper-manager.ts)."
+    }
   }
 }

@@ -4,6 +4,16 @@ import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
+
+const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
+/** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
+export function wireBand(q: number | null | undefined, pathBand: string | null | undefined): string | null {
+  const qb = bandFromQ(q);
+  if (pathBand === "skip") return "C";
+  const pi = WIRE_BANDS.indexOf(pathBand as (typeof WIRE_BANDS)[number]);
+  if (qb == null || pi < 0) return qb;
+  return WIRE_BANDS[Math.max(pi, WIRE_BANDS.indexOf(qb as (typeof WIRE_BANDS)[number]))];
+}
 /**
  * The live scanner, floor, and brain, without the account.
  * The full handoff stays behind CRON_SECRET. This card does not.
@@ -264,8 +274,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           symbol: top.symbol,
           side: top.side,
           name: top.completeStrategy || top.strategyPrimary || "model",
-          // Band is strictly derived from the q on the wire (PATH bands).
-          band: bandFromQ(top.confluence),
+          // Band from q, never above the card's pathBand (live gate walk #2: a capped / skip card must not read higher).
+          band: wireBand(top.confluence, top.pathBand ?? null),
           pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
@@ -411,7 +421,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       return {
         symbol: c.symbol,
         side: c.side,
-        band: bandFromQ(c.confluence),
+        band: wireBand(c.confluence, c.pathBand ?? null),
         pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
         actionable: c.actionable,

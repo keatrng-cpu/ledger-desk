@@ -138,7 +138,8 @@ export function evaluateRhBandSize(band: string | null | undefined, contracts: n
 // shared/desk-rules.json fire.quoteMaxAgeS (was 30 s; parity with the watcher)
 export const RH_PATH_FIRE_MAX_AGE_MS = RULES.fire.quoteMaxAgeS * 1000;
 export const RH_MIN_DEBIT_TOTAL = 50;
-export const RH_MAX_DEBIT_TOTAL = 550;
+// Live gate walk #5: ONE envelope with the watcher (A+ $650), shared/desk-rules.json fireFix.envelope.maxDebit.
+export const RH_MAX_DEBIT_TOTAL = (RULES as { fireFix?: { envelope?: { maxDebit?: number } } }).fireFix?.envelope?.maxDebit ?? 550;
 export const RH_MIN_CONTRACTS = 1;
 export const RH_MAX_CONTRACTS = 4;
 

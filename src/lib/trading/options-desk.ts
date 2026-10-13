@@ -1,3 +1,4 @@
+import { bandFromQ } from "@/lib/smc/discipline";
 import { ticketManageLines } from "@/lib/execution/opt-exec";
 /**
  * Robinhood QQQ/SPY options desk.
@@ -154,6 +155,8 @@ export interface RhStrategyCard {
   /** "watcher" when the setup is ARMED and only the live-chain price is missing (the watcher prices it on RH). */
   handTo?: "watcher";
   holds?: string[];
+  /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds -> one band step smaller size (watcher gate_hand_cut). */
+  sizeCut?: boolean;
   id: RhStrategyId;
   name: string;
   horizon: RhHorizon;
@@ -2200,6 +2203,16 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
 /** The desk's own sender needs a live chain; the watcher prices the contract itself from RH (live_quote/sizing gates). */
 export const MODEL_TICKET_HOLD = "This ticket is a model estimate, not a contract. Nothing is sent until a live chain names one.";
 
+function deskTopBand(desk: DeskPayload): string | null {
+  const c = desk.scan?.candidates?.[0];
+  if (!c) return null;
+  const qb = bandFromQ(c.confluence);
+  const order = ["A+", "A", "A-", "B+", "B", "C"];
+  const pb = c.pathBand === "skip" ? "C" : (c.pathBand as string | undefined);
+  if (!qb) return null;
+  return pb && order.includes(pb) ? order[Math.max(order.indexOf(pb), order.indexOf(qb))] : qb;
+}
+
 function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   const holds = ticketHolds(desk, card);
   if (!holds.length) return card;
@@ -2208,6 +2221,15 @@ function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   // hold is the ONLY hold, the setup stays ARMED and is handed to the watcher, which prices it live on RH. The desk's own
   // sender still refuses (rhSendableFromTicket is unchanged), so nothing is sent from here.
   if (holds.every((h) => h === MODEL_TICKET_HOLD)) return { ...card, handTo: "watcher", holds };
+  // fireFix.gateHand (Research P0 #1 / gate walk #1): on A+/A, brain / SMT / direction holds are caution notes, not WATCH.
+  // live = hand to the watcher (its fast chain still refuses a brain on the OPPOSITE side); shadow = annotate only.
+  const gh = (RULES_DESK as { fireFix?: { gateHand?: { mode?: string; bands?: string[] } } }).fireFix?.gateHand;
+  const band = deskTopBand(desk);
+  const soft = (h: string) => h === MODEL_TICKET_HOLD || /^Brain (is standing|has no book)|^Ticket is .* Brain is |SMT|direction/i.test(h);
+  if (gh && band && (gh.bands ?? []).includes(band) && holds.every(soft)) {
+    if (gh.mode === "live") return { ...card, handTo: "watcher", holds, sizeCut: true };
+    return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6), holds: [...holds, `shadow:fireFix.gateHand WOULD hand ${band} to the watcher`] };
+  }
   return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6) };
 }
 
