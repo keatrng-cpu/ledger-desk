@@ -41,6 +41,13 @@ brainlab/*.db
 
 # Graphify writes a parse cache beside its report (9,000+ generated files, ~30 MB). The report and the Obsidian notes stay tracked; the cache does not.
 graphify-out/cache/
+
+# Forge Atlas Wave 1 H1: generated Graphify Obsidian notes are rebuilt by `graphify`, not tracked.
+# Kept tracked: graph.json, GRAPH_REPORT.md, SEED_REPORT.md, graph.canvas and the hand-exported brain/ book
+# (scripts/verify-brain-vault.mjs and brainlab/ read those).
+graphify-out/obsidian/*
+!graphify-out/obsidian/brain/
+!graphify-out/obsidian/graph.canvas
 ai/.sessions.log
 graphify-out/.post-commit.log
 ai/.context.md
