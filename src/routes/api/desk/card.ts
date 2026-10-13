@@ -19,7 +19,15 @@ async function withReport(card: DeskListenCard): Promise<DeskListenCard> {
   try {
     const { getSql } = await import("@/lib/db");
     const { readGrokReport } = await import("@/lib/desk/grok-report");
-    return attachGrokReport(card, await readGrokReport(await getSql()));
+    const sql = await getSql();
+    const out = attachGrokReport(card, await readGrokReport(sql));
+    // fast-move layer (shadow): Floor seats read the 15s line; never graded until replay-proven
+    try {
+      const { fastWire } = await import("@/lib/desk/fast");
+      const r = (await sql`select body from desk_fast where id = 1`) as { body: never }[];
+      (out.wire as unknown as { fast?: unknown }).fast = fastWire(r[0]?.body ?? null, Date.now());
+    } catch { /* table not there yet */ }
+    return out;
   } catch {
     return card;
   }

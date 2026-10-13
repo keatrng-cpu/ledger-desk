@@ -63,5 +63,22 @@
     "zeroDteFlatEt": "15:40",
     "flatByMaxEt": "15:50",
     "noOvernight": true
+  },
+  "fast": {
+    "_doc": "Fast-move layer (watcher aggregates 1s/5s/15s from the desk's live gateway price; the desk reads it via /api/desk/fast). SHADOW ONLY until the 1s replay proves an edge: shadow=true means no score/fire influence.",
+    "shadow": true,
+    "spikeAtr": 0.3,
+    "spikeWindowS": 15,
+    "failedRetrace": 0.5,
+    "eventPollS": 1.5,
+    "eventWindowS": 60,
+    "freshS": 30,
+    "provenMinN": 30,
+    "provenMinAvgR": 0.1,
+    "replayTargetAtr": 0.5,
+    "replayStopAtr": 0.5,
+    "replayHorizonS": 600,
+    "dispVelWeight": 0.15,
+    "dispVolWeight": 0.15
   }
 }

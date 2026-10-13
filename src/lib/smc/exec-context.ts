@@ -20,6 +20,9 @@ export interface DisplacementStrength {
   closeFrac: number;
   tf: "5m";
   ageBars: number;
+  /** SHADOW (rules fast.shadow): velocity = strongest 1m body inside the leg / ATR1m-equivalent; volBurst = leg volume
+   *  / median of the prior 20 5m bars (null when the feed has no volume). shadowScore folds them in; NOT used for q. */
+  velocity?: number | null; volBurst?: number | null; shadowScore?: number | null;
 }
 
 /**
@@ -46,7 +49,16 @@ export function displacementStrength(minute: OhlcBar[] | null | undefined, side:
     const leftFvg = nx ? (side === "long" ? nx.l > b5[i - 1]!.h : nx.h < b5[i - 1]!.l) : false;
     const bodyAtr = body / a!;
     const score = +(0.5 * Math.min(bodyAtr / 2, 1) + (leftFvg ? 0.25 : 0) + (closeFrac >= 0.75 ? 0.25 : 0)).toFixed(2);
-    if (!best || score > best.score) best = { score, bodyAtr: +bodyAtr.toFixed(2), leftFvg, closeFrac: +closeFrac.toFixed(2), tf: "5m", ageBars: b5.length - 1 - i };
+    const inLeg = m.filter((x) => x.t >= b.t && x.t < b.t + 300_000);
+    const vel = inLeg.length ? Math.max(...inLeg.map((x) => (side === "long" ? x.c - x.o : x.o - x.c))) / (a! / Math.sqrt(5)) : null;
+    const prior = b5.slice(Math.max(0, i - 20), i).map((x) => x.v ?? 0).filter((v) => v > 0).sort((p, q) => p - q);
+    const med = prior.length ? prior[Math.floor(prior.length / 2)]! : 0;
+    const volBurst = med > 0 && (b.v ?? 0) > 0 ? +((b.v ?? 0) / med).toFixed(2) : null;
+    const shadowScore = +(score * (1 - RULES.fast.dispVelWeight - RULES.fast.dispVolWeight)
+      + RULES.fast.dispVelWeight * Math.min(Math.max(vel ?? 0, 0), 1)
+      + RULES.fast.dispVolWeight * (volBurst == null ? 0 : Math.min(Math.max((volBurst - 1) / 2, 0), 1))).toFixed(2);
+    if (!best || score > best.score) best = { score, bodyAtr: +bodyAtr.toFixed(2), leftFvg, closeFrac: +closeFrac.toFixed(2), tf: "5m", ageBars: b5.length - 1 - i,
+      velocity: vel == null ? null : +vel.toFixed(2), volBurst, shadowScore };
   }
   return best;
 }

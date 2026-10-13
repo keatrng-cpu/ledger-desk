@@ -20,6 +20,7 @@ import { Route as ApiCronRhManageRouteImport } from './routes/api/cron/rh-manage
 import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
+import { Route as ApiDeskFastRouteImport } from './routes/api/desk/fast'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
 import { Route as ApiDeskJournalRouteImport } from './routes/api/desk/journal'
 import { Route as ApiDeskWatcherRouteImport } from './routes/api/desk/watcher'
@@ -84,6 +85,11 @@ const ApiDeskCardRoute = ApiDeskCardRouteImport.update({
   path: '/api/desk/card',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeskFastRoute = ApiDeskFastRouteImport.update({
+  id: '/api/desk/fast',
+  path: '/api/desk/fast',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeskHandoffRoute = ApiDeskHandoffRouteImport.update({
   id: '/api/desk/handoff',
   path: '/api/desk/handoff',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
+  '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
+  '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
   '/api/desk/card': typeof ApiDeskCardRoute
+  '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
   '/api/desk/journal': typeof ApiDeskJournalRoute
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
+    | '/api/desk/fast'
     | '/api/desk/handoff'
     | '/api/desk/journal'
     | '/api/desk/watcher'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
+    | '/api/desk/fast'
     | '/api/desk/handoff'
     | '/api/desk/journal'
     | '/api/desk/watcher'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/api/cron/room-step'
     | '/api/cron/weekly'
     | '/api/desk/card'
+    | '/api/desk/fast'
     | '/api/desk/handoff'
     | '/api/desk/journal'
     | '/api/desk/watcher'
@@ -267,6 +279,7 @@ export interface RootRouteChildren {
   ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
   ApiDeskCardRoute: typeof ApiDeskCardRoute
+  ApiDeskFastRoute: typeof ApiDeskFastRoute
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
   ApiDeskJournalRoute: typeof ApiDeskJournalRoute
   ApiDeskWatcherRoute: typeof ApiDeskWatcherRoute
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeskCardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/desk/fast': {
+      id: '/api/desk/fast'
+      path: '/api/desk/fast'
+      fullPath: '/api/desk/fast'
+      preLoaderRoute: typeof ApiDeskFastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/desk/handoff': {
       id: '/api/desk/handoff'
       path: '/api/desk/handoff'
@@ -427,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
   ApiDeskCardRoute: ApiDeskCardRoute,
+  ApiDeskFastRoute: ApiDeskFastRoute,
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
   ApiDeskJournalRoute: ApiDeskJournalRoute,
   ApiDeskWatcherRoute: ApiDeskWatcherRoute,
