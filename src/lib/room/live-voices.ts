@@ -66,14 +66,18 @@ export function pick(c: Ctx, bank: string, variants: (() => string)[]): string |
   if (!n) return null;
   const start = hash32(`${c.key}|${bank}`) % n;
   const last = c.st.variant[bank];
-  for (let k = 0; k < n; k++) {
-    const i = (start + k) % n;
-    if (n > 1 && i === last) continue;
-    const t = variants[i]!();
-    if (c.st.recent.includes(norm(t))) continue;
-    c.st.variant[bank] = i;
-    return t;
-  }
+  // floor-62 #7: first pass takes only variants that cite a live number; the second may fall back (the emit filter in
+  // live-talk drops any digit-free line, so a fallback only keeps the exchange's shape for its other lines).
+  for (const needDigit of [true, false])
+    for (let k = 0; k < n; k++) {
+      const i = (start + k) % n;
+      if (n > 1 && i === last) continue;
+      const t = variants[i]!();
+      if (needDigit && !/\d/.test(t)) continue;
+      if (c.st.recent.includes(norm(t)) || (c.st.saidDay ?? []).includes(norm(t))) continue;
+      c.st.variant[bank] = i;
+      return t;
+    }
   return null;
 }
 
@@ -665,7 +669,7 @@ export function exCalendar(c: Ctx, d: CalData): Ex | null {
     lines.push(
       line("Nova", ANIM.Nova.analyze!, d.actual
         ? pick(c, "cal.0.print", [() => `${name}: ${f.raw(d.actual!)}${d.vs ? ` — ${f.raw(d.vs)}` : ""}.`, () => `The print: ${name} ${f.raw(d.actual!)}${d.vs ? `, ${f.raw(d.vs)}` : ""}.`])
-        : pick(c, "cal.0.noprint", [() => `${name} is out. No actual stamped yet — I read the tape, not a headline.`, () => `It's printed. Nobody's stamped the number, so the tape is all I have.`])),
+        : pick(c, "cal.0.noprint", [() => `${name} is out at ${f.raw(d.timeEt)} ET. No actual stamped yet — I read the tape, not a headline.`, () => `${name} printed at ${f.raw(d.timeEt)} ET. Nobody's stamped the number, so the tape is all I have.`])),
     );
     if (d.tape) {
       lines.push(
@@ -737,8 +741,8 @@ export function exSession(c: Ctx, d: SessData): Ex | null {
       lines.push(line("Jax", ANIM.Jax.point!, pick(c, "sess.open.jax", [() => `Whatever it does, it'll fake first.`, () => `First fifteen minutes lie. I'll just watch.`, () => `Ring it. Let's see who it hurts.`])));
       break;
     case "judas_end":
-      lines.push(line("Gemma", ANIM.Gemma.explain!, pick(c, "sess.judas.gemma", [() => `${f.hhmm(9 * 60 + 45)}. The open's manipulation window is closed — what it raided is the story now.`, () => `The Judas swing has had its fifteen minutes. Now we read what it left behind.`])));
-      lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "sess.judas.sterling", [() => `Gates are live. Everything else is the same.`, () => `The gates are open to a card. They're not open to a hunch.`])));
+      lines.push(line("Gemma", ANIM.Gemma.explain!, pick(c, "sess.judas.gemma", [() => `${f.hhmm(9 * 60 + 45)}. The open's manipulation window is closed — what it raided is the story now.`, () => `The Judas swing has had its ${f.int(15)} minutes. Now we read what it left behind.`])));
+      lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "sess.judas.sterling", [() => `${f.hhmm(9 * 60 + 45)}: gates are live. ${f.int(d.positions)} open, ${f.int(d.monthEntries)}/${cap} PATH this month.`, () => `Gates open to a card from ${f.hhmm(9 * 60 + 45)}, not to a hunch. ${f.int(d.monthEntries)} of ${cap} PATH used.`])));
       break;
     case "aplus":
       lines.push(line("Sterling", ANIM.Sterling.arms!, pick(c, "sess.aplus.sterling", [() => `${f.hhmm(10 * 60)}. Size comes down from here. B+ to A+ still trade if the chart agrees.`, () => `After ${f.hhmm(10 * 60)} the ticket is smaller. The clock does not cancel a setup.`])));
@@ -913,17 +917,19 @@ export function exAtEntry(c: Ctx, d: { card: CardRead }): Ex | null {
   const stand = seq.startsWith("STAND") || seq.startsWith("BIAS") || seq.startsWith("DRAW") || seq.startsWith("ENTRY GONE");
   const agree = seq.startsWith("ENTER") && k.tier === "live";
   const away = k.awayPts != null ? `${f.pts(Math.abs(k.awayPts))} pts from the entry` : "at the entry";
+  const ceTxt = k.entry != null ? f.lvl(k.entry) : null;
+  const stopTxt = k.stop != null ? f.lvl(k.stop) : null;
   const lines: (Line | null)[] = [
     line("Gemma", ANIM.Gemma.explain!, `${f.raw(k.futSymbol)} ${k.futSide}. Price is ${away}. The ladder is on the board.`),
-    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, k.delivery ? f.raw(k.delivery) : stand ? "This is not the fill. The raid does not get the order." : "Watch the entry. We do not swing before it prints."),
-    line("Sterling", stand ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, stand ? "The card and the desk do not agree. Nobody places." : agree ? "The card and the desk agree." : "Not yet. The array has not been touched."),
+    line("Jax", agree ? ANIM.Jax.shout! : ANIM.Jax.point!, k.delivery ? f.raw(k.delivery) : stand ? `This is not the fill at ${ceTxt ?? "the CE"}. The raid does not get the order.` : `Watch the touch of CE ${ceTxt ?? "unpriced"}. We do not swing before it prints.`),
+    line("Sterling", stand ? ANIM.Sterling.tablet! : ANIM.Sterling.approve!, stand ? `The card and the desk do not agree at ${ceTxt ?? "the CE"}. Nobody places.` : agree ? `The card and the desk agree at CE ${ceTxt ?? "unpriced"}${stopTxt ? `, stop ${stopTxt}` : ""}.` : `Not yet. CE ${ceTxt ?? "unpriced"} has not been touched.`),
     line("Nova", ANIM.Nova.analyze!, k.pT1 != null ? `If it fills, P(T1) ${f.frac(k.pT1)}${k.expR != null ? `, E[R] ${signed(k.expR)}${Math.abs(k.expR).toFixed(2)}` : ""}.` : "No priced T1. Do not invent one."),
     line(
       "Vince",
       agree ? ANIM.Vince.enter! : ANIM.Vince.watch!,
       agree
-        ? "Price is in the array. I hand the ticket to Grok. Grok hears this floor through the connector and places on Agentic if the gates are already clear."
-        : "Hands off the key until price is in the array and the card still says enter.",
+        ? `Price is in the array at ${ceTxt ?? "the CE"}. I hand the ticket to Grok. Grok hears this floor through the connector and places on Agentic if the gates are already clear.`
+        : `Hands off the key until price is in the array at ${ceTxt ?? "the CE"} and the card still says enter.`,
     ),
   ];
   return { lines: compact(lines), moves: BOARD };

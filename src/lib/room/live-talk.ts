@@ -33,6 +33,7 @@ import { gamesOn } from "./off-hours";
 import { studyPack } from "./off-hours-study";
 import { EXEC_LIMITS } from "./exec/limits";
 import * as V from "./live-voices";
+import { disciplineLines, planGeometry, skepticChallenge, isTopGrade, RULES_HASH, bandEdges } from "./floor-discipline";
 import * as R from "./live-voices-race";
 import * as IV from "./live-voices-invest";
 import * as IF from "./live-voices-invest-firm";
@@ -1790,7 +1791,9 @@ function heartbeatCand(w: TalkWorld, st: TalkState): Cand | null {
     // Said once already: it comes back when its data has moved, or after a long while — never on a timer alone. A STABLE
     // topic (restating what the brain holds: the rules counters, the balance and goal, the price list) has no "long while".
     const stable = STABLE_HEARTBEATS.includes(hb.id);
-    const eligible = never || (changed && age >= TALK.heartbeatChangedGapMs) || (!stable && age >= TALK.heartbeatTopicCooldownMs);
+    // floor-62 #6: no timer-only repeats — a topic speaks again only when its data moved.
+    void stable;
+    const eligible = never || (changed && age >= TALK.heartbeatChangedGapMs);
     if (!eligible) continue;
     const score = hb.weight * (1 + Math.min(never ? 3 : age / TALK.heartbeatTopicCooldownMs, 3)) * (changed && !never ? 1.5 : 1) + (hash32(`${hb.id}|${st.seq}`) % 100) / 1000;
     if (!best || score > best.score) best = { hb, score };
@@ -1844,6 +1847,7 @@ function rollDay(st: TalkState, w: TalkWorld) {
   st.sessFired = Object.fromEntries(Object.entries(st.sessFired).filter(([k]) => keep(k)));
   st.calFired = Object.fromEntries(Object.entries(st.calFired).filter(([k]) => keep(k)));
   st.levelAt = {};
+  st.saidDay = [];
   st.tapeAt = {};
   st.tapeSize = {};
   st.pnlStep = {};
@@ -1923,6 +1927,8 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   rndCands(w, st, cands);
   investCands(w, st, cands);
   hallCands(w, st, cands);
+  skepticCands(w, st, cands);
+  rulesCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
 
@@ -1938,7 +1944,13 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
       st = draft;
       return null;
     }
-    const lines = ex.lines;
+    // floor-62 #7/#40: every line cites a live number and nothing said today is said again.
+    const lines = disciplineLines(ex.lines, [...draft.recent, ...(draft.saidDay ?? [])]);
+    if (!lines.length) {
+      draft.suppressed += 1;
+      st = draft;
+      return null;
+    }
     const estMs = playMs(lines);
     draft.seq += 1;
     draft.lastEmitAt = now;
@@ -1946,6 +1958,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
     draft.emits = [...draft.emits.filter((e) => now - e.at <= TALK.budget.windowMs), { at: now, kind: c.kind, chatter: c.urgency === 0 }];
     for (const l of lines) {
       draft.recent.push(norm(l.text));
+      draft.saidDay = [...(draft.saidDay ?? []), norm(l.text)].slice(-3000);
       (draft.spoke[l.character] ??= []).push(now);
       draft.spoke[l.character] = draft.spoke[l.character]!.slice(-12);
     }
@@ -1977,4 +1990,82 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
     if (item) return { item, state: st };
   }
   return { item: null, state: st };
+}
+
+/* floor-62 #2/#9/#44: the skeptic, the rules-change line, and plan geometry. */
+function skepticCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const k = w.card;
+  if (!k || !isTopGrade(k.band)) return;
+  const geo = planGeometry(k.futSide, k.entry, k.stop, k.t1);
+  const ch = skepticChallenge(k);
+  if (!ch) return;
+  const sig = `${k.key}|${k.band}|${k.pT1 ?? ""}|${k.expR ?? ""}|${k.fit ?? ""}|${RULES_HASH}|${geo.ok}`;
+  if (st.topicSig["skeptic"] === sig) return;
+  out.push({
+    id: `skeptic|${sig}`,
+    kind: "card",
+    topic: "skeptic",
+    urgency: 1,
+    prio: 6,
+    at: w.nowMs,
+    label: `skeptic on ${k.band} ${k.futSymbol}`,
+    build: (c) => {
+      const f = c.f;
+      const what =
+        ch.factor === "pT1"
+          ? `P of T1 is only ${f.frac(ch.value)}`
+          : ch.factor === "expR"
+            ? `expected value is only ${f.r(ch.value)}`
+            : ch.factor === "fit"
+              ? `fit ${f.raw(ch.value.toFixed(2))} clears the A-minus edge of ${f.raw((ch.edge ?? 0).toFixed(2))} by ${f.raw((ch.margin ?? 0).toFixed(2))}`
+              : `the A-minus edge is ${f.raw((ch.edge ?? 0).toFixed(2))}`;
+      const geoLine = geo.ok ? null : `And the plan is inverted: ${f.raw(geo.why)}. Nobody narrates it until it is fixed.`;
+      const lines = [
+        V.line("Sterling", "CROSSING_ARMS", `Skeptic: ${k.band} on ${k.futSymbol} ${k.futSide}, but ${what}.`),
+        V.line("Sterling", "CHECKING_TABLET", geoLine),
+      ];
+      return { lines: V.compact(lines), moves: {} };
+    },
+    commit: (s) => {
+      s.topicSig["skeptic"] = sig;
+    },
+  });
+}
+
+function rulesCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const prev = st.topicSig["rules"];
+  const edges = bandEdges();
+  if (prev == null) {
+    st.topicSig["rules"] = RULES_HASH;
+    st.topicSig["rules.edges"] = JSON.stringify(edges);
+    return;
+  }
+  if (prev === RULES_HASH) return;
+  let old: Record<string, number> = {};
+  try {
+    old = JSON.parse(st.topicSig["rules.edges"] ?? "{}");
+  } catch {
+    old = {};
+  }
+  const diff = Object.keys({ ...old, ...edges }).filter((b) => old[b] !== edges[b]);
+  out.push({
+    id: `rules|${RULES_HASH}`,
+    kind: "session",
+    topic: "rules",
+    urgency: 2,
+    prio: 9,
+    at: w.nowMs,
+    label: "desk scoring changed",
+    build: (c) => {
+      const f = c.f;
+      const detail = diff.length
+        ? diff.map((b) => `${b} ${old[b] == null ? "new" : f.raw(old[b]!.toFixed(2))} to ${edges[b] == null ? "removed" : f.raw(edges[b]!.toFixed(2))}`).join(", ")
+        : `band edges unchanged, A-minus still ${f.raw((edges["A-"] ?? 0).toFixed(2))}`;
+      return { lines: V.compact([V.line("Nova", "WRITING_ON_WHITEBOARD", `Desk scoring changed, rules ${f.raw(RULES_HASH)}: ${detail}. Grades on the board are re-read on the new edges.`)]), moves: {} };
+    },
+    commit: (s) => {
+      s.topicSig["rules"] = RULES_HASH;
+      s.topicSig["rules.edges"] = JSON.stringify(edges);
+    },
+  });
 }

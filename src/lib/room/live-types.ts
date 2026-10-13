@@ -996,6 +996,8 @@ export interface TalkState {
   /** Remembered calls already brought up — a call is quoted once, not every half hour. */
   memSaid: string[];
   recent: string[];
+  /** floor-62: every line said today (normalised) — a line is never said twice in a day. */
+  saidDay?: string[];
   variant: Record<string, number>;
   spoke: Record<string, number[]>;
   newsSeen: string[];

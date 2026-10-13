@@ -620,7 +620,8 @@ const QUIET = (() => {
   const sim = QUIET;
   const chatter = sim.items.filter((i) => i.kind === "heartbeat");
   const topics = new Set(chatter.map((i) => i.topic));
-  check("a flat tape still makes the room talk — about real things", chatter.length >= 60, String(chatter.length));
+  // floor-62 (Keaton): no filler — chatter speaks only when its data moved and every line cites a number, so a flat tape talks less.
+  check("a flat tape still makes the room talk — about real things", chatter.length >= 20, String(chatter.length));
   check("…but not constantly (chatter budget)", chatter.length <= 260, String(chatter.length));
   check(`about many different things (${topics.size} topics)`, topics.size >= 12, JSON.stringify([...topics]));
   let run = 0;
@@ -651,9 +652,9 @@ const QUIET = (() => {
   check(`never more than ${TALK.budget.max} exchanges in ten minutes`, !over);
   const speakers = {};
   for (const i of sim.items) for (const l of i.lines) speakers[l.character] = (speakers[l.character] ?? 0) + 1;
-  check("all five people talk", CREW5.every((c) => (speakers[c] ?? 0) >= 10), JSON.stringify(speakers));
+  check("all five people talk", CREW5.every((c) => (speakers[c] ?? 0) >= 2), JSON.stringify(speakers));
   const distinct = Object.fromEntries(CREW5.map((c) => [c, new Set(sim.items.flatMap((i) => i.lines.filter((l) => l.character === c).map((l) => l.text))).size]));
-  check("each of them has a lot to say, not a short loop", CREW5.every((c) => distinct[c] >= 12), JSON.stringify(distinct));
+  check("each of them has a lot to say, not a short loop (no line twice)", CREW5.every((c) => distinct[c] >= 2 && distinct[c] === sim.items.flatMap((i) => i.lines.filter((l) => l.character === c)).length), JSON.stringify(distinct));
   check("every exchange is legal", sim.items.every((i) => legal(i).length === 0), JSON.stringify(sim.items.flatMap(legal).slice(0, 4)));
   check("every number in every line was produced by code", sim.items.every((i) => unsourced(i).length === 0), JSON.stringify(sim.items.flatMap(unsourced).slice(0, 6)));
   check("nothing is said about a move: the tape never moved", !sim.items.some((i) => i.kind === "tape"));
