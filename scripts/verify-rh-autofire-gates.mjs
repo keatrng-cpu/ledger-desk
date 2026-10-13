@@ -9,6 +9,7 @@ import { join } from "node:path";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
+const RULES_JSON = JSON.parse(read("shared/desk-rules.json"));
 
 const gates = await import("../src/lib/execution/rh-autofire-gates.ts");
 const rh = await import("../src/lib/execution/rh-autofire.ts");
@@ -483,6 +484,25 @@ console.log("\nsource posture");
   check("rh-autofire never hardcodes env arms true", /RH_LIVE_ARMED\s*=\s*true|RH_OPTIONS_AUTOFIRE_ENABLED\s*=\s*true/.test(src + gsrc), false);
   check("rh-autofire does not place", /place_option_order\(|CallDynamicTool/.test(src), false);
   check("candidateFromFloorPathStand accepts manager", /manager\?:\s*ManagerRoomStateAgree/.test(src), true);
+}
+
+console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless latePnlCheck passes on the fresh live ask");
+{
+  const gateOf = (r) => (r.ok ? "ok" : r.gate);
+  const LP = { pending: true, px: 30000, t1: 30100, spot: 600, delta: 0.5 }; // PnL@T1 $100/ct -> ask <= 1.333 clears 75%
+  const q = (ask, at = NOW - 1_000) => ({ askPrice: ask, bidPrice: ask - 0.02, asOfMs: at, source: "get_option_quotes" });
+  const full = (over) => gates.evaluateRhAutofireGates({ ...QUALIFIED, ...over }, { ...ARMED_FLAGS, nowMs: NOW });
+  check("rules: modelPricePending on", RULES_JSON.lateEntry.modelPricePending, true);
+  check("not pending: unchanged (no live quote needed here)", gateOf(full({ latePnl: null })), "ok");
+  check("pending, no live quote: refuse late_pnl", gateOf(full({ latePnl: LP })), "late_pnl");
+  check("pending, live quote null ask: refuse", gateOf(full({ latePnl: LP, liveQuote: q(null) })), "late_pnl");
+  check("pending, stale live quote: refuse", gateOf(full({ latePnl: LP, liveQuote: q(1.0, NOW - 60_000) })), "late_pnl");
+  check("pending, live ask fails 75%: refuse", gateOf(full({ latePnl: LP, liveQuote: q(1.5) })), "late_pnl");
+  check("pending, live ask clears 75%: ok", gateOf(full({ latePnl: LP, liveQuote: q(1.2) })), "ok");
+  check("pending, missing T1 input: refuse", gateOf(full({ latePnl: { ...LP, t1: null }, liveQuote: q(1.2) })), "late_pnl");
+  check("proposeRhLiveOption hands its liveQuote to the gate", /evaluateRhAutofireGates\(\{ \.\.\.args\.candidate, liveQuote: args\.liveQuote \?\? null \}/.test(read("src/lib/execution/rh-autofire.ts")), true);
+  check("candidateFromFloorPathStand carries floor.latePnl", /latePnl: f\?\.latePnl \?\? null/.test(read("src/lib/execution/rh-autofire.ts")), true);
+  check("manager feed + live loop carry latePnl from the Floor ticket", /latePnl: card\?\.latePnl/.test(read("src/lib/room/manager-room-feed.ts")) && /latePnl: manager\.floor\.latePnl/.test(read("src/lib/room/manager-live-loop.ts")) && /latePnl: candidate\.latePnl/.test(read("src/lib/room/manager-live-loop.ts")) && /card\.ticket\?\.latePnlPending/.test(read("src/lib/room/desk-read.ts")), true);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

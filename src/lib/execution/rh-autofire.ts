@@ -28,6 +28,7 @@ import {
   isBplusBand,
   type RhAccountSnapshot,
   type RhAutofireCandidate,
+  type RhLatePnl,
   type RhAutofireFlags,
   type RhAutofireGateResult,
   type RhStrikeOffset,
@@ -94,7 +95,7 @@ export {
   RH_LIVE_DISARMED_REASON,
   RH_NOT_CONFIRMED_REASON,
 } from "./rh-autofire-gates";
-export type { RhAccountSnapshot, RhAutofireCandidate, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
+export type { RhAccountSnapshot, RhAutofireCandidate, RhLatePnl, RhAutofireFlags, RhAutofireGateResult, RhStrikeOffset };
 
 /**
  * The desk is armed unless the host sets the var to something other than yes. Keaton 2026-10-07: unset means armed, an explicit false disarms.
@@ -257,7 +258,8 @@ export function proposeRhLiveOption(args: {
   liveQuote?: RhLiveOptionQuote | null;
 }): RhAutofireProposal {
   const flags = args.flags ?? rhAutofireFlagsFromEnv(args.env);
-  const gated = evaluateRhAutofireGates(args.candidate, flags);
+  // latePnlPending: the gate re-runs latePnlCheck on THIS live quote (missing → refuse).
+  const gated = evaluateRhAutofireGates({ ...args.candidate, liveQuote: args.liveQuote ?? null }, flags);
   if (!gated.ok) {
     return { gated, ticket: null, placeShape: null, mode: "refused", flags };
   }
@@ -405,6 +407,8 @@ export function candidateFromFloorPathStand(args: {
     confluence: number;
     /** Floor options card ticket.dteTarget. */
     dte?: number | null;
+    /** Floor ticket latePnlPending + inputs — carried to the gate (refuse unless latePnlCheck passes on the live ask). */
+    latePnl?: RhLatePnl | null;
   } | null;
   pathActionable: boolean;
   /**
@@ -485,6 +489,7 @@ export function candidateFromFloorPathStand(args: {
     dte: pick(args.dte, sig?.dte),
     seqTake: typeof args.seqTake === "boolean" ? args.seqTake : null,
     vetoed: typeof args.vetoed === "boolean" ? args.vetoed : null,
+    latePnl: f?.latePnl ?? null,
   };
 }
 
@@ -511,7 +516,7 @@ export interface RhPathFireTrigger {
  */
 export function proposeRhFromPathFire(args: {
   fire: RhPathFireTrigger | null | undefined;
-  floor: { verdict: string; deskContracts: number | null; band: string | null; confluence: number; dte?: number | null } | null;
+  floor: { verdict: string; deskContracts: number | null; band: string | null; confluence: number; dte?: number | null; latePnl?: RhLatePnl | null } | null;
   ticket: RhLiveTicket | null;
   manager?: ManagerRoomStateAgree | null;
   managerCall?: ManagerCallAgree | null;

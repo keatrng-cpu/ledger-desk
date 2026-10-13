@@ -207,6 +207,8 @@ export interface RoomEntryRead {
   /** The desk ticket's contract count — the room may only shrink it. Null = no ticket. */
   deskContracts: number | null;
   sizedFrom: "level" | "ceiling" | null;
+  /** Floor ticket latePnlPending (lateEntry.modelPricePending) + its inputs; the RH gate re-checks on the live ask. */
+  latePnl?: { pending: boolean; px: number | null; t1: number | null; spot: number | null; delta: number | null } | null;
   deltaMin: number;
   deltaMax: number;
   plan: { entry: number; stop: number; t1: number | null; t2: number | null; rr1: number | null } | null;

@@ -133,6 +133,8 @@ export interface RhTicket {
    * option quote before it fires, and refuses on a fail or a missing quote.
    */
   latePnlPending?: boolean;
+  /** The late-PnL inputs the Floor used (px/T1 futures, spot, delta); the RH path re-runs latePnlCheck on the live ask. */
+  latePnlInputs?: { px: number | null; t1: number | null; spot: number | null; delta: number | null };
   /** The real leg, when one was read. Null on a model-priced shape. */
   live: LiveTicketLeg | null;
   /** How this ticket may reach the broker right now. */
@@ -1740,15 +1742,15 @@ function pathContinuation(
   // ARMED when the option PnL at T1 clears the bar — the watcher checks the same before it fires.
   const lateRead = (c as { loss?: { late?: { late?: boolean; block?: boolean; px?: number | null; t1?: number | null } } } | undefined)?.loss?.late;
   if (ticket && c && lateRead?.late && !lateRead.block) {
+    const lpIn = { px: lateRead.px ?? null, t1: lateRead.t1 ?? null, spot, delta: ticket.live?.delta ?? (ticket.deltaMin + ticket.deltaMax) / 2 };
     const lp = latePnlCheck({
-      px: lateRead.px ?? null, t1: lateRead.t1 ?? null, spot,
-      delta: ticket.live?.delta ?? (ticket.deltaMin + ticket.deltaMax) / 2,
+      ...lpIn,
       askEach: ticket.live?.ask ?? ticket.estDebitEach / 100,
     });
     const modelOnly = !ticket.live || ticket.pricedFrom !== "live_chain";
     if (lp.ok) reasons.push(lp.why);
     else if (latePnlPendingOk(lp, modelOnly)) {
-      ticket = { ...ticket, latePnlPending: true };
+      ticket = { ...ticket, latePnlPending: true, latePnlInputs: lpIn };
       reasons.push(`${lp.why} — model price only (no live chain quote): ARMED, latePnlPending — watcher re-checks on the live RH quote`);
     }
     else { blocks.push(lp.why); ticket = null; guardDenied = true; }

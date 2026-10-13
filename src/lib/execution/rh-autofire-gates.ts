@@ -31,6 +31,7 @@
  *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
 import RULES from "../../../shared/desk-rules.json";
+import { latePnlCheck } from "../smc/loss-guards";
 import { ROOM_MANDATE } from "../room/mandate";
 import { APLUS_RULES } from "../aplus/config";
 
@@ -312,6 +313,46 @@ export interface RhAutofireCandidate {
    */
   lastPlaceAtMs?: number | null;
   dayPnlPct?: number | null;
+  /**
+   * lateEntry.modelPricePending: the Floor kept a late card ARMED on a model price (ticket.latePnlPending).
+   * pending → refuse unless latePnlCheck passes on the fresh liveQuote ask (gate "late_pnl").
+   */
+  latePnl?: RhLatePnl | null;
+  /** Fresh get_option_quotes read for the contract that would place (proposeRhLiveOption sets it). */
+  liveQuote?: { askPrice: number | null; bidPrice?: number | null; asOfMs: number | null; source?: string } | null;
+}
+
+/** Floor ticket latePnlPending + the inputs the Floor's latePnlCheck used (futures px/T1, ETF spot, delta). */
+export interface RhLatePnl {
+  pending: boolean;
+  px: number | null;
+  t1: number | null;
+  spot: number | null;
+  delta: number | null;
+}
+
+/**
+ * lateEntry.modelPricePending, desk RH path (fail closed): a pending late ticket needs latePnlCheck
+ * (lateEntry.pnlMinPct, same formula as the watcher) to pass on a FRESH live option ask.
+ * No / stale / bad live quote → refuse. Not pending → ok.
+ */
+export function evaluateRhLatePnl(
+  c: Pick<RhAutofireCandidate, "latePnl" | "liveQuote">,
+  nowMs: number,
+): RhAutofireGateResult {
+  const lp = c.latePnl;
+  if (!lp || lp.pending !== true) return { ok: true, why: "no latePnlPending" };
+  const q = c.liveQuote;
+  const ask = q?.askPrice;
+  const at = q?.asOfMs;
+  const maxAge = RULES.fire.quoteMaxAgeS * 1000;
+  if (!q || typeof ask !== "number" || !(ask > 0) || typeof at !== "number" || !Number.isFinite(at) || nowMs - at > maxAge || at - nowMs > 5_000) {
+    return { ok: false, gate: "late_pnl", reason: "latePnlPending: no fresh live option quote — refuse (model price cannot clear the late PnL bar)." };
+  }
+  const r = latePnlCheck({ px: lp.px, t1: lp.t1, spot: lp.spot, delta: lp.delta, askEach: ask });
+  return r.ok
+    ? { ok: true, why: `latePnlPending cleared on live ask ${ask}: ${r.why}` }
+    : { ok: false, gate: "late_pnl", reason: `latePnlPending on live ask ${ask}: ${r.why} — refuse.` };
 }
 
 export interface RhTicketEnvelope {
@@ -454,6 +495,8 @@ export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofir
   if (!(c.deskContracts >= 1)) {
     return { ok: false, gate: "floor_ticket", reason: "Floor ARMED but no priced ticket (deskContracts < 1)." };
   }
+  const late = evaluateRhLatePnl(c, nowMs);
+  if (!late.ok) return late;
   if (!c.pathActionable) {
     return { ok: false, gate: "path_actionable", reason: "PATH scanner candidate is not actionable." };
   }
