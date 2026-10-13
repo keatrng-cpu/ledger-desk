@@ -341,6 +341,13 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     const noAsOf = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs } });
     check(`propose liveQuote asOfMs ${tag} refuses`, [noAsOf.mode, noAsOf.gated.gate, noAsOf.placeShape], ["refused", "live_quote", null]);
   }
+  check("liveQuote future skew max is 5s", rh.RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS, 5_000);
+  {
+    const skew4 = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs: NOW + 4_000 } });
+    check("propose liveQuote asOfMs future +4s accepted", [skew4.mode, Boolean(skew4.placeShape)], ["live_when_armed", true]);
+    const skew6 = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs: NOW + 6_000 } });
+    check("propose liveQuote asOfMs future +6s refuses", [skew6.mode, skew6.gated.gate, skew6.placeShape], ["refused", "live_quote", null]);
+  }
 
   const overCap = rh.proposeRhLiveOption({
     candidate: QUALIFIED,
@@ -397,6 +404,8 @@ console.log("\nmayPlaceAfterReview preflight");
   for (const [tag, asOfMs] of [["missing", undefined], ["null", null], ["NaN", NaN], ["Infinity", Infinity], ["-Infinity", -Infinity], ["string", String(NOW)], ["future +1h", NOW + 3_600_000], ["future +1y", NOW + 365 * 86_400_000], ["0", 0], ["negative", -1]]) {
     check(`review liveQuote asOfMs ${tag} refuses`, rh.mayPlaceAfterReview({ ...base, liveQuote: { ...base.liveQuote, asOfMs } }).ok, false);
   }
+  check("review liveQuote asOfMs future +4s accepted", rh.mayPlaceAfterReview({ ...base, liveQuote: { ...base.liveQuote, asOfMs: NOW + 4_000 } }).ok, true);
+  check("review liveQuote asOfMs future +6s refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: { ...base.liveQuote, asOfMs: NOW + 6_000 } }).ok, false);
   const { account: _m, ...noManager } = base;
   check("no Manager account key refuses place (fail closed)", rh.mayPlaceAfterReview(noManager).ok, false);
   check("Manager block BP $300 < $400 debit refuses place", rh.mayPlaceAfterReview({ ...base, account: { ...MANAGER_OK, optionsBuyingPowerUsd: 300 } }).ok, false);
