@@ -21,7 +21,7 @@ async function withReport(card: DeskListenCard): Promise<DeskListenCard> {
     const { readGrokReport } = await import("@/lib/desk/grok-report");
     const sql = await getSql();
     const out = attachGrokReport(card, await readGrokReport(sql));
-    // fast-move layer (shadow): Floor seats read the 15s line; never graded until replay-proven
+    // fast-move layer (shadow): wire.fast.floorLine is published for the Floor, but no Floor seat reads it yet; never graded until replay-proven
     try {
       const { fastWire } = await import("@/lib/desk/fast");
       const r = (await sql`select body from desk_fast where id = 1`) as { body: never }[];

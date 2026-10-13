@@ -7,7 +7,8 @@ export function fastWire(body: { at?: number; bars15s?: Record<string, unknown[]
   if (!body) return null;
   const ageS = body.at ? nowMs / 1000 - body.at : null;
   const fresh = ageS != null && ageS <= RULES.fast.freshS;
-  const spikes = (body.spikes ?? []).filter((s) => nowMs / 1000 - s.t <= 300);
+  // a stale feed (fresh=false) carries no spikes: old spikes must never read as live
+  const spikes = fresh ? (body.spikes ?? []).filter((s) => nowMs / 1000 - s.t <= 300) : [];
   const last = spikes[spikes.length - 1];
   const floorLine = fresh && last
     ? `15s: ${last.symbol} ${last.dir} spike ${last.moveAtr}×ATR — ${last.tag === "failed" ? "failed push" : "holding (breakout)"}${last.atExtreme ? " at the session extreme" : ""}${last.fast ? ` · would kill the ${last.fast.kill}, arm the ${last.fast.arm}` : ""}${RULES.fast.shadow ? " (shadow — not graded)" : ""}`

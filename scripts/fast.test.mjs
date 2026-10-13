@@ -11,7 +11,7 @@ test("fast wire: shadow line for a fresh failed spike; stale feed shows nothing"
   const w = fastWire({ at: now / 1000 - 3, spikes: [sp], bars15s: { ES: [] } }, now);
   assert.equal(w.shadow, RULES.fast.shadow); assert.match(w.floorLine, /failed push.*kill the long.*shadow/);
   const st = fastWire({ at: now / 1000 - 999, spikes: [sp] }, now);
-  assert.equal(st.fresh, false); assert.equal(st.floorLine, null);
+  assert.equal(st.fresh, false); assert.equal(st.floorLine, null); assert.deepEqual(st.spikes, []); // stale feed: no spikes
 });
 test("displacement shadow fields never change the graded score", async () => {
   const ex = await import("../src/lib/smc/exec-context.ts");
