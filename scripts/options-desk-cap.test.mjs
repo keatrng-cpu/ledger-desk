@@ -149,9 +149,13 @@ test("sizer never produces a ticket above RH_MAX_DEBIT_TOTAL (incl. 1–10 DTE ~
 });
 
 test("playbook and source clamp read RH_MAX_DEBIT_TOTAL, not a hardcoded $1,000", () => {
+  // fbc9a47f prepended two playbook lines (real-contract / wait-for-array), so
+  // the ceiling line is no longer pb[0]. Find it by content, not by index.
   const pb = optionsDeskPlaybook();
-  assert.match(pb[0], new RegExp(`Ticket ceiling \\$${RH_MAX_DEBIT_TOTAL}`));
-  assert.doesNotMatch(pb[0], /\$1,000/);
+  const ceiling = pb.filter((l) => /Ticket ceiling/.test(l));
+  assert.equal(ceiling.length, 1, "exactly one playbook ceiling line");
+  assert.match(ceiling[0], new RegExp(`Ticket ceiling \\$${RH_MAX_DEBIT_TOTAL}\\b`));
+  for (const line of pb) assert.doesNotMatch(line, /\$1,000/);
 
   const src = readFileSync(join(ROOT, "src/lib/trading/options-desk.ts"), "utf8");
   assert.match(
@@ -164,5 +168,9 @@ test("playbook and source clamp read RH_MAX_DEBIT_TOTAL, not a hardcoded $1,000"
     /Ticket ceiling \$1,000/,
     "no hardcoded Ticket ceiling $1,000 remains",
   );
-  assert.match(src, /0DTE gamma on a \$\$\{RH_MAX_DEBIT_TOTAL\} ticket/);
+  // ad9d7a02 deliberately replaced the "0DTE gamma on a $${RH_MAX_DEBIT_TOTAL}
+  // ticket" reason with "1 contract — 0DTE." (no ceiling in it). Guard instead
+  // that every displayed "Ticket ceiling" is templated, never a literal number.
+  assert.doesNotMatch(src, /Ticket ceiling \$\d/, "no literal Ticket ceiling $<n>");
+  assert.match(src, /Ticket ceiling \$\$\{RH_MAX_DEBIT_TOTAL\}/);
 });
