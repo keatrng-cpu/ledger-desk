@@ -32,3 +32,16 @@ Live evidence: /api/desk/card and LedgerDesk read_scanner at 10:21–10:28 ET. W
 
 ## Safety stops: unchanged
 liveQuote freshness and asOfMs, BP, news ±15m, account lock 995386158, daily cap, the 1-position rule, flat at 15:30, out-of-session entry nulling, and Floor WATCH on a resting limit.
+
+## P0 (added 10:33 ET, Keaton's live case): ES long against an LTF reversal (FIXED)
+The desk held an ES long while the 5m bull FVG had inverted into a bearish IFVG and the 1m had displaced down after a spike-and-fade. Nothing in the scanner, brain or Floor read LTF reversals.
+- New `ltfReversalsOf` / `ltfReversalOf` in `mtf-context.ts`. The side is killed by either of:
+  - (A) a 5m IFVG against the side, at most 6 bars old;
+  - (B) a 1m rejection wick (at least 50% of the bar's range) at the 30-bar high or low, then within 10 bars a body of at least 1 × ATR1m closing beyond the wick bar.
+- When a side is killed:
+  - that side's card is capped at C and is not actionable, and the veto is named;
+  - the opposite side gets +0.03 q;
+  - the MTF alignment flips the LTF leg;
+  - the brain's book on the killed side becomes STAND.
+- The kill is temporary. A long re-arms only when this happens in order: an SSL sweep (a bar takes every low since the kill and closes back above it), then a 1m body of at least 1 × ATR in the side's direction, then a close back through the far edge of the opposing array. A re-armed card is capped at A-; mirror rules apply for shorts.
+- Test fixture: `scripts/fixtures/card-2026-10-13-1033et.json`, the live card at 14:34Z. Tests in `scripts/ltf-reversal.test.mjs` cover kill → rebuild → A-.

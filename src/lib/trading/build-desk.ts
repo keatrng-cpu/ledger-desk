@@ -1079,6 +1079,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // judas-window.ts correctly refuses to release. Passing it here is what
     // makes the release possible at all — and only while the gateway is up,
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
+    const LTF_FLIP_NUDGE = 0.03;
     const mtfContext = buildMtfContext(
       { symbol: left.symbol, minute: minuteL, bars15: closedL },
       { symbol: right.symbol, minute: minuteR, bars15: closedR },
@@ -1143,6 +1144,38 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.actionable = false;
           c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
         }
+      }
+      // Keaton 10:33 ET: an LTF reversal (5m IFVG / 1m rejection + displacement)
+      // against a side caps that card at C and moves weight to the other side.
+      for (const c of payload.scan.candidates) {
+        const book = mtfContext.books.find((x) => x.symbol === c.symbol);
+        const own = book?.ltfReversals.find((r) => r.against === c.side);
+        const rev = own ?? book?.ltfReversal;
+        if (!rev) continue;
+        if (rev.against === c.side && rev.rearmed) {
+          c.pathBand = capBand(c.pathBand, "A-") as never;
+          c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
+        } else if (rev.against === c.side) {
+          c.pathBand = capBand(c.pathBand, "C") as never;
+          c.actionable = false;
+          c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
+          c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
+        } else if (!rev.rearmed) {
+          c.confluence = +Math.min(0.99, c.confluence + LTF_FLIP_NUDGE).toFixed(4);
+          c.reasons.push(`LTF reversal favours ${c.side} (+${LTF_FLIP_NUDGE}): ${rev.why[0]}`);
+        }
+      }
+      // The brain reads the same LTF reversal: its book on the reversed side stands.
+      for (const bk of [smcMaster.left, smcMaster.right]) {
+        const rev = mtfContext.books.find((x) => x.symbol === bk?.symbol)?.ltfReversals.find((r) => r.against === bk?.side);
+        if (bk && rev && !rev.rearmed && bk.side === rev.against && bk.word !== "STAND") {
+          bk.word = "STAND";
+          bk.missing = `LTF reversal against ${bk.side}: ${rev.why[0]}`;
+        }
+      }
+      if (smcMaster.oneBook) {
+        const ob = smcMaster.oneBook;
+        smcMaster.thesis = `${ob.word} ${ob.symbol} ${ob.side ?? ""} · ${ob.mustPass}/${ob.mustNeed} · ${ob.missing}`.trim();
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
       for (const c of payload.scan.candidates) sealBand(c as never);

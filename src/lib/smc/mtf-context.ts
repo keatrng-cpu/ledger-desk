@@ -11,7 +11,7 @@
  * or a continuation stack). Score = parts / 3. A read, never a gate.
  */
 import type { OhlcBar } from "@/lib/market/types";
-import { detectSweeps, fractalSwings } from "@/lib/trading/detectors";
+import { detectSweeps, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { HTF_RUNGS, LTF_RUNGS, mtfArrays, rung, type ArrayTf } from "./mtf-arrays";
 
 export type Dir = "bull" | "bear";
@@ -39,8 +39,24 @@ export interface SmtRead {
   ageBars: number;
 }
 
+export interface LtfReversal {
+  /** The side this reversal invalidates. */
+  against: "long" | "short";
+  why: string[];
+  /** Time the kill printed (ms). */
+  killT: number;
+  /** The opposing array's far edge the rebuild must close back through. */
+  level: number;
+  /** Temporary kill: set once sweep → displacement → inversion-back prints. Card is capped A- then. */
+  rearmed: { t: number; why: string } | null;
+}
 export interface BookMtf {
   symbol: string;
+  /** Keaton 10:33 ET case: a fresh 5m IFVG against a side, or a 1m
+   *  displacement against it right after a rejection wick at a high/low. */
+  ltfReversal: LtfReversal | null;
+  /** Every side's kill (with its re-arm state) — a re-armed side stays capped A-. */
+  ltfReversals: LtfReversal[];
   rungs: RungRead[];
   align: { long: Alignment; short: Alignment };
 }
@@ -155,7 +171,18 @@ export function buildMtfContext(
       const r = rungs.find((x) => x.tf === row.tf);
       if (r) r.arrays[row.kind] += 1;
     }
-    return { symbol: b.symbol, rungs, align: { long: alignFor(rungs, "long"), short: alignFor(rungs, "short") } };
+    const rows = mtfArrays(b.symbol, b.minute, b.bars15);
+    const revs = ltfReversalsOf(rows, b.minute);
+    const rev = ltfReversalOf(rows, b.minute);
+    const align = { long: alignFor(rungs, "long"), short: alignFor(rungs, "short") };
+    if (rev && !rev.rearmed) {
+      // LTF weight flips to the other side.
+      const other = rev.against === "long" ? "short" : "long";
+      const re = (a: Alignment, ltf: boolean): Alignment => ({ ...a, ltf, score: +((Number(a.htf) + Number(a.mtf) + Number(ltf)) / 3).toFixed(2) });
+      align[rev.against] = re(align[rev.against], false);
+      align[other] = re(align[other], true);
+    }
+    return { symbol: b.symbol, rungs, align, ltfReversal: rev, ltfReversals: revs };
   };
   const books = [book(left), book(right)];
   const smt: SmtRead[] = [];
@@ -184,6 +211,8 @@ export function wireMtf(ctx: MtfContext) {
     books: ctx.books.map((b) => ({
       symbol: b.symbol,
       align: b.align,
+      ltfReversal: b.ltfReversal,
+      ltfReversals: b.ltfReversals,
       rungs: b.rungs.map((r) => ({
         tf: r.tf,
         bias: r.bias,
@@ -202,4 +231,118 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   if (!b) return null;
   const r = (tf: string) => b.rungs.find((x) => x.tf === tf)?.bias ?? null;
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
+}
+
+export const IFVG5_MAX_AGE = 6;
+export const REJECT_WICK_FRAC = 0.5;
+export const DISP1_ATR = 1;
+export const REJECT_LOOKBACK = 10;
+export const EXTREME_LOOKBACK = 30;
+
+type Side = "long" | "short";
+interface Kill { side: Side; t: number; level: number; why: string }
+
+/**
+ * LTF reversal against a side (Keaton 2026-10-13 10:33 ET). Triggers, CLOSED bars:
+ *  A. a 5m IFVG whose new direction opposes the side, ≤ 6 bars old;
+ *  B. 1m rejection wick (≥ 50% of range) at the 30-bar high (low), then within
+ *     10 bars a body ≥ 1×ATR1m closing beyond the wick bar's far end.
+ * TEMPORARY: the killed side re-arms on sweep → displacement → inversion back
+ * (see `rearmAfter`); then the card is capped at A-.
+ */
+export function ltfReversalsOf(
+  rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number }[],
+  minute: OhlcBar[] | null | undefined,
+): LtfReversal[] {
+  const m = (minute ?? []).slice(0, -1); // drop the forming bar
+  const lastT = m.length ? m[m.length - 1].t : Date.now();
+  const kills: Kill[] = [];
+  for (const r of rows) {
+    if (r.tf !== "5m" || r.kind !== "ifvg" || r.mitigated || r.ageBars > IFVG5_MAX_AGE) continue;
+    const side: Side = r.dir === "bear" ? "long" : "short";
+    const level = side === "long" ? (r.hi ?? NaN) : (r.lo ?? NaN);
+    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b) against the ${side}` });
+  }
+  const atrs = m.length ? rollingAtr(m) : [];
+  const n = m.length;
+  if (n > EXTREME_LOOKBACK + 2) {
+    for (let i = Math.max(EXTREME_LOOKBACK, n - 3 * REJECT_LOOKBACK); i < n - 1; i++) {
+      const w = m[i];
+      const rng = w.h - w.l;
+      if (!(rng > 0)) continue;
+      const prior = m.slice(i - EXTREME_LOOKBACK, i);
+      const hi = Math.max(...prior.map((x) => x.h));
+      const lo = Math.min(...prior.map((x) => x.l));
+      const upper = (w.h - Math.max(w.o, w.c)) / rng;
+      const lower = (Math.min(w.o, w.c) - w.l) / rng;
+      for (let j = i + 1; j < Math.min(n, i + 1 + REJECT_LOOKBACK); j++) {
+        const d = m[j];
+        const atr = atrs[j];
+        if (!(atr > 0)) continue;
+        const body = Math.abs(d.c - d.o);
+        if (w.h >= hi && upper >= REJECT_WICK_FRAC && d.c < d.o && body >= DISP1_ATR * atr && d.c < w.l) {
+          kills.push({ side: "long", t: d.t, level: d.o, why: `1m rejection wick at the high ${w.h} then a ${(body / atr).toFixed(1)}×ATR down displacement` });
+          break;
+        }
+        if (w.l <= lo && lower >= REJECT_WICK_FRAC && d.c > d.o && body >= DISP1_ATR * atr && d.c > w.h) {
+          kills.push({ side: "short", t: d.t, level: d.o, why: `1m rejection wick at the low ${w.l} then a ${(body / atr).toFixed(1)}×ATR up displacement` });
+          break;
+        }
+      }
+    }
+  }
+  const out: LtfReversal[] = [];
+  for (const side of ["long", "short"] as Side[]) {
+    const ks = kills.filter((x) => x.side === side).sort((p, q) => q.t - p.t);
+    if (!ks.length) continue;
+    const levels = ks.map((x) => x.level).filter((x) => Number.isFinite(x));
+    // The rebuild must reclaim the FARTHEST opposing edge of the evidence.
+    const level = levels.length ? (side === "long" ? Math.max(...levels) : Math.min(...levels)) : NaN;
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) });
+  }
+  return out;
+}
+
+/** The governing read: the newest live (un-rearmed) kill; else the newest re-armed one. */
+export function ltfReversalOf(
+  rows: Parameters<typeof ltfReversalsOf>[0],
+  minute: OhlcBar[] | null | undefined,
+): LtfReversal | null {
+  const all = ltfReversalsOf(rows, minute);
+  const live = all.filter((r) => !r.rearmed).sort((a, b) => b.killT - a.killT);
+  // Two live kills on opposite sides = no clean read.
+  if (live.length === 2) return null;
+  return live[0] ?? all.sort((a, b) => b.killT - a.killT)[0] ?? null;
+}
+
+/**
+ * Re-arm (Keaton): for a long, after the kill —
+ *  1. a sell-side sweep: a 1m bar trades below every low since the kill and
+ *     CLOSES back above that low;
+ *  2. then a real displacement up: body ≥ 1×ATR1m;
+ *  3. that displacement (or a later close) is back through the opposing
+ *     array's far edge (`level`) — the bearish IFVG/FVG inverted back.
+ * Mirror for shorts. Returns null until all three print in order.
+ */
+export function rearmAfter(m: OhlcBar[], atrs: number[], side: Side, killT: number, level: number): { t: number; why: string } | null {
+  if (!Number.isFinite(level)) return null;
+  const start = m.findIndex((b) => b.t > killT);
+  if (start < 0) return null;
+  const long = side === "long";
+  let ext = long ? m[start].l : m[start].h;
+  let swept = -1;
+  for (let i = start + 1; i < m.length; i++) {
+    const b = m[i];
+    if (swept < 0) {
+      if (long ? b.l < ext && b.c > ext : b.h > ext && b.c < ext) { swept = i; continue; }
+      ext = long ? Math.min(ext, b.l) : Math.max(ext, b.h);
+      continue;
+    }
+    const atr = atrs[i];
+    const body = long ? b.c - b.o : b.o - b.c;
+    if (atr > 0 && body >= DISP1_ATR * atr && (long ? b.c > level : b.c < level)) {
+      return { t: b.t, why: `${long ? "SSL" : "BSL"} sweep → ${(body / atr).toFixed(1)}×ATR ${long ? "up" : "down"} displacement → closed back through ${level}` };
+    }
+  }
+  return null;
 }
