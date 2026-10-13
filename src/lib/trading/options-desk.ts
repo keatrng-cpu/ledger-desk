@@ -1711,6 +1711,13 @@ function pathContinuation(
           liveCtxFor(desk, underlier, c, liveInputs),
         )
       : null;
+  // Loss guards (shared rules loss.htf): 1h+4h both oppose → the desk set sizeMult < 1 on the card; the Floor ticket applies it.
+  const lossMult = (c as { sizeMult?: number } | undefined)?.sizeMult ?? 1;
+  if (ticket && c && lossMult < 1) {
+    const n = Math.max(1, Math.floor(ticket.contracts * lossMult));
+    if (n < ticket.contracts) ticket = shrinkTicket(ticket, n, `1h+4h oppose size cut ×${lossMult}`);
+    else reasons.push(`1h+4h oppose size cut ×${lossMult} wanted; ticket already at the 1-contract floor`);
+  }
   if (ticket && c && pressured) {
     const n = contractsAfterEvent(c.confluence, String(c.pathBand || c.grade), true);
     if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");
