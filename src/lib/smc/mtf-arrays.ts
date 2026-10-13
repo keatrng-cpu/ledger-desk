@@ -35,6 +35,7 @@ export interface ArrayRow {
   ce: number;
   mitigated: boolean;
   ageBars: number;
+  formedAgeBars: number;
   createdT: number;
 }
 
@@ -70,7 +71,10 @@ function rowsFor(tf: ArrayTf, bars: OhlcBar[], gaps: FvgResult[]): ArrayRow[] {
       hi: r2(g.top),
       ce: r2((g.top + g.bottom) / 2),
       mitigated: !inv && g.fill === "full",
-      ageBars: last - g.createdIndex,
+      // IFVG age counts from the INVERSION (the close through), not from when
+      // the gap formed (AUDIT R2-1). `formedAgeBars` keeps the creation age.
+      ageBars: inv && g.invertedIndex != null ? last - g.invertedIndex : last - g.createdIndex,
+      formedAgeBars: last - g.createdIndex,
       createdT: g.createdT,
     };
   });

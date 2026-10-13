@@ -71,6 +71,8 @@ export interface MtfContext {
   smt: SmtRead[];
   /** Fastest SMT read (smallest tf), or null. */
   smtLead: SmtRead | null;
+  /** Weighted vote behind `smtLead` (AUDIT R2-2). */
+  smtVote?: { bullish: number; bearish: number; margin: number };
 }
 
 function structureOf(bars: OhlcBar[]): RungRead["structure"] {
@@ -193,7 +195,8 @@ export function buildMtfContext(
     const s = smtOn(tf, { symbol: left.symbol, bars: rung(left.symbol, srcL, tf).bars }, { symbol: right.symbol, bars: rung(right.symbol, srcR, tf).bars });
     if (s) smt.push(s);
   }
-  return { books, smt, smtLead: smt[0] ?? null };
+  const w = weightedSmt(smt);
+  return { books, smt, smtLead: w.lead, smtVote: w.vote };
 }
 
 /** SMT fix 2: the failing book's continuation (its long on bearish SMT, its short on bullish) caps at B. */
@@ -222,6 +225,8 @@ export function wireMtf(ctx: MtfContext) {
       })),
     })),
     smt: ctx.smt,
+    smtLead: ctx.smtLead,
+    smtVote: ctx.smtVote ?? null,
   };
 }
 
@@ -235,9 +240,10 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
 
 export const IFVG5_MAX_AGE = 6;
 export const REJECT_WICK_FRAC = 0.5;
-export const DISP1_ATR = 1;
+export const DISP1_ATR = 1.25;
+export const DISP_LEG_BARS = 3;
 export const REJECT_LOOKBACK = 10;
-export const EXTREME_LOOKBACK = 30;
+export const EXTREME_LOOKBACK = 10;
 
 type Side = "long" | "short";
 interface Kill { side: Side; t: number; level: number; why: string }
@@ -245,7 +251,7 @@ interface Kill { side: Side; t: number; level: number; why: string }
 /**
  * LTF reversal against a side (Keaton 2026-10-13 10:33 ET). Triggers, CLOSED bars:
  *  A. a 5m IFVG whose new direction opposes the side, ≤ 6 bars old;
- *  B. 1m rejection wick (≥ 50% of range) at the 30-bar high (low), then within
+ *  B. 1m rejection wick (≥ 50% of range) at the 10-bar high (low), then within
  *     10 bars a body ≥ 1×ATR1m closing beyond the wick bar's far end.
  * TEMPORARY: the killed side re-arms on sweep → displacement → inversion back
  * (see `rearmAfter`); then the card is capped at A-.
@@ -275,18 +281,37 @@ export function ltfReversalsOf(
       const lo = Math.min(...prior.map((x) => x.l));
       const upper = (w.h - Math.max(w.o, w.c)) / rng;
       const lower = (Math.min(w.o, w.c) - w.l) / rng;
-      for (let j = i + 1; j < Math.min(n, i + 1 + REJECT_LOOKBACK); j++) {
-        const d = m[j];
-        const atr = atrs[j];
-        if (!(atr > 0)) continue;
-        const body = Math.abs(d.c - d.o);
-        if (w.h >= hi && upper >= REJECT_WICK_FRAC && d.c < d.o && body >= DISP1_ATR * atr && d.c < w.l) {
-          kills.push({ side: "long", t: d.t, level: d.o, why: `1m rejection wick at the high ${w.h} then a ${(body / atr).toFixed(1)}×ATR down displacement` });
-          break;
-        }
-        if (w.l <= lo && lower >= REJECT_WICK_FRAC && d.c > d.o && body >= DISP1_ATR * atr && d.c > w.h) {
-          kills.push({ side: "short", t: d.t, level: d.o, why: `1m rejection wick at the low ${w.l} then a ${(body / atr).toFixed(1)}×ATR up displacement` });
-          break;
+      // The displacement is a LEG: up to DISP_LEG_BARS consecutive bodies in
+      // one direction starting within REJECT_LOOKBACK bars of the wick, net
+      // ≥ DISP1_ATR × ATR1m, closing beyond the wick bar's far end AND beyond
+      // the bar that built into the extreme (replay 10:27–10:29 ET: a 0.67
+      // wick at the 30-bar high, then 7852.50 → 7850.00 = 1.3×ATR).
+      let done = false;
+      for (let s0 = i + 1; s0 < Math.min(n, i + 1 + REJECT_LOOKBACK) && !done; s0++) {
+        for (const dn of [true, false]) {
+          if (dn ? !(w.h >= hi && upper >= REJECT_WICK_FRAC) : !(w.l <= lo && lower >= REJECT_WICK_FRAC)) continue;
+          for (let j = s0; j < Math.min(n, s0 + DISP_LEG_BARS); j++) {
+            const d = m[j];
+            if (dn ? d.c > d.o : d.c < d.o) break;
+            const atr = atrs[j];
+            if (!(atr > 0)) break;
+            const leg = dn ? m[s0].o - d.c : d.c - m[s0].o;
+            const base = m[i - 1];
+            const through = dn ? d.c < w.l && d.c < base.l : d.c > w.h && d.c > base.h;
+            // A close back beyond the wick's extreme voids the read (no fade).
+            const voided = m.slice(j + 1).some((x) => (dn ? x.c > w.h : x.c < w.l));
+            if (leg >= DISP1_ATR * atr && through && !voided) {
+              kills.push({
+                side: dn ? "long" : "short",
+                t: d.t,
+                level: m[s0].o,
+                why: `1m rejection wick at the ${dn ? "high" : "low"} ${dn ? w.h : w.l} then a ${(leg / atr).toFixed(1)}×ATR ${dn ? "down" : "up"} displacement`,
+              });
+              done = true;
+              break;
+            }
+          }
+          if (done) break;
         }
       }
     }
@@ -345,4 +370,34 @@ export function rearmAfter(m: OhlcBar[], atrs: number[], side: Side, killT: numb
     }
   }
   return null;
+}
+
+/** Timeframe weights for the SMT vote: slower reads carry more. */
+export const SMT_TF_WEIGHT: Record<string, number> = { "1m": 1, "2m": 1, "3m": 1.5, "4m": 1.5, "5m": 2, "15m": 3, "30m": 3, "1h": 4, "4h": 4 };
+/** The winning kind must carry ≥ this share of the total weight. */
+export const SMT_LEAD_SHARE = 0.6;
+/** A read older than this many of its own bars is half weight. */
+export const SMT_FRESH_BARS = 6;
+
+/**
+ * AUDIT R2-2: the SMT lead is a weighted vote across timeframes, not the
+ * fastest (1m) read — live 10:28 ET had 1m bullish, 2m/3m bearish and
+ * 5m/30m/4h bullish at once. The winning kind needs ≥ 60% of the weight; the
+ * lead returned is that kind's FASTEST read (the trigger) whose leader/failing
+ * pair matches the majority pair. No majority → null (no SMT cap, no override).
+ */
+export function weightedSmt(smt: SmtRead[]): { lead: SmtRead | null; vote: { bullish: number; bearish: number; margin: number } } {
+  const wt = (r: SmtRead) => (SMT_TF_WEIGHT[r.tf] ?? 1) * (r.ageBars > SMT_FRESH_BARS ? 0.5 : 1);
+  let bull = 0, bear = 0;
+  for (const r of smt) (r.kind === "bullish" ? (bull += wt(r)) : (bear += wt(r)));
+  const tot = bull + bear;
+  const vote = { bullish: +bull.toFixed(2), bearish: +bear.toFixed(2), margin: tot ? +(Math.abs(bull - bear) / tot).toFixed(2) : 0 };
+  if (!tot) return { lead: null, vote };
+  const kind = bull >= bear ? "bullish" : "bearish";
+  if ((kind === "bullish" ? bull : bear) / tot < SMT_LEAD_SHARE) return { lead: null, vote };
+  const same = smt.filter((r) => r.kind === kind);
+  const pairW = new Map<string, number>();
+  for (const r of same) pairW.set(r.leader, (pairW.get(r.leader) ?? 0) + wt(r));
+  const leader = [...pairW.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  return { lead: same.find((r) => r.leader === leader) ?? null, vote };
 }

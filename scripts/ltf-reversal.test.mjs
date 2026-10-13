@@ -75,3 +75,39 @@ test("killed card is C and not actionable", () => {
   d.sealBand(c);
   assert.equal(c.pathBand, "C"); assert.equal(c.actionable, false);
 });
+
+// REPLAY: the desk's own ES 1m feed (Yahoo hole-fill, fetchYahooBars 1d/1m),
+// 2026-10-13 through the 10:33 ET close — Keaton's live case.
+const es = JSON.parse(readFileSync(new URL("./fixtures/es-1m-2026-10-13-to-1033et.json", import.meta.url))).bars;
+const arr = await import("../src/lib/smc/mtf-arrays.ts");
+const viewAt = (hhmm) => {
+  const cut = es.findIndex((b) => new Date(b.t - 4 * 3600e3).toISOString().slice(11, 16) === hhmm) + 1;
+  const v = es.slice(0, cut);
+  return v.concat([{ ...v[v.length - 1], t: v[v.length - 1].t + 60e3 }]);
+};
+test("REPLAY 10:33 ET: the ES long is killed (5m IFVG aged from inversion + 1m spike-and-fade)", () => {
+  const v = viewAt("10:33");
+  const rows = arr.mtfArrays("ES", v, []);
+  const r = m.ltfReversalOf(rows, v);
+  assert.equal(r?.against, "long");
+  assert.equal(r.rearmed, null);
+  const why = m.ltfReversalsOf(rows, v).find((x) => x.against === "long").why.join(" | ");
+  assert.match(why, /5m IFVG bear/);
+  const oneMin = m.ltfReversalsOf([], v).find((x) => x.against === "long");
+  assert.match(oneMin.why[0], /rejection wick at the high 7853.75/);
+});
+test("REPLAY: IFVG age is counted from the inversion, not the gap's formation", () => {
+  const rows = arr.mtfArrays("ES", viewAt("10:33"), []).filter((r) => r.tf === "5m" && r.kind === "ifvg");
+  assert.ok(rows.some((r) => r.formedAgeBars > m.IFVG5_MAX_AGE && r.ageBars <= m.IFVG5_MAX_AGE));
+});
+test("normal pullback in an uptrend (small wick, 1-bar dip, higher low) does not kill", () => {
+  const out = []; let p = 7800;
+  for (let i = 0; i < 60; i++) {
+    const dip = i % 6 === 5;
+    const o = p, c = dip ? p - 1 : p + 1.5;
+    out.push({ t: T0 + i * 60e3, o, h: Math.max(o, c) + 0.25, l: Math.min(o, c) - 0.25, c, v: 1 });
+    p = c;
+  }
+  out.push({ ...out[out.length - 1], t: out[out.length - 1].t + 60e3 });
+  assert.equal(m.ltfReversalsOf([], out).find((x) => x.against === "long"), undefined);
+});
