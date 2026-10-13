@@ -80,7 +80,7 @@ export const APLUS_RULES = {
      * (confluenceFloor - 0.05, its own config band), SMC sequence TAKE on its
      * side, no veto (room / Stand / Owner), plus the same CE touch, tape <= 30s,
      * DTE 0|1, BP and 11:00 / 10:00-A+-only rules as every grade.
-     * Size: exactly 1 contract; debit still inside the $150-$550 envelope.
+     * Size: exactly 1 contract; debit still inside the $50-$550 envelope.
      */
     bPlusLive: {
       fitFloor: 0.6,

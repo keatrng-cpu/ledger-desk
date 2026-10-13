@@ -202,7 +202,7 @@ for (const [path] of FLOORS) {
       // claiming it was live. Only a real import/export specifier counts.
       const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const imported = new RegExp(
-        `(?:from|import|require\\()\\s*["'][^"']*?(?:^|/)${esc}(?:\\.tsx?)?["']`,
+        `(?:from|import\\s*\\(?|require\\()\\s*["'][^"']*?(?:^|/)${esc}(?:\\.tsx?)?["']`,
       ).test(src);
       if (imported) {
         referenced = true;
@@ -254,11 +254,11 @@ for (const [path] of FLOORS) {
    *   src/lib/multiplayer/ -> DELETED. 21KB of peer-to-peer code in a futures
    *                       desk, no consumers.
    *
-   * These four are what WIDENING the scan to all of src/lib then surfaced.
+   * These are what WIDENING the scan to all of src/lib then surfaced.
    * They are infrastructure rather than non-desk junk, and deleting auth or
    * attestation code nobody asked about is not a guard's decision to make:
    *
-   *   auth/isolation.server.ts, auth/popup.server.ts, auth/verify.server.ts
+   *   auth/popup.server.ts
    *     — server-side session handling. Other .server.ts modules in this repo
    *       ARE imported normally (coach/claude-server by trading-coach.tsx), so
    *       being unimported is a real signal, not a framework artefact.
@@ -269,21 +269,21 @@ for (const [path] of FLOORS) {
    * Each needs a deliberate wire-or-delete by the trader.
    */
   const KNOWN_DARK = new Set([
-    "src/lib/auth/isolation.server.ts",
     "src/lib/auth/popup.server.ts",
-    "src/lib/auth/verify.server.ts",
     "src/lib/journal/attest-fn.ts",
     // Alpaca adapter is exercised by verify-room-exec. The live desk places on
     // Robinhood (rh-autofire), so nothing under src/ imports this module.
     "src/lib/room/exec/alpaca.ts",
-    // 2026-10-08: the tape-freshness decision (ITEM 21). Pure and verified by
-    // verify-tape-trust.mjs, but it only becomes a gate when scanner.ts calls
-    // it — one line, in `src/lib/trading/scanner.ts`, right after the candidate
-    // is built:
-    //   if (applyTapeTrust(c, tapeTrust(bars, { nowMs, interval: read.interval, lagSec: quote?.lagSec, source: quote?.source }))) return c;
-    // Comes off this list the moment that line lands.
-    "src/lib/market/tape-trust.ts",
+    // Floor avatar IK / locomotion — present for the 3D room, no decision path
+    // under src/ imports them yet.
+    "src/lib/room/floor-ik.ts",
+    "src/lib/room/floor-locomotion.ts",
   ]);
+  // 2026-10-12: auth/verify.server.ts and market/tape-trust.ts came off — both now
+  // imported from live src/ paths (inventory refresh; guards unchanged).
+  // 2026-10-12: rh-http / rh-ledger / rh-mcp came off — wired via dynamic import()
+  // from cron + rh-server / option-marks; the dark scan now matches import("...").
+  // 2026-10-12: auth/isolation.server.ts came off — middleware.ts dynamic-imports it.
   // 2026-10-06: src/lib/execution/rh-autofire.ts came off — the real Manager feed's live loop
   // (src/lib/room/manager-live-loop.ts) drives it, and the Floor's Manager panel prints its read.
   // 2026-09-24: setup-memory.ts came off — `trade-log.ts` adapts the
