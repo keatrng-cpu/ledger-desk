@@ -194,7 +194,9 @@ console.log("\nPATH fire → propose (primary trigger, never places)");
   check("Floor WATCH refuses", m(args(fire("A+", 0.78), { floor: { verdict: "WATCH", deskContracts: 2, band: "A+", confluence: 0.7 } })), "floor");
   check("Stand not agreeing refuses", m(args(fire("A+", 0.78), { agentAgree: false })), "agent");
   check("Manager disagree refuses", m(args(fire("A+", 0.78), { manager: { call: { agentAgree: false } } })), "agent");
-  check("BP $120 refuses bp_floor", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 120 } })), "bp_floor");
+  // $50 BP floor (envelope $50-$550): $120 clears the floor but not this ticket's debit; $40 is under the floor
+  check("BP $120 refuses bp_ticket (over the $50 floor, under the debit)", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 120 } })), "bp_ticket");
+  check("BP $40 refuses bp_floor ($50 floor)", m(args(fire("A+", 0.78), { account: { ...FUNDED, buyingPower: 40 } })), "bp_floor");
   check("BP unknown refuses", m(args(fire("A+", 0.78), { account: null })), "bp_unknown");
   check("Individual 7477 refuses", m(args(fire("A+", 0.78), { account: { ...FUNDED, accountNumber: "415577477" } })), "bp_wrong_account");
   check("env defaults (empty) are armed", m(args(fire("A+", 0.78), { flags: undefined, env: {} })) !== "autofire_off", true);
@@ -222,7 +224,8 @@ console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
   check("B+ no CE touch refuse", g({ ...B, ceTouch: false }), "ce_touch");
   check("B+ tape 31s refuse", g({ ...B, tapeAgeSec: 31 }), "tape_stale");
   check("B+ DTE 2 refuse", g({ ...B, dte: 2 }), "dte");
-  check("B+ BP $120 refuse", g({ ...B, account: { ...FUNDED, buyingPower: 120 } }), "bp_floor");
+  check("B+ BP $120 ok (over the $50 floor)", g({ ...B, account: { ...FUNDED, buyingPower: 120 } }), "ok");
+  check("B+ BP $40 refuse ($50 floor)", g({ ...B, account: { ...FUNDED, buyingPower: 40 } }), "bp_floor");
   check("B+ at 11:05 ET refuse", g(B, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "bp_stale");
   check("B+ at 11:05 ET (fresh BP) still ok — clock cuts size",
     g({ ...B, account: { ...FUNDED, asOfMs: Date.UTC(2026, 9, 6, 15, 4, 50) } }, { ...FLAGS, nowMs: Date.UTC(2026, 9, 6, 15, 5, 0) }), "ok");
@@ -236,8 +239,10 @@ console.log("\nB+ explicit live gate (Accuracy + Keaton 2026-10-06)");
   check("B+ propose 1ct $160 → live_when_armed", [p1.mode, p1.placeShape?.quantity], ["live_when_armed", 1]);
   const p2 = rh.proposeRhLiveOption({ candidate: B, ticket: t(2, 320), flags: FLAGS, liveQuote: bq(1.6) });
   check("B+ propose 2ct refuses bplus_size", [p2.mode, p2.gated.gate], ["refused", "bplus_size"]);
-  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 80), flags: FLAGS, liveQuote: bq(0.8) });
-  check("B+ 1ct under $90 envelope refuses debit_floor", [p0.mode, p0.gated.gate], ["refused", "debit_floor"]);
+  const p0 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 40), flags: FLAGS, liveQuote: bq(0.4) });
+  check("B+ 1ct $40 under the $50 envelope floor refuses debit_floor", [p0.mode, p0.gated?.gate], ["refused", "debit_floor"]);
+  const p80 = rh.proposeRhLiveOption({ candidate: B, ticket: t(1, 80), flags: FLAGS, liveQuote: bq(0.8) });
+  check("B+ 1ct $80 (over the $50 floor) → live_when_armed", p80.mode, "live_when_armed");
   const rev = {
     gatesStillOk: true, liveArmedNow: true, confirmedInWriting: true, reviewHadBlockingAlert: false,
     agenticAllowed: true, optionsLevelOk: true, accountAtReview: FUNDED,
