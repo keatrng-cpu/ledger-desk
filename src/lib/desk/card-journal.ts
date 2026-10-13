@@ -1,3 +1,4 @@
+import DESK_RULES from "../../../shared/desk-rules.json";
 /**
  * Fix 23 + 25 — the desk scores itself. Every A-/A/A+ card with a real
  * entry, stop and target is journaled once; open rows are resolved against
@@ -165,7 +166,10 @@ export async function journalReport(sql: Sql, nowMs: number, days = 7) {
   };
 }
 
-/** Fix 19: after ±2R on the day, A+ only. Null rToday (no data) = normal. */
+/** Fix 19: after ±absR on the day, A+ only. Null rToday (no data) = normal. Applied only when dayGovernor.mode is live. */
 export function governorOf(rToday: number | null): "normal" | "A+ only" {
-  return rToday != null && Math.abs(rToday) >= 2 ? "A+ only" : "normal";
+  return rToday != null && Math.abs(rToday) >= DESK_RULES.dayGovernor.absR ? "A+ only" : "normal";
+}
+export function governorLive(): boolean {
+  return DESK_RULES.dayGovernor.mode === "live";
 }

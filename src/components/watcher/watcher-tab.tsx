@@ -1,5 +1,6 @@
 /** Watcher tab — read-only view of the live desk-watcher (RH options placed from the desk). No order buttons. */
 import { useEffect, useState } from "react";
+import { weekLine } from "@/lib/execution/weekly-lock";
 
 type Gate = { name: string; ok: boolean | null; why: string };
 type Pos = {
@@ -14,6 +15,7 @@ type Status = {
   heartbeat: number; mode?: string; live: boolean; fire_enabled: boolean; stop_file: boolean; account: string; rules_version?: number;
   card: Record<string, unknown>; gates: Gate[]; gates_at?: number; position: Pos | null;
   day: { date: string; entries: number; cap: number; bplus_entries: number; lost: boolean; fires: Fire[]; skips: Skip[] };
+  week?: { key?: string | null; pnl?: number | null; peak?: number | null; locked?: boolean | null; state?: string | null } | null;
 };
 type Resp = { ok: boolean; status: Status | null; heartbeatAgeS: number | null; stale?: boolean; note?: string; error?: string };
 
@@ -62,6 +64,7 @@ export function WatcherTab() {
           </div>)}
       </section>
       <section className="rounded border border-[var(--color-border)] p-3">
+        <h3 className="mb-1 font-semibold" data-testid="watcher-week">{weekLine(s.week)}{s.week?.key ? ` (week of ${s.week.key})` : ""}</h3>
         <h3 className="mb-2 font-semibold">Day {s.day.date} · entries {s.day.entries}/{s.day.cap}{s.day.lost ? " · loss recorded (no B+)" : ""}</h3>
         <div className="font-medium">Fires</div>
         {s.day.fires.length === 0 ? <div className="text-[var(--color-muted)]">None.</div> : s.day.fires.map((f) => (

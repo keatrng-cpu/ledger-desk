@@ -1,3 +1,4 @@
+import { ticketManageLines } from "@/lib/execution/opt-exec";
 /**
  * Robinhood QQQ/SPY options desk.
  *
@@ -141,6 +142,9 @@ export interface RhTicket {
 }
 
 export interface RhStrategyCard {
+  /** "watcher" when the setup is ARMED and only the live-chain price is missing (the watcher prices it on RH). */
+  handTo?: "watcher";
+  holds?: string[];
   id: RhStrategyId;
   name: string;
   horizon: RhHorizon;
@@ -1706,8 +1710,8 @@ function pathContinuation(
           c.invalidation || "Futures PATH invalidates or HTF flips",
           [
             `Working stop −${Math.round(RH_WORKING_STOP_PCT * 100)}% of debit — not 1/3, not full`,
-            "Trim 50% at one-to-one. The draw stays open — one-to-one is a partial, not the flatten.",
-            "A close past the sweep stop ends it. The clock does not.",
+            ...ticketManageLines(),
+            "A close past the sweep stop ends it.",
           ],
           // Size from the LEVEL: the futures plan this option expresses.
           planForUnderlier(desk, underlier),
@@ -2163,9 +2167,17 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
   return holds;
 }
 
+/** The desk's own sender needs a live chain; the watcher prices the contract itself from RH (live_quote/sizing gates). */
+export const MODEL_TICKET_HOLD = "This ticket is a model estimate, not a contract. Nothing is sent until a live chain names one.";
+
 function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   const holds = ticketHolds(desk, card);
   if (!holds.length) return card;
+  // Bug 2026-10-13 (gate-funnel audit): the server never has a live chain, so EVERY armed card got this hold, the Floor
+  // read WATCH and execution.phase never became "hand" (19 replay days + today: 0 ARMED / 0 hand). When the model-price
+  // hold is the ONLY hold, the setup stays ARMED and is handed to the watcher, which prices it live on RH. The desk's own
+  // sender still refuses (rhSendableFromTicket is unchanged), so nothing is sent from here.
+  if (holds.every((h) => h === MODEL_TICKET_HOLD)) return { ...card, handTo: "watcher", holds };
   return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6) };
 }
 

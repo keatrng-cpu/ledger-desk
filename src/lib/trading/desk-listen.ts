@@ -170,9 +170,11 @@ export interface DeskWire {
   /** Fix 24. */
   master?: import("@/lib/smc/master-seat").MasterSeat;
   /** Fix 19 (filled by the card route from the journal; null = no data). */
-  day?: { rToday: number | null; governor: "normal" | "A+ only"; closedToday: number };
+  day?: { rToday: number | null; governor: "normal" | "A+ only"; closedToday: number; governorMode?: string };
   floor: {
     verdict: string;
+    /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
+    handTo?: "watcher" | null;
     blocks: string[];
     ticket: {
       underlier: string;
@@ -346,6 +348,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : [],
     floor: {
       verdict,
+      handTo: shown?.handTo ?? null,
       blocks: (shown?.blocks ?? []).slice(0, 4),
       ticket: shown?.ticket
         ? {

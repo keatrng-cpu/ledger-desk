@@ -63,8 +63,12 @@ async function withJournal(card: DeskListenCard, ctx: Parameters<typeof masterIn
     const rep = await j.journalReport(sql, now, 7);
     const governor = j.governorOf(rep.rToday);
     w.day = { rToday: rep.rToday, governor, closedToday: rep.closedToday };
-    if (governor === "A+ only" && w.strategy && w.strategy.band !== "A+") w.strategy.actionable = false;
-    w.master = masterSeat(masterInputOf(w, ctx, governor));
+    // dayGovernor (shared rules): it reads PAPER journal R (never-traded card outcomes) — shadow by default, reported on
+    // wire.day only. Real stops are the watcher's daily cap and the weekly lock (RH realized fills).
+    const govLive = j.governorLive();
+    if (govLive && governor === "A+ only" && w.strategy && w.strategy.band !== "A+") w.strategy.actionable = false;
+    w.day.governorMode = govLive ? "live" : "shadow";
+    w.master = masterSeat(masterInputOf(w, ctx, govLive ? governor : "normal"));
   } catch (err) {
     console.error("[desk] journal failed:", err);
   }

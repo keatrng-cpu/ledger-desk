@@ -165,5 +165,106 @@
       "preferDte1MinLeft": 60
     },
     "_modes": "Per-rule mode (Keaton 2026-10-13 13:45 CT): \"live\" acts; \"shadow\" computes and logs what it would do (card wire.strategy.guards.shadow, watcher gates.log shadow:* rows) and changes nothing (q, band, size, stop, watch row, brain word, fire)."
+  },
+  "optExec": {
+    "_doc": "Option-PnL fixes 1-20 (Keaton 2026-10-13). One source for desk (src/lib/execution/opt-exec.ts), Floor ticket and watcher (watcher/optexec.py). mode live = acts; shadow = logged as shadow:opt:* rows in gates.log only. Entry-restricting rules (6,12,16,19) and size/re-entry/spread rules start shadow until the backtest (tools/slim_backtest.py) proves them.",
+    "deltaBand": [
+      0.55,
+      0.65
+    ],
+    "deltaMode": "live",
+    "maxSpreadPctOfMid": 0.05,
+    "spreadMode": "live",
+    "limitWalk": {
+      "mode": "live",
+      "startAt": "mid",
+      "stepFracOfHalfSpread": 0.25,
+      "maxSteps": 4
+    },
+    "dteByTime": {
+      "mode": "shadow",
+      "zeroDteUntilEt": "14:30",
+      "afterDte": 1,
+      "_why": "backtest: 0DTE AM / 1DTE PM -$17/wk vs 1DTE all day (model IV); shadow until recorded chains say otherwise"
+    },
+    "t1VsCost": {
+      "mode": "shadow",
+      "minMultiple": 2.0
+    },
+    "preferRr": {
+      "mode": "shadow",
+      "rr": 1.5,
+      "qPenalty": 0.02
+    },
+    "timeStop": {
+      "mode": "shadow",
+      "minutes": 12,
+      "minGain": 0.05,
+      "_why": "backtest 2026-09-16..10-12 (slim B+ p2, 29 fires): live time stop -$44/wk vs without; shadow until recorded chains say otherwise"
+    },
+    "breakeven": {
+      "mode": "live",
+      "atGain": 0.3
+    },
+    "trim": {
+      "mode": "live",
+      "atGain": 0.45,
+      "frac": 0.5,
+      "runnerToT2": true
+    },
+    "debitSpread": {
+      "mode": "shadow",
+      "when": "singleOverCap|ivHigh|t1Near"
+    },
+    "highIv": {
+      "mode": "shadow",
+      "ivPctile": 0.8,
+      "sizeMult": 0.5
+    },
+    "todSize": {
+      "mode": "live",
+      "fullUntilEt": "11:30",
+      "cutFromEt": "14:00",
+      "cutMult": 0.5
+    },
+    "evSize": {
+      "mode": "shadow"
+    },
+    "slowSetup": {
+      "mode": "shadow",
+      "maxMinutesToT1": 30
+    },
+    "reentry": {
+      "mode": "shadow",
+      "max": 1
+    },
+    "dispExit": {
+      "mode": "live",
+      "atrMult": 1.25,
+      "windowMin": 3
+    },
+    "projNetFloor": {
+      "mode": "shadow",
+      "minNet": 0.15
+    },
+    "recordQuotes": true,
+    "gradeOn": "optionPnl"
+  },
+  "dayGovernor": {
+    "_doc": "Fix 19 governor (after |R| >= absR on the day, A+ only). Bug 2026-10-13: it read PAPER journal R (card outcomes sampled at card reads, never traded) and also locked on a +2R paper day; today -3.76R paper locked every non-A+ card while 0 real fires. shadow = reported on wire.day only, never touches actionable. Real stops: watcher daily cap + weekly lock.",
+    "mode": "shadow",
+    "absR": 2
+  },
+  "weekly": {
+    "_doc": "Weekly profit lock (Keaton 2026-10-13, LIVE; only restricts). Week = Mon-Fri ET, realized option PnL from RH fills on the Agentic account (read-only). At >= lockTarget: A+ only, lockedMaxContracts / lockedMaxDebit. Locked and PnL <= peak x (1 - givebackPct): no new entries for the week. PnL <= lossLock: no new entries for the week.",
+    "mode": "live",
+    "lockTarget": 900,
+    "lockedBands": [
+      "A+"
+    ],
+    "lockedMaxContracts": 1,
+    "lockedMaxDebit": 250,
+    "givebackPct": 0.3,
+    "lossLock": -300
   }
 }
