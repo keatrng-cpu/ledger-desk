@@ -1,3 +1,4 @@
+import type { RankedDraw } from "@/lib/smc/exec-context";
 /**
  * Live SMC sequence grade — one tape, independent layers, no school-stacking.
  *
@@ -185,6 +186,8 @@ export interface SmcMasterInput {
   shockSymbol?: string | null;
   /** Shared MTF context (mtf-context.ts). */
   mtfContext?: import("@/lib/smc/mtf-context").MtfContext | null;
+  /** Same ranked list as wire.draws / completePlan; the brain's draw-on-liquidity reads it. */
+  rankedDraws?: { left: RankedDraw[]; right: RankedDraw[] } | null;
 }
 
 function factorState(
@@ -359,6 +362,12 @@ function impulseDealing(
   return { high, low, eq: (high + low) / 2, zone, source: "impulse", ratio };
 }
 
+/** The brain's draw: best-ranked unswept ranked draw beyond price on the side (same rule as completePlan's target pool). */
+export function brainDrawPick(ranked: RankedDraw[], side: "long" | "short" | null, price: number | null): RankedDraw | null {
+  if (!side || price == null) return null;
+  return ranked.filter((d) => !d.swept && (side === "short" ? d.price < price : d.price > price)).sort((a, b) => b.rank - a.rank)[0] ?? null;
+}
+
 function gradeBook(
   bias: HtfBiasRead,
   draw: DrawRead,
@@ -373,6 +382,7 @@ function gradeBook(
   bars: OhlcBar[] | undefined,
   minute: OhlcBar[] | undefined,
   shockLean: "long" | "short" | null = null,
+  ranked: RankedDraw[] | null = null,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias, narrative, shockLean);
   const side = cand?.side ?? null;
@@ -481,11 +491,27 @@ function gradeBook(
     narrative.liquidity.lastSweep !== "none" &&
     (narrative.confirmation === "armed_entry" || narrative.confirmation === "confirmed");
   const newsBlk = news.verdict === "blackout" && !retestReady;
-  const dol = draw.primary;
-  const dolAgrees =
-    !!dol &&
-    ((side === "short" && dol.side === "below") ||
-      (side === "long" && dol.side === "above"));
+  /**
+   * Keaton 2026-10-13: the brain's "Draw on liquidity" reads the SAME ranked
+   * draw list as the wire (wire.draws) and completePlan — the best-ranked
+   * unswept draw beyond price in the side's direction. Falls back to
+   * draw.primary only when no ranked list was handed in (old callers/tests).
+   * Consequence, stated: a ranked pool ahead of price can now pass this layer
+   * where draw.primary pointed the other way (the item-1 gate below follows).
+   */
+  const rankedPick = ranked ? brainDrawPick(ranked, side, price) : null;
+  const rankedAny = ranked && ranked.length ? [...ranked].sort((a, b) => b.rank - a.rank)[0]! : null;
+  const dol = ranked
+    ? ((rankedPick ?? rankedAny)
+        ? ({ ...(rankedPick ?? rankedAny)!, side: price != null && (rankedPick ?? rankedAny)!.price < price ? "below" : "above", reachProbability: NaN } as unknown as LiquidityTarget)
+        : null)
+    : draw.primary;
+  const dolAgrees = ranked
+    ? rankedPick != null
+    : !!dol &&
+      ((side === "short" && dol.side === "below") ||
+        (side === "long" && dol.side === "above"));
+  const dolRank = rankedPick ?? rankedAny;
 
   const sweepNamed = canon.factors.some((x) => x.id === "sweep" && x.pass);
   const ltfNamed = canon.factors.some((x) => x.id === "ltf" && x.pass);
@@ -552,7 +578,9 @@ function gradeBook(
     // "touch" so the two are never read as the same claim, and carrying its
     // sample count, because a rate off four sessions can only be 0/25/50/75/
     // 100 and otherwise renders exactly like one off forty.
-    detail: dol
+    detail: ranked && dolRank
+      ? `${dolRank.name} ${dolRank.price.toFixed(2)} · ranked ${dolRank.rank} (${dolRank.touches} touch${dolRank.touches === 1 ? "" : "es"}${dolRank.scope ? `, ${dolRank.scope}` : ""}) · ${dol!.side}${rankedPick ? "" : " — nothing ranked on this side"}`
+      : dol
       ? `${dol.name} ${dol.price.toFixed(2)} · ${(dol.reachProbability * 100).toFixed(0)}% touch over ${draw.sessionsSampled} sessions${draw.baseRateReliable ? "" : " (below the base-rate floor)"} · ${dol.side}`
       : "No magnet yet",
     price: dol?.price,
@@ -995,6 +1023,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.left?.bars,
     desk.left?.minute,
     leanFor(desk.bias.left.symbol),
+    desk.rankedDraws?.left ?? null,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -1010,6 +1039,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.right?.bars,
     desk.right?.minute,
     leanFor(desk.bias.right.symbol),
+    desk.rankedDraws?.right ?? null,
   );
 
   const ranked = [left, right].sort((a, b) => {

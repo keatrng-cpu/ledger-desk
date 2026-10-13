@@ -1101,6 +1101,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const smcInput: Parameters<typeof gradeSmcMaster>[0] = {
       ...payload,
       mtfContext,
+      // the brain grades its draw on the SAME ranked list the wire publishes
+      rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       shockSymbol: shock.event?.symbol ?? null,
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
