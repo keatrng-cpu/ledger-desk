@@ -783,9 +783,12 @@ function gradeBook(
     // forecast. `headline` is null-safe and says "unpriced" below the floor.
     const viaT2 = plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr;
     targetDetail =
-      (viaT2 ? `T1 ${plan.t1.toFixed(2)} is ${plan.rr1!.toFixed(2)}R — priced to T2 ${plan.t2!.toFixed(2)} ${plan.rr2!.toFixed(2)}R · ` : "") +
-      `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
-      `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
+      // 13:01 CT ES case: never DISPLAY a sub-1R T1 as the target. When T1 < minRr the real T2 IS the
+      // target (sanePlan promotes it the same way); the internal level is named only as skipped.
+      (viaT2
+        ? `T1 ${plan.t2!.toFixed(2)} · ${plan.rr2!.toFixed(2)}R (internal ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} at ${plan.rr1!.toFixed(2)}R skipped — under 1R)`
+        : `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
+          `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}`) +
       ` · risk ${plan.riskPts.toFixed(2)}pt` +
       ` · ${worthLine(plan)}` +
       ` · ${reachTxt}`;

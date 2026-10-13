@@ -31,3 +31,13 @@ test("rule 3: R:R above 6 is flagged and shown capped", () => {
   const r = ex.sanePlan({ side: "short", entry: s.entry, stop: 30758.5, t1: 30591.25, t2: null }, s.atr, [], [...levels, 30591.25]);
   assert.ok(r.ok); assert.equal(r.flagged, true); assert.equal(r.rrShown, 6); assert.ok(r.rr1 > 6);
 });
+
+test("13:01 CT ES case: T1 0.52R with a real T2 ≥1R → T2 promoted to T1; no real T2 → watch row", () => {
+  const entry = 6700, stop = 6710.88, atr = 20; // risk 10.88pt ≥ 0.5×ATR
+  const t1 = entry - 0.52 * 10.88, t2 = entry - 1.0 * 10.88;
+  const lv = [t1, t2];
+  const r = ex.sanePlan({ side: "short", entry, stop, t1: +t1.toFixed(2), t2: +t2.toFixed(2) }, atr, [], lv.map((x) => +x.toFixed(2)));
+  assert.ok(r.ok); assert.equal(r.promoted, true); assert.ok(r.rr1 >= 1); assert.equal(r.t1, +t2.toFixed(2));
+  const w = ex.sanePlan({ side: "short", entry, stop, t1: +t1.toFixed(2), t2: null }, atr, [], [+t1.toFixed(2)]);
+  assert.equal(w.ok, false); assert.match(w.why, /< 1\.0/);
+});

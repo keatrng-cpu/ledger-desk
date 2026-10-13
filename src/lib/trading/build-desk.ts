@@ -1,3 +1,5 @@
+import { planTargetText } from "@/lib/trading/card-plan";
+import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
@@ -1531,11 +1533,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           pl.stop = r.stop; pl.riskPts = r.riskPts;
           c.invalidation = `Stop ${r.stop.toFixed(2)} — beyond the structural swing (≥ 0.5×ATR15)`;
         }
+        if (r.promoted) { c.reasons.push(r.why!); pl.t1 = r.t1 ?? pl.t1; pl.t2 = r.t2 ?? null; }
         pl.rr1 = r.rr1; pl.rr2 = r.rr2;
+        // card target strings are views of the plan: rewrite them from the checked plan
+        if (r.widened || r.promoted) { const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
         // the brain's book plan is the same plan: same stop, same R:R
         for (const bk of [smcMaster.left, smcMaster.right]) {
           const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
-          if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = r.stop; bp.riskPts = r.riskPts; bp.rr1 = r.rr1; bp.rr2 = r.rr2; }
+          if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = r.stop; bp.riskPts = r.riskPts; bp.rr1 = r.rr1; bp.rr2 = r.rr2; if (r.promoted) { (bp as { t1?: number | null }).t1 = pl.t1; (bp as { t2?: number | null }).t2 = pl.t2; } }
         }
         if (!r.ok) {
           (c as { watchOnly?: boolean }).watchOnly = true;
@@ -1544,6 +1549,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.reasons.push(`WATCH row, not a card: ${r.why}`);
         } else if (r.flagged) c.reasons.push(r.why!);
       }
+        // The brain's own books (the Floor reads these) even when no live candidate matches them:
+        // T1 < 1R is promoted to a real T2 ≥ 1R or the book plan is marked watch (13:01 CT ES case).
+        for (const bk of [smcMaster.left, smcMaster.right]) {
+          const bp = bk?.plan as { entry?: number; stop?: number; t1?: number | null; t2?: number | null; rr1?: number | null; rr2?: number | null; riskPts?: number } | null | undefined;
+          if (!bk || !bp || bp.entry == null || bp.stop == null || bp.rr1 == null || bp.rr1 >= RR_MIN) continue;
+          if (bp.rr2 != null && bp.rr2 >= RR_MIN && bp.t2 != null) { bp.t1 = bp.t2; bp.rr1 = bp.rr2; bp.t2 = null; bp.rr2 = null; }
+          else (bk as { planWatch?: string }).planWatch = `T1 ${bp.t1} is ${bp.rr1}R (< ${RR_MIN}) and no real draw clears ${RR_MIN}R — watch, not a plan`;
+        }
       };
       saneAll();
       // Full-plan cards first; if the lead was a watch row, the brain re-grades

@@ -357,6 +357,8 @@ export const RR_MIN = RULES.rrMin;
 export interface SaneResult {
   ok: boolean; why: string | null; widened: boolean; flagged: boolean;
   stop: number; riskPts: number; rr1: number | null; rr2: number | null; rrShown: number | null;
+  /** T2 promoted to T1 because T1 was under RR_MIN (t1/t2 are the plan's new targets) */
+  promoted?: boolean; t1?: number | null; t2?: number | null;
 }
 export function sanePlan(
   p: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
@@ -379,6 +381,12 @@ export function sanePlan(
   const rr = (t: number | null) => (t == null ? null : +((short ? p.entry - t : t - p.entry) / riskPts).toFixed(2));
   if (!real(p.t1)) return { ...bad(`T1 ${p.t1} is not a real ranked level`), stop, riskPts };
   const rr1 = rr(p.t1), rr2 = real(p.t2) ? rr(p.t2) : null;
+  // 13:01 CT ES case: a T1 under 1R must never be the DISPLAYED target. Promote a real T2 that clears
+  // RR_MIN to T1 (no new level is created); otherwise it's a watch row.
+  if ((rr1 == null || rr1 < RR_MIN) && rr2 != null && rr2 >= RR_MIN) {
+    return { ok: true, why: `T1 ${p.t1} was ${rr1}R (< ${RR_MIN}) — promoted T2 ${p.t2} (${rr2}R) to T1`, widened, flagged: rr2 > RR_DISPLAY_MAX, stop, riskPts,
+      rr1: rr2, rr2: null, rrShown: Math.min(rr2, RR_DISPLAY_MAX), promoted: true, t1: p.t2, t2: null };
+  }
   if (rr1 == null || rr1 < RR_MIN) return { ok: false, why: `R:R ${rr1} < ${RR_MIN.toFixed(1)} after the stop check (stop ${stop}${widened ? ", widened" : ""})`, widened, flagged: false, stop, riskPts, rr1, rr2, rrShown: rr1 };
   const flagged = rr1 > RR_DISPLAY_MAX;
   return { ok: true, why: flagged ? `R:R ${rr1} above ${RR_DISPLAY_MAX} — shown capped, check the stop` : null, widened, flagged, stop, riskPts, rr1, rr2, rrShown: Math.min(rr1, RR_DISPLAY_MAX) };
