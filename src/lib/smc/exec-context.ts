@@ -177,7 +177,16 @@ export function continuationPlan(
   const sw = fractalSwings(b3, 2).filter((s) => (side === "short" ? s.kind === "high" && s.price > g.hi : s.kind === "low" && s.price < g.lo));
   const swing = sw.length ? sw[sw.length - 1]!.price : null;
   const edge = side === "short" ? g.hi : g.lo;
-  const structural = swing ?? edge;
+  // Stop beyond the candle(s) that FORMED the newest gap (its 3-bar pattern on
+  // the gap's own tf, read from closed 1m bars) — the tightest real structure.
+  // Falls back to the 3m LH/HL, then the gap's far edge.
+  const tfMs = g.tf === "3m" ? 180_000 : 60_000;
+  const origin = m.filter((b) => b.t >= g.createdT - 2 * tfMs && b.t < g.createdT + tfMs);
+  const originPx = origin.length
+    ? side === "short" ? Math.max(...origin.map((b) => b.h)) : Math.min(...origin.map((b) => b.l))
+    : null;
+  const originOk = originPx != null && (side === "short" ? originPx > g.hi - 1e-9 : originPx < g.lo + 1e-9);
+  const structural = originOk ? originPx! : swing ?? edge;
   const minStop = side === "short" ? entry + CONT_MIN_STOP_ATR * atr : entry - CONT_MIN_STOP_ATR * atr;
   const stop = +(side === "short" ? Math.max(structural + 0.25, minStop) : Math.min(structural - 0.25, minStop)).toFixed(2);
   const riskPts = +Math.abs(entry - stop).toFixed(2);
@@ -188,11 +197,22 @@ export function continuationPlan(
   const t2 = ahead.find((d) => (side === "short" ? d.price < (t1 ?? entry) : d.price > (t1 ?? entry)))?.price ?? null;
   if (t1 == null) return null;
   const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
+  // Both under 1R: step out to the next EXTERNAL ranked draw beyond them
+  // (PDL/PWL/session low…). A real level from the ranked list, or nothing.
+  let tA = t1, tB = t2;
+  if ((rr(tA) ?? 0) < 1 && (rr(tB) ?? 0) < 1) {
+    const far = side === "short" ? Math.min(tA, tB ?? tA) : Math.max(tA, tB ?? tA);
+    const ext = ahead
+      .filter((d) => (side === "short" ? d.price < far : d.price > far))
+      .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
+      .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
+    if (ext) { tB = tA; tA = ext.price; }
+  }
   const resting = Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr;
   return {
     symbol, side, entry, entryZone: { top: g.hi, bottom: g.lo }, stop,
-    stopWhy: swing != null ? `the last 3m swing ${side === "short" ? "high (LH)" : "low (HL)"} ${swing}` : `the ${g.tf} gap's far edge ${edge}`,
-    riskPts, t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2), resting,
-    why: `${rows.length} stacked ${dir} gaps on 1m/3m, newest ${g.tf} ${g.lo}–${g.hi} CE ${entry}; displacement ${disp}; T1 ${ahead[0]!.name} ${t1}`,
+    stopWhy: originOk ? `the ${g.tf} candle that formed the gap ${originPx}` : swing != null ? `the last 3m swing ${side === "short" ? "high (LH)" : "low (HL)"} ${swing}` : `the ${g.tf} gap's far edge ${edge}`,
+    riskPts, t1: tA, t2: tB === tA ? null : tB, rr1: rr(tA), rr2: rr(tB === tA ? null : tB), atr: +atr.toFixed(2), resting,
+    why: `${rows.length} stacked ${dir} gaps on 1m/3m, newest ${g.tf} ${g.lo}–${g.hi} CE ${entry}; displacement ${disp}; T1 ${tA}${tA !== t1 ? ` (stepped out to external; ranked T1 ${t1} was < 1R)` : ""}`,
   };
 }

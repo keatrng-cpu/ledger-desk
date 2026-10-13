@@ -40,3 +40,23 @@ test("fix 34: no plan without displacement, gaps or a draw", () => {
   assert.equal(ex.continuationPlan("MNQ", "short", m, b15, price, [], 0.76), null);
   assert.equal(ex.continuationPlan("MNQ", "short", m, b15, price, [{ name: "x", price: 30600, side: "below", scope: null, touches: 0, ageBars: null, distanceAtr: 1, swept: false, rank: 1 }], 0.4), null);
 });
+test("item 1: stop sits on the gap's origin candle; sub-1R targets step out to an external draw", () => {
+  const out = []; let t = T0; const bar = (o, h, l, c) => out.push({ t: (t += 60e3), o, h, l, c, v: 1 });
+  for (let i = 0; i < 40; i++) bar(30760, 30762, 30758, 30760 + (i % 2 ? 1 : -1));
+  bar(30760, 30800, 30759, 30795); bar(30795, 30796, 30760, 30762); // far 3m LH 30800
+  for (let k = 0; k < 6; k++) { const o = 30760 - k * 12; bar(o, o + 1, o - 14, o - 13); bar(o - 13, o - 12.5, o - 15, o - 14); }
+  bar(30680, 30681, 30678, 30679);
+  const b15 = Array.from({ length: 40 }, (_, i) => ({ t: T0 - (40 - i) * 900e3, o: 30700, h: 30730, l: 30670, c: 30700, v: 1 }));
+  const price = out[out.length - 2].c;
+  const draws = [
+    { name: "Swing low (internal SSL)", price: price - 3, side: "below", scope: "internal", touches: 2, ageBars: 4, distanceAtr: 0.1, swept: false, rank: 0.8 },
+    { name: "Range low (internal SSL)", price: price - 5, side: "below", scope: "internal", touches: 1, ageBars: 4, distanceAtr: 0.1, swept: false, rank: 0.6 },
+    { name: "PDL (external SSL)", price: price - 200, side: "below", scope: "external", touches: 0, ageBars: null, distanceAtr: 3, swept: false, rank: 0.5 },
+  ];
+  const p = ex.continuationPlan("MNQ", "short", out, b15, price, draws, 0.76);
+  assert.ok(p);
+  assert.ok(p.stop < 30800, "not the far 3m LH");
+  assert.match(p.stopWhy, /formed the gap/);
+  assert.equal(p.t1, price - 200);
+  assert.ok(p.rr1 >= 1);
+});
