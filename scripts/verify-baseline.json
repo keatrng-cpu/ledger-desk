@@ -19,8 +19,8 @@
       "since": "2026-10-08"
     },
     "repo-guards": {
-      "failing": 3,
-      "why": "Was 2 on 2026-10-08. The third came in with Grok's 851ed93e..b0bb7850, NOT with this work order (checked: repo-guards is 54/3 on a clean b0bb7850 with every change here stashed). The three: (a) five dark modules nothing imports (rh-http, rh-ledger, rh-mcp, floor-ik, floor-locomotion) - finished code waiting on a caller; (b) verify.server.ts and tape-trust.ts are now imported, so they must come OFF KNOWN_DARK; (c) the Judas assertion encodes the clean layer failing inside 09:30-09:45, which fd86b3d1 ('let a graded card be placed inside the Judas window') deliberately changed - the guard is stale against a change the trader asked for, and it is Grok's commit to settle, not a number to edit here.",
+      "failing": 1,
+      "why": "Was 3 on 2026-10-09 (dark-inventory drift + Judas). Inventory settled on chore/doc-drift-known-dark: dark scan now matches dynamic import(), so rh-http/rh-ledger/rh-mcp and auth/isolation.server are wired and off KNOWN_DARK; verify.server + tape-trust also came off; floor-ik/floor-locomotion remain baselined. The remaining 1 is the Judas assertion (clean layer fail inside 09:30-09:45), which fd86b3d1 deliberately changed \u2014 guard is stale against a trader-asked change; do not weaken it here.",
       "since": "2026-10-09"
     },
     "research-retain": {

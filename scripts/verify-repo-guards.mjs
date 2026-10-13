@@ -201,8 +201,8 @@ for (const [path] of FLOORS) {
       // precisely how the corrected sleeve model sat unused behind a comment
       // claiming it was live. Only a real import/export specifier counts.
       const esc = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const imported = new RegExp(
-        `(?:from|import|require\\()\\s*["'][^"']*?(?:^|/)${esc}(?:\\.tsx?)?["']`,
+            const imported = new RegExp(
+        `(?:from|import\\s*\\(?|require\\()\\s*["'][^"']*?(?:^|/)${esc}(?:\\.tsx?)?["']`,
       ).test(src);
       if (imported) {
         referenced = true;
@@ -258,7 +258,7 @@ for (const [path] of FLOORS) {
    * They are infrastructure rather than non-desk junk, and deleting auth or
    * attestation code nobody asked about is not a guard's decision to make:
    *
-   *   auth/isolation.server.ts, auth/popup.server.ts
+   *   auth/popup.server.ts
    *     — server-side session handling. Other .server.ts modules in this repo
    *       ARE imported normally (coach/claude-server by trading-coach.tsx), so
    *       being unimported is a real signal, not a framework artefact.
@@ -269,17 +269,11 @@ for (const [path] of FLOORS) {
    * Each needs a deliberate wire-or-delete by the trader.
    */
   const KNOWN_DARK = new Set([
-    "src/lib/auth/isolation.server.ts",
     "src/lib/auth/popup.server.ts",
     "src/lib/journal/attest-fn.ts",
     // Alpaca adapter is exercised by verify-room-exec. The live desk places on
     // Robinhood (rh-autofire), so nothing under src/ imports this module.
     "src/lib/room/exec/alpaca.ts",
-    // RH transport / ledger helpers — exercised by verify scripts and MCP tooling,
-    // not imported from src/ UI or live loops (rh-autofire uses higher-level APIs).
-    "src/lib/execution/rh-http.ts",
-    "src/lib/execution/rh-ledger.ts",
-    "src/lib/execution/rh-mcp.ts",
     // Floor avatar IK / locomotion — present for the 3D room, no decision path
     // under src/ imports them yet.
     "src/lib/room/floor-ik.ts",
@@ -287,6 +281,9 @@ for (const [path] of FLOORS) {
   ]);
   // 2026-10-12: auth/verify.server.ts and market/tape-trust.ts came off — both now
   // imported from live src/ paths (inventory refresh; guards unchanged).
+  // 2026-10-12: rh-http / rh-ledger / rh-mcp came off — wired via dynamic import()
+  // from cron + rh-server / option-marks; the dark scan now matches import("...").
+  // 2026-10-12: auth/isolation.server.ts came off — middleware.ts dynamic-imports it.
   // 2026-10-06: src/lib/execution/rh-autofire.ts came off — the real Manager feed's live loop
   // (src/lib/room/manager-live-loop.ts) drives it, and the Floor's Manager panel prints its read.
   // 2026-09-24: setup-memory.ts came off — `trade-log.ts` adapts the
