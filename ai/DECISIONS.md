@@ -105,3 +105,9 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - Weekly calibration: per-factor hit-rate lift → weight scale only at n ≥ 30, shrunk n/(n+50), step capped ±20%, total scale bounded ×0.8–×1.2; band edges move ±0.01 at n ≥ 30 per band, within ±20% of baseline. Each run is a version in `desk_calibration` with its prior state; `scripts/calibration.mts revert <v>` reverts it. Applied version + report at GET /api/desk/journal (`learning`).
 - Runtime cannot write this file: each version's entry is produced with `npx tsx scripts/calibration.mts decisions` and appended here when it is applied. v0 = baseline (RAW_WEIGHTS, bands 0.75/0.68/0.65/0.60/0.50).
 - Backfill: today's desk-watcher log snaps + saved card snapshots (5 unique cards ≥ 0.65), graded on Yahoo 1m (MNQ=F/ES=F): 3 wrong, 2 open (graded live once their +120 m closes). Fix 40 missed trades are the same rows: < A- that ran ≥ 2R / ≥ 1 ATR at +120 m.
+
+## 2026-10-13 — LTF kill thresholds tuned on 5 sessions (Yahoo 1m, MNQ+ES, RTH)
+- Replay `scripts/kill-tune.mts` (results `scripts/fixtures/kill-tune-2026-10-13.json`): a kill is right if price runs ≥0.5×ATR15 against the killed side before ≥0.5×ATR15 for it, within 60 min. 27-cell grid (IFVG age 4/6/8 × wick 0.4/0.5/0.6 × disp 1.0/1.25/1.5×ATR1m).
+- Every cell sits at 0.41–0.51 precision (n ≈ 100–170): the kill is roughly a coin flip at that horizon. Best: wick 0.5, disp 1.0 → 0.503 (n 149) vs old 1.25 → 0.481. DISP1_ATR 1.25 → 1.0. IFVG5_MAX_AGE stays 6 (4 is equal within noise and misses the 10:33 ES replay).
+- Journal failure modes: 3 graded losses so far, all "unclassified" (backfill rows lack chop/HTF fields); "LTF kill ignored" = 0. Too small to inform the thresholds; revisit at n ≥ 30.
+- Implication, not acted on: with ~50% precision the kill is a valid CAP but weak evidence for the opposite side; the fix-29 opposite boost (0.05–0.08, Keaton's spec) is kept, flagged for review once the journal has n.

@@ -238,10 +238,16 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
 
-export const IFVG5_MAX_AGE = 6;
-export const REJECT_WICK_FRAC = 0.5;
-export const DISP1_ATR = 1.25;
+export let IFVG5_MAX_AGE = 6; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
+export let REJECT_WICK_FRAC = 0.5;
+export let DISP1_ATR = 1.0; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
 export const DISP_LEG_BARS = 3;
+/** Replay tuning only (scripts/kill-tune.mts); the live desk never calls this. */
+export function setKillParams(p: { ifvg5MaxAge?: number; rejectWickFrac?: number; disp1Atr?: number }) {
+  if (p.ifvg5MaxAge != null) IFVG5_MAX_AGE = p.ifvg5MaxAge;
+  if (p.rejectWickFrac != null) REJECT_WICK_FRAC = p.rejectWickFrac;
+  if (p.disp1Atr != null) DISP1_ATR = p.disp1Atr;
+}
 export const REJECT_LOOKBACK = 10;
 export const EXTREME_LOOKBACK = 10;
 
