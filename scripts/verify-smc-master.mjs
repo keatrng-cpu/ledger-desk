@@ -41,7 +41,7 @@ const {
   modelMayBeNamed,
   inModelWindow,
   scoreCanonStack,
-  SMT_TRADES_THE_LEADER,
+  SMT_CREDITS_THE_HOLDER,
   SILVER_BULLET_EVIDENCE,
   OTE_SIZE_CUT_EVIDENCE,
 } = await import("../src/lib/trading/smc-canon.ts");
@@ -397,7 +397,7 @@ check("a card the HTF gate refuses never leads", orderedHtf[0].side, "short");
 /* ------------------------------------------------------------------ */
 console.log("\nitem 11 — SMT credits the index that inverted FIRST");
 
-ok("the leader rule is on", SMT_TRADES_THE_LEADER.value === true);
+ok("the holder rule is on", SMT_CREDITS_THE_HOLDER.value === true);
 
 // smt-level exposes `led`, which was computed and discarded before.
 const bars = Array.from({ length: 80 }, (_, i) => ({

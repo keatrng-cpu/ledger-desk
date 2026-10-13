@@ -633,8 +633,9 @@ function scoreDirection(
    * the one-book pick.
    *
    * `smtLevel.led` is `thisLed` (smt-level.ts), which was already computed and
-   * discarded. `false` is the laggard and does not score. `null` is "no
-   * divergence", which cannot reach here anyway because `present` is false.
+   * discarded. `false` is the HOLDER (the other index swept) and scores —
+   * the SMT reversal is the book that held (Addendum 2 fix 1). `true` swept
+   * and does not score. `null` is "no divergence" (`present` is false).
    */
   void smt;
   void book;

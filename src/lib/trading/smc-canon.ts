@@ -350,18 +350,19 @@ export interface CanonInput {
    */
   htfDisrespected?: boolean;
   /**
-   * ITEM 11 — did this book LEAD the divergence (smt-level.ts `led`)?
+   * Did this book make the divergence's extreme (smt-level.ts `led`)?
    *
-   * `false` is the laggard: the other index made the extreme and displaced, so
-   * this side is not a second setup on the same divergence and does not earn
-   * the optional SMT factor. `null`/`undefined` means no divergence read and
-   * behaves exactly as before.
+   * `false` is the HOLDER: the other index swept the extreme and this one
+   * held, so this book carries the SMT reversal and earns the optional SMT
+   * factor (Addendum 2 fix 1). `true` swept and does not earn it.
+   * `null`/`undefined` means no divergence read and behaves as before.
    */
   smtLed?: boolean | null;
 }
 
 /**
- * ITEM 11 — SMT credits the index that inverted FIRST.
+ * SMT credits the HOLDER — the index that did NOT make the new extreme
+ * (Addendum 2 fix 1, 2026-10-13; it used to credit the leader).
  *
  * Switchable for the same reason GATE is: nothing writes it at runtime, and a
  * sweep script can restore the pre-2026-10-08 behaviour (either book earns the
@@ -374,7 +375,7 @@ export interface CanonInput {
  * hard gate with no measurement behind it, so what ships is the removal of the
  * factor plus a named reason. Promoting it to a stand-down is the trader's call.
  */
-export const SMT_TRADES_THE_LEADER = { value: true };
+export const SMT_CREDITS_THE_HOLDER = { value: true };
 
 function has(comps: string[], ...keys: string[]): boolean {
   const set = new Set(comps);
@@ -635,9 +636,9 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
    */
   const oteOverlap =
     has(components, "ifvg", "order_block") && has(components, "ote") && pdHalf;
-  // ITEM 11: false is "this book is the laggard". null/undefined is "no
-  // divergence read", which must behave exactly as it did before.
-  const smtEarned = !SMT_TRADES_THE_LEADER.value || input.smtLed === false;
+  // false = this book HELD (the other swept) → it earns SMT. null/undefined =
+  // no divergence read, which behaves exactly as it did before.
+  const smtEarned = !SMT_CREDITS_THE_HOLDER.value || input.smtLed === false;
 
   const factors: CanonFactor[] = [
     {
