@@ -2,6 +2,7 @@
  * The live scanner, floor, and brain, without the account.
  * The full handoff stays behind CRON_SECRET. This card does not.
  */
+import { mtfArrays, WIRE_ARRAYS_CAP, type ArrayRow } from "@/lib/smc/mtf-arrays";
 import type { DeskPayload } from "./build-desk";
 import { evaluateOptionsDesk } from "./options-desk";
 import { isJudasWindow } from "./sessions";
@@ -57,6 +58,8 @@ export interface DeskListenCard {
 }
 
 export interface DeskWire {
+  /** PD arrays on 1m–4h for both books, live first, capped (mtf-arrays.ts). */
+  arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
   shock?: {
     dir: "up" | "down";
@@ -132,7 +135,16 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
   const phase = handed ? "hand" : "look";
   const sb = desk.shock?.active || desk.shock?.tail ? desk.shock.bias : null;
+  const arrRows = [
+    ...mtfArrays(desk.left.symbol, desk.mtf?.left.minute, desk.left.bars).map((r) => ({ ...r, symbol: desk.left.symbol })),
+    ...mtfArrays(desk.right.symbol, desk.mtf?.right.minute, desk.right.bars).map((r) => ({ ...r, symbol: desk.right.symbol })),
+  ];
+  const arrays = [...arrRows]
+    .sort((a, b) => Number(a.mitigated) - Number(b.mitigated) || b.createdT - a.createdT)
+    .slice(0, WIRE_ARRAYS_CAP)
+    .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
+    arrays,
     shock: sb
       ? {
           dir: sb.dir,

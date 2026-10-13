@@ -6,6 +6,7 @@
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { atr15Of, continuationArray, type ContinuationArray } from "@/lib/smc/mtf-arrays";
 import { poolArms } from "@/lib/smc/shared";
 import { reachTier } from "./entry-trigger";
 import { GATE, preferZone } from "./gate-tuning";
@@ -143,6 +144,8 @@ export interface SmcMasterBook {
    * a tradable one; the word is then WAIT at best.
    */
   candidateComplete?: boolean;
+  /** Stacked LTF gaps after the raid that stand in for displacement + array (mtf-arrays.ts). */
+  continuation?: ContinuationArray | null;
   /** Which parts of the complete sequence this pick is missing. */
   candidateMissing?: string[];
 }
@@ -846,7 +849,16 @@ function gradeBook(
    * Only ever downgrades TAKE -> WAIT. STAND is left alone, because a STAND
    * already carries a named failing must and that is the more useful sentence.
    */
-  const candGaps = cand ? sequenceGaps(cand) : null;
+  // CONTINUATION ARRAY (src/lib/smc/mtf-arrays.ts): two or more stacked
+  // same-direction LTF gaps after the raid are the displacement AND the array.
+  const contDir: "bull" | "bear" | null = side === "long" ? "bull" : side === "short" ? "bear" : null;
+  const continuation =
+    cand && contDir && narrative.liquidity.lastSweepT != null
+      ? continuationArray(bias.symbol, minute, contDir, narrative.liquidity.lastSweepT, atr15Of(bars))
+      : null;
+  const candGaps = cand
+    ? sequenceGaps(cand).filter((g) => !(continuation && (g === "displacement" || g === "array")))
+    : null;
   const candComplete = candGaps != null && candGaps.length === 0;
 
   let word: SmcMasterBook["word"] = "STAND";
@@ -864,7 +876,13 @@ function gradeBook(
   const missing =
     blocker?.label ??
     incompleteLabel ??
-    (!pathOk ? "No A+/A/A− PATH" : armed ? "Armed — limit at CE" : "Sequence complete");
+    (!pathOk
+      ? "No A+/A/A− PATH"
+      : armed
+        ? "Armed — limit at CE"
+        : continuation
+          ? `Sequence complete — ${continuation.tf} array ×${continuation.count}, CE ${continuation.entry.toFixed(2)}`
+          : "Sequence complete");
   const missingDetail =
     blocker?.detail ??
     (incompleteLabel && cand
@@ -925,6 +943,7 @@ function gradeBook(
     partial,
     candidateComplete: candComplete,
     candidateMissing: candGaps ?? [],
+    continuation,
   };
 }
 
