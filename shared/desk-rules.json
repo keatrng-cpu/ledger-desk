@@ -23,7 +23,9 @@
       "A": 1.2,
       "A-": 1.2
     },
-    "pnlMinPct": 0.75
+    "pnlMinPct": 0.75,
+    "modelPricePending": true,
+    "_modelPricePendingDoc": "Late card whose only latePnlCheck miss is a model price (no live chain quote): Floor keeps it ARMED with ticket.latePnlPending=true; the watcher runs entry_distance_check pnlMinPct on the live RH option quote before placing and refuses on a fail or a missing quote. A miss on a live quote still drops the ticket."
   },
   "kill": {
     "disp1Atr": 1.0,

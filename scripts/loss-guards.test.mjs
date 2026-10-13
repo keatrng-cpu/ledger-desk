@@ -117,7 +117,7 @@ test("full late rule, option half: latePnlCheck = watcher entry_distance_check P
 test("Floor: htf sizeMult <= 0 is no ticket (not a 1-contract floor); late card needs latePnlCheck to stay ARMED", () => {
   const od = readFileSync(new URL("../src/lib/trading/options-desk.ts", import.meta.url), "utf8");
   assert.match(od, /lossMult <= 0\) \{[\s\S]{0,200}ticket = null/);
-  assert.match(od, /latePnlCheck\(\{[\s\S]{0,300}else \{ blocks\.push\(lp\.why\); ticket = null/);
+  assert.match(od, /latePnlCheck\(\{[\s\S]{0,900}else \{ blocks\.push\(lp\.why\); ticket = null/);
 });
 
 test("sealBand in the loss loop only runs after a LIVE chop/velocity change (shadow stays a no-op)", () => {
@@ -125,4 +125,21 @@ test("sealBand in the loss loop only runs after a LIVE chop/velocity change (sha
   assert.match(bd, /if \(liveMut\) sealBand\(c as never\);\n\s*\/\/ 1\) 1h AND 4h/);
   assert.match(bd, /isLive\(LOSS_RULES\.chop\.mode\)\) \{ liveMut = true;/);
   assert.match(bd, /isLive\(LOSS_RULES\.velocity\.mode\)\) \{ liveMut = true;/);
+});
+
+test("lateEntry.modelPricePending: model-priced late PnL miss -> ARMED latePnlPending; live miss / missing inputs still drop", () => {
+  assert.equal(RULES.lateEntry.modelPricePending, true);
+  const miss = g.latePnlCheck({ px: 100, t1: 101, spot: 500, delta: 0.3, askEach: 5 });
+  assert.equal(miss.ok, false); assert.notEqual(miss.pnl, null);
+  assert.equal(g.latePnlPendingOk(miss, true), true);            // model price only -> defer to watcher
+  assert.equal(g.latePnlPendingOk(miss, false), false);          // live chain quote failed -> drop
+  const unk = g.latePnlCheck({ px: 100, t1: null, spot: 500, delta: 0.3, askEach: 5 });
+  assert.equal(g.latePnlPendingOk(unk, true), false);            // unknown inputs are not a "model-only" miss
+  const pass = g.latePnlCheck({ px: 100, t1: 110, spot: 500, delta: 0.5, askEach: 1 });
+  assert.equal(g.latePnlPendingOk(pass, true), false);           // a pass needs no pending flag
+  const od = readFileSync(new URL("../src/lib/trading/options-desk.ts", import.meta.url), "utf8");
+  assert.match(od, /latePnlPendingOk\(lp, modelOnly\)\) \{\s*ticket = \{ \.\.\.ticket, latePnlPending: true \}/);
+  assert.match(od, /modelOnly = !ticket\.live \|\| ticket\.pricedFrom !== "live_chain"/);
+  const dl = readFileSync(new URL("../src/lib/trading/desk-listen.ts", import.meta.url), "utf8");
+  assert.match(dl, /latePnlPending \? \{ latePnlPending: true \}/);   // reaches the watcher on floor.ticket
 });

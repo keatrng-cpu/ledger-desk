@@ -81,6 +81,16 @@ export function latePnlCheck(o: { px: number | null; t1: number | null; spot: nu
   return { ok: pnl >= need, pnl, why: `late entry: option PnL@T1 $${pnl}/ct ${pnl >= need ? ">=" : "<"} ${Math.round(min * 100)}% of $${need / min}` };
 }
 
+/**
+ * lateEntry.modelPricePending: a latePnlCheck miss is deferred to the watcher (ticket kept ARMED with
+ * latePnlPending=true) only when the check could be computed (pnl != null) and the price is model-based
+ * (no live chain quote). A miss on a live quote, or missing inputs, still drops the ticket.
+ */
+export function latePnlPendingOk(lp: { ok: boolean; pnl: number | null }, modelPriced: boolean): boolean {
+  const on = (RULES as { lateEntry: { modelPricePending?: boolean } }).lateEntry.modelPricePending === true;
+  return on && !lp.ok && lp.pnl != null && modelPriced;
+}
+
 /** 5) chop: range, 5m overlap and failed breaks of the prior range. */
 export function chopRead(m1closed: OhlcBar[], atr: number | null) {
   const w = m1closed.slice(-LOSS.chop.lookbackMin);

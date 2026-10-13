@@ -15,7 +15,7 @@ import { ticketManageLines } from "@/lib/execution/opt-exec";
 
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import RULES_DESK from "../../../shared/desk-rules.json";
-import { latePnlCheck } from "@/lib/smc/loss-guards";
+import { latePnlCheck, latePnlPendingOk } from "@/lib/smc/loss-guards";
 const RULES_FIRE = RULES_DESK.fire;
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
@@ -127,6 +127,12 @@ export interface RhTicket {
    *   "none" on these, so nothing downstream can mistake one for an order.
    */
   pricedFrom: "live_chain" | "model";
+  /**
+   * lateEntry.modelPricePending: a late card whose ONLY latePnlCheck miss is a model price (no live chain
+   * quote). The Floor keeps it ARMED; the watcher must pass entry_distance PnL (pnlMinPct) on the live RH
+   * option quote before it fires, and refuses on a fail or a missing quote.
+   */
+  latePnlPending?: boolean;
   /** The real leg, when one was read. Null on a model-priced shape. */
   live: LiveTicketLeg | null;
   /** How this ticket may reach the broker right now. */
@@ -1739,7 +1745,12 @@ function pathContinuation(
       delta: ticket.live?.delta ?? (ticket.deltaMin + ticket.deltaMax) / 2,
       askEach: ticket.live?.ask ?? ticket.estDebitEach / 100,
     });
+    const modelOnly = !ticket.live || ticket.pricedFrom !== "live_chain";
     if (lp.ok) reasons.push(lp.why);
+    else if (latePnlPendingOk(lp, modelOnly)) {
+      ticket = { ...ticket, latePnlPending: true };
+      reasons.push(`${lp.why} — model price only (no live chain quote): ARMED, latePnlPending — watcher re-checks on the live RH quote`);
+    }
     else { blocks.push(lp.why); ticket = null; guardDenied = true; }
   }
   if (ticket && c && pressured) {

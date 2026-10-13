@@ -186,6 +186,8 @@ export interface DeskWire {
       stop: string | null;
       targets: string[];
       liveAsk: number | null;
+      /** lateEntry.modelPricePending: the watcher must pass the late PnL check on the live quote. */
+      latePnlPending?: boolean;
     } | null;
   };
   execution: {
@@ -360,6 +362,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
             pricedFrom: shown.ticket.pricedFrom,
             stop: shown.ticket.invalidation || null,
             targets: shown.ticket.targets.slice(0, 3),
+            ...(shown.ticket.latePnlPending ? { latePnlPending: true } : {}),
             liveAsk: desk.optionMarks?.find((m) => m.underlier === shown.ticket!.underlier && m.side === shown.ticket!.side)?.ask ?? null,
           }
         : null,
