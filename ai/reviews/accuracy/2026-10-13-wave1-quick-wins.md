@@ -70,3 +70,24 @@ Nothing changed outside the claimed scope. The 8 T1-only repos change only .grap
 | gf-plat | d66a158 | PASS | — |
 | helixscales | e3d162d | PASS | — |
 | profxtrader | 640efca | PASS | — |
+
+## Re-check (2026-10-13 ~16:45 CT, read-only, Node 22.23.3 / npm 10.9.9)
+
+All branch tips match: ledger-desk 6b598a7, pickitupe 4a0ea8f, Stock-Automationa 718e9c5, Website-optimization- 8dd7c8a, Discovery 0c52ff2 (6c86510 is its parent), atrium-learning-desk 466a1dd, Realestate-genius b8f29fc.
+
+| Repo | SHA | Result | Reason |
+|---|---|---|---|
+| ledger-desk | 6b598a7 | FAIL (minor) | ai/DECISIONS.md:82 is added and :77-81 are byte-identical. The totals are right: 9,308 graphify-out files at base ed971c1, 9,212 deleted, 96 kept (6 top-level + obsidian/graph.canvas + 89 brain/). The breakdown is wrong. It says "9,211 top-level obsidian/*.md plus obsidian/.obsidian/graph.json". The real split is 9,210 .md + obsidian/.graphify_obsidian_manifest.json + obsidian/.obsidian/graph.json. Readers and writer named are real. CI can pass install: `npm ci --dry-run` is clean. |
+| pickitupe | 4a0ea8f | PASS on the annotation; CI cannot pass | ci.yml:29 keeps continue-on-error with a reason. Confirmed on main 9ab51cf with Node 22: 152 tests, 145 pass, 6 fail, 1 skipped. All 6 failures are in scripts/grok-pwa-plugin.test.mjs (first at :103). But `npm ci` on main fails with EUSAGE "Missing: lru-cache@11.5.3 from lock file". ci.yml:23 Install fails, so the job is red whatever :29 says. (After a lockless install, typecheck also fails: 1 TS18046 at src/lib/error-component.tsx:12. That may be drift from the lockless install.) |
+| Stock-Automationa | 718e9c5 | PASS | ci.yml:4-7 has pull_request and push on claude/trading-journey-clause-sj5c41, which is the default branch. pip/pytest CI, no lockfile. |
+| Website-optimization- | 8dd7c8a | PASS | ci.yml:4-7 uses claude/sintra-local-app-rebuild-x7do9h, which is the default branch. Uses `npm install`, not `npm ci`. |
+| Discovery | 6c86510 | PASS | ci.yml:4-7 uses claude/blissful-darwin-uaoi7e, which is the default branch. |
+| Discovery | 0c52ff2 | PASS | .graphifyignore:17-18 now lists only fixtures/sw-verify/{tune,heldout}/. Checked with `git check-ignore`: only those 26 files are ignored. fixtures/markets-print/check.py and fixtures/caps/*.json (read at desk/desk.py:1114-1115) are visible again. |
+| atrium-learning-desk | 466a1dd | PASS on content; CI cannot pass | continue-on-error is removed from Test (ci.yml:29-30). Typecheck at :25 still has it. Tests on main 631b104 pass 41/41. The six AGENTS.md sections match the 631b104 base verbatim: startup.sh, required entry files, Browser QA, Communication rules, Build & deploy target, Quality bar. The only difference is a trailing `---` separator after two sections. But `npm ci` on main fails: "lock file's ajv@6.15.0 does not satisfy ajv@8.20.0" (plus fast-uri, json-schema-traverse). Install fails, so CI is red. |
+| Realestate-genius | b8f29fc | FAIL (comment) | The diff is only ci.yml:25-26 (Lint step :24-27). src and the ESLint config are untouched. Parent is c67bb2e. On main a55cadf, `npm run lint` shows 13 errors + 1 warning. The 13 errors are 5 react-hooks/set-state-in-effect + 8 react-hooks/immutability (the warning is exhaustive-deps). The comment's "13 set-state-in-effect" is wrong. `npm ci` passes, so CI can go green. |
+
+**Fixtures spot-check (all 18 default branches).** Only 2 repos track any `fixtures/` path:
+- **ledger-desk (10 JSON files):** scripts/fixtures/*.json and src/lib/predict/fixtures/kalshi-markets.sample.json. These are data, not code. Tests and verify scripts read them (scripts/lib/mead-fixture.mjs:22, scripts/verify-pm-signal-engine.mjs:28, scripts/verify-prediction-market-feed.mjs:26). The app runtime does not. Hiding them with .graphifyignore:15 `**/fixtures/` loses little.
+- **Discovery (57 files):** this includes code (4 check.py files) and runtime JSON (fixtures/caps). That disproves GK's claim that "only ledger-desk tracks fixtures".
+
+The other 16 repos track no fixtures, so their `**/fixtures/` line (line 15) hides nothing today.
