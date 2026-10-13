@@ -90,6 +90,8 @@ export interface DeskWire {
     entry: number | null;
     stop: string | null;
     draw: string | null;
+    /** The scanner's own label, kept for audit; `band` is the q-derived one. */
+    pathBand: string | null;
     /** A displacement leg (body ≥1×ATR, or left an FVG) is behind the setup. */
     displacement: boolean;
     /** T1 as a futures price. Null when no plan was priced (never invented). */
@@ -179,7 +181,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           symbol: top.symbol,
           side: top.side,
           name: top.completeStrategy || top.strategyPrimary || "model",
-          band: top.pathBand ?? top.grade,
+          // Band is strictly derived from the q on the wire (PATH bands).
+          band: bandFromQ(top.confluence),
+          pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
           entry: top.entryPx ?? null,
@@ -266,7 +270,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       return {
         symbol: c.symbol,
         side: c.side,
-        band: c.pathBand ?? c.grade,
+        band: bandFromQ(c.confluence),
+        pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
@@ -309,4 +314,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     report: null,
     wire,
   };
+}
+
+/** PATH bands from q: A+ ≥0.75, A ≥0.68, A− ≥0.65, B+ ≥0.60, B ≥0.50, else C. */
+export function bandFromQ(q: number | null | undefined): string | null {
+  if (q == null || !Number.isFinite(q)) return null;
+  return q >= 0.75 ? "A+" : q >= 0.68 ? "A" : q >= 0.65 ? "A−" : q >= 0.6 ? "B+" : q >= 0.5 ? "B" : "C";
 }
