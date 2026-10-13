@@ -30,6 +30,7 @@
  *     B+ size exactly 1 contract (evaluateRhBandSize), still $50-$550.
  *     (B+ band from aplus/config.ts: confluenceFloor - 0.05) · Stand agentAgree
  */
+import RULES from "../../../shared/desk-rules.json";
 import { ROOM_MANDATE } from "../room/mandate";
 import { APLUS_RULES } from "../aplus/config";
 
@@ -133,7 +134,8 @@ export function evaluateRhBandSize(band: string | null | undefined, contracts: n
 }
 
 /** A PATH scanner fire older than this cannot start a place (same bound as tape). */
-export const RH_PATH_FIRE_MAX_AGE_MS = 30_000;
+// shared/desk-rules.json fire.quoteMaxAgeS (was 30 s; parity with the watcher)
+export const RH_PATH_FIRE_MAX_AGE_MS = RULES.fire.quoteMaxAgeS * 1000;
 export const RH_MIN_DEBIT_TOTAL = 50;
 export const RH_MAX_DEBIT_TOTAL = 550;
 export const RH_MIN_CONTRACTS = 1;

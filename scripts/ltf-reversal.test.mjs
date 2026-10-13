@@ -111,3 +111,14 @@ test("normal pullback in an uptrend (small wick, 1-bar dip, higher low) does not
   out.push({ ...out[out.length - 1], t: out[out.length - 1].t + 60e3 });
   assert.equal(m.ltfReversalsOf([], out).find((x) => x.against === "long"), undefined);
 });
+
+test("13:07 CT: a kill voids after 2 closed 5m bars back beyond its level, or after maxAgeMin", async () => {
+  const mc = await import("../src/lib/smc/mtf-context.ts");
+  const t0 = Date.UTC(2026, 9, 13, 17, 55);
+  const bars = (closes) => closes.map((c, i) => ({ t: t0 + i * 60_000, o: c, h: c + 0.25, l: c - 0.25, c, v: 1 }));
+  const flat = bars(Array(16).fill(7845));
+  assert.equal(mc.killVoided(flat, "long", t0, 7849.25), null);
+  const up = bars([...Array(5).fill(7845), ...Array(11).fill(7852)]);
+  const v = mc.killVoided(up, "long", t0, 7849.25); assert.ok(v); assert.match(v.why, /above the kill level/);
+  const old = bars(Array(70).fill(7845)); assert.match(mc.killVoided(old, "long", t0, 7849.25).why, /aged out/);
+});

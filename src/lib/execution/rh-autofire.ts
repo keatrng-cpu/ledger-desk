@@ -8,6 +8,7 @@
  * BP hard gate: agent calls get_portfolio before propose (candidate.account) and
  * again before place (mayPlaceAfterReview.accountAtReview). BP < $50 → refused.
  */
+import RULES from "../../../shared/desk-rules.json";
 import {
   evaluateRhAutofireGates,
   evaluateRhBuyingPower,
@@ -151,9 +152,14 @@ export interface RhLiveOptionQuote {
   bidPrice?: number | null;
   asOfMs: number | null;
   source: "get_option_quotes" | string;
+  /** When OUR read of this quote returned (local clock). The order-review age (RH_ORDER_REVIEW_MAX_AGE_MS) is measured from here. */
+  readAtMs?: number | null;
 }
 
-export const RH_LIVE_QUOTE_MAX_AGE_MS = 30_000;
+// shared/desk-rules.json fire.quoteMaxAgeS (was 30 s; parity with the watcher)
+export const RH_LIVE_QUOTE_MAX_AGE_MS = RULES.fire.quoteMaxAgeS * 1000;
+/** Re-read right before the order is sent (fire.orderReviewMaxAgeS). */
+export const RH_ORDER_REVIEW_MAX_AGE_MS = RULES.fire.orderReviewMaxAgeS * 1000;
 export const RH_LIMIT_SLIP = 0.02;
 
 export function evaluateRhLiveQuote(
@@ -335,6 +341,8 @@ export function mayPlaceAfterReview(args: {
   quantity?: number | null;
   /** PATH band of the reviewed ticket. B+ → quantity must be exactly 1 (missing → refuse). */
   pathBand?: string | null;
+  /** The dispatcher sets this: the liveQuote must carry readAtMs from a read taken after review_option_order. */
+  requireReviewQuote?: boolean;
   nowMs?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
@@ -345,6 +353,16 @@ export function mayPlaceAfterReview(args: {
   // Fail closed: omitting liveQuote used to skip this check — refuse always.
   const q = evaluateRhLiveQuote(args.liveQuote, args.nowMs ?? Date.now());
   if (!q.ok) return { ok: false, reason: q.reason };
+  // fire.orderReviewMaxAgeS: the quote must be the one re-read at review (after review_option_order), not the propose-time
+  // quote. Age = place time − when that review-time read returned; the quote's own stamp is still held to quoteMaxAgeS above.
+  if (args.requireReviewQuote || args.liveQuote?.readAtMs != null) {
+    const readAt = Number(args.liveQuote?.readAtMs);
+    const age = (args.nowMs ?? Date.now()) - readAt;
+    if (!Number.isFinite(readAt)) return { ok: false, reason: "No review-time quote read (readAtMs) — re-read get_option_quotes after review." };
+    if (!(age >= -RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS && age <= RH_ORDER_REVIEW_MAX_AGE_MS)) {
+      return { ok: false, reason: `Review quote read ${(age / 1000).toFixed(1)}s before place (> ${RH_ORDER_REVIEW_MAX_AGE_MS / 1000}s) — re-read after review.` };
+    }
+  }
   const limitPx = q.limit;
   const qty = Math.floor(Number(args.quantity));
   if (qty >= RH_MIN_CONTRACTS) {

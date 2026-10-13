@@ -13,6 +13,8 @@
  */
 
 import { isPathFire } from "@/lib/alerts/path-alarm";
+import RULES_DESK from "../../../shared/desk-rules.json";
+const RULES_FIRE = RULES_DESK.fire;
 import { etfFromFuture } from "@/lib/market/spot-cross";
 import type { DeskPayload } from "./build-desk";
 import { isJudasWindow, sessionLive} from "./sessions";
@@ -264,7 +266,8 @@ function afterSecondImpulse(clock: DeskPayload["clock"]): boolean {
 
 /** One A- or better per index. QQQ follows MNQ, SPY follows ES. The first hit on each side is the card. */
 function pathCandidates(desk: DeskPayload): SetupCandidate[] {
-  const hits = desk.scan.candidates.filter((c) => isPathFire(c));
+  // Keaton 2026-10-13: a watch row (no complete plan) is never a Floor card.
+  const hits = desk.scan.candidates.filter((c) => !(c as { watchOnly?: boolean }).watchOnly && isPathFire(c));
   const picked: SetupCandidate[] = [];
   const seen = new Set<string>();
   for (const c of hits) {
@@ -526,10 +529,11 @@ export interface LiveChain {
 }
 
 /**
- * Same window the live-quote gate uses (RH_LIVE_QUOTE_MAX_AGE_MS = 30s). A
- * 0-1 DTE ask older than that is not the ask.
+ * shared/desk-rules.json fire.chainMaxAgeS (10 s). A chain prices the ticket on the Floor; it is looser than the
+ * order gate on purpose: the order itself must still pass RH_LIVE_QUOTE_MAX_AGE_MS (fire.quoteMaxAgeS, 3 s) on the
+ * propose-time quote and RH_ORDER_REVIEW_MAX_AGE_MS (fire.orderReviewMaxAgeS, 1 s) on the quote re-read after review.
  */
-export const CHAIN_MAX_AGE_MS = 30_000;
+export const CHAIN_MAX_AGE_MS = RULES_FIRE.chainMaxAgeS * 1000;
 /** The one source whose quotes may price an order. */
 export const LIVE_CHAIN_SOURCE = "get_option_quotes";
 /** Widest bid/ask, as a share of the mid, that still prices a limit. */
@@ -1710,6 +1714,13 @@ function pathContinuation(
           liveCtxFor(desk, underlier, c, liveInputs),
         )
       : null;
+  // Loss guards (shared rules loss.htf): 1h+4h both oppose → the desk set sizeMult < 1 on the card; the Floor ticket applies it.
+  const lossMult = (c as { sizeMult?: number } | undefined)?.sizeMult ?? 1;
+  if (ticket && c && lossMult < 1) {
+    const n = Math.max(1, Math.floor(ticket.contracts * lossMult));
+    if (n < ticket.contracts) ticket = shrinkTicket(ticket, n, `1h+4h oppose size cut ×${lossMult}`);
+    else reasons.push(`1h+4h oppose size cut ×${lossMult} wanted; ticket already at the 1-contract floor`);
+  }
   if (ticket && c && pressured) {
     const n = contractsAfterEvent(c.confluence, String(c.pathBand || c.grade), true);
     if (n >= 1 && n < ticket.contracts) ticket = shrinkTicket(ticket, n, "Clock/news size cut");

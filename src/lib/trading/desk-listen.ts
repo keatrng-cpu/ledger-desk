@@ -1,4 +1,6 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { RULES_HASH } from "@/lib/desk/rules-hash";
+import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
@@ -62,6 +64,8 @@ export interface DeskListenCard {
 }
 
 export interface DeskWire {
+  /** sha256 (16 hex) of the shared rules this card was graded on — the watcher fails closed on mismatch. */
+  rulesHash?: string;
   /** PD arrays on 1m–4h for both books, live first, capped (mtf-arrays.ts). */
   arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
@@ -104,6 +108,12 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
+    /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
+    sizeMult: number;
+    sweep: boolean | null;
+    loss: Record<string, unknown> | null;
+    /** Per-rule guard outcomes: live = acted; shadow = would have acted (no effect). */
+    guards: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } | null;
     regime: string | null;
     /** Fix 39: trend / reversal / range — the regime the card was graded in. */
     regimeLabel: string | null;
@@ -113,14 +123,23 @@ export interface DeskWire {
     legs: number | null;
     /** Fix 36: add-on at the second LTF gap after a reversal confirms. */
     addOn: { tf: string; entry: number; zone: { top: number; bottom: number } } | null;
+    /** Fixes 1–4, 6, 9–15, 21, 22 (day-context.ts); macroRisk = DXY/10y read (market/macro.ts), null when no source answers. */
+    context: Record<string, unknown> | null;
     /** Fix 16–18. */
     exitPlan: { trailRule: string; trailPx: number | null; timeStopBars: number; timeStopTf: string; killExit: boolean; killWhy: string | null } | null;
     /** Which plan target `target` is (T1 unless T1 < 1R and T2 clears it). */
     targetWhich: "t1" | "t2" | null;
     /** R:R to `target`. */
     rr: number | null;
+    /** Uncapped R:R; `rr` is capped at 6 for display (Keaton 2026-10-13). */
+    rrRaw: number | null;
+    /** true when the R:R was above 6 or the stop was widened to ≥ 0.5×ATR15. */
+    rrFlag: boolean;
     rr1: number | null;
     rr2: number | null;
+    /** uncapped R:R (rr1/rr2 are capped at RR_DISPLAY_MAX; rrFlag set when either was above it) */
+    rr1Raw: number | null;
+    rr2Raw: number | null;
     t2: number | null;
     /** The plan's stop as a number (the text stays on `stop`). Null without a plan. */
     stopPx: number | null;
@@ -190,12 +209,14 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   // AUDIT F7: the card's strategy IS the brain's book when the brain has one
   // on the board, so scanner, brain and Floor describe the same trade.
   const bookCand = desk.smcMaster.oneBook?.side
-    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && !c.scannerSkip)
+    ? desk.scan.candidates.find((c) => c.symbol === desk.smcMaster.oneBook!.symbol && c.side === desk.smcMaster.oneBook!.side && !c.scannerSkip && !(c as { watchOnly?: boolean }).watchOnly)
     : undefined;
   // The brain's book leads only when it is not graded BELOW the best card
   // (live 10:13 ET: brain on MNQ short C while ES short B+ was actionable).
   const rankOf = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
-  const best = desk.scan.candidates[0] ?? null;
+  // Keaton 2026-10-13: only full-plan cards are cards; watch rows never lead.
+  const isWatch = (c: unknown) => Boolean((c as { watchOnly?: boolean }).watchOnly);
+  const best = desk.scan.candidates.find((c) => !isWatch(c)) ?? null;
   const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
@@ -210,6 +231,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .slice(0, WIRE_ARRAYS_CAP)
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
+    rulesHash: RULES_HASH,
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
     htf: top ? htfBiasOf(desk.mtfContext, top.symbol) : null,
@@ -256,17 +278,37 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           judas,
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
+          sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
+          sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
+          loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
+          guards: (top as { guards?: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } }).guards ?? null,
           regime: top.setupRegime ?? null,
           regimeLabel: (top as { regimeLabel?: string }).regimeLabel ?? null,
           setups: (top as { setups?: string[] }).setups ?? [],
           legs: (top as { legs?: number }).legs ?? null,
           addOn: (top as { addOn?: DeskWireAddOn }).addOn ?? null,
+          context: (() => {
+            const dc = (top as { dayCtx?: Record<string, unknown> }).dayCtx ?? null;
+            if (!dc) return null;
+            // ladder from the FINAL plan zone (plans can attach after the context pass)
+            const z = (top.plan as { entryZone?: { top: number; bottom: number } } | null | undefined)?.entryZone;
+            const ladder = z && z.top > z.bottom
+              ? [{ px: top.side === "short" ? z.bottom : z.top, pct: 40 }, { px: +((z.top + z.bottom) / 2).toFixed(2), pct: 40 }, { px: top.side === "short" ? z.top : z.bottom, pct: 20 }]
+              : dc.ladder ?? null;
+            const { blocksAll: _b, ...rest } = dc as Record<string, unknown>;
+            const mr = rest.macroRisk as { risk?: string | null } | null;
+            return { ...rest, ladder, macroNote: mr?.risk != null ? "DXY: Yahoo DX-Y.NYB; 10y: Yahoo ^TNX (ZN=F fallback)." : "DXY/10y: no source answered — null, not synthesized." };
+          })(),
           exitPlan: top.exitPlan ? { trailRule: top.exitPlan.trailRule, trailPx: top.exitPlan.trailPx, timeStopBars: top.exitPlan.timeStopBars, timeStopTf: top.exitPlan.timeStopTf, killExit: top.exitPlan.killExit, killWhy: top.exitPlan.killWhy } : null,
           target: primaryTarget(top.plan).price,
           targetWhich: primaryTarget(top.plan).which,
-          rr: primaryTarget(top.plan).rr,
-          rr1: top.plan?.rr1 ?? null,
-          rr2: top.plan?.rr2 ?? null,
+          rr: (() => { const v = primaryTarget(top.plan).rr; return v == null ? null : Math.min(v, RR_DISPLAY_MAX); })(),
+          rrRaw: primaryTarget(top.plan).rr,
+          rrFlag: [top.plan?.rr1, top.plan?.rr2, primaryTarget(top.plan).rr].some((v) => v != null && v > RR_DISPLAY_MAX) || Boolean((top as { rrCheck?: { flagged?: boolean; widened?: boolean } }).rrCheck?.flagged || (top as { rrCheck?: { widened?: boolean } }).rrCheck?.widened),
+          rr1: top.plan?.rr1 == null ? null : Math.min(top.plan.rr1, RR_DISPLAY_MAX),
+          rr2: top.plan?.rr2 == null ? null : Math.min(top.plan.rr2, RR_DISPLAY_MAX),
+          rr1Raw: top.plan?.rr1 ?? null,
+          rr2Raw: top.plan?.rr2 ?? null,
           t2: top.plan?.t2 ?? null,
           stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,
@@ -369,6 +411,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
         entry: c.entryPx ?? c.plan?.entry ?? null,
+        /** "card" carries a complete plan; "watch" is a row without one (watchWhy says what is missing). */
+        kind: (c as { watchOnly?: boolean }).watchOnly ? "watch" : "card",
+        watchWhy: (c as { watchWhy?: string | null }).watchWhy ?? null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),

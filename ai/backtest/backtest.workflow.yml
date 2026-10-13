@@ -1,0 +1,29 @@
+# Install: copy to .github/workflows/backtest.yml (needs a token with the `workflow` scope; the agent token lacks it).
+name: backtest
+on:
+  schedule: [{ cron: "15 22 * * 1-5" }]   # nightly after the close (17:15 CT)
+  pull_request:
+  workflow_dispatch:
+permissions: { contents: write, pull-requests: write }
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: git fetch origin main --depth=1 && git show origin/main:ai/backtest/latest.json > /tmp/main.json || true
+      - name: replay
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -s /tmp/main.json ]; then cp /tmp/main.json ai/backtest/latest.json; fi
+          npx tsx scripts/backtest.mts 10 --out ai/backtest/latest.json --md /tmp/bt.md
+      - name: attach to PR
+        if: github.event_name == 'pull_request'
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/bt.md
+      - name: commit nightly result
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name "backtest-bot"; git config user.email "backtest-bot@users.noreply.github.com"
+          git add ai/backtest/latest.json && git commit -m "backtest: nightly replay [skip ci]" && git push || echo "no change"

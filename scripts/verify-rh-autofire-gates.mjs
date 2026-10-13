@@ -398,6 +398,17 @@ console.log("\nmayPlaceAfterReview preflight");
     nowMs: NOW,
   };
   check("clean review with liveQuote may place", rh.mayPlaceAfterReview(base).ok, true);
+  // fire.orderReviewMaxAgeS: measured from the quote re-read after review (readAtMs), not from the propose-time quote
+  const RA = rh.RH_ORDER_REVIEW_MAX_AGE_MS;
+  check("dispatcher: review-time quote read 0.3s before place may place",
+    rh.mayPlaceAfterReview({ ...base, requireReviewQuote: true, liveQuote: { ...reviewQuote, readAtMs: NOW - 300 } }).ok, true);
+  check("dispatcher: propose-time quote (no readAtMs) refuses",
+    rh.mayPlaceAfterReview({ ...base, requireReviewQuote: true }).ok, false);
+  check("dispatcher: review read older than orderReviewMaxAgeS refuses",
+    rh.mayPlaceAfterReview({ ...base, requireReviewQuote: true, liveQuote: { ...reviewQuote, readAtMs: NOW - RA - 1 } }).ok, false);
+  check("propose 20s ago does not matter: only the review read's age counts",
+    rh.mayPlaceAfterReview({ ...base, requireReviewQuote: true, liveQuote: { ...reviewQuote, asOfMs: NOW - 2_000, readAtMs: NOW - 200 }, nowMs: NOW }).ok, true);
+  check("order-review age comes from shared rules", RA, JSON.parse((await import("node:fs")).readFileSync(new URL("../shared/desk-rules.json", import.meta.url), "utf8")).fire.orderReviewMaxAgeS * 1000);
   check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: undefined }).ok, false);
   const { liveQuote: _q, ...noQuote } = base;
   check("review omitted liveQuote refuses", rh.mayPlaceAfterReview(noQuote).ok, false);

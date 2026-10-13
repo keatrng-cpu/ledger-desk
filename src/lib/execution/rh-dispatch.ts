@@ -34,6 +34,8 @@ export interface RhDispatchArgs {
   /** Real room state. A stub is not passed here — the caller already dropped it. */
   manager: ManagerRoomState | null;
   nowMs: number;
+  /** Wall clock for the post-review reads (order-review age). Defaults to Date.now; tests pin it. */
+  clock?: () => number;
   tooling: RhTooling | null;
   ledger: RhLedger;
   /** Sell every desk-owned contract. Does not open. */
@@ -355,17 +357,26 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
     again = null;
   }
   if (!again) return { cycle, sent: false, why: "No account read after review. Nothing was sent.", orderId: null };
-  const atReview = rhAccountFromPortfolio({ portfolio: again.portfolio, account: again.account, asOfMs: nowMs });
+  const clock = args.clock ?? Date.now;
+  const readAtReviewMs = clock();  // stamped when the post-review read returned, not the cycle (propose) time
+  const atReview = rhAccountFromPortfolio({ portfolio: again.portfolio, account: again.account, asOfMs: readAtReviewMs });
   const mgrAtReview = toManagerRhAccount({
     cashUsd: atReview.cash,
     optionsBuyingPowerUsd: atReview.buyingPower,
-    asOf: new Date(nowMs).toISOString(),
+    asOf: new Date(readAtReviewMs).toISOString(),
     accountNumber: atReview.accountNumber,
     agenticAllowed: atReview.agenticAllowed === true,
     optionLevel: atReview.optionLevel,
     label: atReview.label,
     isSnapshot: false,
   });
+  // Order-review age (fire.orderReviewMaxAgeS) runs from the quote re-read HERE, after review + account read —
+  // not from the propose-time quote (an MCP propose→review round trip is seconds; that read would always be refused).
+  const oid = order.legs[0]?.option_id ?? liveQuote?.optionId ?? null;
+  const rq = oid ? await tooling.quote(oid).catch(() => null) : null;
+  const reviewQuote: RhLiveOptionQuote | null = rq
+    ? { optionId: oid, askPrice: rq.ask, bidPrice: rq.bid, asOfMs: rq.asOfMs, source: "get_option_quotes", readAtMs: clock() }
+    : null;
   const qty = Number(order.quantity);
   const limit = Number(order.price);
   const debit = Number.isFinite(limit) && Number.isFinite(qty) ? Math.round(limit * 100 * qty * 100) / 100 : null;
@@ -378,10 +389,11 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
     account: mgrAtReview,
     accountAtReview: atReview,
     debitTotal: debit,
-    liveQuote,
+    liveQuote: reviewQuote,
+    requireReviewQuote: true,
     quantity: qty,
     pathBand: manager?.path?.band ?? null,
-    nowMs,
+    nowMs: clock(),
   });
   if (!may.ok) return { cycle, sent: false, why: may.reason, orderId: null };
   const claimed = await args.ledger.claim(nowMs);

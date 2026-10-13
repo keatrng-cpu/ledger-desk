@@ -3,6 +3,7 @@
  * displacement strength (fix 20), ranked draws (fix 7/8), exit plan (16–18).
  * Every number is read from bars the desk already loaded. No bars → null.
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
@@ -19,6 +20,9 @@ export interface DisplacementStrength {
   closeFrac: number;
   tf: "5m";
   ageBars: number;
+  /** SHADOW (rules fast.shadow): velocity = strongest 1m body inside the leg / ATR1m-equivalent; volBurst = leg volume
+   *  / median of the prior 20 5m bars (null when the feed has no volume). shadowScore folds them in; NOT used for q. */
+  velocity?: number | null; volBurst?: number | null; shadowScore?: number | null;
 }
 
 /**
@@ -45,7 +49,16 @@ export function displacementStrength(minute: OhlcBar[] | null | undefined, side:
     const leftFvg = nx ? (side === "long" ? nx.l > b5[i - 1]!.h : nx.h < b5[i - 1]!.l) : false;
     const bodyAtr = body / a!;
     const score = +(0.5 * Math.min(bodyAtr / 2, 1) + (leftFvg ? 0.25 : 0) + (closeFrac >= 0.75 ? 0.25 : 0)).toFixed(2);
-    if (!best || score > best.score) best = { score, bodyAtr: +bodyAtr.toFixed(2), leftFvg, closeFrac: +closeFrac.toFixed(2), tf: "5m", ageBars: b5.length - 1 - i };
+    const inLeg = m.filter((x) => x.t >= b.t && x.t < b.t + 300_000);
+    const vel = inLeg.length ? Math.max(...inLeg.map((x) => (side === "long" ? x.c - x.o : x.o - x.c))) / (a! / Math.sqrt(5)) : null;
+    const prior = b5.slice(Math.max(0, i - 20), i).map((x) => x.v ?? 0).filter((v) => v > 0).sort((p, q) => p - q);
+    const med = prior.length ? prior[Math.floor(prior.length / 2)]! : 0;
+    const volBurst = med > 0 && (b.v ?? 0) > 0 ? +((b.v ?? 0) / med).toFixed(2) : null;
+    const shadowScore = +(score * (1 - RULES.fast.dispVelWeight - RULES.fast.dispVolWeight)
+      + RULES.fast.dispVelWeight * Math.min(Math.max(vel ?? 0, 0), 1)
+      + RULES.fast.dispVolWeight * (volBurst == null ? 0 : Math.min(Math.max((volBurst - 1) / 2, 0), 1))).toFixed(2);
+    if (!best || score > best.score) best = { score, bodyAtr: +bodyAtr.toFixed(2), leftFvg, closeFrac: +closeFrac.toFixed(2), tf: "5m", ageBars: b5.length - 1 - i,
+      velocity: vel == null ? null : +vel.toFixed(2), volBurst, shadowScore };
   }
   return best;
 }
@@ -127,7 +140,7 @@ export function exitPlanOf(minute: OhlcBar[] | null | undefined, side: Side, pri
 }
 
 export const CONT_MIN_DISP = 0.6;
-export const CONT_MIN_STOP_ATR = 0.5;
+export const CONT_MIN_STOP_ATR = RULES.minStopAtr;
 
 export interface ContinuationPlan {
   symbol: string;
@@ -158,6 +171,7 @@ export function continuationPlan(
   price: number | null,
   draws: RankedDraw[],
   disp: number | null,
+  extra: RankedDraw[] = [],
 ): ContinuationPlan | null {
   if (price == null || disp == null || disp < CONT_MIN_DISP || !minute?.length) return null;
   const dir = side === "long" ? "bull" : "bear";
@@ -197,17 +211,20 @@ export function continuationPlan(
   const t2 = ahead.find((d) => (side === "short" ? d.price < (t1 ?? entry) : d.price > (t1 ?? entry)))?.price ?? null;
   if (t1 == null) return null;
   const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
+  const beyond = (d: RankedDraw, t: number) => (side === "short" ? d.price < t : d.price > t);
+  const ext0 = extra.filter((d) => beyond(d, t1));
   // Both under 1R: step out to the next EXTERNAL ranked draw beyond them
   // (PDL/PWL/session low…). A real level from the ranked list, or nothing.
   let tA = t1, tB = t2;
   if ((rr(tA) ?? 0) < 1 && (rr(tB) ?? 0) < 1) {
     const far = side === "short" ? Math.min(tA, tB ?? tA) : Math.max(tA, tB ?? tA);
-    const ext = ahead
+    const ext = [...ahead, ...ext0]
       .filter((d) => (side === "short" ? d.price < far : d.price > far))
       .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
       .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
     if (ext) { tB = tA; tA = ext.price; }
   }
+  if (tB == null && ext0.length) tB = [...ext0].sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price;
   const resting = Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr;
   return {
     symbol, side, entry, entryZone: { top: g.hi, bottom: g.lo }, stop,
@@ -224,7 +241,7 @@ export function continuationPlan(
  */
 export function planAt(
   symbol: string, side: Side, gap: { lo: number; hi: number; ce: number }, stopRef: number, stopWhy: string,
-  price: number | null, draws: RankedDraw[], atr: number | null, why: string,
+  price: number | null, draws: RankedDraw[], atr: number | null, why: string, extra: RankedDraw[] = [],
 ): ContinuationPlan | null {
   if (price == null || atr == null || !(atr > 0)) return null;
   const entry = +gap.ce.toFixed(2);
@@ -237,17 +254,152 @@ export function planAt(
   const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - entry) / riskPts).toFixed(2));
   let t1 = ahead[0]!.price;
   let t2: number | null = ahead.find((d) => (side === "short" ? d.price < t1 : d.price > t1))?.price ?? null;
+  const ext0 = extra.filter((d) => (side === "short" ? d.price < t1 : d.price > t1));
   if ((rr(t1) ?? 0) < 1 && (rr(t2) ?? 0) < 1) {
     const far = side === "short" ? Math.min(t1, t2 ?? t1) : Math.max(t1, t2 ?? t1);
-    const ext = ahead
+    const ext = [...ahead, ...ext0]
       .filter((d) => (side === "short" ? d.price < far : d.price > far))
       .filter((d) => d.scope === "external" || /\b(PDL|PDH|PWL|PWH|London|Asia|session|overnight)\b/i.test(d.name))
       .sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0];
     if (ext) { t2 = t1; t1 = ext.price; }
   }
+  if (t2 == null && ext0.length) t2 = [...ext0].sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price;
   return {
     symbol, side, entry, entryZone: { top: gap.hi, bottom: gap.lo }, stop, stopWhy, riskPts,
     t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2),
     resting: Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr, why,
   };
+}
+
+/** Item 4: opening-range SD projections as EXTERNAL draws (used only beyond T1). */
+export function sdDraws(sd: { up2: number; up25: number; dn2: number; dn25: number } | null | undefined, price: number | null): RankedDraw[] {
+  if (!sd || price == null) return [];
+  const mk = (name: string, p: number): RankedDraw => ({ name, price: p, side: p > price ? "above" : "below", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.4 } as RankedDraw);
+  return [mk("OR +2 SD", sd.up2), mk("OR +2.5 SD", sd.up25), mk("OR −2 SD", sd.dn2), mk("OR −2.5 SD", sd.dn25)];
+}
+
+/**
+ * Keaton 2026-10-13: every displayed card carries a COMPLETE plan, or it is a
+ * watch row. Fallback chain, each step a real level or nothing:
+ *   entry  — nearest unfilled same-direction 1m–15m array (FVG/IFVG/sponsored
+ *            CE, or OB/breaker CE) on the pullback side; else the 5m BOS
+ *            retest level; else the opening-range edge on the pullback side.
+ *   stop   — beyond the origin swing (the 1m extreme of the candles that
+ *            formed the array / the nearest 5m swing beyond the level), ≥ 0.5×ATR15.
+ *   target — best-ranked unswept draw beyond entry; else an OR SD projection;
+ *            else the session (overnight + today) high/low.
+ */
+export interface CompleteInput {
+  symbol: string; side: Side; price: number | null; atr: number | null;
+  minute: OhlcBar[]; bars15: OhlcBar[]; draws: RankedDraw[]; sd: RankedDraw[];
+  blocks: { kind: string; dir: string; lo: number; hi: number }[];
+  bosLevel: number | null; orRange: { high: number; low: number } | null;
+  sessionHL: { high: number; low: number } | null;
+}
+export interface CompletedPlan extends ContinuationPlan { entrySrc: string; targetSrc: string }
+
+export function completePlan(i: CompleteInput): { plan: CompletedPlan | null; missing: string | null } {
+  const { side, price, atr } = i;
+  if (price == null) return { plan: null, missing: "no live price" };
+  if (atr == null || !(atr > 0)) return { plan: null, missing: "no ATR15" };
+  const dir = side === "long" ? "bull" : "bear";
+  const pull = (lo: number, hi: number) => (side === "short" ? hi >= price : lo <= price); // zone at/above price for a short
+  type Z = { lo: number; hi: number; ce: number; src: string; createdT?: number; tf?: string };
+  const zones: Z[] = [];
+  for (const r of mtfArrays(i.symbol, i.minute, i.bars15)) {
+    if (r.dir !== dir || r.mitigated || !pull(r.lo, r.hi)) continue;
+    if (!["1m", "2m", "3m", "4m", "5m", "15m"].includes(r.tf)) continue; // Keaton: 1m–15m
+    zones.push({ lo: r.lo, hi: r.hi, ce: r.ce, src: `${r.tf} ${r.kind}`, createdT: r.createdT, tf: r.tf });
+  }
+  for (const b of i.blocks) {
+    if ((b.kind !== "ob" && b.kind !== "breaker") || b.dir !== dir || !pull(b.lo, b.hi)) continue;
+    zones.push({ lo: b.lo, hi: b.hi, ce: +((b.lo + b.hi) / 2).toFixed(2), src: `5m ${b.kind}` });
+  }
+  const dist = (z: Z) => Math.abs(z.ce - price);
+  zones.sort((a, b) => dist(a) - dist(b));
+  let z: Z | null = zones[0] ?? null;
+  if (!z && i.bosLevel != null && pull(i.bosLevel, i.bosLevel)) z = { lo: i.bosLevel, hi: i.bosLevel, ce: i.bosLevel, src: "5m BOS retest" };
+  if (!z && i.orRange) {
+    const edge = side === "short" ? i.orRange.high : i.orRange.low;
+    if (pull(edge, edge)) z = { lo: edge, hi: edge, ce: edge, src: `opening-range ${side === "short" ? "high" : "low"}` };
+  }
+  if (!z) return { plan: null, missing: "no entry level on the pullback side (no array, BOS retest or OR edge)" };
+  const entry = +z.ce.toFixed(2);
+  // origin swing
+  const m = i.minute.slice(0, -1);
+  let origin: number | null = null;
+  if (z.createdT != null) {
+    const tfMs = (Number(String(z.tf).replace(/[mh]/, "")) || 1) * (String(z.tf).endsWith("h") ? 3_600_000 : 60_000);
+    const o = m.filter((b) => b.t >= z!.createdT! - 2 * tfMs && b.t < z!.createdT! + tfMs);
+    if (o.length) origin = side === "short" ? Math.max(...o.map((b) => b.h)) : Math.min(...o.map((b) => b.l));
+  }
+  if (origin == null || (side === "short" ? origin < z.hi : origin > z.lo)) {
+    const b5 = resampleMs(m, 300_000).slice(0, -1);
+    const sw = fractalSwings(b5, 2).filter((s) => (side === "short" ? s.kind === "high" && s.price > z!.hi : s.kind === "low" && s.price < z!.lo));
+    origin = sw.length ? sw.sort((a, b) => Math.abs(a.price - entry) - Math.abs(b.price - entry))[0]!.price : null;
+  }
+  const ref = origin ?? (side === "short" ? z.hi : z.lo);
+  const stopWhy = origin != null ? `the origin swing ${origin}` : `the ${z.src} far edge`;
+  const sess: RankedDraw[] = i.sessionHL
+    ? [{ name: "Session high", price: i.sessionHL.high, side: "above", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.3 } as RankedDraw,
+       { name: "Session low", price: i.sessionHL.low, side: "below", scope: "external", touches: 0, ageBars: null, distanceAtr: null as never, swept: false, rank: 0.3 } as RankedDraw]
+    : [];
+  const beyond = (d: RankedDraw) => (side === "short" ? d.price < entry : d.price > entry) && !d.swept;
+  let pool = i.draws.filter(beyond), targetSrc = "ranked draw";
+  if (!pool.length) { pool = i.sd.filter(beyond); targetSrc = "OR SD projection"; }
+  if (!pool.length) { pool = sess.filter(beyond); targetSrc = "session high/low"; }
+  if (!pool.length) return { plan: null, missing: "no target beyond the entry (no ranked draw, SD projection or session extreme)" };
+  const p = planAt(i.symbol, side, { lo: z.lo, hi: z.hi, ce: entry }, ref, stopWhy, price, pool, atr, `entry ${z.src} CE ${entry}; target from ${targetSrc}`, targetSrc === "ranked draw" ? i.sd.filter(beyond) : []);
+  if (!p) return { plan: null, missing: "plan did not price" };
+  return { plan: { ...p, entrySrc: z.src, targetSrc }, missing: null };
+}
+
+/**
+ * Keaton 2026-10-13 (live 12:33 CT: MNQ short entry 30735.13, stop 30738.75
+ * = 3.6 pt vs ATR15 45.9 → "rr 13.12"): no fake stops, targets or R:R.
+ *  1. stop ≥ 0.5×ATR15 from entry; a tighter stop is widened to the nearest
+ *     real 5m swing beyond entry (or the 0.5×ATR floor) and R:R recomputed;
+ *  2. T1 must be a real level (ranked draw / SD projection / session H/L);
+ *     recomputed rr1 < 1.0 or an unreal T1 → not a card (watch row);
+ *  3. displayed R:R capped at RR_DISPLAY_MAX; above it the plan is flagged.
+ */
+export const RR_DISPLAY_MAX = RULES.rrDisplayMax;
+export const MIN_STOP_ATR = RULES.minStopAtr;
+export const RR_MIN = RULES.rrMin;
+export interface SaneResult {
+  ok: boolean; why: string | null; widened: boolean; flagged: boolean;
+  stop: number; riskPts: number; rr1: number | null; rr2: number | null; rrShown: number | null;
+  /** T2 promoted to T1 because T1 was under RR_MIN (t1/t2 are the plan's new targets) */
+  promoted?: boolean; t1?: number | null; t2?: number | null;
+}
+export function sanePlan(
+  p: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
+  atr: number | null, swings: number[], levels: number[], tick = 0.25,
+): SaneResult {
+  const short = p.side === "short";
+  let stop = p.stop, widened = false;
+  const bad = (why: string): SaneResult => ({ ok: false, why, widened, flagged: false, stop, riskPts: Math.abs(p.entry - stop), rr1: null, rr2: null, rrShown: null });
+  if (atr == null || !(atr > 0)) return bad("no ATR15 to check the stop");
+  if (short ? stop <= p.entry : stop >= p.entry) return bad("stop on the wrong side of entry");
+  const floor = short ? p.entry + MIN_STOP_ATR * atr : p.entry - MIN_STOP_ATR * atr;
+  if (Math.abs(stop - p.entry) < MIN_STOP_ATR * atr - 1e-9) {
+    const beyond = swings.filter((s) => (short ? s > p.entry : s < p.entry)).sort((a, b) => Math.abs(a - p.entry) - Math.abs(b - p.entry));
+    const sw = beyond.find((s) => Math.abs(s - p.entry) >= MIN_STOP_ATR * atr) ?? null;
+    stop = +(sw != null ? (short ? sw + tick : sw - tick) : floor).toFixed(2);
+    widened = true;
+  }
+  const riskPts = +Math.abs(p.entry - stop).toFixed(2);
+  const real = (t: number | null) => t != null && levels.some((l) => Math.abs(l - t) <= tick + 1e-9);
+  const rr = (t: number | null) => (t == null ? null : +((short ? p.entry - t : t - p.entry) / riskPts).toFixed(2));
+  if (!real(p.t1)) return { ...bad(`T1 ${p.t1} is not a real ranked level`), stop, riskPts };
+  const rr1 = rr(p.t1), rr2 = real(p.t2) ? rr(p.t2) : null;
+  // 13:01 CT ES case: a T1 under 1R must never be the DISPLAYED target. Promote a real T2 that clears
+  // RR_MIN to T1 (no new level is created); otherwise it's a watch row.
+  if ((rr1 == null || rr1 < RR_MIN) && rr2 != null && rr2 >= RR_MIN) {
+    return { ok: true, why: `T1 ${p.t1} was ${rr1}R (< ${RR_MIN}) — promoted T2 ${p.t2} (${rr2}R) to T1`, widened, flagged: rr2 > RR_DISPLAY_MAX, stop, riskPts,
+      rr1: rr2, rr2: null, rrShown: Math.min(rr2, RR_DISPLAY_MAX), promoted: true, t1: p.t2, t2: null };
+  }
+  if (rr1 == null || rr1 < RR_MIN) return { ok: false, why: `R:R ${rr1} < ${RR_MIN.toFixed(1)} after the stop check (stop ${stop}${widened ? ", widened" : ""})`, widened, flagged: false, stop, riskPts, rr1, rr2, rrShown: rr1 };
+  const flagged = rr1 > RR_DISPLAY_MAX;
+  return { ok: true, why: flagged ? `R:R ${rr1} above ${RR_DISPLAY_MAX} — shown capped, check the stop` : null, widened, flagged, stop, riskPts, rr1, rr2, rrShown: Math.min(rr1, RR_DISPLAY_MAX) };
 }

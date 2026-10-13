@@ -1,0 +1,169 @@
+{
+  "_doc": "ONE source for scoring/setup/direction rules shared by desk (TS), brain, Floor and desk-watcher (Python). Parity tests on both sides fail on drift. Change here, then copy to desk-watcher/watcher/desk-rules.json.",
+  "version": 1,
+  "bandEdges": {
+    "A+": 0.75,
+    "A": 0.68,
+    "A-": 0.65,
+    "B+": 0.6,
+    "B": 0.5
+  },
+  "minStopAtr": 0.5,
+  "rrMin": 1.0,
+  "rrDisplayMax": 6,
+  "entryZoneAtr": {
+    "A+": 0.75,
+    "A": 0.5,
+    "A-": 0.35,
+    "B+": 0.5
+  },
+  "lateEntry": {
+    "rrMin": {
+      "A+": 1.0,
+      "A": 1.2,
+      "A-": 1.2
+    },
+    "pnlMinPct": 0.75
+  },
+  "kill": {
+    "disp1Atr": 1.0,
+    "ifvg5MaxAge": 6,
+    "rejectWickFrac": 0.5,
+    "boost": 0.02,
+    "boostMax": 0.04,
+    "voidCloses5m": 2,
+    "maxAgeMin": 60
+  },
+  "fire": {
+    "persistS": 6,
+    "chasePct": 0.08,
+    "brainWaitS": 60,
+    "quoteMaxAgeS": 3,
+    "chainMaxAgeS": 10,
+    "orderReviewMaxAgeS": 1,
+    "nearMissPct": 0.05,
+    "secondEntryMinBand": "A"
+  },
+  "dispVsRr": [
+    {
+      "minDisp": 0.7,
+      "rrMin": 1.0
+    },
+    {
+      "minDisp": 0.5,
+      "rrMin": 1.5
+    },
+    {
+      "minDisp": 0,
+      "rrMin": 2.0
+    }
+  ],
+  "session": {
+    "_doc": "RH blocks new 0DTE opens after 15:30 ET and force-closes 0DTE ~15:45 ET. From zeroDteCutoffEt only dte>=1 is picked; any 0DTE position is flattened by zeroDteFlatEt; everything is flat by flatByMaxEt (no overnight holds).",
+    "zeroDteCutoffEt": "15:25",
+    "zeroDteFlatEt": "15:40",
+    "flatByMaxEt": "15:50",
+    "noOvernight": true
+  },
+  "fast": {
+    "_doc": "Fast-move layer (watcher aggregates 1s/5s/15s from the desk's live gateway price; the desk reads it via /api/desk/fast). SHADOW ONLY until the 1s replay proves an edge: shadow=true means no score/fire influence.",
+    "shadow": true,
+    "spikeAtr": 0.3,
+    "spikeWindowS": 15,
+    "failedRetrace": 0.5,
+    "eventPollS": 1.5,
+    "eventWindowS": 60,
+    "freshS": 30,
+    "provenMinN": 30,
+    "provenMinAvgR": 0.1,
+    "replayTargetAtr": 0.5,
+    "replayStopAtr": 0.5,
+    "replayHorizonS": 600,
+    "dispVelWeight": 0.15,
+    "dispVolWeight": 0.15
+  },
+  "learning": {
+    "_doc": "Brain/learning loop. Scoring changes are PROPOSALS: shadow-scored for shadowDays, then applied only on approval (POST /api/desk/journal/approve).",
+    "minN": 30,
+    "maxStep": 0.2,
+    "shrinkK": 50,
+    "decayDays": 60,
+    "holdoutFrac": 0.2,
+    "shadowDays": 7,
+    "requireApproval": true,
+    "checkpointsMin": [
+      15,
+      60
+    ],
+    "fatigueLosses": 2,
+    "journalEt": "16:05",
+    "qCiZ": 1.96
+  },
+  "loss": {
+    "_doc": "Loss-pattern guards (Keaton 2026-10-13, audit of 83 trades / 9 sessions). One source for desk, brain, Floor and watcher. See src/lib/smc/loss-guards.ts and watcher gates.loss_*.",
+    "htf": {
+      "mode": "shadow",
+      "_doc": "1h AND 4h both oppose the side: below A blocks; A/A- fire at sizeMult; A+ stays A+ only with a 5m/15m sweep plus displacement, else capped to A (size cut). While mode=shadow the watcher runs the legacy htf gate: one of 1h/4h opposing = size cut; both opposing = legacyBothOppose (\"block\" | \"sizeCut\"; audit: block +7.47R vs size cut +9.53R vs none +11.58R on 83 trades → sizeCut).",
+      "sizeMult": 0.5,
+      "minBand": "A",
+      "aPlusNeedsSweepDisp": true,
+      "legacyBothOppose": "sizeCut"
+    },
+    "early": {
+      "mode": "shadow",
+      "_doc": "No minR of favourable excursion within minutes after the fill: cut at market.",
+      "minR": 0.3,
+      "minutes": 20
+    },
+    "velocity": {
+      "mode": "shadow",
+      "_doc": "Expected minutes to T1 = |T1-entry| / (60m range / 60). Above maxMin: q penalty.",
+      "lookbackMin": 60,
+      "maxMin": 45,
+      "qPenalty": 0.03
+    },
+    "stop": {
+      "mode": "shadow",
+      "_doc": "Stop beyond the structural swing / sweep wick by bufferAtr x ATR15 OR the winners' MAE percentile (maePctAtr x ATR15), whichever is larger; the |entry-stop| floor stays minStopAtr.",
+      "bufferAtr": 0.1,
+      "maePctAtr": 0.42,
+      "maePct": 0.9
+    },
+    "late": {
+      "mode": "live",
+      "_doc": "Entry more than maxAtr x ATR15 past the trigger level is late: only the full lateEntry rule (A+/A/A-, ARMED, RR from price, option PnL) may fire it.",
+      "maxAtr": 0.5
+    },
+    "chop": {
+      "mode": "shadow",
+      "_doc": "60m range < rangeAtr x ATR15, 5m overlap > overlap, failed 5m breaks of the 60m range >= failedBreaks; needScore of 3 => chop: band capped at capBand (B = never fires; watch row).",
+      "lookbackMin": 60,
+      "rangeAtr": 2.0,
+      "overlap": 0.6,
+      "failedBreaks": 2,
+      "needScore": 2,
+      "capBand": "B"
+    },
+    "target": {
+      "mode": "shadow",
+      "beMode": "live",
+      "_doc": "T1 must be a ranked liquidity draw (rankDraws, rank >= minRank) — SD/session fallbacks are T2 only. At beFrac of the way to T1 the stop moves to breakeven. mode = the ranked-T1 rule (6a); beMode = the breakeven rule (6b).",
+      "minRank": 0.0,
+      "beFrac": 0.75
+    },
+    "option": {
+      "mode": "shadow",
+      "_doc": "Projected option net at T1 = |delta| x move x ratio - theta/min x expected minutes - spread must be > minNet (premium $ per share). From preferDte1MinLeftMin minutes before session.zeroDteCutoffEt pick dte>=1. Never past session.flatByMaxEt.",
+      "delta": 0.5,
+      "thetaPerMin": 0.0015,
+      "spread": 0.02,
+      "ratio": {
+        "MNQ": 0.02,
+        "ES": 0.1
+      },
+      "minNet": 0.0,
+      "preferDte1MinLeft": 60
+    },
+    "_modes": "Per-rule mode (Keaton 2026-10-13 13:45 CT): \"live\" acts; \"shadow\" computes and logs what it would do (card wire.strategy.guards.shadow, watcher gates.log shadow:* rows) and changes nothing (q, band, size, stop, watch row, brain word, fire)."
+  }
+}

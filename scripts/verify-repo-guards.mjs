@@ -278,6 +278,9 @@ for (const [path] of FLOORS) {
     // under src/ imports them yet.
     "src/lib/room/floor-ik.ts",
     "src/lib/room/floor-locomotion.ts",
+    // Backtest engine (2026-10-13): driven only by scripts/backtest.mts and the replay/measure scripts
+    // (scripts/dump-loss-features.mts); no src/ path imports it — the live desk never backtests.
+    "src/lib/backtest/engine.ts",
   ]);
   // 2026-10-12: auth/verify.server.ts and market/tape-trust.ts came off — both now
   // imported from live src/ paths (inventory refresh; guards unchanged).

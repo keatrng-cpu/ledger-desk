@@ -12,13 +12,14 @@
  *   R7 chop                  → band ≤ B+ (median 15m overlap > 60% or 8-bar range < 3×ATR15)
  *   R8 rejection wick        → ±0.01 q at a key level (wick ≥ 60% of range, close in the other half)
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
 
 export const BANDS = ["A+", "A", "A-", "B+", "B", "C", "skip"] as const;
 export type Band = (typeof BANDS)[number];
-export const MIN_STOP_ATR = 0.5;
+export const MIN_STOP_ATR = RULES.minStopAtr; // shared/desk-rules.json
 export const CHASE_STEP_ATR = 0.5;
 export const FAST_INVALID_BODY_ATR5 = 1.25;
 export const CHOP_OVERLAP = 0.6;
@@ -211,13 +212,30 @@ export function shockLeanLive(
   return lean;
 }
 
-/** PATH bands from q: A+ ≥0.75, A ≥0.68, A- ≥0.65, B+ ≥0.60, B ≥0.50, else C. */
+/**
+ * PATH bands from q. Baseline A+ ≥0.75, A ≥0.68, A- ≥0.65, B+ ≥0.60, B ≥0.50,
+ * else C. The learning loop (desk/learning.ts) may move an edge — versioned,
+ * raise-only (never below baseline), +20% max, n ≥ 30 — through setBandEdges; BAND_EDGES_BASE never changes.
+ */
+export const BAND_EDGES_BASE = { "A+": RULES.bandEdges["A+"], A: RULES.bandEdges.A, "A-": RULES.bandEdges["A-"], "B+": RULES.bandEdges["B+"], B: RULES.bandEdges.B } as const; // shared/desk-rules.json
+export type BandEdges = { "A+": number; A: number; "A-": number; "B+": number; B: number };
+export const BAND_EDGES: BandEdges = { ...BAND_EDGES_BASE };
+const BAND_CEIL: Record<Band, number> = { "A+": 0.99, A: 0.7499, "A-": 0.6799, "B+": 0.6499, B: 0.5999, C: 0.4999, skip: 0 };
+export function setBandEdges(e: Partial<BandEdges> | null): void {
+  Object.assign(BAND_EDGES, BAND_EDGES_BASE, e ?? {});
+  // Keaton 2026-10-13: a calibration may only RAISE an edge.
+  for (const k of Object.keys(BAND_EDGES_BASE) as (keyof BandEdges)[]) BAND_EDGES[k] = Math.max(BAND_EDGES_BASE[k], BAND_EDGES[k]);
+  BAND_CEIL.A = +(BAND_EDGES["A+"] - 0.0001).toFixed(4);
+  BAND_CEIL["A-"] = +(BAND_EDGES.A - 0.0001).toFixed(4);
+  BAND_CEIL["B+"] = +(BAND_EDGES["A-"] - 0.0001).toFixed(4);
+  BAND_CEIL.B = +(BAND_EDGES["B+"] - 0.0001).toFixed(4);
+  BAND_CEIL.C = +(BAND_EDGES.B - 0.0001).toFixed(4);
+}
 export function bandFromQ(q: number | null | undefined): Band | null {
   if (q == null || !Number.isFinite(q)) return null;
-  return q >= 0.75 ? "A+" : q >= 0.68 ? "A" : q >= 0.65 ? "A-" : q >= 0.6 ? "B+" : q >= 0.5 ? "B" : "C";
+  const e = BAND_EDGES;
+  return q >= e["A+"] ? "A+" : q >= e.A ? "A" : q >= e["A-"] ? "A-" : q >= e["B+"] ? "B+" : q >= e.B ? "B" : "C";
 }
-/** Highest q a band can carry (one tick under the next band's floor). */
-const BAND_CEIL: Record<Band, number> = { "A+": 0.99, A: 0.7499, "A-": 0.6799, "B+": 0.6499, B: 0.5999, C: 0.4999, skip: 0 };
 
 /**
  * One band per card, everywhere: after every cap (path, vetoes, discipline,

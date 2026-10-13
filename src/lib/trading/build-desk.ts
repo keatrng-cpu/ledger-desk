@@ -1,12 +1,19 @@
+import { planTargetText } from "@/lib/trading/card-plan";
+import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
+import * as dayc from "@/lib/smc/day-context";
+import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
+import { loadMacro } from "@/lib/market/macro";
+import { loadOvernight5m } from "@/lib/market/overnight";
+import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
-import { continuationPlan, planAt, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
+import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
-import { buildMtfContext, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
+import { buildMtfContext, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -95,6 +102,9 @@ import {
 import { buildSessionBrief, type SessionBrief } from "./session-brief";
 import { overlayWeekAhead, resolveWeekAhead, type WeekAheadRead } from "./week-ahead";
 import { overlayMonthAhead, resolveMonthAhead, type MonthAheadRead } from "./month-ahead";
+import * as lossGuards from "@/lib/smc/loss-guards";
+import RULES_ALL from "../../../shared/desk-rules.json";
+const LOSS_RULES = RULES_ALL.loss;
 
 export interface DeskPayload {
   ok: true;
@@ -1088,8 +1098,6 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // since a 10-minute-lagged feed cannot resolve a 15-minute window.
     const DISP_NUDGE = 0.02;
     const CHOP_CLEAR_DISP = 0.6;
-    const LTF_FLIP_MIN = 0.05;
-    const LTF_FLIP_MAX = 0.08;
     const REVERSAL_NUDGE = 0.03;
     const mtfContext = buildMtfContext(
       { symbol: left.symbol, minute: minuteL, bars15: closedL },
@@ -1098,6 +1106,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const smcInput: Parameters<typeof gradeSmcMaster>[0] = {
       ...payload,
       mtfContext,
+      // the brain grades its draw on the SAME ranked list the wire publishes
+      rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       shockSymbol: shock.event?.symbol ?? null,
       left: { ...payload.left, minute: minuteL },
       right: { ...payload.right, minute: minuteR },
@@ -1173,9 +1183,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
           c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
         } else if (!rev.rearmed) {
-          // Fix 29: a real boost, 0.05–0.08 weighted by this side's alignment.
+          // Fix 29 (retuned 2026-10-13): flat TUNABLES.killBoost (base 0.02,
+          // config.ts) — kill precision ≈ 0.50 on 5 sessions; the learning
+          // loop recalibrates it at n ≥ 30 graded kills.
           const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
-          const boost = +(LTF_FLIP_MIN + (LTF_FLIP_MAX - LTF_FLIP_MIN) * al).toFixed(3);
+          const boost = TUNABLES.killBoost;
+          (c as { killBoosted?: boolean }).killBoosted = true;
           c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
           c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
         }
@@ -1232,6 +1245,91 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         }
         (c as { setups?: string[] }).setups = tags;
         if (tags.length) c.reasons.push(`Setups (${regime}): ${tags.join("; ")}`);
+      }
+      // Fixes 1–4, 6, 9–15, 21, 22: day/session context (day-context.ts).
+      // Nudges are summed per card and capped at ±0.06 so context refines a
+      // grade, never makes one. Every read is null without its bars.
+      const nowCtx = Date.now();
+      const late = <T,>(p: Promise<T>, d: T) => withBudget(p.catch(() => d), 2_500, d);
+      const [macro, onL, onR] = await Promise.all([
+        late(loadMacro(nowCtx), null),
+        late(loadOvernight5m(left.symbol as never, nowCtx), [] as OhlcBar[]),
+        late(loadOvernight5m(right.symbol as never, nowCtx), [] as OhlcBar[]),
+      ]);
+      const dayRead = (isL: boolean) => {
+        const minute = (isL ? minuteL : minuteR) ?? [];
+        const daily = (isL ? dailyL : dailyR) ?? [];
+        const b15 = isL ? closedL : closedR;
+        const px = (isL ? lq : rq)?.price ?? null;
+        const m = minute.slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        // overnight 5m (Asia/London) under the live 1m window
+        const on = (isL ? onL : onR) ?? [];
+        const merged = [...on.filter((b) => !m.length || b.t + 300_000 <= m[0]!.t), ...m];
+        return {
+          minute: m, b5, px,
+          bias: dayc.dailyBias(daily, merged, nowCtx),
+          pd: dayc.premiumDiscount(px, daily, b15, nowCtx),
+          seq: dayc.sessionSequence(merged, nowCtx),
+          or: dayc.openingRange(m, nowCtx),
+          stopRun: dayc.stopRun(m),
+          blocks: dayc.blocks5m(b5),
+          trig: dayc.triggerTf(b15, rollAtr(b15)),
+        };
+      };
+      const dayL = dayRead(true), dayR = dayRead(false);
+      (payload as { dayContext?: unknown }).dayContext = {
+        left: { ...dayL, minute: undefined, b5: undefined }, right: { ...dayR, minute: undefined, b5: undefined },
+        macroRisk: macro, macroNote: macro?.risk == null ? dayc.MACRO_RISK_NOTE : "DXY: Yahoo DX-Y.NYB; 10y: Yahoo ^TNX (ZN=F fallback).",
+      };
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const d = isL ? dayL : dayR;
+        const side = c.side as "long" | "short";
+        const regime = setups.regimeOf(c);
+        let n = 0; const why: string[] = [];
+        const nudge = (v: number, w: string) => { n += v; why.push(`${v > 0 ? "+" : ""}${v.toFixed(2)} ${w}`); };
+        if (d.bias?.bias) nudge(d.bias.bias === side ? 0.02 : -0.02, `daily bias ${d.bias.bias} (${d.bias.why.join(", ")})`);
+        if (d.pd?.dailyZone && d.pd.h4Zone && d.pd.dailyZone === d.pd.h4Zone) {
+          const good = (side === "long") === (d.pd.dailyZone === "discount");
+          nudge(good ? 0.01 : -0.01, `${d.pd.dailyZone} on daily+4h`);
+        }
+        if (d.seq?.nyFavours) nudge(d.seq.nyFavours === side ? 0.02 : -0.01, `London swept ${d.seq.londonSwept} → NY ${d.seq.nyFavours}`);
+        const pair = dayc.pairAlignment(mtfContext.books.map((b) => b.align[side]?.score));
+        if (pair) { if (pair.score >= 0.67) nudge(0.02, `ES/NQ aligned ${pair.score}`); else if (pair.score <= 0.33) nudge(-0.02, `ES/NQ not aligned ${pair.score}`); }
+        if (d.or?.read && d.or.read.side === side) {
+          const fit = d.or.read.kind === "break" ? regime === "trend" : regime !== "trend";
+          if (fit) nudge(0.02, `opening range ${d.or.read.kind} ${side}`);
+        }
+        if (d.stopRun && d.stopRun.side === side) nudge(0.02, `1m stop-run at ${d.stopRun.level}`);
+        const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((x) => ({ name: x.name, price: x.price }));
+        const fs = dayc.failedSweep(d.b5, levels);
+        if (fs) {
+          if (fs.side !== side && c.setupRegime === "reversal") nudge(-0.03, `${fs.name} ${fs.level}: 2 5m closes beyond — breakout, not a sweep`);
+          else if (fs.side === side) why.push(`breakout through ${fs.name} ${fs.level}`);
+        }
+        const zone = (c.plan as { entryZone?: { top: number; bottom: number } } | null | undefined)?.entryZone ?? null;
+        const want = side === "long" ? "bull" : "bear";
+        const ob = zone ? d.blocks.find((b) => (b.kind === "ob" || b.kind === "breaker") && b.dir === want && dayc.overlaps(b, zone)) : undefined;
+        if (ob) nudge(0.02, `${ob.kind} overlaps the entry gap`);
+        const sw5 = mtfContext.books.find((b) => b.symbol === c.symbol)?.rungs.find((r) => r.tf === "5m")?.sweep;
+        const dec = dayc.ageDecay(sw5?.ageBars);
+        if (dec) nudge(dec, `sweep is ${sw5!.ageBars} 5m bars old`);
+        if (macro?.risk === "risk-off" || macro?.risk === "risk-on") {
+          const good = (macro.risk === "risk-on") === (side === "long");
+          nudge(good ? MACRO_NUDGE : -MACRO_NUDGE, `macro ${macro.risk} (DXY ${macro.dxyPct}%, 10y ${macro.tnxPct}%)`);
+        }
+        const qs = dayc.qSpread(c.strategyBoard as never);
+        if (qs && qs.agree >= 3) nudge(0.01, `${qs.agree}/${qs.n} strategies within 0.05 of the best`);
+        const total = Math.max(-0.06, Math.min(0.06, n));
+        if (total) c.confluence = +Math.max(0, Math.min(0.99, c.confluence + total)).toFixed(4);
+        (c as { dayCtx?: unknown }).dayCtx = {
+          nudge: +total.toFixed(3), why, dailyBias: d.bias?.bias ?? null, pd: d.pd, sessionSeq: d.seq, pair,
+          openingRange: d.or ? { high: d.or.high, low: d.or.low, read: d.or.read, sd: d.or.sd } : null,
+          stopRun: d.stopRun, breakout: fs, ladder: dayc.entryLadder(side, zone), obFvg: Boolean(ob),
+          triggerTf: d.trig, ageDecay: dec, qSpread: qs, macroRisk: macro, blocksAll: d.blocks, blocks: d.blocks.slice(-8),
+        };
+        if (why.length) c.reasons.push(`Day context (${total >= 0 ? "+" : ""}${total.toFixed(2)}): ${why.join("; ")}`);
       }
       // Fix 31: displacement ≥ 0.6 plus a BOS/CHoCH out of the range on 3m/5m
       // in this side's direction clears chop (the range resolved).
@@ -1299,6 +1397,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         [left.symbol]: left.bars?.length > 20 ? atrOf(left.bars, 14) : null,
         [right.symbol]: right.bars?.length > 20 ? atrOf(right.bars, 14) : null,
       });
+      const dctx = (payload as { dayContext?: { left?: { or?: { sd?: never } | null }; right?: { or?: { sd?: never } | null } } }).dayContext;
+      const sdFor = (isL: boolean) => sdDraws((isL ? dctx?.left : dctx?.right)?.or?.sd ?? null, (isL ? lq : rq)?.price ?? null);
+      const latePlanned = new Set<object>();
+      const nowCtxPlan = Date.now();
       // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
       // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
       for (const c of payload.scan.candidates) {
@@ -1319,11 +1421,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const swept = side === "short" ? Math.max(...win.map((b) => b.h)) : Math.min(...win.map((b) => b.l));
         const plan = planAt(c.symbol, side, first, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
           (isL ? lq : rq)?.price ?? null, rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
-          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`);
+          atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`,
+          sdFor(isL));
         if (!plan) continue;
         c.entryPx = plan.entry; c.entryResting = plan.resting; c.plan = plan as never;
         c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
         (c as { addOn?: unknown }).addOn = second ? { tf: second.tf, entry: +second.ce.toFixed(2), zone: { top: second.hi, bottom: second.lo } } : null;
+        latePlanned.add(c);
         c.reasons.push(`Reversal entry (fix 33): ${plan.why}${second ? `; add-on at the 2nd gap CE ${second.ce}` : ""}`);
       }
       // Fix 34: a clean displacement leg with STACKED same-direction 1m/3m FVGs
@@ -1339,13 +1443,237 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (isL ? lq : rq)?.price ?? null,
           rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
           c.dispStrength?.score ?? null,
+          sdFor(isL),
         );
         if (!plan) continue;
         c.entryPx = plan.entry;
         c.entryResting = plan.resting;
         c.plan = plan as never;
         c.invalidation = `Stop ${plan.stop.toFixed(2)} — beyond ${plan.stopWhy}`;
+        latePlanned.add(c);
         c.reasons.push(`Continuation plan (fix 34): ${plan.why}`);
+      }
+      // Item 5 (fix 12, late): OB/breaker overlapping a LATE plan's entry gap
+      // gets its +0.02 here, inside the ±0.06 day-context cap. The band only
+      // moves if it was q-derived (uncapped) — a cap stays a cap.
+      for (const c of latePlanned as Set<typeof payload.scan.candidates[number]>) {
+        const dc = (c as { dayCtx?: { nudge: number; obFvg: boolean; why: string[]; blocksAll?: { kind: string; dir: string; lo: number; hi: number }[] } }).dayCtx;
+        const zone = (c.plan as { entryZone?: { top: number; bottom: number } } | null)?.entryZone;
+        if (!dc || dc.obFvg || !zone) continue;
+        const want = c.side === "long" ? "bull" : "bear";
+        const ob = (dc.blocksAll ?? []).find((b) => (b.kind === "ob" || b.kind === "breaker") && b.dir === want && dayc.overlaps(b, zone));
+        if (!ob) continue;
+        const add = Math.min(0.02, 0.06 - dc.nudge);
+        if (!(add > 0)) continue;
+        const wasQBand = c.pathBand === bandFromQ(c.confluence);
+        c.confluence = +Math.min(0.99, c.confluence + add).toFixed(4);
+        if (wasQBand && c.pathBand !== "skip") c.pathBand = bandFromQ(c.confluence) as never;
+        dc.obFvg = true; dc.nudge = +(dc.nudge + add).toFixed(3); dc.why.push(`+${add.toFixed(2)} ${ob.kind} overlaps the entry gap (late plan)`);
+        c.reasons.push(`OB/FVG overlap on the late plan: +${add.toFixed(2)}`);
+      }
+      // Keaton 2026-10-13: every displayed card carries a complete plan.
+      // Candidates still missing entry/stop/target after the brain's plan,
+      // fix 33 and fix 34 run the fallback chain (exec-context completePlan);
+      // a card it cannot price is a WATCH row — never shown as a card.
+      for (const c of payload.scan.candidates) {
+        const has = (c.entryPx ?? c.plan?.entry) != null && c.plan?.stop != null && primaryTarget(c.plan).price != null;
+        if (has) continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const minute = ((isL ? minuteL : minuteR) ?? []);
+        const b15 = isL ? closedL : closedR;
+        const m = minute.slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        const dc = (c as { dayCtx?: { blocksAll?: { kind: string; dir: string; lo: number; hi: number }[]; openingRange?: { high: number; low: number } | null } }).dayCtx;
+        const atr = atr15Of(b15);
+        const today = m.filter((b) => nowCtxPlan - b.t < 20 * 3_600_000);
+        const res = completePlan({
+          symbol: c.symbol, side, price: (isL ? lq : rq)?.price ?? null, atr,
+          minute, bars15: b15,
+          draws: rankDraws(isL ? payload.draws.left : payload.draws.right, b15),
+          sd: sdFor(isL), blocks: dc?.blocksAll ?? [],
+          bosLevel: atr != null ? setups.bosRetest(b5, atr, side)?.level ?? null : null,
+          orRange: dc?.openingRange ? { high: dc.openingRange.high, low: dc.openingRange.low } : null,
+          sessionHL: today.length ? { high: Math.max(...today.map((b) => b.h)), low: Math.min(...today.map((b) => b.l)) } : null,
+        });
+        if (res.plan) {
+          c.entryPx = res.plan.entry;
+          c.entryResting = res.plan.resting;
+          c.plan = res.plan as never;
+          c.invalidation = `Stop ${res.plan.stop.toFixed(2)} — beyond ${res.plan.stopWhy}`;
+          c.reasons.push(`Plan completed (${res.plan.entrySrc} → ${res.plan.targetSrc}): ${res.plan.why}`);
+        } else {
+          (c as { watchOnly?: boolean }).watchOnly = true;
+          (c as { watchWhy?: string | null }).watchWhy = res.missing;
+          c.actionable = false;
+          c.reasons.push(`WATCH row, not a card: ${res.missing}`);
+        }
+      }
+      // Keaton 2026-10-13: no fake stops, targets or R:R (exec-context sanePlan).
+      // Accuracy 7d6b3575 note 1: a function so it re-runs after the brain re-grade below.
+      const saneAll = (): void => {
+      for (const c of payload.scan.candidates) {
+        if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
+        const pl = c.plan as { entry: number; stop: number; t1: number | null; t2: number | null; riskPts: number; rr1: number | null; rr2: number | null };
+        const entry = c.entryPx ?? pl.entry;
+        if (entry == null || pl.stop == null) continue;
+        const isL = c.symbol === left.symbol;
+        const b15 = isL ? closedL : closedR;
+        const m = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
+        const b5 = resample5(m, 300_000).slice(0, -1);
+        const kind = c.side === "short" ? "high" : "low";
+        const swings = [...fractalSwings5(b5, 2), ...fractalSwings5(b15.filter((b) => b.t + 900_000 <= nowCtxPlan).slice(-40), 2)].filter((x) => x.kind === kind).map((x) => x.price);
+        const today = m.filter((b) => nowCtxPlan - b.t < 20 * 3_600_000);
+        const levels = [
+          ...rankDraws(isL ? payload.draws.left : payload.draws.right, b15).map((d) => d.price),
+          ...sdFor(isL).map((d) => d.price),
+          ...(today.length ? [Math.max(...today.map((b) => b.h)), Math.min(...today.map((b) => b.l))] : []),
+        ];
+        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels);
+        (c as { rrCheck?: unknown }).rrCheck = r;
+        if (r.widened) {
+          c.reasons.push(`Stop widened ${pl.stop} → ${r.stop} (was < ${0.5}×ATR15); R:R recomputed ${pl.rr1} → ${r.rr1}`);
+          pl.stop = r.stop; pl.riskPts = r.riskPts;
+          c.invalidation = `Stop ${r.stop.toFixed(2)} — beyond the structural swing (≥ 0.5×ATR15)`;
+        }
+        if (r.promoted) { c.reasons.push(r.why!); pl.t1 = r.t1 ?? pl.t1; pl.t2 = r.t2 ?? null; }
+        pl.rr1 = r.rr1; pl.rr2 = r.rr2;
+        // card target strings are views of the plan: rewrite them from the checked plan
+        if (r.widened || r.promoted) { const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
+        // the brain's book plan is the same plan: same stop, same R:R
+        for (const bk of [smcMaster.left, smcMaster.right]) {
+          const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
+          if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = r.stop; bp.riskPts = r.riskPts; bp.rr1 = r.rr1; bp.rr2 = r.rr2; if (r.promoted) { (bp as { t1?: number | null }).t1 = pl.t1; (bp as { t2?: number | null }).t2 = pl.t2; } }
+        }
+        if (!r.ok) {
+          (c as { watchOnly?: boolean }).watchOnly = true;
+          (c as { watchWhy?: string | null }).watchWhy = r.why;
+          c.actionable = false;
+          c.reasons.push(`WATCH row, not a card: ${r.why}`);
+        } else if (r.flagged) c.reasons.push(r.why!);
+      }
+        // The brain's own books (the Floor reads these) even when no live candidate matches them:
+        // T1 < 1R is promoted to a real T2 ≥ 1R or the book plan is marked watch (13:01 CT ES case).
+        for (const bk of [smcMaster.left, smcMaster.right]) {
+          const bp = bk?.plan as { entry?: number; stop?: number; t1?: number | null; t2?: number | null; rr1?: number | null; rr2?: number | null; riskPts?: number } | null | undefined;
+          if (!bk || !bp || bp.entry == null || bp.stop == null || bp.rr1 == null || bp.rr1 >= RR_MIN) continue;
+          if (bp.rr2 != null && bp.rr2 >= RR_MIN && bp.t2 != null) { bp.t1 = bp.t2; bp.rr1 = bp.rr2; bp.t2 = null; bp.rr2 = null; }
+          else (bk as { planWatch?: string }).planWatch = `T1 ${bp.t1} is ${bp.rr1}R (< ${RR_MIN}) and no real draw clears ${RR_MIN}R — watch, not a plan`;
+        }
+      };
+      saneAll();
+      // Full-plan cards first; if the lead was a watch row, the brain re-grades
+      // the new lead's book so card, brain and Floor still name one trade.
+      {
+        const was = payload.scan.candidates[0];
+        const w = (c: unknown) => Number(Boolean((c as { watchOnly?: boolean }).watchOnly));
+        payload.scan.candidates.sort((a, b) => w(a) - w(b));
+        const lead = payload.scan.candidates.find((c) => !w(c));
+        if (lead && lead !== was) {
+          const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
+          const keep = new Map(payload.scan.candidates.map((c) => [c, c.plan]));
+          smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+          smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
+          attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
+          // the new book and any plan attached just now go through the same sanity check
+          saneAll();
+        }
+      }
+      // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Per-rule mode:
+      // "live" acts; "shadow" only records what it WOULD do on c.guards.shadow (wire.strategy.guards) and changes
+      // nothing — q, band, size, stop, watch row, brain word and fire stay as before.
+      const lossBlocked = new Map<string, string>();
+      const isLive = (m: string): boolean => String(m) === "live";
+      for (const c of payload.scan.candidates) {
+        if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
+        const pl = c.plan as { entry: number; stop: number; t1: number | null; t2: number | null; riskPts: number; rr1: number | null; rr2: number | null };
+        const entry = c.entryPx ?? pl.entry;
+        if (entry == null || pl.stop == null) continue;
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const b15 = isL ? closedL : closedR;
+        const atr = atr15Of(b15);
+        if (atr == null || !(atr > 0)) continue;
+        const m = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
+        const price = (isL ? lq : rq)?.price ?? null;
+        const out = (c as { loss?: Record<string, unknown> }).loss = {} as Record<string, unknown>;
+        type Guards = { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] };
+        const guards: Guards = { live: [], shadow: [] };
+        (c as { guards?: Guards }).guards = guards;
+        const shadow = (rule: string, would: string) => guards.shadow.push({ rule, would });
+        const watch = (why: string) => { (c as { watchOnly?: boolean }).watchOnly = true; (c as { watchWhy?: string | null }).watchWhy = why; c.actionable = false; c.reasons.push(`WATCH row, not a card: ${why}`); };
+        // 3) buffered stop
+        const s2 = lossGuards.bufferedStop(side, entry, pl.stop, atr);
+        let t1 = pl.t1, t2 = pl.t2, rr1 = pl.rr1, rr2 = pl.rr2, stopUse = pl.stop;
+        if (s2 !== pl.stop) {
+          const risk = Math.abs(entry - s2);
+          const rr = (t: number | null) => (t == null ? null : +((side === "short" ? entry - t : t - entry) / risk).toFixed(2));
+          const why = `stop ${pl.stop} → ${s2} (swing + max(${LOSS_RULES.stop.bufferAtr}×ATR15, MAE p${LOSS_RULES.stop.maePct * 100})); R:R ${pl.rr1} → ${rr(pl.t1)}`;
+          if (isLive(LOSS_RULES.stop.mode)) {
+            c.reasons.push(`Stop buffered ${why}`); guards.live.push({ rule: "stop", did: why });
+            pl.stop = s2; pl.riskPts = +risk.toFixed(2); pl.rr1 = rr(pl.t1); pl.rr2 = rr(pl.t2);
+            c.invalidation = `Stop ${s2.toFixed(2)} — beyond the structural swing + buffer`;
+            for (const bk of [smcMaster.left, smcMaster.right]) {
+              const bp = bk?.plan as { stop?: number; riskPts?: number; rr1?: number | null; rr2?: number | null } | null | undefined;
+              if (bk && bp && bk.symbol === c.symbol && bk.side === c.side) { bp.stop = s2; bp.riskPts = pl.riskPts; bp.rr1 = pl.rr1; bp.rr2 = pl.rr2; }
+            }
+          } else { shadow("stop", why); stopUse = s2; rr1 = rr(pl.t1); rr2 = rr(pl.t2); }
+        }
+        // 6a) ranked T1
+        const rk = lossGuards.rankedT1(t1, t2, rankDraws(isL ? payload.draws.left : payload.draws.right, b15));
+        if (rk.promoted) { t1 = rk.t1; rr1 = rr2; t2 = null; rr2 = null; }
+        const rrBad = rk.ok && (rr1 == null || rr1 < RR_MIN) ? `R:R ${rr1} < ${RR_MIN} with stop ${stopUse}` : null;
+        if (isLive(LOSS_RULES.target.mode)) {
+          if (rk.promoted) { pl.t1 = t1; pl.rr1 = rr1; pl.t2 = null; pl.rr2 = null; c.reasons.push(rk.why!); guards.live.push({ rule: "rankedT1", did: rk.why! }); }
+          if (!rk.ok) { watch(rk.why!); continue; }
+          { const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
+        } else {
+          if (rk.promoted) shadow("rankedT1", rk.why!);
+          if (!rk.ok) shadow("rankedT1", `watch row: ${rk.why}`);
+        }
+        if (rrBad) { if (isLive(LOSS_RULES.stop.mode)) { watch(rrBad); continue; } shadow("stop", `watch row: ${rrBad}`); }
+        // 5) chop; 2b) velocity
+        const ch = lossGuards.chopRead(m, atr);
+        out.chop = ch;
+        if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
+        const v = lossGuards.velocityRead(m, entry, pl.t1);
+        out.velocity = v;
+        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
+        sealBand(c as never);
+        // 1) 1h AND 4h both against the side
+        const hb = htfBiasOf(mtfContext, c.symbol);
+        const pool = side === "long" ? "sellside" : "buyside";
+        const sweep = Boolean(mtfContext.books.find((x) => x.symbol === c.symbol)?.rungs.some((r) => (r.tf === "5m" || r.tf === "15m") && r.sweep?.side === pool));
+        const disp = Boolean(c.displacement?.bodyQualified || c.displacement?.qualifiedBy) || (c.dispStrength != null && c.dispStrength.bodyAtr >= 1 && c.dispStrength.leftFvg);
+        const hg = lossGuards.htfGuard(side, hb?.bias1h, hb?.bias4h, c.pathBand, sweep, disp);
+        out.htf = { ...hg, sweep, displacement: disp, bias1h: hb?.bias1h ?? null, bias4h: hb?.bias4h ?? null };
+        if (isLive(LOSS_RULES.htf.mode)) {
+          (c as { sizeMult?: number }).sizeMult = hg.sizeMult;
+          if (hg.capBand) { c.pathBand = capBand(c.pathBand, hg.capBand as never) as never; sealBand(c as never); }
+          if (hg.why) { c.reasons.push(hg.why); guards.live.push({ rule: "htf", did: hg.why }); }
+          if (hg.block) { c.actionable = false; lossBlocked.set(`${c.symbol}:${side}`, hg.why!); }
+        } else if (hg.why) shadow("htf", hg.why);
+        // 4) late entry (LIVE per Keaton 13:45 CT)
+        const past = price == null ? null : side === "long" ? price - entry : entry - price;
+        const rrFromPx = price == null || pl.t1 == null ? null : (side === "long" ? pl.t1 - price : price - pl.t1) / Math.abs(price - pl.stop);
+        const lateMin = (RULES_ALL.lateEntry.rrMin as Record<string, number>)[String(c.pathBand)];
+        const lg = lossGuards.lateGuard(past != null && past > 0 ? price : null, entry, atr, lateMin != null && rrFromPx != null && rrFromPx >= lateMin);
+        out.late = lg;
+        if (lg.block) {
+          if (isLive(LOSS_RULES.late.mode)) { c.actionable = false; c.reasons.push(lg.why!); guards.live.push({ rule: "late", did: lg.why! }); lossBlocked.set(`${c.symbol}:${side}`, lg.why!); }
+          else shadow("late", lg.why!);
+        } else if (lg.late) c.reasons.push(lg.why!);
+        // 7) projected option net at T1
+        const on = pl.t1 == null ? null : lossGuards.optionNetAtT1(c.symbol, entry, pl.t1, v.expMin);
+        out.option = on;
+        if (on && !on.ok) { if (isLive(LOSS_RULES.option.mode)) { c.actionable = false; c.reasons.push(`No fire: ${on.why}`); guards.live.push({ rule: "option", did: on.why }); lossBlocked.set(`${c.symbol}:${side}`, on.why); } else shadow("option", `no fire: ${on.why}`); }
+        // 2a / 6b) management after the fill (watcher manage_action reads the modes)
+        out.manage = { earlyMin: LOSS_RULES.early.minutes, earlyMinR: LOSS_RULES.early.minR, earlyMode: LOSS_RULES.early.mode, beFrac: LOSS_RULES.target.beFrac, beMode: LOSS_RULES.target.beMode };
+        if (guards.shadow.length) c.reasons.push(`Shadow guards (no effect): ${guards.shadow.map((g) => `${g.rule}: ${g.would}`).join("; ")}`);
+      }
+      for (const bk of [smcMaster.left, smcMaster.right]) {
+        const why = bk ? lossBlocked.get(`${bk.symbol}:${bk.side}`) : undefined;
+        if (bk && why && bk.word !== "STAND") { bk.word = "STAND"; bk.missing = why; }
       }
       // R3-c: actionable needs a priced entry, stop and target.
       for (const c of payload.scan.candidates) {

@@ -1,3 +1,4 @@
+import type { RankedDraw } from "@/lib/smc/exec-context";
 /**
  * Live SMC sequence grade — one tape, independent layers, no school-stacking.
  *
@@ -185,6 +186,8 @@ export interface SmcMasterInput {
   shockSymbol?: string | null;
   /** Shared MTF context (mtf-context.ts). */
   mtfContext?: import("@/lib/smc/mtf-context").MtfContext | null;
+  /** Same ranked list as wire.draws / completePlan; the brain's draw-on-liquidity reads it. */
+  rankedDraws?: { left: RankedDraw[]; right: RankedDraw[] } | null;
 }
 
 function factorState(
@@ -359,6 +362,12 @@ function impulseDealing(
   return { high, low, eq: (high + low) / 2, zone, source: "impulse", ratio };
 }
 
+/** The brain's draw: best-ranked unswept ranked draw beyond price on the side (same rule as completePlan's target pool). */
+export function brainDrawPick(ranked: RankedDraw[], side: "long" | "short" | null, price: number | null): RankedDraw | null {
+  if (!side || price == null) return null;
+  return ranked.filter((d) => !d.swept && (side === "short" ? d.price < price : d.price > price)).sort((a, b) => b.rank - a.rank)[0] ?? null;
+}
+
 function gradeBook(
   bias: HtfBiasRead,
   draw: DrawRead,
@@ -373,6 +382,7 @@ function gradeBook(
   bars: OhlcBar[] | undefined,
   minute: OhlcBar[] | undefined,
   shockLean: "long" | "short" | null = null,
+  ranked: RankedDraw[] | null = null,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias, narrative, shockLean);
   const side = cand?.side ?? null;
@@ -481,11 +491,27 @@ function gradeBook(
     narrative.liquidity.lastSweep !== "none" &&
     (narrative.confirmation === "armed_entry" || narrative.confirmation === "confirmed");
   const newsBlk = news.verdict === "blackout" && !retestReady;
-  const dol = draw.primary;
-  const dolAgrees =
-    !!dol &&
-    ((side === "short" && dol.side === "below") ||
-      (side === "long" && dol.side === "above"));
+  /**
+   * Keaton 2026-10-13: the brain's "Draw on liquidity" reads the SAME ranked
+   * draw list as the wire (wire.draws) and completePlan — the best-ranked
+   * unswept draw beyond price in the side's direction. Falls back to
+   * draw.primary only when no ranked list was handed in (old callers/tests).
+   * Consequence, stated: a ranked pool ahead of price can now pass this layer
+   * where draw.primary pointed the other way (the item-1 gate below follows).
+   */
+  const rankedPick = ranked ? brainDrawPick(ranked, side, price) : null;
+  const rankedAny = ranked && ranked.length ? [...ranked].sort((a, b) => b.rank - a.rank)[0]! : null;
+  const dol = ranked
+    ? ((rankedPick ?? rankedAny)
+        ? ({ ...(rankedPick ?? rankedAny)!, side: price != null && (rankedPick ?? rankedAny)!.price < price ? "below" : "above", reachProbability: NaN } as unknown as LiquidityTarget)
+        : null)
+    : draw.primary;
+  const dolAgrees = ranked
+    ? rankedPick != null
+    : !!dol &&
+      ((side === "short" && dol.side === "below") ||
+        (side === "long" && dol.side === "above"));
+  const dolRank = rankedPick ?? rankedAny;
 
   const sweepNamed = canon.factors.some((x) => x.id === "sweep" && x.pass);
   const ltfNamed = canon.factors.some((x) => x.id === "ltf" && x.pass);
@@ -512,7 +538,10 @@ function gradeBook(
       !f.pass;
     const htfNote = f.id === "htf" && sweepNamed && !f.pass;
     const timeNote = f.id === "time";
-    const note = mtfNote || halfNote || htfNote || timeNote;
+    // Keaton 2026-10-13: premium/discount-for-side COUNTS in the ring (q
+    // already scores it), so the half is a must again — no note demotion.
+    const note = mtfNote || htfNote || timeNote;
+    void halfNote;
     const noteLine = halfNote
       ? `${f.detail} The raid and the displacement named ${side}. The half is a note, not a halt.`
       : htfNote
@@ -549,7 +578,9 @@ function gradeBook(
     // "touch" so the two are never read as the same claim, and carrying its
     // sample count, because a rate off four sessions can only be 0/25/50/75/
     // 100 and otherwise renders exactly like one off forty.
-    detail: dol
+    detail: ranked && dolRank
+      ? `${dolRank.name} ${dolRank.price.toFixed(2)} · ranked ${dolRank.rank} (${dolRank.touches} touch${dolRank.touches === 1 ? "" : "es"}${dolRank.scope ? `, ${dolRank.scope}` : ""}) · ${dol!.side}${rankedPick ? "" : " — nothing ranked on this side"}`
+      : dol
       ? `${dol.name} ${dol.price.toFixed(2)} · ${(dol.reachProbability * 100).toFixed(0)}% touch over ${draw.sessionsSampled} sessions${draw.baseRateReliable ? "" : " (below the base-rate floor)"} · ${dol.side}`
       : "No magnet yet",
     price: dol?.price,
@@ -645,6 +676,10 @@ function gradeBook(
   }
   /**
    * ITEM 1 — THE TARGET IS A POOL, NOT A LOCATION.
+   *
+   * (2026-10-13: the brain's "Draw on liquidity" CHECK now reads the shared ranked
+   * draws via brainDrawPick, like completePlan and the Floor. The pool logic below
+   * only prices this plan's T1/T2, and build-desk's sanePlan re-validates them.)
    *
    * `dol` is `draw.primary`: the highest-SCORING magnet, where the score mixes
    * excursion rate, kind weight and HTF alignment. On a trending tape that is
@@ -748,9 +783,12 @@ function gradeBook(
     // forecast. `headline` is null-safe and says "unpriced" below the floor.
     const viaT2 = plan.rr1 != null && plan.rr1 < APLUS_RULES.minRr;
     targetDetail =
-      (viaT2 ? `T1 ${plan.t1.toFixed(2)} is ${plan.rr1!.toFixed(2)}R — priced to T2 ${plan.t2!.toFixed(2)} ${plan.rr2!.toFixed(2)}R · ` : "") +
-      `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
-      `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}` +
+      // 13:01 CT ES case: never DISPLAY a sub-1R T1 as the target. When T1 < minRr the real T2 IS the
+      // target (sanePlan promotes it the same way); the internal level is named only as skipped.
+      (viaT2
+        ? `T1 ${plan.t2!.toFixed(2)} · ${plan.rr2!.toFixed(2)}R (internal ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} at ${plan.rr1!.toFixed(2)}R skipped — under 1R)`
+        : `T1 ${plan.draw?.name ?? "draw"} ${plan.t1.toFixed(2)} · ${plan.rr1?.toFixed(2) ?? "?"}R` +
+          `${plan.t2 != null ? ` · T2 ${plan.t2.toFixed(2)} ${plan.rr2?.toFixed(2) ?? "?"}R` : ""}`) +
       ` · risk ${plan.riskPts.toFixed(2)}pt` +
       ` · ${worthLine(plan)}` +
       ` · ${reachTxt}`;
@@ -773,10 +811,20 @@ function gradeBook(
     price: fresh?.mid,
   });
 
+  // Keaton 2026-10-13: the ring counts what q counts — displacement and the
+  // entry array are musts, so 7/7 can no longer sit on a 0.60 card.
+  const dispScore = (cand as { dispStrength?: { score?: number } | null } | undefined)?.dispStrength?.score ?? null;
+  layers.push({
+    id: "displacement",
+    label: "Displacement behind the side",
+    must: true,
+    state: dispScore == null ? "wait" : dispScore >= 0.5 ? "pass" : "wait",
+    detail: dispScore == null ? "Displacement not read yet" : `Displacement strength ${dispScore}${dispScore >= 0.5 ? "" : " — below 0.5, wait for a real leg"}`,
+  });
   layers.push({
     id: "array",
     label: "Live PD array",
-    must: false,
+    must: true,
     state: fresh ? "pass" : "wait",
     detail: fresh
       ? `${fresh.tf} ${fresh.kind} ${fresh.label}${mss ? ` · ${mss.kind}` : ""}`
@@ -982,6 +1030,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.left?.bars,
     desk.left?.minute,
     leanFor(desk.bias.left.symbol),
+    desk.rankedDraws?.left ?? null,
   );
   const right = gradeBook(
     desk.bias.right,
@@ -997,6 +1046,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.right?.bars,
     desk.right?.minute,
     leanFor(desk.bias.right.symbol),
+    desk.rankedDraws?.right ?? null,
   );
 
   const ranked = [left, right].sort((a, b) => {

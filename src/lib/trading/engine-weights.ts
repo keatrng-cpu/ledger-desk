@@ -94,3 +94,18 @@ export const WEIGHTS: Record<ComponentKey, number> = Object.fromEntries(
 export const COMPONENT_KEYS = Object.keys(RAW_WEIGHTS) as ComponentKey[];
 
 export const SCORE_KEYS = new Set<string>(COMPONENT_KEYS);
+
+/**
+ * Learning loop (desk/learning.ts): a versioned calibration may scale a raw
+ * weight by ×0.8–×1.2. RAW_WEIGHTS stays the baseline; WEIGHTS is renormalized
+ * in place so every importer sees the applied version. null = baseline.
+ */
+export const RAW_WEIGHTS_APPLIED: Record<ComponentKey, number> = { ...RAW_WEIGHTS };
+export function applyWeightScales(scales: Partial<Record<ComponentKey, number>> | null): void {
+  for (const k of COMPONENT_KEYS) {
+    const f = scales?.[k];
+    RAW_WEIGHTS_APPLIED[k] = RAW_WEIGHTS[k] * (f != null && Number.isFinite(f) ? Math.min(1.2, Math.max(0.8, f)) : 1);
+  }
+  const tot = COMPONENT_KEYS.reduce((a, k) => a + RAW_WEIGHTS_APPLIED[k], 0);
+  for (const k of COMPONENT_KEYS) WEIGHTS[k] = RAW_WEIGHTS_APPLIED[k] / tot;
+}

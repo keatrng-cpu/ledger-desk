@@ -10,6 +10,7 @@
  * 30m sweep or BOS for the side), LTF trigger (1–5m CHoCH/BOS for the side
  * or a continuation stack). Score = parts / 3. A read, never a gate.
  */
+import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectSweeps, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { HTF_RUNGS, LTF_RUNGS, mtfArrays, rung, type ArrayTf } from "./mtf-arrays";
@@ -238,10 +239,16 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
 
-export const IFVG5_MAX_AGE = 6;
-export const REJECT_WICK_FRAC = 0.5;
-export const DISP1_ATR = 1.25;
+export let IFVG5_MAX_AGE = RULES.kill.ifvg5MaxAge; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
+export let REJECT_WICK_FRAC = RULES.kill.rejectWickFrac;
+export let DISP1_ATR = RULES.kill.disp1Atr; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
 export const DISP_LEG_BARS = 3;
+/** Replay tuning only (scripts/kill-tune.mts); the live desk never calls this. */
+export function setKillParams(p: { ifvg5MaxAge?: number; rejectWickFrac?: number; disp1Atr?: number }) {
+  if (p.ifvg5MaxAge != null) IFVG5_MAX_AGE = p.ifvg5MaxAge;
+  if (p.rejectWickFrac != null) REJECT_WICK_FRAC = p.rejectWickFrac;
+  if (p.disp1Atr != null) DISP1_ATR = p.disp1Atr;
+}
 export const REJECT_LOOKBACK = 10;
 export const EXTREME_LOOKBACK = 10;
 
@@ -323,9 +330,32 @@ export function ltfReversalsOf(
     const levels = ks.map((x) => x.level).filter((x) => Number.isFinite(x));
     // The rebuild must reclaim the FARTHEST opposing edge of the evidence.
     const level = levels.length ? (side === "long" ? Math.max(...levels) : Math.min(...levels)) : NaN;
-    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) });
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) });
   }
   return out;
+}
+
+/**
+ * 13:07 CT bull surge: ES/MNQ longs stayed killed (C) by 12:56 CT bear IFVGs after price had
+ * closed back above the IFVG far edge — the opposing array was already inverted back. A kill is
+ * VOID (treated like a re-arm: capped A-) once kill.voidCloses5m closed 5m bars settle beyond its
+ * level in the killed side's favour, or once it is older than kill.maxAgeMin. Shared rules.
+ */
+export function killVoided(m: OhlcBar[], side: Side, killT: number, level: number): { t: number; why: string } | null {
+  if (!m.length) return null;
+  const lastT = m[m.length - 1]!.t;
+  const b5: { t: number; c: number }[] = [];
+  for (const b of m) { if (b.t <= killT) continue; const k = Math.floor(b.t / 300_000) * 300_000; const L = b5[b5.length - 1]; if (L && L.t === k) L.c = b.c; else b5.push({ t: k, c: b.c }); }
+  const closed = b5.filter((x) => x.t + 300_000 <= lastT + 60_000);
+  if (Number.isFinite(level)) {
+    const n = RULES.kill.voidCloses5m; let run = 0;
+    for (const x of closed) {
+      run = (side === "long" ? x.c > level : x.c < level) ? run + 1 : 0;
+      if (run >= n) return { t: x.t, why: `kill void: ${n} closed 5m bars ${side === "long" ? "above" : "below"} the kill level ${level}` };
+    }
+  }
+  if (lastT - killT > RULES.kill.maxAgeMin * 60_000) return { t: lastT, why: `kill aged out (> ${RULES.kill.maxAgeMin} min)` };
+  return null;
 }
 
 /** The governing read: the newest live (un-rearmed) kill; else the newest re-armed one. */

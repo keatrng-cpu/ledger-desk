@@ -95,6 +95,39 @@ Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server r
 - **Decision:** Mouth shape, brow, blink, look, and the hand gesture come from the words the person is saying (`src/lib/room/floor-presence.ts`). The office stays the Blender GLB from `scripts/blender/build_floor.py`. ACE, Spline, ComfyUI, Tripo, and Godot are not installed on this host, and `bpy` needs Python 3.11, so none of them were faked. A gesture does not change a ticket.
 - **Why:** A cloud avatar engine that is not connected still has to be drawn by something. The something that is already on the floor is the five people.
 
+## 2026-10-13 — Learning loop (journal → calibration), Keaton
+- Every card with q or qRaw ≥ 0.65 is snapshotted once per (ET day, symbol, side, setup), plan or not, with checklist, components, MTF, SMT, regime, displacement, draws, brain, Floor and Master (`desk_card_snap`, migration 0024).
+- Graded on each card read against the desk's own 1m feed: plan → T1/stop first (same bar = loss), MFE/MAE in R, minutes; no plan → signed move at +30/+60/+120 min in ATR (right/wrong at ±0.25 ATR). No bars → `ungradable`; outcomes are never invented.
+- Weekly calibration: per-factor hit-rate lift → weight scale only at n ≥ 30, shrunk n/(n+50), step capped ±20%, total scale bounded ×0.8–×1.2; band edges move ±0.01 at n ≥ 30 per band, within ±20% of baseline. Each run is a version in `desk_calibration` with its prior state; `scripts/calibration.mts revert <v>` reverts it. Applied version + report at GET /api/desk/journal (`learning`).
+- Runtime cannot write this file: each version's entry is produced with `npx tsx scripts/calibration.mts decisions` and appended here when it is applied. v0 = baseline (RAW_WEIGHTS, bands 0.75/0.68/0.65/0.60/0.50).
+- Backfill: today's desk-watcher log snaps + saved card snapshots (5 unique cards ≥ 0.65), graded on Yahoo 1m (MNQ=F/ES=F): 3 wrong, 2 open (graded live once their +120 m closes). Fix 40 missed trades are the same rows: < A- that ran ≥ 2R / ≥ 1 ATR at +120 m.
+
+## 2026-10-13 — LTF kill thresholds tuned on 5 sessions (Yahoo 1m, MNQ+ES, RTH)
+- Replay `scripts/kill-tune.mts` (results `scripts/fixtures/kill-tune-2026-10-13.json`): a kill is right if price runs ≥0.5×ATR15 against the killed side before ≥0.5×ATR15 for it, within 60 min. 27-cell grid (IFVG age 4/6/8 × wick 0.4/0.5/0.6 × disp 1.0/1.25/1.5×ATR1m).
+- Every cell sits at 0.41–0.51 precision (n ≈ 100–170): the kill is roughly a coin flip at that horizon. Best: wick 0.5, disp 1.0 → 0.503 (n 149) vs old 1.25 → 0.481. DISP1_ATR 1.25 → 1.0. IFVG5_MAX_AGE stays 6 (4 is equal within noise and misses the 10:33 ES replay).
+- Journal failure modes: 3 graded losses so far, all "unclassified" (backfill rows lack chop/HTF fields); "LTF kill ignored" = 0. Too small to inform the thresholds; revisit at n ≥ 30.
+- Implication, not acted on: with ~50% precision the kill is a valid CAP but weak evidence for the opposite side; the fix-29 opposite boost (0.05–0.08, Keaton's spec) is kept, flagged for review once the journal has n.
+
+## 2026-10-13 — Kill boost 0.05–0.08 → 0.02 (Keaton)
+- Fix 29's opposite-side boost is now `TUNABLES.killBoost` in `src/lib/trading/config.ts`, base 0.02 (flat), bounded 0–0.04. Reason: the 5-session replay put LTF-kill precision at ≈0.50.
+- Learnable: snapshots that received the boost carry the factor `killBoost`; at n ≥ 30 graded the weekly calibration scales it (shrunk, ±20%/step), versioned and reversible like the weights.
+- Same batch: DXY (Yahoo DX-Y.NYB) and 10y (Yahoo ^TNX, ZN=F fallback) feed a ±0.01 macro risk flag inside the ±0.06 day-context cap; overnight 5m (Yahoo 5d/5m, cached per ET day) feeds the Asia/London read; OR ±2/±2.5 SD are external draws beyond T1; fix 12's OB/FVG +0.02 also applies to late plans (33/34).
+
+## 2026-10-13 — Complete plans or watch rows; ring counts what q counts; raise-only band edges (Keaton) — branch feat/full-plan-cards
+- Every displayed card carries entry, stop and target. Fallback chain (exec-context `completePlan`): entry = nearest unfilled same-direction 1m–15m array (FVG/IFVG/sponsored CE, OB/breaker CE) on the pullback side → 5m BOS retest → OR edge; stop = beyond the origin swing, ≥ 0.5×ATR15; target = ranked draw → OR SD projection → session high/low. No level → `watchOnly` row (`scanner[].kind = "watch"`, `watchWhy`), never the wire card, never a Floor card.
+- Brain ring: displacement (≥ 0.5) and the live PD array are musts; premium/discount-for-side is a must again (no note demotion).
+- Learning loop may only RAISE band edges; never below 0.75 / 0.68 / 0.65 / 0.60 / 0.50.
+- (feat/full-plan-cards) The brain's "Draw on liquidity" layer reads the same ranked list as wire.draws and completePlan (`brainDrawPick`: best-ranked unswept draw beyond price on the side). Consequence: a ranked pool ahead of price can now pass the layer (and open the item-1 target gate) where `draw.primary` pointed the other way — a deliberate loosening for agreement, Keaton 2026-10-13.
+
+## 2026-10-13 — No fake stops/targets/R:R; one rules file (Keaton)
+- `sanePlan`: stop ≥ 0.5×ATR15 (widened to the nearest real 5m/15m swing beyond entry, else the floor; R:R recomputed); T1 must be a real level (ranked draw / OR SD / session H/L); rr1 < 1.0 or unreal T1 → watch row; displayed rr capped at 6 (`rrRaw`, `rrFlag`). The brain's book plan takes the same stop/R:R. Live case 12:33 CT MNQ short 30735.13 / 30738.75 / rr 13.12 → stop 30771.25, rr 1.32.
+- `shared/desk-rules.json` is the one source for band edges, ATR stop floor, entry zones, R:R rules, late entry, kill rules and fire timings. Desk TS imports it; desk-watcher carries a byte-identical copy; parity tests on both sides fail on drift. Drift found and fixed: continuation-array stop floor was 0.25×ATR15 (now 0.5); watcher stop_width used fixed points only (now also 0.5×ATR15).
+
+## 2026-10-13 13:07 CT — LTF kills void on reclaim / age (both sides scored every poll)
+Found: during the bull surge, ES long and MNQ long sat at C (q 0.4999) because 12:56 CT 5m bear-IFVG kills never re-armed — Keaton's strict re-arm needs sweep → displacement → inversion, and a straight surge has no sweep — though price had already closed back above the kill levels (ES 7854 > 7849.25, MNQ 30762 > 30733.75). MNQ also carried a 12:41 CT kill on the short. The lead picker was not side-biased; both sides were built and scored, the longs were just capped.
+Fix: `killVoided` — a kill is void (treated like a re-arm, capped A-) after `kill.voidCloses5m` (2) closed 5m bars beyond its level in the killed side's favour, or after `kill.maxAgeMin` (60). Shared rules; watcher reads `ltfKilled` off the card.
+0DTE (watcher): from `session.zeroDteCutoffEt` 15:25 ET only dte ≥ 1; 0DTE flattened by 15:40 ET; flat_by capped at 15:50 ET, no overnight holds.
+
 ### 2026-10-13 — Code graph refreshed at `b3d58e0f`; NOW.md marks WS-KG0 done
 - **Status:** PROPOSED (pending Accuracy Review → Release Watch → Design Atelier merge) · **Decided by:** Graph Keeper, following Keaton's standing graph workflow (flag and rebuild stale graphs) · **Source:** branch `graph/2026-10-13-refresh`.
 - **Decision:** The 2026-10-07 graph (built from `295bd7f1`) was 144 commits behind `main`. Rebuilt with the adopted 2026-10-07 steps: `graphify update .` (hash-cached, code only), `graphify cluster-only . --no-label --no-viz`, `graphify export obsidian`. Result: 11,719 nodes, 28,687 edges, 350 communities, still named "Community N". `scripts/export-brain-vault.mjs` was not re-run (no `node_modules` on the build host), so `graphify-out/obsidian/brain/` is unchanged. 22 `.sql` files add nothing because `tree_sitter_sql` is not installed. `ai/NOW.md` now says WS-KG0 is on `main` and WS-P1 is unblocked.
