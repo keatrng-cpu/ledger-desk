@@ -326,6 +326,8 @@ export interface CanonInput {
   mtf?: "bull" | "bear" | "neutral";
   dealingZone: "premium" | "discount" | "equilibrium" | null;
   swept: "bsl" | "ssl" | "none";
+  /** A raid that happened but arms the other side (narrative.liquidity.oppositeSweep). */
+  oppositeSweep?: "bsl" | "ssl" | "none";
   confirmation:
     | "none"
     | "sweep_only"
@@ -547,7 +549,7 @@ export function canonInputForCandidate(
         swept: narrative?.liquidity?.lastSweep ?? "none",
         confirmation: narrative?.confirmation ?? "none",
       });
-      return { swept: r.swept, confirmation: r.confirmation };
+      return { swept: r.swept, confirmation: r.confirmation, oppositeSweep: narrative?.liquidity?.oppositeSweep ?? "none" };
     })(),
     inKillzone: clock.inTradeWindow,
     killzoneLabel: clock.killzoneLabel,
@@ -652,7 +654,9 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       pass: sweepForSide && confirmation !== "none",
       detail:
         swept === "none"
-          ? "No raid yet — wait for SSL (long) or BSL (short)"
+          ? input.oppositeSweep && input.oppositeSweep !== "none"
+            ? `${input.oppositeSweep.toUpperCase()} raid arms ${input.oppositeSweep === "ssl" ? "LONG" : "SHORT"}, not ${side ?? "this side"} — no ${side === "long" ? "SSL" : "BSL"} raid for this side yet`
+            : "No raid yet — wait for SSL (long) or BSL (short)"
           : // The raid happened but on the wrong side for this trade. Name the
             // side it DOES arm — that is the actionable read, and the case
             // this desk missed on 2026-08-13 by silently passing it instead.

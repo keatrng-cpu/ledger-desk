@@ -215,3 +215,38 @@ test("SHOCK lean is a ranking nudge: it orders two otherwise-equal cards, never 
   assert.equal(out[0].side, "short");
   assert.equal(master.eligibleCandidates(scan, bias, narr, "long")[0].side, "long");
 });
+
+const rp = await import("../src/lib/trading/raid-pair.ts");
+const gt = await import("../src/lib/trading/gate-tuning.ts");
+
+test("DATED SWEEPS: weight is 1 to recentSweepBars, decays linearly, 0 at twice", () => {
+  const n = gt.GATE.recentSweepBars;
+  assert.equal(rp.sweepAgeWeight(0), 1);
+  assert.equal(rp.sweepAgeWeight(n), 1);
+  assert.ok(rp.sweepAgeWeight(n + n / 2) > 0.45 && rp.sweepAgeWeight(n + n / 2) < 0.55);
+  assert.equal(rp.sweepAgeWeight(2 * n), 0);
+});
+
+test("DATED SWEEPS: a raid past the old cliff still arms its side until invalidated", () => {
+  const bars = tape();
+  const n = gt.GATE.recentSweepBars;
+  // push the SSL raid at index 60 to age n+4 with quiet bars that never close under its wick
+  const tail = Array.from({ length: n + 2 }, (_, k) => bar(64 + k, 100.5, 101, 100, 100.6));
+  const aged = [...bars, ...tail];
+  const age = aged.length - 1 - 60;
+  assert.ok(age > n);
+  const raid = rp.polaritySweep(aged, "bull");
+  assert.equal(raid?.side, "sellside");
+  assert.ok(raid.ageWeight < 1 && raid.ageWeight > 0);
+  // a close under the raid wick kills it
+  const wick = raid.wickExtreme;
+  const dead = [...aged, bar(aged.length, 100, 100, wick - 5, wick - 1)];
+  assert.equal(rp.polaritySweep(dead, "bull")?.index === 60, false);
+});
+
+test("DATED SWEEPS: brain names the erased other-side raid instead of 'No raid yet'", () => {
+  const input = canon.canonInputForCandidate(card({ side: "short", components: ["ifvg", "displacement"] }), { topDown: "bear", mid: "bear", dealing: { zone: "premium" } }, { liquidity: { lastSweep: "none", oppositeSweep: "ssl" }, confirmation: "none" }, clock);
+  const f = canon.scoreCanonStack(input).factors.find((x) => x.id === "sweep");
+  assert.equal(f.pass, false);
+  assert.match(f.detail, /SSL raid arms LONG, not short/);
+});

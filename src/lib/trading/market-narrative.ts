@@ -60,6 +60,12 @@ export interface LiquidityMap {
   lastSweepLevel: number | null;
   /** Wick extreme of the raid bar. */
   lastSweepExtreme: number | null;
+  /**
+   * The raid this book's direction erased because it arms the OTHER side.
+   * Kept so the brain says "SSL raid arms LONG, not short" instead of
+   * "No raid yet" over a swept book.
+   */
+  oppositeSweep?: LiquiditySide;
 }
 
 export interface DrawOnLiquidity {
@@ -434,6 +440,8 @@ export function buildMarketNarrative(
 ): MarketNarrative {
   const liquidity = buildLiquidityMap(read, det);
   const ownRaid = bars && bars.length > 20 ? polaritySweep(bars, direction) : null;
+  const otherRaid = bars && bars.length > 20 ? polaritySweep(bars, direction === "bull" ? "bear" : "bull") : null;
+  if (otherRaid) liquidity.oppositeSweep = otherRaid.side === "buyside" ? "bsl" : "ssl";
   if (ownRaid) {
     liquidity.lastSweep = ownRaid.side === "buyside" ? "bsl" : "ssl";
     liquidity.lastSweepT = ownRaid.t;
@@ -444,6 +452,7 @@ export function buildMarketNarrative(
     (direction === "bull" && liquidity.lastSweep === "bsl") ||
     (direction === "bear" && liquidity.lastSweep === "ssl")
   ) {
+    liquidity.oppositeSweep = liquidity.lastSweep;
     liquidity.lastSweep = "none";
     liquidity.lastSweepT = null;
     liquidity.lastSweepLevel = null;

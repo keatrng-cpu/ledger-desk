@@ -23,12 +23,52 @@ import {
 } from "./detectors";
 import { GATE } from "./gate-tuning";
 
-export function recentRealSweeps(bars: OhlcBar[]): SweepEvent[] {
+/**
+ * DATED SWEEPS (2026-10-13): a decay, not a cliff.
+ *
+ * Was: a raid older than GATE.recentSweepBars (24 × 15m = 6h) vanished on the
+ * next bar. On 2026-10-13 the London SSL raids (02:15–03:15 ET) sat at age
+ * 24–28 at the NY open and dropped off exactly while the 09:30 bar was
+ * forming, so the brain printed "No raid yet" over a swept book.
+ *
+ * Now: full weight to `recentSweepBars`, linear to zero at twice that, and a
+ * raid stays only while it is NOT invalidated — no close beyond its own wick
+ * (that is where the stop lives). The weight is on the event (`ageWeight`)
+ * for display/ranking; it does not enter q.
+ */
+export const SWEEP_DECAY = {
+  get fullBars() {
+    return GATE.recentSweepBars;
+  },
+  get maxBars() {
+    return 2 * GATE.recentSweepBars;
+  },
+};
+
+export function sweepAgeWeight(ageBars: number): number {
+  const full = SWEEP_DECAY.fullBars;
+  const max = SWEEP_DECAY.maxBars;
+  if (ageBars <= full) return 1;
+  if (ageBars >= max) return 0;
+  return +(1 - (ageBars - full) / (max - full)).toFixed(3);
+}
+
+/** A close beyond the raid's own wick after the raid bar kills it. */
+export function sweepInvalidated(bars: OhlcBar[], s: SweepEvent): boolean {
+  for (let i = s.index + 1; i < bars.length; i++) {
+    const c = bars[i]!.c;
+    if (s.side === "sellside" ? c < s.wickExtreme : c > s.wickExtreme) return true;
+  }
+  return false;
+}
+
+export function recentRealSweeps(bars: OhlcBar[]): (SweepEvent & { ageWeight: number })[] {
   if (bars.length < 20) return [];
   const last = bars.length - 1;
-  return detectSweeps(bars).filter(
-    (s) => s.closeBackInside > 0 && last - s.index <= GATE.recentSweepBars,
-  );
+  return detectSweeps(bars)
+    .filter((s) => s.closeBackInside > 0)
+    .map((s) => ({ ...s, ageWeight: sweepAgeWeight(last - s.index) }))
+    .filter((s) => s.ageWeight > 0 && !sweepInvalidated(bars, s));
 }
 
 /**
