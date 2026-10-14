@@ -1952,6 +1952,13 @@ export class FloorScene {
   private readonly away = new Set<Character>();
   /** floor-62 #24: when the last exchange sent someone away; nobody is left stranded past AWAY_MAX_SEC. */
   private awayAt = 0;
+  /** floor-62 #55: a ring on the floor under whoever the camera follows. */
+  private readonly followRing = (() => {
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.42, 40), new THREE.MeshBasicMaterial({ color: "#facc15", transparent: true, opacity: 0.85, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2;
+    m.visible = false;
+    return m;
+  })();
   /** floor-62 #20: how long the next line has waited for its speaker to arrive. */
   private arriveWait = 0;
   /** floor-62 #60: shadows re-render at 15 Hz, not every frame. */
@@ -3168,6 +3175,10 @@ export class FloorScene {
   private tick(dt: number) {
     const t = this.time;
     this.fadeOccluders(dt);
+    if (!this.followRing.parent) this.scene.add(this.followRing);
+    const fa = this.chase ? this.avatars.get(this.chase) : undefined;
+    this.followRing.visible = Boolean(fa);
+    if (fa) this.followRing.position.set(fa.pos[0], 0.02, fa.pos[1]);
     // The meeting, one line at a time.
     const wall = this.wallSec();
     if (this.away.size && this.time - this.awayAt > 90 && !this.speaking()) this.sendHome();

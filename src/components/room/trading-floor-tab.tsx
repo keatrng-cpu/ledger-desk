@@ -268,7 +268,12 @@ function FloorCanvas({
   if (error)
     return (
       <div className="flex h-full items-center justify-center p-6 text-center text-sm text-[var(--color-muted)]">
-        The 3D floor needs WebGL ({error}). The wire log, the contract JSON and the book below still run.
+        <span>
+          The 3D floor needs WebGL ({error}). The wire log, the contract JSON and the book below still run.{" "}
+          <a href="#floor-wire-log" className="underline">
+            Jump to the wire log
+          </a>
+        </span>
       </div>
     );
   return <div ref={host} className="absolute inset-0" />;
@@ -1222,6 +1227,15 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
             {p.symbol} {p.side.toUpperCase()}
           </p>
           {(() => {
+            // floor-62 #42: say how old the numbers are when the feed is behind.
+            const lag = Number(/lag\s+(\d+)\s*s\b/i.exec(frame?.screens.source ?? "")?.[1] ?? NaN);
+            return Number.isFinite(lag) && lag > 60 ? (
+              <p data-testid="plan-stale" className="mb-1 text-[10px] font-semibold text-[#fbbf24]">
+                Feed {lag}s behind — levels are as of then.
+              </p>
+            ) : null;
+          })()}
+          {(() => {
             // floor-62 #1: never show an inverted plan as if it were valid.
             const g = planGeometry(p.side, p.entry, p.stop, p.t1, p.t2);
             return g.ok ? null : (
@@ -1352,11 +1366,22 @@ function DecisionStrip({
   entry,
   managerState,
   onManager,
+  frame,
 }: {
   entry: ReturnType<typeof useEntryState>["read"];
   managerState: ManagerRoomState | null;
   onManager: () => void;
+  frame?: FloorFrame | null;
 }) {
+  const plan = frame?.screens.plan ?? null;
+  const card = frame?.trace.entry?.entry ?? null;
+  // floor-62 #49: the card's band/tier history this session (newest last, at most 5).
+  const [bands, setBands] = useState<{ at: number; band: string; tier: string }[]>([]);
+  useEffect(() => {
+    if (!card?.band) return;
+    const tier = String(card.tier ?? "");
+    setBands((h) => (h.length && h[h.length - 1]!.band === card.band && h[h.length - 1]!.tier === tier ? h : [...h, { at: Date.now(), band: card.band!, tier }].slice(-5)));
+  }, [card?.band, card?.tier]);
   const auto = useAutomation();
   const d = entry ? displayEntry(entry, auto) : null;
   const call = managerState?.call ?? null;
@@ -1372,10 +1397,26 @@ function DecisionStrip({
         <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
         <span className="font-mono text-[11px] font-semibold text-[var(--color-fg)]">{managerState?.current ?? "—"}</span>
         <span className="min-w-0 truncate text-[11px] text-[var(--color-muted)]">
-          {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
+          {/* floor-62 #37: the Manager's call carries the plan's numbers. */}
+          {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${plan ? ` · CE ${fmtPx(plan.entry)} stop ${fmtPx(plan.stop)}` : ""}${card?.band ? ` · ${card.band}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
         </span>
       </button>
       <RhAccountStrip />
+      {bands.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 text-[10px] sm:col-span-3" data-testid="band-history" aria-label="Card band history this session">
+          <span className="uppercase tracking-wider text-[var(--color-subtle)]">Band</span>
+          {bands.map((b, i) => (
+            <span key={b.at} className="rounded border border-[var(--color-border)] px-1 font-mono">
+              {i > 0 ? "→ " : ""}
+              {b.band} {b.tier} {etTime(b.at).slice(0, 5)}
+            </span>
+          ))}
+        </div>
+      )}
+      {/* floor-62 #41: which balance is which. */}
+      <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="balance-legend">
+        Balances: EQUITY screen = room paper (the floor's own book) · header "Paper" = desk paper account · RH strip = Robinhood buying power (live).
+      </div>
       <div className="text-[11px] text-[var(--color-fg)] opacity-80 sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · rules ${RULES_HASH}`}>{kzSeatNote()}</div>
     </div>
   );
@@ -1430,6 +1471,17 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   const backup = useRoomStore((s) => s.backup);
   // Another tab (the Predict analyzer) can ask the Floor to open looking into the Mead Hall.
   const [camera, setCamera] = useState<CameraPreset>(() => (takeFloorCamera() as CameraPreset | null) ?? "auto");
+  // floor-62 #57: number keys 1–9 pick a camera (not while typing).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.altKey || e.ctrlKey || e.metaKey || (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))) return;
+      const n = Number(e.key);
+      if (Number.isInteger(n) && n >= 1 && n <= Math.min(9, CAMERAS.length)) setCamera(CAMERAS[n - 1]!.id);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [speaker, setSpeaker] = useState<{ i: number; line: DialogueLine | null }>({ i: -1, line: null });
   const [selected, setSelected] = useState<Character | null>(null);
   // Navigation: who the camera is riding with, and what it flew to (a screen, a bank of monitors).
@@ -1560,8 +1612,12 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         <span className="rounded px-2 py-0.5 text-[11px] font-semibold text-black" style={{ background: URGENCY_COLOR[urgency] }}>
           {urgency.replace("_", " ")}
         </span>
-        <span className="font-mono text-[11px] text-[var(--color-subtle)]">
+        <span className="font-mono text-[11px] text-[var(--color-subtle)]" title={`Feed source (floor-62 #48): ${frame?.screens.source ?? "none"}`}>
           {(frame?.screens.source ?? "").replace(/\s*·\s*lag\s+\d+\s*s\b/i, "")}
+          {(() => {
+            const lag = /lag\s+(\d+)\s*s\b/i.exec(frame?.screens.source ?? "")?.[1];
+            return lag ? <span className="ml-1 opacity-70">· {lag}s behind</span> : null;
+          })()}
         </span>
         <button
           type="button"
@@ -1740,10 +1796,11 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           </select>
         </div>
         <div className="absolute right-2 top-2 hidden flex-wrap justify-end gap-1 sm:flex">
-          {CAMERAS.map((c) => (
+          {CAMERAS.map((c, ci) => (
             <button
               key={c.id}
               type="button"
+              title={ci < 9 ? `${c.label} (key ${ci + 1})` : c.label}
               onClick={() => {
                 // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
                 // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
@@ -1851,7 +1908,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </span>
       </div>
 
-      <DecisionStrip entry={entry} managerState={managerState} onManager={openManager} />
+      <DecisionStrip entry={entry} managerState={managerState} onManager={openManager} frame={frame} />
 
       {oneOnOne && (
         <OneOnOnePanel
@@ -1898,7 +1955,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
 
       {/* items-start: each card is its own height — the JSON card no longer
           stretches the wire log and the book into tall empty panels. */}
-      <div className="grid items-start gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
+      <div id="floor-wire-log" className="grid items-start gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
         <WireLog onFocus={setSelected} />
 
         <div className={CARD}>

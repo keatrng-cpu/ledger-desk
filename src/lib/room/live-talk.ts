@@ -2133,7 +2133,8 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   const now = w.nowMs;
   const silent = (who: Character) => (st.spoke[who] ?? []).every((t) => now - t > QUIET_SEAT_MS);
   const b = w.books.QQQ ?? w.books.SPY;
-  if (b && silent("Jax") && w.feed.kind !== "synthetic") {
+  // floor-62 #42: a price is quoted only off a fresh tape (last print ≤ 120 s old).
+  if (b && silent("Jax") && w.feed.kind !== "synthetic" && w.feed.kind !== "none" && (w.feed.lagSec == null || w.feed.lagSec <= 120)) {
     const sig = `${Math.round(b.px / 10)}|${b.rangeUsedPct != null ? Math.round(b.rangeUsedPct / 10) : ""}`;
     if (st.topicSig["quiet:jax"] !== sig)
       out.push({

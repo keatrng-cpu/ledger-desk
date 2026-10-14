@@ -155,7 +155,7 @@ export function exHallFee(cx: Ctx, h: HallLite): Ex | null {
     ])),
     line("Vince", ANIM.Vince.watch!, pick(cx, "hall.fee.vince", [
       () => `So ${subj(f, r, 70)} at ${c(f, r.yesAskC!)} pays ${c(f, r.feeYesC!, 2)} a contract. Add ${c(f, h.fee.slipC)} of slippage and yes needs ${n(f, r.needsYesPct!)} percent.`,
-      () => `Worked on the jumbotron: ${c(f, r.yesAskC!)} carries ${c(f, r.feeYesC!, 2)} of fee. The engine adds ${c(f, h.fee.slipC)} for slippage, which puts yes at ${n(f, r.needsYesPct!)} percent to clear.`,
+      () => `Worked on the jumbotron: ${c(f, r.yesAskC!)} carries ${c(f, r.feeYesC!, 2)} a contract of fee. The engine adds ${c(f, h.fee.slipC)} for slippage, which puts yes at ${n(f, r.needsYesPct!)} percent to clear.`,
     ])),
     line("Jax", ANIM.Jax.shout!, pick(cx, "hall.fee.jax", [
       () => `Does the fee care what price I pay?`,
@@ -243,8 +243,8 @@ export function exHallModel(cx: Ctx, h: HallLite): Ex | null {
               () => `${n(f, sc.passed, 0)} of ${n(f, sc.total, 0)} scanner layers pass. ${upper1(layer(sc.miss))} is the first one that fails${sc.limitC != null ? `. The limit that would clear fees is ${c(f, sc.limitC, 0)}` : ""}${sc.askC != null ? `; the ask is ${c(f, sc.askC, 0)}` : ""}.`,
             ]))
       : line("Vince", ANIM.Vince.watch!, pick(cx, "hall.model.vince.none", [
-          () => `The scanner has no row for this one, so there is no layer read and no limit price to rest at.`,
-          () => `No scanner row on it. Without one I have no layers to name and no number to rest at.`,
+          () => `The scanner has no row for this one: ${n(f, 0, 0)} layers read and no limit price to rest at.`,
+          () => `No scanner row on it, so ${n(f, 0, 0)} layers to name and no number to rest at.`,
         ])),
     line("Gemma", ANIM.Gemma.explain!, pick(cx, "hall.model.gemma", [
       () => `An input is only as good as its source and its time. This board is ${f.span(h.ageSec)} old, and the model came with it.`,
