@@ -1,4 +1,5 @@
 import { planTargetText } from "@/lib/trading/card-plan";
+import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
@@ -1475,6 +1476,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Candidates still missing entry/stop/target after the brain's plan,
       // fix 33 and fix 34 run the fallback chain (exec-context completePlan);
       // a card it cannot price is a WATCH row — never shown as a card.
+      // ltfArm live: an LTF-armed card's plan IS its evidence — gap CE, one tick past the sweep wick,
+      // T1/T2 the next real pools. No real pool >= 1R ahead → no plan here (the fallback chain / watch row).
+      for (const c of payload.scan.candidates) {
+        const a = c.ltfArm;
+        if (!c.ltfArmed || !a || !a.t1) continue;
+        const risk = Math.abs(a.entry - a.stop);
+        const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - a.entry) / risk).toFixed(2));
+        c.entryPx = a.entry;
+        c.plan = { entry: a.entry, entryZone: { top: a.gap.hi, bottom: a.gap.lo }, stop: a.stop, stopWhy: `one tick past the ${a.tf} sweep wick ${a.sweep.wick}`, riskPts: +risk.toFixed(2),
+          t1: a.t1.price, t2: a.t2?.price ?? null, rr1: rr(a.t1.price), rr2: rr(a.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
+          why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}` } as never;
+        c.invalidation = `Stop ${a.stop.toFixed(2)} — one tick past the ${a.tf} sweep wick`;
+        c.reasons.push(`Plan from LTF arm: entry ${a.entry} (${a.tf} ${a.gap.kind} CE), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price}`);
+      }
       for (const c of payload.scan.candidates) {
         const has = (c.entryPx ?? c.plan?.entry) != null && c.plan?.stop != null && primaryTarget(c.plan).price != null;
         if (has) continue;
@@ -1529,7 +1544,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           ...sdFor(isL).map((d) => d.price),
           ...(today.length ? [Math.max(...today.map((b) => b.h)), Math.min(...today.map((b) => b.l))] : []),
         ];
-        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels);
+        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels, 0.25, ltfArmLive() && LTF_ARM.t1FallbackNextPool);
         (c as { rrCheck?: unknown }).rrCheck = r;
         if (r.widened) {
           c.reasons.push(`Stop widened ${pl.stop} → ${r.stop} (was < ${0.5}×ATR15); R:R recomputed ${pl.rr1} → ${r.rr1}`);
@@ -1750,6 +1765,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           )
         : null;
     }
+    // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
+    for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
     const coach = {
       xai: Boolean(process.env.XAI_API_KEY?.trim()),
       anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
