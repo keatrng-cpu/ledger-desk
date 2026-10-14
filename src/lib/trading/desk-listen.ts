@@ -5,9 +5,15 @@ import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
 import { kzSeatNote } from "@/lib/desk/kz-disp";
+import { LTF_ARM, capBandAt } from "@/lib/smc/ltf-arm";
 
 const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
 /** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
+/** ltfArm: a card armed by LTF evidence never reads above ltfArm.capBand, whatever q says. */
+export function armedBand(c: { confluence: number; pathBand?: string | null; ltfArmed?: boolean }): string | null {
+  const b = wireBand(c.confluence, c.pathBand ?? null);
+  return c.ltfArmed ? capBandAt(b, LTF_ARM.capBand) : b;
+}
 export function wireBand(q: number | null | undefined, pathBand: string | null | undefined): string | null {
   const qb = bandFromQ(q);
   if (pathBand === "skip") return "C";
@@ -23,6 +29,7 @@ import { mtfArrays, WIRE_ARRAYS_CAP, type ArrayRow } from "@/lib/smc/mtf-arrays"
 import type { DeskPayload } from "./build-desk";
 import { evaluateOptionsDesk } from "./options-desk";
 import { isJudasWindow } from "./sessions";
+import { buildSmcUnity, type SmcUnityWire } from "@/lib/smc/smc-unity-wire";
 import type { GrokReport } from "@/lib/desk/grok-report";
 
 export interface DeskListenCard {
@@ -77,6 +84,8 @@ export interface DeskListenCard {
 export interface DeskWire {
   /** sha256 (16 hex) of the shared rules this card was graded on — the watcher fails closed on mismatch. */
   rulesHash?: string;
+  /** ltfArm (shared rules): mode, cap, and the cards live mode would have shown that the board dropped. */
+  ltfArm?: { mode: string; capBand: string; dropped: { symbol: string; side: string; why: string; wouldBand: string | null; arm: string; entry: number; stop: number; t1: number | null }[] };
   /** PD arrays on 1m–4h for both books, live first, capped (mtf-arrays.ts). */
   arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
@@ -99,6 +108,8 @@ export interface DeskWire {
     right: { symbol: string; price: number; source: string; lagSec: number };
   };
   mtf?: ReturnType<typeof wireMtf> | null;
+  /** SMC/unity shadow reads (shared rules smcUnity.*; audit 2026-10-14). Shadow = changes nothing. */
+  smcUnity?: SmcUnityWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
   strategy: {
@@ -119,6 +130,10 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
+    /** Fix A: the side's kill evidence is invalidated on closed bars (kill.clear); the watcher ltf_kill reads it with kill.clear.mode. */
+    ltfKillCleared: boolean;
+    /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
+    entryState: unknown;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -253,6 +268,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
+    ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
     htf: top ? htfBiasOf(desk.mtfContext, top.symbol) : null,
@@ -282,7 +298,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           side: top.side,
           name: top.completeStrategy || top.strategyPrimary || "model",
           // Band from q, never above the card's pathBand (live gate walk #2: a capped / skip card must not read higher).
-          band: wireBand(top.confluence, top.pathBand ?? null),
+          band: armedBand(top),
           pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
@@ -299,6 +315,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           judas,
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
+          ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
+          entryState: (top as { entryState?: unknown }).entryState ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -390,6 +408,11 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     execution: { phase, to: "grok", account: "agentic-6158", broker: "robinhood" },
   };
   wire.master = masterSeat(masterInputOf(wire, desk.mtfContext ?? null, "normal"));
+  try {
+    wire.smcUnity = buildSmcUnity(desk, top ?? null, arrRows, book ? { symbol: book.symbol, side: book.side, word: book.word } : null, wire.floor.ticket?.dte ?? null);
+  } catch {
+    wire.smcUnity = null; // shadow layer must never break the card
+  }
   const said = [
     {
       who: "Vince",
@@ -431,7 +454,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       return {
         symbol: c.symbol,
         side: c.side,
-        band: wireBand(c.confluence, c.pathBand ?? null),
+        band: armedBand(c),
         pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
         actionable: c.actionable,
@@ -440,6 +463,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         /** "card" carries a complete plan; "watch" is a row without one (watchWhy says what is missing). */
         kind: (c as { watchOnly?: boolean }).watchOnly ? "watch" : "card",
         watchWhy: (c as { watchWhy?: string | null }).watchWhy ?? null,
+        /** ltfArm (shared rules): best closed-rung 1m-4h arming evidence; mode says if it acted. */
+        ltfArm: c.ltfArm ? { mode: LTF_ARM.mode, tf: c.ltfArm.tf, why: c.ltfArm.why, entry: c.ltfArm.entry, stop: c.ltfArm.stop, t1: c.ltfArm.t1?.price ?? null, rr1: c.ltfArm.rr1, armed: c.ltfArmed === true, shadow: c.ltfArmShadow ?? null } : null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),

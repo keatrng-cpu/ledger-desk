@@ -375,6 +375,8 @@ export interface SaneResult {
 export function sanePlan(
   p: { side: "long" | "short"; entry: number; stop: number; t1: number | null; t2: number | null },
   atr: number | null, swings: number[], levels: number[], tick = 0.25,
+  /** ltfArm live + t1FallbackNextPool: an unreal/null T1 falls back to the nearest REAL level (from `levels`) >= RR_MIN ahead. */
+  fallbackNextPool = false,
 ): SaneResult {
   const short = p.side === "short";
   let stop = p.stop, widened = false;
@@ -391,6 +393,17 @@ export function sanePlan(
   const riskPts = +Math.abs(p.entry - stop).toFixed(2);
   const real = (t: number | null) => t != null && levels.some((l) => Math.abs(l - t) <= tick + 1e-9);
   const rr = (t: number | null) => (t == null ? null : +((short ? p.entry - t : t - p.entry) / riskPts).toFixed(2));
+  if (!real(p.t1) && fallbackNextPool) {
+    const next = levels
+      .filter((l) => (short ? l < p.entry : l > p.entry) && (rr(l) ?? 0) >= RR_MIN)
+      .sort((a, b) => Math.abs(a - p.entry) - Math.abs(b - p.entry))[0];
+    if (next != null) {
+      const t2n = levels.filter((l) => (short ? l < next : l > next)).sort((a, b) => Math.abs(a - next) - Math.abs(b - next))[0] ?? null;
+      const r1 = rr(next)!, r2v = t2n != null ? rr(t2n) : null;
+      return { ok: true, why: `T1 ${p.t1} was not a real level — fell back to the next real pool ${next} (${r1}R)`, widened, flagged: r1 > RR_DISPLAY_MAX, stop, riskPts,
+        rr1: r1, rr2: r2v, rrShown: Math.min(r1, RR_DISPLAY_MAX), promoted: true, t1: next, t2: t2n };
+    }
+  }
   if (!real(p.t1)) return { ...bad(`T1 ${p.t1} is not a real ranked level`), stop, riskPts };
   const rr1 = rr(p.t1), rr2 = real(p.t2) ? rr(p.t2) : null;
   // 13:01 CT ES case: a T1 under 1R must never be the DISPLAYED target. Promote a real T2 that clears

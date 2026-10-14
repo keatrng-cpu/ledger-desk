@@ -39,7 +39,14 @@ export interface ArrayRow {
   ageBars: number;
   formedAgeBars: number;
   createdT: number;
+  /** F1 (smcUnity.ifvgFail): this iFVG closed back through its origin side — a failed inversion. */
+  failed?: boolean;
+  /** F7: when the iFVG inverted (ms) — the kill anchors here, not lastT − age. */
+  invertedT?: number | null;
 }
+
+/** smcUnity.ifvgFail live = a failed iFVG reads as mitigated everywhere (kills, counts, wire). */
+export const IFVG_FAIL_LIVE = ((RULES as unknown) as { smcUnity?: { ifvgFail?: { mode?: string } } }).smcUnity?.ifvgFail?.mode === "live";
 
 const cache = new Map<string, { bars: OhlcBar[]; gaps: FvgResult[] }>();
 const CACHE_MAX = 64;
@@ -79,7 +86,9 @@ function rowsFor(tf: ArrayTf, bars: OhlcBar[], gaps: FvgResult[]): ArrayRow[] {
       lo: r2(g.bottom),
       hi: r2(g.top),
       ce: r2((g.top + g.bottom) / 2),
-      mitigated: !inv && g.fill === "full",
+      mitigated: inv ? IFVG_FAIL_LIVE && g.inversionFailed === true : g.fill === "full",
+      failed: inv ? g.inversionFailed === true : undefined,
+      invertedT: inv ? g.invertedT : undefined,
       // IFVG age counts from the INVERSION (the close through), not from when
       // the gap formed (AUDIT R2-1). `formedAgeBars` keeps the creation age.
       ageBars: inv && g.invertedIndex != null ? last - g.invertedIndex : last - g.createdIndex,

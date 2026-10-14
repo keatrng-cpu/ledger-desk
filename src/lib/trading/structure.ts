@@ -25,6 +25,8 @@
 
 import type { OhlcBar } from "@/lib/market/types";
 import { etWallParts, etWallToEpochMs } from "./sessions";
+import DESK_RULES from "../../../shared/desk-rules.json";
+const RANGES_LIVE = (DESK_RULES as { smcUnity?: { ranges?: { mode?: string } } }).smcUnity?.ranges?.mode === "live";
 
 export type Bias = "bull" | "bear" | "neutral";
 
@@ -399,7 +401,11 @@ function liquidityPools(
   const london: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
   const ny: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
   const day: SessBucket = { hi: -Infinity, lo: Infinity, n: 0, hiT: 0, loT: 0 };
-  const lookback = bars.slice(-Math.min(bars.length, 200));
+  // Accuracy #1 (smc-unity review): the 200-bar lookback pooled ~2 days of sessions. With smcUnity.ranges
+  // live, the buckets read ONLY the current trading session (18:00 ET roll). Shadow keeps the legacy read.
+  const sessKey = (t: number) => { const q = etWallParts(t); const d = new Date(Date.UTC(q.year, q.month - 1, q.day + (q.hour >= 18 ? 1 : 0))); return d.toISOString().slice(0, 10); };
+  const lastKey = bars.length ? sessKey(bars[bars.length - 1]!.t) : "";
+  const lookback = RANGES_LIVE ? bars.filter((b) => sessKey(b.t) === lastKey) : bars.slice(-Math.min(bars.length, 200));
   for (const b of lookback) {
     const p = etWallParts(b.t);
     const h = p.hour + p.minute / 60;

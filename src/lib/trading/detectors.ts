@@ -246,6 +246,15 @@ export interface FvgResult {
   inversionRetested: boolean;
   inversionRetestIndex: number | null;
   inversionRetestT: number | null;
+  /**
+   * Failed inversion (smcUnity.ifvgFail, audit F1): after the inversion, price
+   * CLOSED back through the gap's origin side (bull gap → bearish iFVG: close
+   * above top; bear gap → bullish iFVG: close below bottom). The iFVG is dead —
+   * polarity returned to the original gap. Optional so older fixtures stay valid.
+   */
+  inversionFailed?: boolean;
+  inversionFailedIndex?: number | null;
+  inversionFailedT?: number | null;
 }
 
 /**
@@ -332,7 +341,12 @@ export function detectFvgs(bars: OhlcBar[]): FvgResult[] {
           g.inverted = true;
           g.invertedIndex = j;
           g.invertedT = b.t;
-        } else if (g.inverted && !g.inversionRetested) {
+        } else if (g.inverted && !g.inversionFailed && b.c > g.top) {
+          g.inversionFailed = true;
+          g.inversionFailedIndex = j;
+          g.inversionFailedT = b.t;
+        }
+        if (g.inverted && !g.inversionRetested && j !== g.invertedIndex) {
           // Retest from below: high back into the (now bearish) zone.
           if (b.h >= g.bottom) {
             g.inversionRetested = true;
@@ -355,7 +369,12 @@ export function detectFvgs(bars: OhlcBar[]): FvgResult[] {
           g.inverted = true;
           g.invertedIndex = j;
           g.invertedT = b.t;
-        } else if (g.inverted && !g.inversionRetested) {
+        } else if (g.inverted && !g.inversionFailed && b.c < g.bottom) {
+          g.inversionFailed = true;
+          g.inversionFailedIndex = j;
+          g.inversionFailedT = b.t;
+        }
+        if (g.inverted && !g.inversionRetested && j !== g.invertedIndex) {
           // Retest from above: low back into the (now bullish) zone.
           if (b.l <= g.top) {
             g.inversionRetested = true;

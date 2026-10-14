@@ -4,6 +4,8 @@
  */
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
+import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
+import RULES_ALL from "../../../shared/desk-rules.json";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
 import { assessConditions, type MarketConditions } from "./conditions";
@@ -132,6 +134,12 @@ export interface SetupCandidate {
   volatility: string;
   /** Two-axis path band (A+ / A / A- path · B paper · C journal) */
   pathBand?: "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";
+  /** ltfArm (shared rules): best closed-rung (1m-4h) arming evidence for this side, shadow or live. */
+  ltfArm?: LtfArm | null;
+  /** live mode: the card needed LTF evidence it did not have on 15m — capped at ltfArm.capBand. */
+  ltfArmed?: boolean;
+  /** shadow mode: what live mode WOULD have done to this card (nothing on the board changes). */
+  ltfArmShadow?: { addComponents: string[]; wouldBand: string | null; wouldQ: number | null; wouldReleaseExtension: boolean } | null;
   qualityScore?: number;
   strategyComplete?: boolean;
   completeStrategy?: string;
@@ -258,6 +266,8 @@ export interface ScanResult {
   smt: ReturnType<typeof smtRead>;
   conditions: { left: MarketConditions; right: MarketConditions };
   catalog: string[];
+  /** shadow mode: cards live mode would have shown that the board dropped (e.g. extension guard). */
+  ltfArmShadow?: { symbol: string; side: SetupSide; why: string; wouldBand: string | null; arm: LtfArm }[];
 }
 
 /**
@@ -1468,7 +1478,52 @@ export function scoreCandidates(
 
   // Profit path: incomplete-pattern veto + calibration floor (0.65) for action
   const etMin = clock.etHour * 60 + clock.etMinute;
+
+  /**
+   * LTF ARM (shared rules `ltfArm`, Keaton 2026-10-14). Every closed rung 1m-4h
+   * is read for sweep -> displacement -> IFVG/FVG -> CISD/MSS on this side
+   * (src/lib/smc/ltf-arm.ts). shadow: recorded, nothing changes. live: the
+   * missing parts join the card's components, the entry is the gap CE, and a
+   * card that needed them is capped at ltfArm.capBand after every other guard.
+   */
+  const armNow = trust?.nowMs ?? Math.max(closedL.at(-1)?.t ?? 0, closedR.at(-1)?.t ?? 0) + 900_000;
+  const inKz = inArmKillzone(clock);
+  const live = ltfArmLive();
+  const armAdds = new Map<SetupCandidate, string[]>();
+  for (const c of candidates) {
+    const isL = c.symbol === left.symbol;
+    const mn = (isL ? leftMinute : rightMinute) ?? [];
+    const sess = mn.length ? sessionPools(mn, armNow, 60_000) : sessionPools(isL ? closedL : closedR, armNow, 900_000);
+    const { pools, targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
+    const arm = ltfArmOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, pools, targets, nowMs: armNow, inKillzone: inKz });
+    c.ltfArm = arm;
+    if (!arm) continue;
+    const add = ["sweep_significant", "ifvg", "displacement", ...(arm.cisd ? ["cisd"] : []), ...(arm.mss ? ["mss"] : [])]
+      .filter((k) => !c.components.includes(k as ComponentKey));
+    armAdds.set(c, add);
+    c.reasons.push(`LTF arm (${LTF_ARM.mode}): ${arm.why}; entry ${arm.entry} (edge ${arm.entryEdge}), stop ${arm.stop}${arm.t1 ? `, T1 ${arm.t1.name} ${arm.t1.price} (${arm.rr1}R)` : ", no real pool >= 1R ahead"}`);
+    if (live && add.length) {
+      c.components = [...c.components, ...(add as ComponentKey[])];
+      c.ltfArmed = true;
+      if (c.entryPx == null || !Number.isFinite(c.entryPx)) c.entryPx = arm.entry;
+      c.entryZone = `${arm.tf} ${arm.gap.kind} ${arm.gap.lo}–${arm.gap.hi} CE ${arm.entry}`;
+      c.invalidation = `Stop ${arm.stop.toFixed(2)} — one tick past the ${arm.tf} sweep wick ${arm.sweep.wick}`;
+    }
+  }
   const pathCandidates = candidates.map((c) => applyProfitPathToCandidate(c, { etMin }));
+  if (!live) {
+    for (const c of pathCandidates) {
+      const add = armAdds.get(candidates[pathCandidates.indexOf(c)]!);
+      if (!c.ltfArm || !add) continue;
+      const would = applyProfitPathToCandidate({ ...c, components: [...c.components, ...(add as ComponentKey[])] }, { etMin });
+      c.ltfArmShadow = {
+        addComponents: add,
+        wouldBand: add.length ? capBandAt(would.pathBand ?? null, LTF_ARM.capBand) : (would.pathBand ?? null),
+        wouldQ: would.confluence,
+        wouldReleaseExtension: true,
+      };
+    }
+  }
 
   /**
    * With-bias fade veto — Claude's disrespect release is for COUNTER-bias
@@ -1605,7 +1660,8 @@ export function scoreCandidates(
 
   for (const c of pathCandidates) {
     const bars = c.symbol === left.symbol ? closedL : closedR;
-    if (!bars.length || extensionAllows(bars, c.side)) continue;
+    // A closed-rung reversal (any of 1m-4h, ltf-arm.ts) is a reversal sign inside the run.
+    if (!bars.length || extensionAllows(bars, c.side, live ? () => c.ltfArm != null : undefined)) continue;
     c.grade = "skip";
     c.pathBand = "skip";
     c.actionable = false;
@@ -1630,6 +1686,15 @@ export function scoreCandidates(
       c.actionable = false;
       c.missing.unshift("outside the window — no priced entry");
     }
+  }
+
+  // ltfArm cap — last, after every guard; it only ever lowers a band.
+  for (const c of pathCandidates) {
+    if (!c.ltfArmed) continue;
+    const before = c.pathBand;
+    c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    if (before !== c.pathBand) c.reasons.push(`LTF-armed card capped ${before} → ${c.pathBand} (ltfArm.capBand)`);
   }
 
   for (const c of pathCandidates) stampPathTitle(c);
@@ -1667,7 +1732,13 @@ export function scoreCandidates(
     focus = blocked[0]!;
   }
 
+  const ltfArmShadow = live
+    ? undefined
+    : pathCandidates
+        .filter((c) => c.ltfArm && !tradable.includes(c))
+        .map((c) => ({ symbol: c.symbol, side: c.side, why: `dropped by the board (${c.missing[0] ?? "skip"}); live ltfArm would release the extension guard`, wouldBand: c.ltfArmShadow?.wouldBand ?? null, arm: c.ltfArm! }));
   return {
+    ltfArmShadow,
     floor,
     aPlus: APLUS_RULES.aPlusThreshold,
     candidates: tradable.slice(0, 8),
@@ -1717,4 +1788,30 @@ export function scanSetups(
     rightClosed: closed?.right,
     trust,
   });
+}
+
+/** Kill zones from the shared rules (kzDisp.killzones, ET). */
+export function inArmKillzone(clock: Pick<SessionClock, "etHour" | "etMinute">): boolean {
+  const m = clock.etHour * 60 + clock.etMinute;
+  const kz = (RULES_ALL as unknown as { kzDisp: { killzones: Record<string, [string, string]> } }).kzDisp.killzones;
+  const mm = (x: string) => Number(x.slice(0, 2)) * 60 + Number(x.slice(3, 5));
+  return Object.values(kz).some(([a, b]) => m >= mm(a) && m < mm(b));
+}
+
+/** Real pools only: every draw level (swept or not) can be raided; only unswept ones are targets. */
+export function armPools(read: HtfBiasRead, draw: ReturnType<typeof drawOnLiquidity> | null, session: Pool[] = []): { pools: Pool[]; targets: Pool[] } {
+  const all = draw ? [draw.primary, draw.above, draw.below, ...draw.alternates].filter((t): t is NonNullable<typeof t> => !!t) : [];
+  const pools: Pool[] = all.map((t) => ({ name: t.name, price: t.price }));
+  // EQ is a LOCATION, not liquidity (card-plan LOCATION_KINDS) — never a target.
+  const targets: Pool[] = all.filter((t) => !t.swept && !/\bEQ\b|equilibrium/i.test(t.name)).map((t) => ({ name: t.name, price: t.price }));
+  for (const [name, px] of [["PDH", read.pdh], ["PDL", read.pdl], ["PWH", read.pwh], ["PWL", read.pwl]] as const) {
+    if (px != null && Number.isFinite(px)) { pools.push({ name, price: px }); targets.push({ name, price: px }); }
+  }
+  // Session H/L (Asia, London, overnight, prior RTH) are raid pools; as targets only while still unswept by later bars.
+  pools.push(...session);
+  targets.push(...session);
+  const seen = new Set<string>();
+  const dd = (xs: Pool[]) => xs.filter((p) => { const k = p.price.toFixed(2); if (seen.has(k)) return false; seen.add(k); return true; });
+  const P = dd(pools); seen.clear();
+  return { pools: P, targets: dd(targets) };
 }

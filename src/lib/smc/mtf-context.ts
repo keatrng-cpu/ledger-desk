@@ -50,6 +50,22 @@ export interface LtfReversal {
   level: number;
   /** Temporary kill: set once sweep → displacement → inversion-back prints. Card is capped A- then. */
   rearmed: { t: number; why: string } | null;
+  /**
+   * smcUnity shadow read (F1/F7, audit 2026-10-14). `failedOnly`: every piece of
+   * evidence is an iFVG that already closed back through its origin side — the
+   * kill has no live evidence. `killTInv`: the kill anchored on the inversion
+   * time. Changes nothing unless smcUnity.ifvgFail.mode is "live" (then a
+   * failed-only kill is never emitted).
+   */
+  smc?: { failedOnly: boolean; failed: string[]; killTInv: number | null };
+  /**
+   * Fix A (Keaton 10/14 09:55 ET, MNQ short vetoed by a bull IFVG price had already closed back below):
+   * every piece of kill evidence was invalidated on CLOSED bars across the 1m–4h ladder
+   * (`killClearedOf`). kill.clear.mode live → also sets `rearmed` (capped A-); shadow → reported only.
+   */
+  killCleared?: { t: number; why: string } | null;
+  /** Standing rule (no single-TF rule), SHADOW: rungs 1m–4h holding a fresh opposing IFVG (≤ IFVG5_MAX_AGE own bars). Kill would need ≥ 2. */
+  killMtf?: { rungs: string[]; wouldKill: boolean };
 }
 export interface BookMtf {
   symbol: string;
@@ -58,6 +74,8 @@ export interface BookMtf {
   ltfReversal: LtfReversal | null;
   /** Every side's kill (with its re-arm state) — a re-armed side stays capped A-. */
   ltfReversals: LtfReversal[];
+  /** shadow (ltfArm.mode shadow): the kills an all-rung (1m-4h) read would print. Never acted on. */
+  ltfReversalsAllTfShadow?: LtfReversal[];
   rungs: RungRead[];
   align: { long: Alignment; short: Alignment };
 }
@@ -175,8 +193,11 @@ export function buildMtfContext(
       if (r) r.arrays[row.kind] += 1;
     }
     const rows = mtfArrays(b.symbol, b.minute, b.bars15);
-    const revs = ltfReversalsOf(rows, b.minute);
-    const rev = ltfReversalOf(rows, b.minute);
+    // ltfArm all-timeframe rule: live → kills read every rung; shadow → 5m as today, all-rung read kept for the record.
+    const allTf = (RULES as unknown as { ltfArm?: { mode?: string } }).ltfArm?.mode === "live";
+    const revs = ltfReversalsOf(rows, b.minute, allTf);
+    const rev = ltfReversalOf(rows, b.minute, allTf);
+    const revsAllTfShadow = allTf ? undefined : ltfReversalsOf(rows, b.minute, true);
     const align = { long: alignFor(rungs, "long"), short: alignFor(rungs, "short") };
     if (rev && !rev.rearmed) {
       // LTF weight flips to the other side.
@@ -185,7 +206,7 @@ export function buildMtfContext(
       align[rev.against] = re(align[rev.against], false);
       align[other] = re(align[other], true);
     }
-    return { symbol: b.symbol, rungs, align, ltfReversal: rev, ltfReversals: revs };
+    return { symbol: b.symbol, rungs, align, ltfReversal: rev, ltfReversals: revs, ltfReversalsAllTfShadow: revsAllTfShadow };
   };
   const books = [book(left), book(right)];
   const smt: SmtRead[] = [];
@@ -239,6 +260,8 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
 
+const SMCU = ((RULES as unknown) as { smcUnity?: Record<string, { mode?: string }> }).smcUnity ?? {};
+const BOTH_KILLS_LIVE = SMCU.bothKills?.mode === "live";
 export let IFVG5_MAX_AGE = RULES.kill.ifvg5MaxAge; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
 export let REJECT_WICK_FRAC = RULES.kill.rejectWickFrac;
 export let DISP1_ATR = RULES.kill.disp1Atr; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
@@ -253,7 +276,8 @@ export const REJECT_LOOKBACK = 10;
 export const EXTREME_LOOKBACK = 10;
 
 type Side = "long" | "short";
-interface Kill { side: Side; t: number; level: number; why: string }
+interface Kill { side: Side; t: number; level: number; why: string; failed?: boolean; tInv?: number | null }
+export type { Kill as LtfKill };
 
 /**
  * LTF reversal against a side (Keaton 2026-10-13 10:33 ET). Triggers, CLOSED bars:
@@ -263,18 +287,24 @@ interface Kill { side: Side; t: number; level: number; why: string }
  * TEMPORARY: the killed side re-arms on sweep → displacement → inversion back
  * (see `rearmAfter`); then the card is capped at A-.
  */
+const RUNG_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
 export function ltfReversalsOf(
-  rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number }[],
+  rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number; failed?: boolean; invertedT?: number | null }[],
   minute: OhlcBar[] | null | undefined,
+  /** ltfArm all-timeframe rule: IFVG kills on every rung 1m-4h, age in minutes (ifvg5MaxAge x 5m). Default: 5m only (today). */
+  allTfs = false,
 ): LtfReversal[] {
   const m = (minute ?? []).slice(0, -1); // drop the forming bar
   const lastT = m.length ? m[m.length - 1].t : Date.now();
   const kills: Kill[] = [];
   for (const r of rows) {
-    if (r.tf !== "5m" || r.kind !== "ifvg" || r.mitigated || r.ageBars > IFVG5_MAX_AGE) continue;
+    const tfMin = RUNG_MIN[r.tf];
+    if (tfMin == null || r.kind !== "ifvg" || r.mitigated) continue;
+    if (allTfs ? r.ageBars * tfMin > IFVG5_MAX_AGE * 5 : r.tf !== "5m" || r.ageBars > IFVG5_MAX_AGE) continue;
     const side: Side = r.dir === "bear" ? "long" : "short";
     const level = side === "long" ? (r.hi ?? NaN) : (r.lo ?? NaN);
-    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b) against the ${side}` });
+    const failed = r.failed === true;
+    kills.push({ side, t: lastT - r.ageBars * tfMin * 60e3, level, why: `${r.tf} IFVG ${r.dir} (${r.ageBars}b) against the ${side}`, failed, tInv: r.invertedT ?? null });
   }
   const atrs = m.length ? rollingAtr(m) : [];
   const n = m.length;
@@ -330,7 +360,15 @@ export function ltfReversalsOf(
     const levels = ks.map((x) => x.level).filter((x) => Number.isFinite(x));
     // The rebuild must reclaim the FARTHEST opposing edge of the evidence.
     const level = levels.length ? (side === "long" ? Math.max(...levels) : Math.min(...levels)) : NaN;
-    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) });
+    const failedKs = ks.filter((x) => x.failed);
+    const smc = {
+      failedOnly: failedKs.length === ks.length,
+      failed: failedKs.map((x) => `${x.why} [failed]`),
+      killTInv: ks.reduce<number | null>((a, x) => (x.tInv != null && (a == null || x.tInv > a) ? x.tInv : a), null),
+    };
+    const cleared = killClearedOf(m, side, ks);
+    const rearmed = rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) ?? (KILL_CLEAR.mode === "live" ? cleared : null);
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed, killCleared: cleared, smc, killMtf: killMtfOf(rows, side) });
   }
   return out;
 }
@@ -358,15 +396,71 @@ export function killVoided(m: OhlcBar[], side: Side, killT: number, level: numbe
   return null;
 }
 
+/** Shadow multi-TF kill read: every rung, not the 5m alone. */
+export function killMtfOf(rows: Parameters<typeof ltfReversalsOf>[0], side: Side): { rungs: string[]; wouldKill: boolean } {
+  const opp = side === "long" ? "bear" : "bull";
+  const rungs = [...new Set(rows.filter((r) => r.kind === "ifvg" && !r.mitigated && r.dir === opp && r.ageBars <= IFVG5_MAX_AGE).map((r) => r.tf))];
+  return { rungs, wouldKill: rungs.length >= 2 };
+}
+
+/** Fix A rules (shared/desk-rules.json kill.clear). */
+export const KILL_CLEAR = (RULES.kill as { clear?: { mode?: string; rungs?: string[]; minRungs?: number } }).clear ?? {};
+const CLEAR_RUNGS_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
+
+/**
+ * Fix A — stale kills clear. One piece of evidence (5m IFVG edge, or the 1m displacement origin) is
+ * INVALIDATED when price closes back beyond its level in the killed side's favour (bull IFVG vs a
+ * short: close < lo; bear IFVG vs a long: close > hi; reversal level reclaimed) — on CLOSED bars of
+ * every timeframe together, not one rung: per rung in kill.clear.rungs (1m…4h) the latest closed bar
+ * after the kill must sit beyond the level; ≥ kill.clear.minRungs rungs AND a majority of the rungs
+ * with a closed bar since the kill must agree, slowest ≥ 2m, so a lone 1m print never clears.
+ * The side clears only when EVERY piece of its evidence is invalidated. Returns the `killCleared` reason.
+ */
+export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: number; why: string } | null {
+  if (!m.length || !kills.length) return null;
+  const rungs = (KILL_CLEAR.rungs ?? ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h"]).filter((r) => CLEAR_RUNGS_MIN[r]);
+  const need = Math.max(1, KILL_CLEAR.minRungs ?? 3);
+  const lastEnd = m[m.length - 1]!.t + 60_000;
+  const closedOn = (tfMin: number) => {
+    const ms = tfMin * 60_000;
+    const out: { t: number; c: number }[] = [];
+    for (const b of m) { const k = Math.floor(b.t / ms) * ms; const L = out[out.length - 1]; if (L && L.t === k) L.c = b.c; else out.push({ t: k, c: b.c }); }
+    return out.filter((x) => x.t + ms <= lastEnd);
+  };
+  const series = rungs.map((r) => ({ r, min: CLEAR_RUNGS_MIN[r]!, bars: closedOn(CLEAR_RUNGS_MIN[r]!) }));
+  let tMax = 0;
+  const notes: string[] = [];
+  for (const k of kills) {
+    if (!Number.isFinite(k.level)) return null;
+    const beyond = (c: number) => (side === "long" ? c > k.level : c < k.level);
+    const agree: string[] = [];
+    let seen = 0, slowest = 0, tk = 0;
+    for (const s of series) {
+      const after = s.bars.filter((x) => x.t >= k.t);
+      if (!after.length) continue;
+      seen++;
+      const last = after[after.length - 1]!;
+      if (beyond(last.c)) { agree.push(s.r); slowest = Math.max(slowest, s.min); tk = Math.max(tk, last.t + s.min * 60_000); }
+    }
+    // ≥ minRungs rungs AND a majority of the rungs that closed since the kill, slowest ≥ 2m.
+    if (agree.length < need || agree.length * 2 <= seen || slowest < 2) return null;
+    tMax = Math.max(tMax, tk);
+    notes.push(`${k.why.split(" against")[0]} @ ${k.level} (${agree.join("/")} closed ${side === "long" ? "above" : "below"})`);
+  }
+  return { t: tMax, why: `killCleared: evidence invalidated on closed bars — ${notes.join("; ")}` };
+}
+
 /** The governing read: the newest live (un-rearmed) kill; else the newest re-armed one. */
 export function ltfReversalOf(
   rows: Parameters<typeof ltfReversalsOf>[0],
   minute: OhlcBar[] | null | undefined,
+  allTfs = false,
 ): LtfReversal | null {
-  const all = ltfReversalsOf(rows, minute);
+  const all = ltfReversalsOf(rows, minute, allTfs);
   const live = all.filter((r) => !r.rearmed).sort((a, b) => b.killT - a.killT);
-  // Two live kills on opposite sides = no clean read.
-  if (live.length === 2) return null;
+  // Two live kills on opposite sides = no clean read. (smcUnity.bothKills live:
+  // the newest is returned here and both stay on `ltfReversals` — audit F12.)
+  if (live.length === 2 && !BOTH_KILLS_LIVE) return null;
   return live[0] ?? all.sort((a, b) => b.killT - a.killT)[0] ?? null;
 }
 

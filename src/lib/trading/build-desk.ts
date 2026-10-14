@@ -1,4 +1,5 @@
 import { planTargetText } from "@/lib/trading/card-plan";
+import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import * as setups from "@/lib/smc/setups";
@@ -13,7 +14,8 @@ import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacement
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
-import { buildMtfContext, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
+import { entryStateOf } from "@/lib/smc/entry-state";
+import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -1174,10 +1176,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const own = book?.ltfReversals.find((r) => r.against === c.side);
         const rev = own ?? book?.ltfReversal;
         if (!rev) continue;
+        if (rev.against === c.side && rev.rearmed && rev.killCleared && rev.rearmed === rev.killCleared) {
+          (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
+        }
         if (rev.against === c.side && rev.rearmed) {
           c.pathBand = capBand(c.pathBand, "A-") as never;
           c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
         } else if (rev.against === c.side) {
+          if (rev.killCleared) {
+            // Fix A shadow (kill.clear.mode shadow): the kill's evidence is invalidated but the veto stays.
+            (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
+            c.reasons.push(`shadow:killCleared (no effect, mode ${KILL_CLEAR.mode ?? "shadow"}): ${rev.killCleared.why}`);
+          }
           c.pathBand = capBand(c.pathBand, "C") as never;
           c.actionable = false;
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
@@ -1368,6 +1378,25 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
       for (const c of payload.scan.candidates) sealBand(c as never);
+      // Fix B: timing is entryState, not quality. Every card carries it (1m–4h distances); the quality-only
+      // q/band (chase penalty undone) is logged in shadow (timing.mode shadow) and IS q/band in live.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const cx = ctxFor(c.symbol);
+        const entry = c.entryPx ?? c.plan?.entry ?? null;
+        const es = entryStateOf({
+          side: c.side as "long" | "short", band: c.pathBand, price: cx.price, entry, t1: c.plan?.t1 ?? null,
+          zone: c.plan?.entryZone ?? null, atr15: cx.atr15, minute: isL ? minuteL : minuteR, bars15: cx.closed15,
+          rows: mtfArrays(c.symbol, isL ? minuteL : minuteR, cx.closed15) as never,
+        });
+        (c as { entryState?: unknown }).entryState = es;
+        const ch = (c as { chase?: { qFactor: number; qBefore: number; applied: boolean } }).chase;
+        if (ch?.applied) {
+          const qq = ch.qFactor > 0 ? Math.min(0.99, +(c.confluence / ch.qFactor).toFixed(4)) : ch.qBefore;
+          (c as { qualityShadow?: unknown }).qualityShadow = { q: qq, band: bandFromQ(qq), liveQ: c.confluence, liveBand: c.pathBand };
+          c.reasons.push(`shadow:timing (no effect): quality-only q ${qq} (${bandFromQ(qq)}) vs live ${c.confluence} (${c.pathBand}); ${es?.label ?? "no entryState"}`);
+        } else if (es) c.reasons.push(`Timing: ${es.label} (${es.distAtr}×ATR15)`);
+      }
       // AUDIT F2: the top card is the best card (actionable, band, q), so the
       // wire, the Floor and the brain read the same first candidate.
       const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };
@@ -1475,6 +1504,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Candidates still missing entry/stop/target after the brain's plan,
       // fix 33 and fix 34 run the fallback chain (exec-context completePlan);
       // a card it cannot price is a WATCH row — never shown as a card.
+      // ltfArm live: an LTF-armed card's plan IS its evidence — gap CE, one tick past the sweep wick,
+      // T1/T2 the next real pools. No real pool >= 1R ahead → no plan here (the fallback chain / watch row).
+      for (const c of payload.scan.candidates) {
+        const a = c.ltfArm;
+        if (!c.ltfArmed || !a || !a.t1) continue;
+        const risk = Math.abs(a.entry - a.stop);
+        const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - a.entry) / risk).toFixed(2));
+        c.entryPx = a.entry;
+        c.plan = { entry: a.entry, entryZone: { top: a.gap.hi, bottom: a.gap.lo }, stop: a.stop, stopWhy: `one tick past the ${a.tf} sweep wick ${a.sweep.wick}`, riskPts: +risk.toFixed(2),
+          t1: a.t1.price, t2: a.t2?.price ?? null, rr1: rr(a.t1.price), rr2: rr(a.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
+          why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}` } as never;
+        c.invalidation = `Stop ${a.stop.toFixed(2)} — one tick past the ${a.tf} sweep wick`;
+        c.reasons.push(`Plan from LTF arm: entry ${a.entry} (${a.tf} ${a.gap.kind} CE), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price}`);
+      }
       for (const c of payload.scan.candidates) {
         const has = (c.entryPx ?? c.plan?.entry) != null && c.plan?.stop != null && primaryTarget(c.plan).price != null;
         if (has) continue;
@@ -1529,7 +1572,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           ...sdFor(isL).map((d) => d.price),
           ...(today.length ? [Math.max(...today.map((b) => b.h)), Math.min(...today.map((b) => b.l))] : []),
         ];
-        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels);
+        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels, 0.25, ltfArmLive() && LTF_ARM.t1FallbackNextPool);
         (c as { rrCheck?: unknown }).rrCheck = r;
         if (r.widened) {
           c.reasons.push(`Stop widened ${pl.stop} → ${r.stop} (was < ${0.5}×ATR15); R:R recomputed ${pl.rr1} → ${r.rr1}`);
@@ -1750,6 +1793,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           )
         : null;
     }
+    // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
+    for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
     const coach = {
       xai: Boolean(process.env.XAI_API_KEY?.trim()),
       anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),
