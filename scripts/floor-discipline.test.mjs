@@ -115,3 +115,18 @@ test("#32 no two seats share a line template in a replayed day", () => {
   const shared = [...by].filter(([, who]) => who.size > 1).map(([g, who]) => `${[...who].join("/")}: ${g}`);
   assert.deepEqual(shared, []);
 });
+
+// Accuracy Review: a headline with no publish time never gets an invented time.
+test("invest news with a null publish time says the time is unknown", async () => {
+  const IV = await import("../src/lib/room/live-voices-invest.ts");
+  const { Facts } = await import("../src/lib/room/live-types.ts");
+  const { freshTalkState } = await import("../src/lib/room/live-talk.ts");
+  const now = Date.UTC(2026, 9, 6, 17, 0);
+  const n = { id: "n1", title: "Acme wins contract", source: "Wire", publishedMs: null, tier: 1, why: "", impact: null, tickers: ["ACME"], topics: [] };
+  for (const key of ["k1", "k2", "k3", "k4"]) {
+    const ex = IV.exInvNews({ st: freshTalkState(), f: new Facts(), key, now }, { inv: {}, n, hit: { key: "ACME", label: "ACME", kind: "held" } });
+    const head = ex.lines[0].text;
+    assert.match(head, /publish time unknown/);
+    assert.doesNotMatch(head, /\d{2}:\d{2}/, "no clock stamped");
+  }
+});

@@ -1475,7 +1475,7 @@ export interface EvidenceData {
 export function exEvidence(c: Ctx, d: EvidenceData): Ex | null {
   const f = c.f;
   const lines = compact([
-    line("Nova", ANIM.Nova.write!, pick(c, "hb.evid.nova", [() => `On four years of real cards: ${f.raw(clip(d.text, 170))}`, () => `From the capture: ${f.raw(clip(d.text, 170))}`])),
+    line("Nova", ANIM.Nova.write!, pick(c, "hb.evid.nova", [() => `On the desk's measured cards: ${f.raw(clip(d.text, 170))}`, () => `From the capture: ${f.raw(clip(d.text, 170))}`])),
     line("Sterling", ANIM.Sterling.approve!, pick(c, "hb.evid.sterling", [() => `Which is why the gates stay where they are.`, () => `That's the number behind the no.`, () => `Measured, not believed.`])),
     line("Jax", ANIM.Jax.shout!, pick(c, "hb.evid.jax", [() => `Numbers don't have feelings. Unlike me.`, () => `I hate it when the data is right.`, () => `Do the numbers know how good I look on a long?`])),
   ]);

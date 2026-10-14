@@ -164,7 +164,7 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   if (ev.calibrated && ev.calibrated.evUsd <= 0) {
     return {
       who: "Sterling",
-      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — on that it's ${usdSigned(ev.calibrated.evUsd)}. I'd refuse on it, but four years say it did not pick better tickets, so it's noted, not blocking.`,
+      text: `On the model's ${pc(ev.pT1Model)} it's ${usdSigned(ev.evUsd)}. Out of sample, cards it priced there hit ${pc(ev.calibrated.p)} — on that it's ${usdSigned(ev.calibrated.evUsd)}. I'd refuse on it, but the out-of-sample record says it did not pick better tickets, so it's noted, not blocking.`,
       want: "CHECKING_TABLET",
       decisive: false,
     };
@@ -203,7 +203,7 @@ export function challengeFor(card: RoomEntryRead, ev: OptionEv, lab: LabRead | n
   if (drag) {
     return {
       who: "Sterling",
-      text: `Biggest drag on the odds: ${drag.label.toLowerCase()}, ${drag.pts.toFixed(1)} points${drag.reliable ? " — and that effect is reliable over four years" : ""}.`,
+      text: `Biggest drag on the odds: ${drag.label.toLowerCase()}, ${drag.pts.toFixed(1)} points${drag.reliable ? " — and that effect is reliable out of sample" : ""}.`,
       want: "CHECKING_TABLET",
       decisive: false,
     };
