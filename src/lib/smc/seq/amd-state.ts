@@ -19,8 +19,9 @@
  */
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
-import { closedBuckets, mappedTargets, type PremarketMap } from "./premarket-map";
-import { etOf, r2, seqMode, seqNum, type Mode, type Side } from "./rules";
+import { closedBuckets, mappedTargets, pickT1, type PremarketMap } from "./premarket-map";
+import { eqPoolsOn, TICK } from "./eq-pools";
+import { etOf, r2, seqItem, seqMode, seqNum, type Mode, type Side } from "./rules";
 
 export type AmdStage = "WATCH" | "MANIP" | "CONFIRM" | "ARMED" | "ENTERED" | "MISSED" | "EXPIRED" | "DONE";
 export interface AmdSetup {
@@ -101,7 +102,7 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
     return (px: number, i: number) => {
       const rth = closed.slice(startIdx, i + 1).filter((x) => x.t < (cur[side].raid?.t ?? Infinity));
       const extra = rth.length ? [side === "short" ? { name: "RTH low so far", price: Math.min(...rth.map((b) => b.l)) } : { name: "RTH high so far", price: Math.max(...rth.map((b) => b.h)) }] : [];
-      return [...mappedTargets(map, side, px), ...extra.filter((x) => (side === "short" ? x.price < px : x.price > px))].sort((a, b) => Math.abs(a.price - px) - Math.abs(b.price - px));
+      return [...mappedTargets(map, side, px), ...extra.map((x) => ({ ...x, liq: true })).filter((x) => (side === "short" ? x.price < px : x.price > px))].sort((a, b) => Math.abs(a.price - px) - Math.abs(b.price - px));
     };
   };
   const go = (s: AmdSetup, stage: AmdStage, t: number, why: string) => { s.stage = stage; s.log.push({ t, stage, why }); };
@@ -119,7 +120,10 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
       if (s.stage === "WATCH") {
         if (hm > P.endEt() || count[side] >= P.maxPerSide()) continue;
         if (lastExt[side] != null && !(up ? b.h > lastExt[side]! : b.l < lastExt[side]!)) continue; // a new raid needs a new extreme
-        const rs = raidables(map, side, open).filter((x) => (up ? b.h >= x.price : b.l <= x.price));
+        // + intraday EQH/EQL (1m/5m, closed bars up to the PREVIOUS bar, unswept before this bar): a sweep of equal highs/lows is a raid
+        const intra = seqItem<boolean>("eqPools", "intradayRaids") === false ? [] : (["1m", "5m"] as const).flatMap((tf) => eqPoolsOn(tf === "1m" ? closed.slice(Math.max(0, i - 120), i) : closedBuckets(closed.slice(Math.max(0, i - 300), i), 300_000, b.t), tf, TICK[symbol] ?? 0.25, b.t))
+          .filter((p) => !p.used && p.side === (up ? "buyside" : "sellside") && (up ? p.price > open : p.price < open)).map((p) => ({ name: `${p.name} (intraday)`, price: p.price }));
+        const rs = [...raidables(map, side, open), ...intra].filter((x) => (up ? b.h >= x.price : b.l <= x.price));
         const prevExt = i > startIdx ? (up ? Math.max(...closed.slice(startIdx, i).map((x) => x.h)) : Math.min(...closed.slice(startIdx, i).map((x) => x.l))) : open;
         const newExt = up ? b.h > prevExt : b.l < prevExt;
         if (rs.length && newExt) {
@@ -192,7 +196,7 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
           if (!(risk > 0) || risk < atr15 * seqNum("amd", "minRiskAtr15", 0.15)) { if (s.stage === "CONFIRM") continue; }
           else {
             const tg = targetsAll(side)(best.ce, i).map((x) => ({ ...x, r: +((Math.abs(best!.ce - x.price)) / risk).toFixed(2) }));
-            const t1 = tg.find((x) => x.r >= P.minR()) ?? null;
+            const t1 = pickT1(tg, P.minR());
             if (!t1) { if (s.stage === "CONFIRM") { go(s, "EXPIRED", tEnd, `no real target ≥ ${P.minR()}R beyond ${best.ce}`); close(side, s); } continue; }
             const was = s.stage;
             s.entry = best.ce; s.entryWhy = best.why; s.stop = stop; s.t1 = t1; s.t2 = tg.find((x) => x.r > t1.r + 0.5) ?? null; if (was === "CONFIRM") s.armedT = tEnd;

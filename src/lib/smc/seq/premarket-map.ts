@@ -13,12 +13,13 @@ import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { mtfArrays, type ArrayRow } from "../mtf-arrays";
 import { sessionKeyOf } from "../smc-unity";
-import { etOf, r2, seqMode, seqNum, type Mode, type Side } from "./rules";
+import { eqPools } from "./eq-pools";
+import { etOf, r2, seqItem, seqMode, seqNum, type Mode, type Side } from "./rules";
 
 export type MapTf = "1m" | "2m" | "3m" | "4m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1D";
 export interface MapArray { tf: MapTf; kind: "fvg" | "ifvg" | "sponsored" | "ob" | "breaker" | "rejection"; dir: "bull" | "bear"; lo: number; hi: number; ce: number; live: boolean; failed?: boolean; t: number }
-export interface MapLevel { name: string; price: number; kind: "pdh" | "pdl" | "pwh" | "pwl" | "session" | "open" | "pool" }
-export interface MapPool { side: "buyside" | "sellside"; price: number; touches: number; tf: string }
+export interface MapLevel { name: string; price: number; kind: "pdh" | "pdl" | "pwh" | "pwl" | "session" | "open" | "pool" | "swing" }
+export interface MapPool { side: "buyside" | "sellside"; price: number; touches: number; tf: string; used?: boolean; sweptT?: number | null; name?: string }
 export type AmdPhase = "accumulation" | "manipulation" | "distribution" | "unknown";
 export interface PremarketMap {
   mode: Mode;
@@ -241,11 +242,32 @@ export function premarketMap(i: MapInput): PremarketMap {
   const tol = (atr15 ?? 0) * seqNum("premarketMap", "eqTolAtr", 0.1);
   const win0 = Math.max((atr15 ?? 0) * seqNum("premarketMap", "windowAtr", 8), 1e-9);
   const near = (p: number) => Math.abs(p - px0) <= win0;
-  const poolsAll = tol > 0 ? [...equalPools(series["5m"]!.slice(-300), "5m", tol), ...equalPools(series["15m"]!.slice(-200), "15m", tol)] : [];
+  // EQH/EQL: every rung 1m–1D (seq/eq-pools.ts; ticks floor + per-rung ATR, swept → used). Legacy 5m/15m path kept behind poolSource.
+  const useEq = seqItem<string>("premarketMap", "poolSource") !== "legacy";
+  const eqAll = useEq ? eqPools(i.symbol, m1, cutT, daily) : [];
+  const poolsAll: MapPool[] = useEq ? eqAll.filter((p) => !p.used).map((p) => ({ side: p.side, price: p.price, touches: p.touches, tf: p.tf, used: false, sweptT: null, name: p.name }))
+    : tol > 0 ? [...equalPools(series["5m"]!.slice(-300), "5m", tol), ...equalPools(series["15m"]!.slice(-200), "15m", tol)] : [];
   const byDist = (a: MapPool, b: MapPool) => Math.abs(a.price - px0) - Math.abs(b.price - px0);
   const perSide = Math.max(1, Math.floor(seqNum("premarketMap", "maxPools", 8) / 2));
   const pools = [...poolsAll.filter((p) => near(p.price) && p.side === "buyside").sort(byDist).slice(0, perSide), ...poolsAll.filter((p) => near(p.price) && p.side === "sellside").sort(byDist).slice(0, perSide)];
-  for (const p of pools) levels.push({ name: `EQ${p.side === "buyside" ? "H" : "L"} ${p.tf} ×${p.touches}`, price: p.price, kind: "pool" });
+  for (const p of pools) levels.push({ name: p.name ?? `EQ${p.side === "buyside" ? "H" : "L"} ${p.tf} ×${p.touches}`, price: p.price, kind: "pool" });
+  // swept pools stay on the map as USED evidence (never a target / draw / raidable)
+  pools.push(...eqAll.filter((p) => p.used && near(p.price)).map((p) => ({ side: p.side, price: p.price, touches: p.touches, tf: p.tf, used: true, sweptT: p.sweptT, name: p.name })));
+  // HTF/MTF swing pools (Keaton 10/14: "T1 = the 1h swing low 7783"): confirmed fractal swings on every rung
+  // 15m–1D still unswept at the cut (no later closed bar traded through) are real resting liquidity
+  const swTfs = (seqItem<string[]>("premarketMap", "swingPoolTfs") ?? ["15m", "30m", "1h", "4h", "1D"]);
+  const swAcc = new Map<string, { price: number; hi: boolean; tfs: string[] }>();
+  for (const tf of swTfs) {
+    const ser = series[tf] ?? [];
+    for (const p of fractalSwings(ser, 2)) {
+      const hi = p.kind === "high";
+      if (ser.some((b) => b.t > p.t && (hi ? b.h > p.price : b.l < p.price))) continue; // swept
+      if (!near(p.price)) continue;
+      const k = `${hi ? "h" : "l"}:${p.price}`;
+      const e = swAcc.get(k); if (e) e.tfs.push(tf); else swAcc.set(k, { price: p.price, hi, tfs: [tf] });
+    }
+  }
+  for (const e of swAcc.values()) levels.push({ name: `${e.tfs.join("/")} swing ${e.hi ? "high" : "low"}`, price: e.price, kind: "swing" });
   // dealing range: prior session + overnight (one session each)
   const on = ranges["Overnight"];
   const range = pdh != null && pdl != null ? { name: "PD range + overnight", hi: Math.max(pdh, on?.hi ?? -Infinity), lo: Math.min(pdl, on?.lo ?? Infinity), eq: 0 } : null;
@@ -291,10 +313,26 @@ export function premarketMap(i: MapInput): PremarketMap {
 }
 
 /** Mapped targets beyond `px` on the trade side, nearest first (real levels, pools and array edges only). */
-export function mappedTargets(map: PremarketMap, side: Side, px: number): { name: string; price: number }[] {
-  const lv = map.levels.map((l) => ({ name: l.name, price: l.price }));
-  const arr = map.arrays.filter((a) => a.live && ["15m", "30m", "1h", "4h", "1D"].includes(a.tf)).map((a) => ({ name: `${a.tf} ${a.kind} ${side === "short" ? "top" : "bottom"}`, price: side === "short" ? a.hi : a.lo }));
+export const isHighName = (n: string) => /\bhigh\b|^PDH|^PWH|^EQH|buyside/i.test(n);
+export const isLowName = (n: string) => /\blow\b|^PDL|^PWL|^EQL|sellside/i.test(n);
+export function mappedTargets(map: PremarketMap, side: Side, px: number): { name: string; price: number; liq: boolean }[] {
+  // a low is sellside liquidity and only ever a SHORT target; a high only a LONG target (a broken PDL above price is
+  // never relabelled as buyside). Opens are neutral. Coincident levels (within a tick) merge their labels.
+  const sideOk = (n: string) => (side === "short" ? !isHighName(n) : !isLowName(n));
+  const lv: { name: string; price: number; liq: boolean }[] = [];
+  for (const l of map.levels) {
+    if (seqItem<boolean>("premarketMap", "sideTypedTargets") !== false && !sideOk(l.name)) continue;
+    const d = lv.find((x) => Math.abs(x.price - l.price) <= 0.25 + 1e-9);
+    if (d) { d.name = `${d.name} = ${l.name}`; continue; }
+    lv.push({ name: l.name, price: l.price, liq: l.kind !== "open" });
+  }
+  const arr = map.arrays.filter((a) => a.live && ["15m", "30m", "1h", "4h", "1D"].includes(a.tf)).map((a) => ({ name: `${a.tf} ${a.kind} ${side === "short" ? "top" : "bottom"}`, price: side === "short" ? a.hi : a.lo, liq: false }));
   return [...lv, ...arr].filter((x) => (side === "short" ? x.price < px : x.price > px)).sort((a, b) => Math.abs(a.price - px) - Math.abs(b.price - px));
+}
+/** T1 ranking: the nearest real LIQUIDITY pool (levels, swings, EQH/EQL, session extremes) clearing minR; array edges only when no pool clears. */
+export function pickT1<T extends { r: number; liq?: boolean }>(tg: T[], minR: number): T | null {
+  if (seqItem<boolean>("premarketMap", "liquidityFirstT1") === false) return tg.find((x) => x.r >= minR) ?? null;
+  return tg.find((x) => x.r >= minR && x.liq !== false) ?? tg.find((x) => x.r >= minR) ?? null;
 }
 
 const MAP_CACHE = new Map<string, PremarketMap>();

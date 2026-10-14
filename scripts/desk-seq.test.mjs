@@ -186,7 +186,7 @@ test("F9 continuation: 10/13 ES — real stops beyond entry, T1 is a mapped name
   const names = new Set([...d.map.levels.map((l) => l.name), "15m", "30m", "1h", "4h", "1D"]);
   for (const s of d.cont.setups) {
     assert.ok(s.side === "short" ? s.stop > s.entry : s.stop < s.entry, "stop beyond entry");
-    assert.ok(names.has(s.t1.name) || /^(15m|30m|1h|4h|1D) /.test(s.t1.name), `T1 ${s.t1.name} is mapped`);
+    assert.ok(d.map.levels.some((l) => s.t1.name.split(" = ").includes(l.name)) || /^(15m|30m|1h|4h|1D) /.test(s.t1.name), `T1 ${s.t1.name} is mapped`);
     assert.equal(s.regime, "trend");
   }
   assert.equal(d.amd.setups.filter((s) => s.stage === "ENTERED").length, dayRead("ES", 2026, 10, 13, 16).amd.setups.filter((s) => s.stage === "ENTERED").length);
@@ -204,4 +204,62 @@ test("F9 regimeAt: trend needs two consecutive closed 15m closes beyond the open
   assert.equal(contm.regimeAt(bars, 100, "short", t0 + 30 * 60e3), "trend");
   assert.equal(contm.regimeAt(bars, 100, "short", t0 + 15 * 60e3), "range");
   assert.equal(contm.regimeAt(bars, 100, "long", t0 + 30 * 60e3), "range");
+});
+
+const ix = await import("../src/lib/smc/seq/intraday-exec.ts");
+test("F10 intradayTicket: 0DTE before 14:30 ET at a live cross; skewed quotes / model strike refused", () => {
+  const am = Date.UTC(2026, 9, 14, 13, 55); // 09:55 ET
+  const fut = { price: 30580, marketTimeMs: am }, etf = { price: 611.6, marketTimeMs: am - 5e3 };
+  const t = ix.intradayTicket({ book: "MNQ", side: "short", nowMs: am, entry: 30582.75, fut, etfQuote: etf, strikeSource: "chain" });
+  assert.equal(t.etf, "QQQ"); assert.equal(t.dte, 0); assert.equal(t.right, "put"); assert.equal(t.refused, null);
+  assert.equal(t.strike, Math.round(30582.75 * (611.6 / 30580)));
+  assert.match(ix.intradayTicket({ book: "MNQ", side: "short", nowMs: am, entry: 1, fut, etfQuote: { ...etf, marketTimeMs: am - 300e3 } }).refused, /not simultaneous/);
+  assert.match(ix.intradayTicket({ book: "MNQ", side: "short", nowMs: am, entry: 1, fut, etfQuote: null }).refused, /no live ETF cross/);
+  assert.match(ix.intradayTicket({ book: "ES", side: "long", nowMs: am, entry: 1, fut, etfQuote: etf, strikeSource: "model" }).refused, /model strike/);
+  const pm2 = Date.UTC(2026, 9, 14, 19, 0); // 15:00 ET
+  assert.ok(ix.intradayTicket({ book: "ES", side: "long", nowMs: pm2, entry: 1, fut, etfQuote: etf }).dte >= 1);
+});
+test("F10 rungEval: wick = sweep, body close = fail/respect, closed bars only; stale feed refuses", () => {
+  const t0 = Date.UTC(2026, 9, 14, 13, 30);
+  const arr = [{ tf: "15m", kind: "fvg", dir: "bear", lo: 100, hi: 102, ce: 101, live: true, t: 0 }];
+  const bars = [...Array(14)].map((_, k) => ({ t: t0 + k * 60e3, o: 99, h: 99.5, l: 98.5, c: 99, v: 1 }));
+  const sweep = [...bars, { t: t0 + 14 * 60e3, o: 99, h: 103, l: 98.9, c: 99.5, v: 1 }];
+  const r = ix.rungEval(sweep, t0 + 15 * 60e3, arr);
+  assert.equal(r.stale, false);
+  assert.equal(r.rungs.find((x) => x.tf === "1m").events[0].event, "sweep");
+  const fail = [...bars, { t: t0 + 14 * 60e3, o: 99, h: 103, l: 98.9, c: 102.5, v: 1 }];
+  assert.equal(ix.rungEval(fail, t0 + 15 * 60e3, arr).rungs.find((x) => x.tf === "1m").events[0].event, "fail");
+  // a forming bar (closes after feed now) is never read: the 1m read is the PREVIOUS closed bar
+  assert.equal(ix.rungEval(fail, t0 + 14 * 60e3 + 30e3, arr).stale, false);
+  assert.equal(ix.rungEval(fail.slice(0, -1), t0 + 14 * 60e3 + 30e3, arr).rungs.find((x) => x.tf === "1m").events.length, 0);
+  assert.equal(ix.rungEval(bars, t0 + 30 * 60e3, arr).stale, true);
+});
+
+test("F9 regression (Keaton 10/14 ES 09:55 ET short): arms ≈7827 with T1 the 1h swing low 7783, stop at the 08:30-ET gap CE; no lookahead", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-ES.json") }, () => {
+  const d = dayRead("ES", 2026, 10, 14, 16);
+  const k = d.cont.setups.find((s) => s.side === "short" && s.log.some((l) => /armed 782[5-9]/.test(l) && /swing low 7783/.test(l) && /CE of the 15m bear gap 7838.25–7870.75/.test(l)));
+  assert.ok(k, "the 09:55 short arms at ≈7827 → T1 7783");
+  assert.match(k.log[0], /1h/); assert.match(k.log[0], /stop 7854.5/);
+  const at = Date.UTC(2026, 9, 14, 14, 0); // 10:00 ET read sees the same arm (prefix)
+  const e = dayRead("ES", 2026, 10, 14, 14);
+  const early = contm.continuationRead("ES", e.map, e.bars, at, amdm.amdRead("ES", e.map, e.bars, at));
+  assert.ok(early.setups.some((s) => s.side === "short" && s.armedT === k.armedT && /armed 782[5-9]/.test(s.log[0])));
+});
+test("EQH/EQL: every rung, ticks floor, swept → used; today ES pools", async () => {
+  const eq = await import("../src/lib/smc/seq/eq-pools.ts");
+  const t0 = Date.UTC(2026, 9, 14, 13, 0); const mk = (k, h, l) => ({ t: t0 + k * 60e3, o: (h + l) / 2, h, l, c: (h + l) / 2, v: 1 });
+  const hs = [10, 11, 12, 15, 12, 11, 10, 11, 12, 15.25, 12, 11, 10, 11, 10];
+  const bars = hs.map((h, k) => mk(k, h, h - 2));
+  const p = eq.eqPoolsOn(bars, "1m", 0.25, t0 + 15 * 60e3).find((x) => x.side === "buyside");
+  assert.ok(p && p.price === 15.25 && p.touches === 2 && !p.used, "EQH at the extreme, unswept");
+  const swept = eq.eqPoolsOn([...bars, mk(15, 15.5, 13), mk(16, 12, 10)], "1m", 0.25, t0 + 17 * 60e3).find((x) => x.side === "buyside" && x.price === 15.25);
+  assert.ok(swept.used && swept.sweptT === t0 + 15 * 60e3, "a wick through marks it used");
+  if (fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-ES.json")) {
+    const m = yahoo("ES").filter((b) => b.t % 60e3 === 0); const c = Date.UTC(2026, 9, 14, 13, 26);
+    const map = pm.premarketMap({ symbol: "ES", minute: m.filter((b) => b.t + 60e3 <= c && b.t > c - 12 * 864e5), nowMs: c });
+    const live = map.pools.filter((x) => !x.used), used = map.pools.filter((x) => x.used);
+    assert.ok(live.some((x) => x.price === 7834.5 && x.side === "sellside"), "4h EQL 7834.5 unswept at 09:25");
+    assert.ok(used.length > 0 && used.every((u) => !pm.mappedTargets(map, "short", 9e9).some((t) => t.price === u.price && /EQ/.test(t.name))), "used pools are never targets");
+    assert.ok(!pm.mappedTargets(map, "long", 0).some((t) => /PDL|\blow\b/.test(t.name)), "a low is never a buyside target");
+  }
 });

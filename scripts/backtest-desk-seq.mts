@@ -164,6 +164,20 @@ if (!GRID) {
   const n = daysUsed.size;
   report.engines = { sessions: n, days: [...daysUsed].sort(), desk: kpis(desk, n), ltfArm: kpis(arm, n), amd: kpis(seq, n), continuation: kpis(cont, n), amdPlusCont: kpis([...seq, ...cont], n) };
   report.amdTrades = seq.map((t) => ({ day: t.day, sym: t.symbol, side: t.side, at: new Date(t.t).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false }), entry: t.entry, stop: t.stop, target: t.target, outcome: t.outcome, r: t.r, opt$: t.optPnlPct == null ? null : Math.round(Math.max(-1, t.optPnlPct) * CAP), why: t.why, raid: t.setup.raid?.name, confTf: t.setup.confirm?.tf, ctx: (t as never as { ctx: unknown }).ctx }));
+  // F10: the same AMD fires priced as a 0DTE ticket (DEFAULT_OPT, 0–1DTE ATM approximation) vs a 5DTE ticket
+  // (documented approximation: premium ≈3.75× the 0DTE ATM, theta/min ≈0.45×, delta 0.52, spread 0.03; model, not recorded chains)
+  const OPT5: Record<string, typeof DEFAULT_OPT[string]> = Object.fromEntries(Object.entries(DEFAULT_OPT).map(([k, o]) => [k, { ...o, delta: 0.52, thetaPerMin: o.thetaPerMin * 0.45, spread: 0.03, premium: o.premium * 3.75 }]));
+  const pnl = (o: typeof OPT5, t: Trade, px: number, mins: number) => Math.max(-1, optionPnlPct(o[t.symbol]!, t.side, t.entry, px, mins)) * CAP;
+  const marks = (t: Trade & { day: string }, k: number) => { const m = TAPE[t.symbol]!; const j = m.findIndex((b) => b.t >= t.t + k * 60_000); return j < 0 ? null : m[j]!.c; };
+  const row = (o: typeof OPT5) => {
+    const tot = seq.reduce((a, t) => a + (t.exitPx == null ? 0 : pnl(o, t, t.exitPx, t.minutes ?? 0)), 0);
+    const m10 = seq.reduce((a, t) => { const px = marks(t, 10); return a + (px == null ? 0 : pnl(o, t, px, 10)); }, 0);
+    const m30 = seq.reduce((a, t) => { const px = marks(t, 30); return a + (px == null ? 0 : pnl(o, t, px, 30)); }, 0);
+    return { dollarsTotal: Math.round(tot), dollarsPerWeek: Math.round(tot / (n / 5)), markPlus10$: Math.round(m10), markPlus30$: Math.round(m30) };
+  };
+  const z = row(DEFAULT_OPT), f5 = row(OPT5);
+  report.F10 = { zeroDte: z, fiveDte: f5, note: "model option prices (no recorded chains); same fires, same exits", ratioAtExit: f5.dollarsTotal ? +(z.dollarsTotal / f5.dollarsTotal).toFixed(2) : null };
+  console.log("F10 0DTE vs 5DTE on the AMD fires:", JSON.stringify(report.F10));
   console.log(`\nengines on ${n} sessions (${[...daysUsed].sort()[0]} … ${[...daysUsed].sort().at(-1)}), $ = ${CAP} × engine option model:`);
   for (const k of ["desk", "ltfArm", "amd", "continuation", "amdPlusCont"] as const) console.log(" ", k.padEnd(7), JSON.stringify((report.engines as never)[k]));
   for (const t of report.amdTrades as { day: string }[]) console.log("   ", JSON.stringify(t));

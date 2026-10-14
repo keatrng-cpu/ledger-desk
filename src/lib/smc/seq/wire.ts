@@ -9,6 +9,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
 import { amdRead, type AmdRead } from "./amd-state";
 import { continuationRead, type ContRead } from "./continuation";
+import { intradayTicket, rungEval, ETF_OF, type IntradayTicket, type RungRead } from "./intraday-exec";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
 const UNDERLIER_BOOK: Record<string, string> = { QQQ: "MNQ", SPY: "ES", NQ: "MNQ", MNQ: "MNQ", ES: "ES", MES: "ES" };
@@ -27,6 +28,8 @@ export interface DeskSeqWire {
   amd: Record<string, AmdRead>;
   /** F9: continuation (rolled T1 / re-anchored entry) per book. */
   continuation: Record<string, ContRead>;
+  /** F10: 0DTE intraday ticket for the live AMD/continuation setup per book + close-vs-wick per rung. */
+  intraday: Record<string, { ticket: IntradayTicket | null; rungs: RungRead }>;
   /** Short human rows for the watcher's shadow:seq:* log. */
   rows: { rule: string; would: string }[];
 }
@@ -79,7 +82,21 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     const b = bookOf(sym);
     if (b.feedNowMs != null) continuation[sym] = continuationRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs, amd[sym] ?? null);
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation };
+  const intraday: Record<string, { ticket: IntradayTicket | null; rungs: RungRead }> = {};
+  for (const side of ["left", "right"] as const) {
+    const sym = i.desk[side].symbol;
+    const b = bookOf(sym);
+    if (b.feedNowMs == null) continue;
+    const live = amd[sym]?.live;
+    const q = (side === "left" ? i.desk.quotes.left : i.desk.quotes.right) as { price: number | null; marketTimeMs?: number | null };
+    const etf = ETF_OF[sym] as "QQQ" | "SPY" | undefined;
+    const px = etf ? (i.desk.proxies?.[etf] ?? null) : null;
+    const tk = live && live.entry != null && (live.stage === "ARMED" || live.stage === "ENTERED")
+      ? intradayTicket({ book: sym, side: live.side, nowMs: b.feedNowMs, entry: live.entry, fut: { price: q.price, marketTimeMs: q.marketTimeMs ?? null }, etfQuote: px ? { price: px.price, marketTimeMs: px.marketTimeMs } : null, strikeSource: "chain" })
+      : null;
+    intraday[sym] = { ticket: tk, rungs: rungEval(b.closed1m, b.feedNowMs, map[sym]?.arrays ?? []) };
+  }
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -94,6 +111,10 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
   for (const m of Object.values(w.map)) {
     if (m.frozen && m.amd.expectManip) rows.push({ rule: "premarketMap", would: `${m.symbol} map @09:25: HTF ${m.biasStack.htf}/MTF ${m.biasStack.mtf}/LTF ${m.biasStack.ltf}, ${m.zone ?? "?"} of ${m.range?.lo}–${m.range?.hi} (EQ ${m.range?.eq}); expect the ${m.amd.expectManip} raid; ${m.arrays.length} arrays, ${m.pools.length} pools` });
   }
+  for (const m of Object.values(w.map)) {
+    const live = m.pools.filter((p) => !p.used), used = m.pools.filter((p) => p.used);
+    if (live.length || used.length) rows.push({ rule: "eqPools", would: `${m.symbol} EQH/EQL unswept: ${live.map((p) => `${p.name ?? p.tf} ${p.price}`).join(", ") || "none"}; used (swept): ${used.length}` });
+  }
   for (const a of Object.values(w.amd)) {
     const s = a.live;
     if (!s) continue;
@@ -105,6 +126,12 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
     for (const sd of ["short", "long"] as const) if (c.rolledT1[sd]) rows.push({ rule: "continuation", would: `${c.symbol} ${sd} T1 rolled to ${c.rolledT1[sd]!.name} ${c.rolledT1[sd]!.price} (regime ${c.regime})` });
     const a = c.setups.at(-1);
     if (a && (a.stage === "ARMED" || a.stage === "ENTERED")) rows.push({ rule: "continuation", would: `${c.symbol} ${a.side} continuation ${a.stage} at ${a.entry} (${a.entryWhy}), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price} (${a.t1.r}R) — not a second entry` });
+  }
+  for (const [sym, x] of Object.entries(w.intraday ?? {})) {
+    if (x.ticket) rows.push({ rule: "intradayExec", would: x.ticket.refused ? `${sym} ${x.ticket.side} intraday ticket refused: ${x.ticket.refused}` : `${sym} ${x.ticket.side} → ${x.ticket.etf} ${x.ticket.dte}DTE ${x.ticket.strike} ${x.ticket.right} at live cross ${x.ticket.crossRatio}` });
+    if (x.rungs.stale) rows.push({ rule: "intradayExec", would: `${sym} minute series stale (${x.rungs.minuteAgeS ?? "?"}s) — LTF decisions refused` });
+    const ev = x.rungs.rungs.flatMap((r) => r.events.filter((e) => e.event === "sweep" || e.event === "fail").map((e) => `${r.tf} ${e.event} ${e.array}`));
+    if (ev.length) rows.push({ rule: "intradayExec", would: `${sym} closed-rung reads: ${ev.slice(0, 4).join("; ")}` });
   }
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });
