@@ -118,3 +118,36 @@ test("F8: extension guard overruled by ≥2 rungs of reversal evidence", () => {
   assert.equal(r.wouldAllow, true);
   assert.equal(r.capBand, "A-");
 });
+
+// ---- Accuracy CHANGES (review 2026-10-14-smc-unity-a4c9f41b) ----
+const etMs = (day, hh, mm) => Date.parse(`${day}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00-04:00`);
+function tape3(endDay, endH, endM) {
+  // 3 sessions of 1m bars, 10/11 18:00 ET → end; each session's prices sit in its own band
+  const out = []; let t = etMs("2026-10-11", 18, 0); const end = etMs(endDay, endH, endM);
+  const band = (x) => { const k = su.sessionKeyOf(x); return k === "2026-10-12" ? 100 : k === "2026-10-13" ? 200 : k === "2026-10-14" ? 300 : 400; };
+  for (; t <= end; t += 60e3) { const p = band(t); out.push({ t, o: p, h: p + 1, l: p - 1, c: p, v: 1 }); }
+  return out;
+}
+test("#1 session ranges: one session, 18:00 ET roll, never pooled across days", () => {
+  const m = tape3("2026-10-14", 10, 30);
+  const r = Object.fromEntries(su.sessionRanges(m, etMs("2026-10-14", 10, 31)).map((x) => [x.name, x]));
+  assert.deepEqual([r.Asia.lo, r.Asia.hi], [299, 301]);
+  assert.deepEqual([r.Overnight.lo, r.Overnight.hi], [299, 301]);
+  assert.deepEqual([r["NY OR"].lo, r["NY OR"].hi], [299, 301]);
+});
+test("#1 19:30 ET: tonight's session only (post-18:00 bars), no old overnight range", () => {
+  const m = tape3("2026-10-14", 19, 30);
+  const r = Object.fromEntries(su.sessionRanges(m, etMs("2026-10-14", 19, 31)).map((x) => [x.name, x]));
+  assert.deepEqual(Object.keys(r).sort(), ["Overnight"]);
+  assert.deepEqual([r.Overnight.lo, r.Overnight.hi], [399, 401]);
+});
+test("#2 brainPerBook: same symbol on the opposite side is NOT the other book", () => {
+  const ctx = { books: [], smt: [], smtLead: null };
+  const r = su.brainBookRead({ symbol: "MNQ", side: "short" }, { symbol: "MNQ", side: "long", word: "STAND" }, ctx);
+  assert.equal(r.otherBook, false);
+  assert.equal(r.wouldUnblock, false);
+});
+test("#5 closedByFeed drops the forming bar when there is no feed time", () => {
+  const bs = [bar(0, 1, 2, 0, 1), bar(1, 1, 2, 0, 1)];
+  assert.equal(su.closedByFeed(bs, 60e3, null).length, 1);
+});

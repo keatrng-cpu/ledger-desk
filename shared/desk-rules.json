@@ -829,7 +829,7 @@
     },
     "ranges": {
       "mode": "shadow",
-      "_doc": "F11/Keaton: premium/discount per rung on that rung's own dealing range (last confirmed swing high to swing low on closed bars), session ranges (Asia/London/NY/OR) from closed 1m by feed time; the impulse leg is anchored on the newest multi-rung sweep, not a 15m-only one."
+      "_doc": "F11/Keaton: premium/discount per rung on that rung's own dealing range (last confirmed swing high to swing low on closed bars), session ranges (Asia/London/NY OR/Overnight) from closed 1m by feed time, bounded to ONE trading session with an 18:00 ET roll (also gates structure.ts session buckets: live = current session only, shadow = legacy 200-bar lookback); the impulse leg is anchored on the newest multi-rung sweep, not a 15m-only one."
     },
     "bothKills": {
       "mode": "shadow",

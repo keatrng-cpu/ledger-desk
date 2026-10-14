@@ -69,7 +69,9 @@ export function feedClockRead(minute: OhlcBar[] | null | undefined, quoteMarketM
 
 /** Closed-bar prefix by the feed clock (the last bar is dropped unless the feed has moved past its close). */
 export function closedByFeed(bars: OhlcBar[], spanMs: number, feedNowMs: number | null): OhlcBar[] {
-  if (!bars.length || feedNowMs == null) return bars;
+  if (!bars.length) return bars;
+  // Accuracy (smc-unity review #5): no feed time → the last bar may be forming; drop it (never hand back unfiltered bars).
+  if (feedNowMs == null) return bars.slice(0, -1);
   const last = bars[bars.length - 1]!;
   return last.t + spanMs <= feedNowMs ? bars : bars.slice(0, -1);
 }
@@ -144,19 +146,30 @@ function etParts(t: number): { day: string; hm: number } {
 }
 
 export interface SessionRange { name: string; hi: number; lo: number }
-/** Asia 20:00–00:00, London 02:00–05:00, NY OR 09:30–10:00 ET of the latest session in `minute` (closed bars only). */
+/** Trading-session key: the ET date the session ENDS on (18:00 ET roll — a bar at/after 18:00 belongs to the next day's session). */
+export function sessionKeyOf(t: number): string {
+  const p = etParts(t);
+  if (p.hm < 18 * 60) return p.day;
+  const d = new Date(p.day + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+/**
+ * Asia 20:00–00:00, London 02:00–05:00, NY OR 09:30–10:00, Overnight 18:00–09:30 ET — all bounded to the ONE
+ * current trading session (18:00 ET roll) of the latest closed bar; prior days are never pooled (Accuracy #1).
+ * At 19:30 ET the session is the one that opened at 18:00: Overnight = bars since 18:00, the rest not printed yet.
+ */
 export function sessionRanges(minute: OhlcBar[] | null | undefined, feedNowMs: number | null): SessionRange[] {
   const m = closedByFeed(minute ?? [], 60_000, feedNowMs);
   if (!m.length) return [];
-  const today = etParts(m[m.length - 1]!.t).day;
-  const win: [string, number, number, boolean][] = [["Asia", 20 * 60, 24 * 60, true], ["London", 120, 300, false], ["NY OR", 570, 600, false], ["Overnight", 18 * 60, 24 * 60 + 570, true]];
+  const cur = sessionKeyOf(m[m.length - 1]!.t);
+  const win: [string, number, number][] = [["Asia", 20 * 60, 24 * 60], ["London", 120, 300], ["NY OR", 570, 600], ["Overnight", -1, -1]];
   const out: SessionRange[] = [];
-  for (const [name, a, b, prevDay] of win) {
+  for (const [name, a, b] of win) {
     const xs = m.filter((x) => {
-      const p = etParts(x.t);
-      if (name === "Overnight") return (p.day !== today && p.hm >= 18 * 60) || (p.day === today && p.hm < 570);
-      if (prevDay) return p.day !== today && p.hm >= a && p.hm < b;
-      return p.day === today && p.hm >= a && p.hm < b;
+      if (sessionKeyOf(x.t) !== cur) return false;
+      const hm = etParts(x.t).hm;
+      if (name === "Overnight") return hm >= 18 * 60 || hm < 570;
+      return hm >= a && hm < b;
     });
     if (xs.length) out.push({ name, hi: Math.max(...xs.map((x) => x.h)), lo: Math.min(...xs.map((x) => x.l)) });
   }
@@ -310,7 +323,9 @@ export function brainBookRead(
   ctx: MtfContext | null | undefined,
 ): BrainBookRead {
   const bs = (brain?.side === "long" || brain?.side === "short" ? brain.side : null) as Side | null;
-  const otherBook = Boolean(brain?.symbol && ticket.symbol && (brain.symbol !== ticket.symbol || (bs && ticket.side && bs !== ticket.side)));
+  // Accuracy #2: only a DIFFERENT symbol is the other book; the same symbol on the opposite side is the
+  // opposite-brain refusal and is never weakened here.
+  const otherBook = Boolean(brain?.symbol && ticket.symbol && brain.symbol !== ticket.symbol);
   const lead = ctx?.smtLead ?? null;
   const smtForTicket = Boolean(lead && ticket.symbol && lead.failing === ticket.symbol && ((lead.kind === "bearish" && ticket.side === "short") || (lead.kind === "bullish" && ticket.side === "long")));
   return {
