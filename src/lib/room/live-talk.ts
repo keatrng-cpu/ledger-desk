@@ -2135,11 +2135,11 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   const b = w.books.QQQ ?? w.books.SPY;
   if (b && silent("Jax") && w.feed.kind !== "synthetic") {
     const sig = `${Math.round(b.px / 10)}|${b.rangeUsedPct != null ? Math.round(b.rangeUsedPct / 10) : ""}`;
-    if (st.topicSig["seat:jax"] !== sig)
+    if (st.topicSig["quiet:jax"] !== sig)
       out.push({
         id: `quiet|jax|${sig}`,
         kind: "heartbeat",
-        topic: "seat:jax",
+        topic: "quiet:jax",
         urgency: 0,
         prio: 2,
         at: now,
@@ -2151,7 +2151,7 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
           return { lines: V.compact([V.line("Jax", "POINTING", `${b.say} ${f.lvl(b.px)}${chg}${rng}. I'm watching, not chasing.`)]), moves: {} };
         },
         commit: (s) => {
-          s.topicSig["seat:jax"] = sig;
+          s.topicSig["quiet:jax"] = sig;
         },
       });
   }
@@ -2159,11 +2159,11 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
     const lag = w.feed.lagSec;
     const vix = w.pulse.vix;
     const sig = `${w.feed.kind}|${lag != null ? Math.min(9, Math.floor(lag / 30)) : ""}|${w.book.positions.length}|${w.book.monthEntries}|${vix != null ? Math.round(vix * 2) : ""}`;
-    if (st.topicSig["seat:vince"] !== sig)
+    if (st.topicSig["quiet:vince"] !== sig)
       out.push({
         id: `quiet|vince|${sig}`,
         kind: "heartbeat",
-        topic: "seat:vince",
+        topic: "quiet:vince",
         urgency: 0,
         prio: 2,
         at: now,
@@ -2177,7 +2177,7 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
           };
         },
         commit: (s) => {
-          s.topicSig["seat:vince"] = sig;
+          s.topicSig["quiet:vince"] = sig;
         },
       });
   }
