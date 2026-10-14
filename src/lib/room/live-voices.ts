@@ -296,7 +296,8 @@ export function exTape(c: Ctx, d: TapeData): Ex | null {
     lines.push(line("Gemma", d.raid || d.nearest ? ANIM.Gemma.wall! : ANIM.Gemma.explain!, frame));
     if (d.raid || d.nearest) moves.Gemma = WB;
   } else {
-    lines.push(line("Nova", ANIM.Nova.analyze!, quantLine ?? frame));
+    // floor-62 #32: Nova never borrows Gemma's sentence — when she has no quant line she states the same read as a measurement.
+    lines.push(line("Nova", ANIM.Nova.analyze!, quantLine ?? (frame ? `By my numbers: ${frame.charAt(0).toLowerCase()}${frame.slice(1)}` : null)));
   }
   lines.push(line(standBy, standBy === "Sterling" ? (d.held && !d.heldAligned ? ANIM.Sterling.arms! : ANIM.Sterling.tablet!) : ANIM.Vince.watch!, stand));
   const out = compact(lines);

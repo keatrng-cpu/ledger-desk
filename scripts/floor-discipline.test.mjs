@@ -95,3 +95,23 @@ test("said-memory: a material number change is said again; a cent of drift is no
   assert.equal(S.heardBefore("4 of 8 PATH entries used.", rows, t + 1000), false);
   assert.equal(S.heardBefore("3 of 8 PATH entries used.", rows, t + 1000), true);
 });
+
+test("#39 said memory is keyed by ET trading day", () => {
+  assert.equal(S.etDay(Date.UTC(2026, 9, 14, 3, 0)), "2026-10-13"); // 23:00 ET on the 13th
+  assert.notEqual(S.saidKey(Date.UTC(2026, 9, 13, 15)), S.saidKey(Date.UTC(2026, 9, 14, 15)));
+});
+
+// #32: distinct voices — across a replayed day no two seats say the same sentence shape (numbers collapsed).
+test("#32 no two seats share a line template in a replayed day", () => {
+  const t0 = W.at(2026, 10, 6, 9, 28);
+  const sim = new W.Sim(t0, { dt: 2000, make: (t, o) => ({ ...o, pulse: { vix: 17 + Math.floor((t - t0) / 1_200_000) * 0.2, tenYear: 4.12, at: t } }) });
+  sim.run(6.5 * 3600, W.walker(7, 2.5));
+  const by = new Map();
+  for (const l of sim.items.flatMap((i) => i.lines)) {
+    const g = S.speechGist(l.text);
+    if (!by.has(g)) by.set(g, new Set());
+    by.get(g).add(l.character);
+  }
+  const shared = [...by].filter(([, who]) => who.size > 1).map(([g, who]) => `${[...who].join("/")}: ${g}`);
+  assert.deepEqual(shared, []);
+});

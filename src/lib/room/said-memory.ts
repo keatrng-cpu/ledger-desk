@@ -74,10 +74,16 @@ export function rememberSaid(text: string, rows: SaidRow[], now: number): SaidRo
   return next.slice(-MAX);
 }
 
+/** floor-62 #39: the memory belongs to a trading (ET) date — a new day starts with a clean slate, and the key carries the date. */
+export function etDay(ms: number): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(ms));
+}
+export const saidKey = (ms: number) => `${KEY}.${etDay(ms)}`;
+
 export function loadSaid(now = Date.now()): SaidRow[] {
   try {
     if (typeof localStorage === "undefined") return [];
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(saidKey(now));
     if (!raw) return [];
     const parsed = JSON.parse(raw) as SaidRow[];
     if (!Array.isArray(parsed)) return [];
@@ -87,10 +93,17 @@ export function loadSaid(now = Date.now()): SaidRow[] {
   }
 }
 
-export function saveSaid(rows: readonly SaidRow[]): void {
+export function saveSaid(rows: readonly SaidRow[], now = Date.now()): void {
   try {
     if (typeof localStorage === "undefined") return;
-    localStorage.setItem(KEY, JSON.stringify(rows.slice(-MAX)));
+    const day = etDay(now);
+    const keep = rows.filter((r) => etDay(r.t) === day);
+    localStorage.setItem(saidKey(now), JSON.stringify(keep.slice(-MAX)));
+    // Yesterday's (and the old undated) memory is dropped.
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && (k === KEY || (k.startsWith(`${KEY}.`) && k !== saidKey(now)))) localStorage.removeItem(k);
+    }
   } catch {
     /* private mode */
   }
