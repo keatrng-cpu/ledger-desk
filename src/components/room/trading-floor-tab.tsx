@@ -1417,7 +1417,7 @@ function DecisionStrip({
       <div className="text-[10px] text-[var(--color-muted)] sm:col-span-3" data-testid="balance-legend">
         Balances: EQUITY screen = room paper (the floor's own book) · header "Paper" = desk paper account · RH strip = Robinhood buying power (live).
       </div>
-      <div className="text-[11px] text-[var(--color-fg)] opacity-80 sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · rules ${RULES_HASH}`}>{kzSeatNote()}</div>
+      <div className="text-[11px] text-[var(--color-fg)] opacity-80 sm:col-span-3" data-testid="kz-seat" title={`kzDisp item 49 (shadow note, never a vote) · floor rules signature ${RULES_HASH} (client FNV; the card's canonical hash is in rules-hash.ts)`}>{kzSeatNote()}</div>
     </div>
   );
 }

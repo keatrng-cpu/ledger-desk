@@ -2085,7 +2085,7 @@ function rulesCands(w: TalkWorld, st: TalkState, out: Cand[]) {
         : `band edges unchanged, A-minus still ${f.raw((edges["A-"] ?? 0).toFixed(2))}`;
       const kz = kzNoteParts();
       const kzTxt = ` Kill Zone: ${f.int(kz.live)} of ${f.int(kz.items)} items live.`;
-      return { lines: V.compact([V.line("Nova", "WRITING_ON_WHITEBOARD", `Desk scoring changed, rules ${f.raw(RULES_HASH)}: ${detail}.${kzTxt} Grades on the board are re-read on the new edges.`)]), moves: {} };
+      return { lines: V.compact([V.line("Nova", "WRITING_ON_WHITEBOARD", `Desk scoring changed: ${detail}.${kzTxt} Grades on the board are re-read on the new edges.`)]), moves: {} };
     },
     commit: (s) => {
       s.topicSig["rules"] = RULES_HASH;

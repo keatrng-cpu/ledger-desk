@@ -41,7 +41,8 @@ export function planGeometry(side: string, entry: number | null | undefined, sto
   return { ok: true };
 }
 
-/** FNV-1a over the canonical JSON of desk-rules.json: the version the Floor last saw. */
+/** FNV-1a over desk-rules.json: a browser-safe change signature the Floor compares (NOT the card's canonical sha256 RULES_HASH
+ * in src/lib/desk/rules-hash.ts, which needs node:crypto). It only detects that the rules changed. */
 export function rulesHashOf(obj: unknown): string {
   const s = JSON.stringify(obj);
   let h = 0x811c9dc5;
