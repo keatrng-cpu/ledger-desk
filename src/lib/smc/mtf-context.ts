@@ -285,7 +285,7 @@ export function ltfReversalsOf(
     const side: Side = r.dir === "bear" ? "long" : "short";
     const level = side === "long" ? (r.hi ?? NaN) : (r.lo ?? NaN);
     const failed = r.failed === true;
-    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b)${failed ? " [failed]" : ""} against the ${side}`, failed, tInv: r.invertedT ?? null });
+    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b) against the ${side}`, failed, tInv: r.invertedT ?? null });
   }
   const atrs = m.length ? rollingAtr(m) : [];
   const n = m.length;
@@ -344,7 +344,7 @@ export function ltfReversalsOf(
     const failedKs = ks.filter((x) => x.failed);
     const smc = {
       failedOnly: failedKs.length === ks.length,
-      failed: failedKs.map((x) => x.why),
+      failed: failedKs.map((x) => `${x.why} [failed]`),
       killTInv: ks.reduce<number | null>((a, x) => (x.tInv != null && (a == null || x.tInv > a) ? x.tInv : a), null),
     };
     out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level), smc });
