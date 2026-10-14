@@ -8,6 +8,7 @@ import { pdLegRead, type PdLegRead } from "./pd-leg";
 import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
 import { amdRead, type AmdRead } from "./amd-state";
+import { continuationRead, type ContRead } from "./continuation";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
 const UNDERLIER_BOOK: Record<string, string> = { QQQ: "MNQ", SPY: "ES", NQ: "MNQ", MNQ: "MNQ", ES: "ES", MES: "ES" };
@@ -24,6 +25,8 @@ export interface DeskSeqWire {
   map: Record<string, PremarketMap>;
   /** F4: AMD state machine per book (09:30–11:00 ET, closed bars). */
   amd: Record<string, AmdRead>;
+  /** F9: continuation (rolled T1 / re-anchored entry) per book. */
+  continuation: Record<string, ContRead>;
   /** Short human rows for the watcher's shadow:seq:* log. */
   rows: { rule: string; would: string }[];
 }
@@ -70,7 +73,13 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     const b = bookOf(sym);
     if (b.feedNowMs != null) amd[sym] = amdRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd };
+  const continuation: Record<string, ContRead> = {};
+  for (const side of ["left", "right"] as const) {
+    const sym = i.desk[side].symbol;
+    const b = bookOf(sym);
+    if (b.feedNowMs != null) continuation[sym] = continuationRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs, amd[sym] ?? null);
+  }
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -91,6 +100,11 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
     if (s.stage === "ARMED") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ARMED: ${s.raid?.name} raided, ${s.confirm?.why}; entry ${s.entry} (${s.entryWhy}), stop ${s.stop}, T1 ${s.t1?.name} ${s.t1?.price} (${s.t1?.r}R)` });
     else if (s.stage === "ENTERED") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ENTER at ${s.entry}, stop ${s.stop}, T1 ${s.t1?.name} ${s.t1?.price} — the desk would fire here (shadow)` });
     else if (s.stage === "MANIP" || s.stage === "CONFIRM") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ${s.stage}: ${s.log.at(-1)?.why}` });
+  }
+  for (const c of Object.values(w.continuation ?? {})) {
+    for (const sd of ["short", "long"] as const) if (c.rolledT1[sd]) rows.push({ rule: "continuation", would: `${c.symbol} ${sd} T1 rolled to ${c.rolledT1[sd]!.name} ${c.rolledT1[sd]!.price} (regime ${c.regime})` });
+    const a = c.setups.at(-1);
+    if (a && (a.stage === "ARMED" || a.stage === "ENTERED")) rows.push({ rule: "continuation", would: `${c.symbol} ${a.side} continuation ${a.stage} at ${a.entry} (${a.entryWhy}), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price} (${a.t1.r}R) — not a second entry` });
   }
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });

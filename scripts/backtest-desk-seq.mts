@@ -10,6 +10,7 @@ import { etOf } from "../src/lib/smc/seq/rules";
 import { setSeqOverrides } from "../src/lib/smc/seq/rules";
 import { replayDay, replayDayLtfArm, resolve1m, optionPnlPct, DEFAULT_OPT, summarize, resample, type Trade } from "../src/lib/backtest/engine";
 import { amdRead, type AmdSetup } from "../src/lib/smc/seq/amd-state";
+import { continuationRead } from "../src/lib/smc/seq/continuation";
 type B = { t: number; o: number; h: number; l: number; c: number; v: number };
 const args = process.argv.slice(2);
 const outPath = args.includes("--out") ? args[args.indexOf("--out") + 1]! : null;
@@ -61,7 +62,7 @@ const report: Record<string, unknown> = { source: "yahoo 1m (NQ=F→MNQ, ES=F→
 
 // ---- current desk (replayDay), ltfArm (replayDayLtfArm) and the AMD state machine on the SAME sessions
 const CAP = 650;
-export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?: number } = {}): (Trade & { day: string; setup: AmdSetup })[] {
+export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?: number; cont?: boolean } = {}): (Trade & { day: string; setup: AmdSetup })[] {
   const cut = at(day, 9 * 60 + 26);
   const hist = m.filter((b) => b.t + 60_000 <= cut && b.t > cut - 12 * 86_400_000);
   if (hist.length < 500) return [];
@@ -82,6 +83,22 @@ export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?
     const mins = (stopOnFill ? fill : res.j) - fill;
     out.push({ symbol: sym, side: s.side, t: fb.t, entry: s.entry!, stop: s.stop!, target: s.t1!.price, rr: s.t1!.r, exitT: bars[stopOnFill ? fill : res.j]?.t ?? null, exitPx: px, outcome, r: R, minutes: mins,
       optPnlPct: optionPnlPct(DEFAULT_OPT[sym]!, s.side, s.entry!, px, mins), why: `amd ${s.raid?.name} → ${s.confirm?.why} → ${s.entryWhy}`, day, setup: s, ctx: { expect: map.amd.expectManip, htf: map.biasStack.htf, mtf: map.biasStack.mtf, zone: map.zone } } as never);
+  }
+  if (opts.cont) {
+    const c = continuationRead(sym, map, bars, at(day, 12 * 60), r);
+    for (const s of c.setups.filter((x) => x.stage === "ENTERED")) {
+      const fill = bars.findIndex((b) => b.t + 60_000 === s.enteredT);
+      if (fill < 0) continue;
+      const fb = bars[fill]!;
+      const stopOnFill = s.side === "long" ? fb.l <= s.stop : fb.h >= s.stop;
+      const res = resolve1m(bars, fill, s.side, s.entry, s.stop, s.t1.price, opts.timeStopMin ?? 90);
+      const px = stopOnFill ? s.stop : res.px; const outcome = stopOnFill ? "stop" as const : res.outcome;
+      const risk = Math.abs(s.entry - s.stop);
+      const mins = (stopOnFill ? fill : res.j) - fill;
+      out.push({ symbol: sym, side: s.side, t: fb.t, entry: s.entry, stop: s.stop, target: s.t1.price, rr: s.t1.r, exitT: bars[stopOnFill ? fill : res.j]?.t ?? null, exitPx: px, outcome,
+        r: outcome === "open" ? null : +(((s.side === "long" ? px - s.entry : s.entry - px) / risk)).toFixed(2), minutes: mins,
+        optPnlPct: optionPnlPct(DEFAULT_OPT[sym]!, s.side, s.entry, px, mins), why: `cont ${s.entryWhy} → ${s.t1.name}`, day, setup: { raid: null, confirm: { tf: "cont" } } as never, cont: true } as never);
+    }
   }
   return out;
 }
@@ -108,6 +125,9 @@ if (GRID) {
     ["minR 1.25", { amd: { minR: 1.25 } }],
     ["stopBuf 0.15", { amd: { stopBufAtr15: 0.15 } }],
     ["confirm ≥2m + stopBuf 0.15", { amd: { confirmMinTfMin: 2, stopBufAtr15: 0.15 } }],
+    ["1m confirm (confirmMinTfMin 1)", { amd: { confirmMinTfMin: 1 } }],
+    ["minR 0.85 (Keaton R:R floor)", { amd: { minR: 0.85 } }],
+    ["1m confirm + minR 0.85", { amd: { confirmMinTfMin: 1, minR: 0.85 } }],
   ];
   const all = sessionsOf(TAPE.MNQ!).slice(1); const cutI = Math.floor(all.length * 0.75);
   const train = new Set(all.slice(0, cutI)), hold = new Set(all.slice(cutI));
@@ -124,7 +144,7 @@ if (GRID) {
   report.grid = { train: [...train], holdout: [...hold], g };
 }
 if (!GRID) {
-  const desk: (Trade & { day: string })[] = [], arm: (Trade & { day: string })[] = [], seq: (Trade & { day: string; setup: AmdSetup })[] = [];
+  const desk: (Trade & { day: string })[] = [], arm: (Trade & { day: string })[] = [], seq: (Trade & { day: string; setup: AmdSetup })[] = [], cont: (Trade & { day: string })[] = [];
   const daysUsed = new Set<string>();
   for (const sym of ["MNQ", "ES"]) {
     const m = TAPE[sym]!;
@@ -138,13 +158,14 @@ if (!GRID) {
       for (const t of replayDay(sym, rth, h15)) desk.push({ ...t, day });
       for (const t of replayDayLtfArm(sym, bars, hist)) arm.push({ ...t, day });
       seq.push(...seqTrades(sym, m, day));
+      cont.push(...seqTrades(sym, m, day, { cont: true }).filter((t) => (t as never as { cont?: boolean }).cont));
     }
   }
   const n = daysUsed.size;
-  report.engines = { sessions: n, days: [...daysUsed].sort(), desk: kpis(desk, n), ltfArm: kpis(arm, n), amd: kpis(seq, n) };
+  report.engines = { sessions: n, days: [...daysUsed].sort(), desk: kpis(desk, n), ltfArm: kpis(arm, n), amd: kpis(seq, n), continuation: kpis(cont, n), amdPlusCont: kpis([...seq, ...cont], n) };
   report.amdTrades = seq.map((t) => ({ day: t.day, sym: t.symbol, side: t.side, at: new Date(t.t).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false }), entry: t.entry, stop: t.stop, target: t.target, outcome: t.outcome, r: t.r, opt$: t.optPnlPct == null ? null : Math.round(Math.max(-1, t.optPnlPct) * CAP), why: t.why, raid: t.setup.raid?.name, confTf: t.setup.confirm?.tf, ctx: (t as never as { ctx: unknown }).ctx }));
   console.log(`\nengines on ${n} sessions (${[...daysUsed].sort()[0]} … ${[...daysUsed].sort().at(-1)}), $ = ${CAP} × engine option model:`);
-  for (const k of ["desk", "ltfArm", "amd"] as const) console.log(" ", k.padEnd(7), JSON.stringify((report.engines as never)[k]));
+  for (const k of ["desk", "ltfArm", "amd", "continuation", "amdPlusCont"] as const) console.log(" ", k.padEnd(7), JSON.stringify((report.engines as never)[k]));
   for (const t of report.amdTrades as { day: string }[]) console.log("   ", JSON.stringify(t));
 }
 if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 1));

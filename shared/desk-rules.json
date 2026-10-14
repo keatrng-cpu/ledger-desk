@@ -872,6 +872,15 @@
       "minRiskAtr15": 0.15,
       "raidTfs": "15m-1D arrays + map levels/pools",
       "confirmMinTfMin": 2
+    },
+    "continuation": {
+      "mode": "shadow",
+      "endEtMin": 690,
+      "minR": 1.0,
+      "fillMin": 20,
+      "maxPerSide": 2,
+      "stopBufAtr15": 0.15,
+      "_doc": "F9: after an AMD ENTER, while structure holds (not both the last closed 5m and 15m closing beyond the last 5m swing against the trade) T1 rolls to the next real mapped pool/level beyond the printed one (labelled), entry re-anchors to the newest unmitigated same-side 1m-30m gap after the fill, stop beyond the last 5m swing + stopBufAtr15 x ATR15, T1 >= minR; armed only in regime trend (2 consecutive closed 15m bars beyond the session open, hysteresis); not a second entry (own maxPerSide); until endEtMin ET."
     }
   }
 }

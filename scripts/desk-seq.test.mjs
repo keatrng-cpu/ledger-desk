@@ -169,3 +169,39 @@ test("F4 amd: no map / thin tape → no setups, never throws", () => {
   const r = amdm.amdRead("X", null, [], Date.now());
   assert.equal(r.setups.length, 0);
 });
+
+const contm = await import("../src/lib/smc/seq/continuation.ts");
+const dayRead = (sym, Y, M, D, nowH) => {
+  const m = yahoo(sym).filter((b) => b.t % 60e3 === 0);
+  const cut = Date.UTC(Y, M - 1, D, 13, 26);
+  const map = pm.premarketMap({ symbol: sym, minute: m.filter((b) => b.t + 60e3 <= cut && b.t > cut - 12 * 864e5), nowMs: cut });
+  const bars = m.filter((b) => b.t > cut - 6 * 36e5);
+  const now = Date.UTC(Y, M - 1, D, nowH, 0);
+  const amd = amdm.amdRead(sym, map, bars, now);
+  return { map, bars, now, amd, cont: contm.continuationRead(sym, map, bars, now, amd) };
+};
+test("F9 continuation: 10/13 ES — real stops beyond entry, T1 is a mapped name, never counted as a second AMD entry", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-ES.json") }, () => {
+  const d = dayRead("ES", 2026, 10, 13, 16);
+  assert.ok(d.cont.setups.length >= 1);
+  const names = new Set([...d.map.levels.map((l) => l.name), "15m", "30m", "1h", "4h", "1D"]);
+  for (const s of d.cont.setups) {
+    assert.ok(s.side === "short" ? s.stop > s.entry : s.stop < s.entry, "stop beyond entry");
+    assert.ok(names.has(s.t1.name) || /^(15m|30m|1h|4h|1D) /.test(s.t1.name), `T1 ${s.t1.name} is mapped`);
+    assert.equal(s.regime, "trend");
+  }
+  assert.equal(d.amd.setups.filter((s) => s.stage === "ENTERED").length, dayRead("ES", 2026, 10, 13, 16).amd.setups.filter((s) => s.stage === "ENTERED").length);
+});
+test("F9 continuation: no lookahead — setups armed before T are identical when read at T and later", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-ES.json") }, () => {
+  const a = dayRead("ES", 2026, 10, 13, 15), b = dayRead("ES", 2026, 10, 13, 16);
+  const T = a.now;
+  const pre = (r) => r.cont.setups.filter((s) => s.armedT <= T - 30 * 60e3).map((s) => [s.side, s.armedT, s.parentT].join());
+  assert.deepEqual(pre(a), pre(b));
+});
+test("F9 regimeAt: trend needs two consecutive closed 15m closes beyond the open", () => {
+  const t0 = Date.UTC(2026, 9, 14, 13, 30);
+  const mk = (k, c) => ({ t: t0 + k * 60e3, o: c, h: c + 1, l: c - 1, c, v: 1 });
+  const bars = [...Array(30)].map((_, k) => mk(k, k < 15 ? 99 : 98));
+  assert.equal(contm.regimeAt(bars, 100, "short", t0 + 30 * 60e3), "trend");
+  assert.equal(contm.regimeAt(bars, 100, "short", t0 + 15 * 60e3), "range");
+  assert.equal(contm.regimeAt(bars, 100, "long", t0 + 30 * 60e3), "range");
+});
