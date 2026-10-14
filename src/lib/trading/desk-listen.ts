@@ -5,9 +5,15 @@ import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
 import { bandFromQ } from "@/lib/smc/discipline";
 import { kzSeatNote } from "@/lib/desk/kz-disp";
+import { LTF_ARM, capBandAt } from "@/lib/smc/ltf-arm";
 
 const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
 /** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
+/** ltfArm: a card armed by LTF evidence never reads above ltfArm.capBand, whatever q says. */
+export function armedBand(c: { confluence: number; pathBand?: string | null; ltfArmed?: boolean }): string | null {
+  const b = wireBand(c.confluence, c.pathBand ?? null);
+  return c.ltfArmed ? capBandAt(b, LTF_ARM.capBand) : b;
+}
 export function wireBand(q: number | null | undefined, pathBand: string | null | undefined): string | null {
   const qb = bandFromQ(q);
   if (pathBand === "skip") return "C";
@@ -78,6 +84,8 @@ export interface DeskListenCard {
 export interface DeskWire {
   /** sha256 (16 hex) of the shared rules this card was graded on — the watcher fails closed on mismatch. */
   rulesHash?: string;
+  /** ltfArm (shared rules): mode, cap, and the cards live mode would have shown that the board dropped. */
+  ltfArm?: { mode: string; capBand: string; dropped: { symbol: string; side: string; why: string; wouldBand: string | null; arm: string; entry: number; stop: number; t1: number | null }[] };
   /** PD arrays on 1m–4h for both books, live first, capped (mtf-arrays.ts). */
   arrays?: (Omit<ArrayRow, "createdT"> & { symbol: string })[];
   /** The shock's lean, or null. Never a block. headlineTone is always "unknown". */
@@ -260,6 +268,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
+    ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
     htf: top ? htfBiasOf(desk.mtfContext, top.symbol) : null,
@@ -289,7 +298,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           side: top.side,
           name: top.completeStrategy || top.strategyPrimary || "model",
           // Band from q, never above the card's pathBand (live gate walk #2: a capped / skip card must not read higher).
-          band: wireBand(top.confluence, top.pathBand ?? null),
+          band: armedBand(top),
           pathBand: top.pathBand ?? top.grade ?? null,
           q: top.confluence,
           actionable: top.actionable,
@@ -445,7 +454,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       return {
         symbol: c.symbol,
         side: c.side,
-        band: wireBand(c.confluence, c.pathBand ?? null),
+        band: armedBand(c),
         pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
         actionable: c.actionable,
@@ -454,6 +463,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         /** "card" carries a complete plan; "watch" is a row without one (watchWhy says what is missing). */
         kind: (c as { watchOnly?: boolean }).watchOnly ? "watch" : "card",
         watchWhy: (c as { watchWhy?: string | null }).watchWhy ?? null,
+        /** ltfArm (shared rules): best closed-rung 1m-4h arming evidence; mode says if it acted. */
+        ltfArm: c.ltfArm ? { mode: LTF_ARM.mode, tf: c.ltfArm.tf, why: c.ltfArm.why, entry: c.ltfArm.entry, stop: c.ltfArm.stop, t1: c.ltfArm.t1?.price ?? null, rr1: c.ltfArm.rr1, armed: c.ltfArmed === true, shadow: c.ltfArmShadow ?? null } : null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),

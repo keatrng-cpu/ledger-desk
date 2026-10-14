@@ -756,6 +756,31 @@
       "_doc": "Keaton 2026-10-13 18:29 CT: debit cap $650 for EVERY grade (desk RH_MAX_DEBIT_TOTAL = envelope.maxDebit 650); max contracts stay the grade ladder (A+ 4 / A 2 / A- 1 / B+ 1). Single options only (fastChain.spreadFallback=false, sizeToFit.spread=false). $50 floor, BP gate, daily loss cap and -$300 weekly lock unchanged."
     }
   },
+  "ltfArm": {
+    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung.",
+    "mode": "shadow",
+    "tfs": [
+      "1m",
+      "2m",
+      "3m",
+      "4m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "4h"
+    ],
+    "lookbackMin": 45,
+    "closeBackBars": 3,
+    "dispAtr": 1.5,
+    "dispLegBars": 3,
+    "dispWithinBars": 6,
+    "requireCisdOrMss": true,
+    "killzoneOnly": true,
+    "capBand": "B+",
+    "t1FallbackNextPool": true,
+    "watcherMinKzBars": 5
+  },
   "smcUnity": {
     "_doc": "SMC/unity audit 2026-10-14 (audits/smc-unity-audit-2026-10-14.md). Every item is shadow: computed, logged on wire.smcUnity / watcher shadow:smc:* rows, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only). Depends on fix/stale-veto-q-timing (kill.clear, timing) and feat/ltf-arm (1m-5m arming) — does not duplicate them.",
     "rungs": [

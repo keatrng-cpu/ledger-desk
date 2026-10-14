@@ -226,14 +226,19 @@ function reversalInside(bars: OhlcBar[], direction: "bull" | "bear", minIndex: n
   return disp != null && disp.index >= minIndex;
 }
 
-/** False only when this side is fading a strong extension with no reversal signs. */
-export function extensionAllows(bars: OhlcBar[], side: "long" | "short"): boolean {
+/**
+ * False only when this side is fading a strong extension with no reversal signs.
+ * `ltfReversal` (ltfArm live): a closed-bar reversal on any rung 1m-4h
+ * (ltf-arm.ts) counts as a reversal sign inside the run — the 15m series alone
+ * cannot see one that printed inside its forming bar.
+ */
+export function extensionAllows(bars: OhlcBar[], side: "long" | "short", ltfReversal?: () => boolean): boolean {
   const ext = strongExtension(bars);
   if (!ext) return true;
   if (ext === "bull" && side === "long") return true;
   if (ext === "bear" && side === "short") return true;
   const dir = side === "short" ? "bear" : "bull";
-  return reversalInside(bars, dir, bars.length - 8);
+  return reversalInside(bars, dir, bars.length - 8) || Boolean(ltfReversal?.());
 }
 
 

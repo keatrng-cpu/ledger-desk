@@ -74,6 +74,8 @@ export interface BookMtf {
   ltfReversal: LtfReversal | null;
   /** Every side's kill (with its re-arm state) — a re-armed side stays capped A-. */
   ltfReversals: LtfReversal[];
+  /** shadow (ltfArm.mode shadow): the kills an all-rung (1m-4h) read would print. Never acted on. */
+  ltfReversalsAllTfShadow?: LtfReversal[];
   rungs: RungRead[];
   align: { long: Alignment; short: Alignment };
 }
@@ -191,8 +193,11 @@ export function buildMtfContext(
       if (r) r.arrays[row.kind] += 1;
     }
     const rows = mtfArrays(b.symbol, b.minute, b.bars15);
-    const revs = ltfReversalsOf(rows, b.minute);
-    const rev = ltfReversalOf(rows, b.minute);
+    // ltfArm all-timeframe rule: live → kills read every rung; shadow → 5m as today, all-rung read kept for the record.
+    const allTf = (RULES as unknown as { ltfArm?: { mode?: string } }).ltfArm?.mode === "live";
+    const revs = ltfReversalsOf(rows, b.minute, allTf);
+    const rev = ltfReversalOf(rows, b.minute, allTf);
+    const revsAllTfShadow = allTf ? undefined : ltfReversalsOf(rows, b.minute, true);
     const align = { long: alignFor(rungs, "long"), short: alignFor(rungs, "short") };
     if (rev && !rev.rearmed) {
       // LTF weight flips to the other side.
@@ -201,7 +206,7 @@ export function buildMtfContext(
       align[rev.against] = re(align[rev.against], false);
       align[other] = re(align[other], true);
     }
-    return { symbol: b.symbol, rungs, align, ltfReversal: rev, ltfReversals: revs };
+    return { symbol: b.symbol, rungs, align, ltfReversal: rev, ltfReversals: revs, ltfReversalsAllTfShadow: revsAllTfShadow };
   };
   const books = [book(left), book(right)];
   const smt: SmtRead[] = [];
@@ -282,19 +287,24 @@ export type { Kill as LtfKill };
  * TEMPORARY: the killed side re-arms on sweep → displacement → inversion back
  * (see `rearmAfter`); then the card is capped at A-.
  */
+const RUNG_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
 export function ltfReversalsOf(
   rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number; failed?: boolean; invertedT?: number | null }[],
   minute: OhlcBar[] | null | undefined,
+  /** ltfArm all-timeframe rule: IFVG kills on every rung 1m-4h, age in minutes (ifvg5MaxAge x 5m). Default: 5m only (today). */
+  allTfs = false,
 ): LtfReversal[] {
   const m = (minute ?? []).slice(0, -1); // drop the forming bar
   const lastT = m.length ? m[m.length - 1].t : Date.now();
   const kills: Kill[] = [];
   for (const r of rows) {
-    if (r.tf !== "5m" || r.kind !== "ifvg" || r.mitigated || r.ageBars > IFVG5_MAX_AGE) continue;
+    const tfMin = RUNG_MIN[r.tf];
+    if (tfMin == null || r.kind !== "ifvg" || r.mitigated) continue;
+    if (allTfs ? r.ageBars * tfMin > IFVG5_MAX_AGE * 5 : r.tf !== "5m" || r.ageBars > IFVG5_MAX_AGE) continue;
     const side: Side = r.dir === "bear" ? "long" : "short";
     const level = side === "long" ? (r.hi ?? NaN) : (r.lo ?? NaN);
     const failed = r.failed === true;
-    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b) against the ${side}`, failed, tInv: r.invertedT ?? null });
+    kills.push({ side, t: lastT - r.ageBars * tfMin * 60e3, level, why: `${r.tf} IFVG ${r.dir} (${r.ageBars}b) against the ${side}`, failed, tInv: r.invertedT ?? null });
   }
   const atrs = m.length ? rollingAtr(m) : [];
   const n = m.length;
@@ -444,8 +454,9 @@ export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: num
 export function ltfReversalOf(
   rows: Parameters<typeof ltfReversalsOf>[0],
   minute: OhlcBar[] | null | undefined,
+  allTfs = false,
 ): LtfReversal | null {
-  const all = ltfReversalsOf(rows, minute);
+  const all = ltfReversalsOf(rows, minute, allTfs);
   const live = all.filter((r) => !r.rearmed).sort((a, b) => b.killT - a.killT);
   // Two live kills on opposite sides = no clean read. (smcUnity.bothKills live:
   // the newest is returned here and both stay on `ltfReversals` — audit F12.)

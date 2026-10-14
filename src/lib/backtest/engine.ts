@@ -13,6 +13,7 @@
 import RULES from "../../../shared/desk-rules.json";
 import { mtfArrays } from "@/lib/smc/mtf-arrays";
 import { ltfReversalsOf } from "@/lib/smc/mtf-context";
+import { ltfArmOf, sessionPools } from "@/lib/smc/ltf-arm";
 import { sanePlan } from "@/lib/smc/exec-context";
 import { rollingAtr, fractalSwings } from "@/lib/trading/detectors";
 import { et } from "@/lib/smc/day-context";
@@ -130,4 +131,56 @@ export function diffSummaries(prev: Record<string, Summary> | null, cur: Record<
     lines.push(`${k}: trades ${p ? f(p.trades) + "→" : ""}${c.trades} · hit ${p ? f(p.hit) + "→" : ""}${f(c.hit)} · avgR ${p ? f(p.avgR) + "→" : ""}${f(c.avgR)} · ΣR ${p ? f(p.sumR) + "→" : ""}${c.sumR} · opt ${f(c.avgOptPct)}`);
   }
   return lines;
+}
+
+/**
+ * ltfArm replay (shared rules ltfArm). Walks every CLOSED 1m bar inside the shared kill zones, asks
+ * ltf-arm.ts for the best closed-rung (1m-4h) arm on each side, and trades it as the card would print:
+ * LIMIT at the gap CE (filled only if a later 1m bar trades through it within kzDisp item 12 minutes,
+ * cancelled if the stop prints first), stop one tick past the sweep wick, target the arm's T1 (a real
+ * pool >= rrMin). Exact 1m resolution via resolve1m. One position at a time. Nothing invented: no T1,
+ * no trade.
+ */
+export function replayDayLtfArm(symbol: string, day: Bar[], hist: Bar[], p: Params & { fillMin?: number } = {}): Trade[] {
+  const tstop = p.timeStopMin ?? 90, fillMin = p.fillMin ?? (RULES as unknown as { kzDisp: { items: Record<string, { minutes?: number }> } }).kzDisp.items["12"]?.minutes ?? 20;
+  const kz = Object.values((RULES as unknown as { kzDisp: { killzones: Record<string, [string, string]> } }).kzDisp.killzones)
+    .map(([a, b]) => [Number(a.slice(0, 2)) * 60 + Number(a.slice(3)), Number(b.slice(0, 2)) * 60 + Number(b.slice(3))] as const);
+  const all = [...hist, ...day];
+  const out: Trade[] = []; const seen = new Set<string>(); let busyUntil = 0;
+  const off = hist.length;
+  for (let k = 0; k < day.length - 1; k++) {
+    const i = off + k; const b = all[i]!; const e = et(b.t);
+    if (!kz.some(([a, z]) => e.min >= a && e.min < z)) continue;
+    if (b.t < busyUntil) continue;
+    const nowMs = b.t + 60_000; // bar i just closed
+    const minute = all.slice(Math.max(0, i - 600), i + 1);
+    const closed15 = resample(all.slice(Math.max(0, i - 4 * 96 * 15), i + 1), 900_000).filter((x) => x.t + 900_000 <= nowMs);
+    const sess = sessionPools(all.slice(Math.max(0, i - 2000), i + 1) as never, nowMs, 60_000);
+    const sw = fractalSwings(closed15.slice(-80) as never, 2).map((s: { price: number; kind: string }) => ({ name: `15m swing ${s.kind}`, price: s.price }));
+    for (const side of ["long", "short"] as const) {
+      const a = ltfArmOf({ symbol: `${symbol}:bt`, side, minute: minute as never, closed15: closed15 as never, pools: [...sess, ...sw], targets: [...sess, ...sw], nowMs, inKillzone: true });
+      if (!a || !a.t1) continue;
+      const key = `${side}:${a.sweep.t}:${a.sweep.pool}`; if (seen.has(key)) continue; seen.add(key);
+      // fill: a later closed 1m bar trades through the CE; stop first = cancelled
+      let fill = -1;
+      for (let j = i + 1; j < all.length && j <= i + fillMin; j++) {
+        const x = all[j]!;
+        if (side === "long" ? x.l <= a.stop : x.h >= a.stop) break;
+        if (x.l <= a.entry && a.entry <= x.h) { fill = j; break; }
+      }
+      if (fill < 0) continue;
+      const r = resolve1m(all, fill, side, a.entry, a.stop, a.t1.price, tstop);
+      const risk = Math.abs(a.entry - a.stop);
+      // the fill bar itself may print the stop (order unknown): count it as a stop (conservative)
+      const fb = all[fill]!; const stopOnFill = side === "long" ? fb.l <= a.stop : fb.h >= a.stop;
+      const px = stopOnFill ? a.stop : r.px; const outcome = stopOnFill ? "stop" as const : r.outcome;
+      const R = outcome === "open" ? null : +(((side === "long" ? px - a.entry : a.entry - px) / risk)).toFixed(2);
+      const mins = (stopOnFill ? fill : r.j) - fill;
+      out.push({ symbol, side, t: all[fill]!.t, entry: a.entry, stop: a.stop, target: a.t1.price, rr: a.rr1 ?? 0, exitT: all[stopOnFill ? fill : r.j]?.t ?? null, exitPx: px,
+        outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, a.entry, px, mins) : null, why: `ltfArm ${a.why}` });
+      busyUntil = all[stopOnFill ? fill : r.j]?.t ?? b.t;
+      break;
+    }
+  }
+  return out;
 }
