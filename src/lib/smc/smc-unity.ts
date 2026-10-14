@@ -136,7 +136,8 @@ function etParts(t: number): { day: string; hm: number } {
   const key = Math.floor(t / 3_600_000);
   let off = ET_OFFSET_CACHE.get(key);
   if (off == null) {
-    const s = d.toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
+    // hourCycle h23: hour12:false prints "24:xx" at midnight in some ICU builds → Invalid Date.
+    const s = d.toLocaleString("en-US", { timeZone: "America/New_York", hourCycle: "h23" });
     const et = new Date(s + " UTC").getTime();
     off = Math.round((et - Math.floor(t / 1000) * 1000) / 60_000);
     ET_OFFSET_CACHE.set(key, off);
