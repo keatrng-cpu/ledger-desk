@@ -855,7 +855,23 @@
       "windowAtr": 8,
       "maxPerTf": 3,
       "maxPools": 8,
-      "_doc": "F1: premarket map per book frozen at 09:25 ET from closed bars: arrays FVG/IFVG/sponsored on 1m-4h + 1D, OB/breaker/rejection on 5m-4h + 1D (CE + edges, live/failed), kept within windowAtr x ATR15 of price, nearest maxPerTf per tf/kind/dir; PDH/PDL, PWH/PWL, Asia/London/premarket/overnight H/L, midnight + 18:00 opens; EQH/EQL pools (5m/15m, tol eqTolAtr x ATR15, unswept, nearest maxPools); dealing range = prior session + overnight with EQ; bias per rung 1m-1D + HTF/MTF/LTF stack; AMD phase + expected manipulation side. 30s listed missing (not synthesized)."
+      "_doc": "F1: premarket map per book frozen at 09:25 ET from closed bars: arrays FVG/IFVG/sponsored on 1m-4h + 1D, OB/breaker/rejection on 5m-4h + 1D (CE + edges, live/failed), kept within windowAtr x ATR15 of price, nearest maxPerTf per tf/kind/dir; PDH/PDL, PWH/PWL, D-2..D-(olderSessions+1) session highs/lows, Asia/London/premarket/overnight H/L, midnight + 18:00 opens; EQH/EQL pools (5m/15m, tol eqTolAtr x ATR15, unswept, nearest maxPools/2 per side); dealing range = prior session + overnight with EQ; bias per rung 1m-1D + HTF/MTF/LTF stack; AMD phase + expected manipulation side. 30s listed missing (not synthesized).",
+      "olderSessions": 10
+    },
+    "amd": {
+      "mode": "shadow",
+      "startEtMin": 570,
+      "endEtMin": 660,
+      "dispAtr": 1.0,
+      "stopBufAtr15": 0.15,
+      "minR": 1.25,
+      "fillMin": 30,
+      "confirmMin": 30,
+      "maxPerSide": 2,
+      "_doc": "F4: AMD state machine per book 09:30-11:00 ET on closed bars: WATCH -> MANIP (a 1m wick takes a mapped level/pool or a live opposing 15m-1D array beyond the open; a new raid needs a new extreme; only ENTERED setups count toward maxPerSide) -> CONFIRM (body close on any closed rung 1m/2m/3m/5m/15m back through the last swing (CHoCH) or through a raid-direction gap (inversion), displacement body >= dispAtr x ATR1m x sqrt(tf)) -> ARMED (entry = CE of the newest unfilled displacement gap 1m-5m after the extreme, else the displacement OB; stop = beyond the extreme + stopBufAtr15 x ATR15; T1 = nearest real mapped level/pool/array edge clearing minR (map targets + RTH extremes printed before the raid); risk >= minRiskAtr15 x ATR15) -> ENTERED (later bar trades the entry). Invalid: accepted beyond the raided level (a run) -> WATCH; T1 before fill = MISSED; fillMin/confirmMin expire. Late is a transition, never a decaying score. Shadow. Defaults chosen walk-forward on the first 75% of 19 Yahoo sessions (confirm on 2m+ closes, stop buffer 0.15 x ATR15, minR 1.25): train 41 tr 48.8% +0.12R, holdout 13 tr 53.8% +0.33R.",
+      "minRiskAtr15": 0.15,
+      "raidTfs": "15m-1D arrays + map levels/pools",
+      "confirmMinTfMin": 2
     }
   }
 }

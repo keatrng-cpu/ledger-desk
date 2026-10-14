@@ -12,11 +12,14 @@ export type Mode = "live" | "shadow";
 type Item = { mode?: string; [k: string]: unknown };
 const DS = (((RULES as unknown) as { deskSeq?: Record<string, Item> }).deskSeq ?? {}) as Record<string, Item>;
 export const seqMode = (k: string): Mode => (DS[k]?.mode === "live" ? "live" : "shadow");
+/** Backtest/test-only parameter overrides (never set by the desk or the watcher; rules stay the source of truth). */
+let OVR: Record<string, Record<string, unknown>> = {};
+export function setSeqOverrides(o: Record<string, Record<string, unknown>> | null): void { OVR = o ?? {}; }
 export const seqNum = (k: string, f: string, d: number): number => {
-  const v = DS[k]?.[f];
+  const v = OVR[k]?.[f] ?? DS[k]?.[f];
   return typeof v === "number" && Number.isFinite(v) ? v : d;
 };
-export const seqItem = <T = unknown>(k: string, f: string): T | undefined => DS[k]?.[f] as T | undefined;
+export const seqItem = <T = unknown>(k: string, f: string): T | undefined => (OVR[k]?.[f] ?? DS[k]?.[f]) as T | undefined;
 export const r2 = (n: number) => Math.round(n * 100) / 100;
 
 const OFF = new Map<number, number>();

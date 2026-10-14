@@ -7,6 +7,7 @@ import { closedByFeed, feedClockRead } from "../smc-unity";
 import { pdLegRead, type PdLegRead } from "./pd-leg";
 import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
+import { amdRead, type AmdRead } from "./amd-state";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
 const UNDERLIER_BOOK: Record<string, string> = { QQQ: "MNQ", SPY: "ES", NQ: "MNQ", MNQ: "MNQ", ES: "ES", MES: "ES" };
@@ -21,6 +22,8 @@ export interface DeskSeqWire {
   pdLeg: PdLegRead | null;
   /** F1: the premarket map per book (frozen at 09:25 ET). */
   map: Record<string, PremarketMap>;
+  /** F4: AMD state machine per book (09:30–11:00 ET, closed bars). */
+  amd: Record<string, AmdRead>;
   /** Short human rows for the watcher's shadow:seq:* log. */
   rows: { rule: string; would: string }[];
 }
@@ -61,7 +64,13 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     const deskLevels = (i.desk.levels.find((l) => l.symbol === sym)?.items ?? []).map((x) => ({ name: x.name, price: x.price }));
     if (b.feedNowMs != null) map[sym] = premarketMapCached({ symbol: sym, minute: b.closed1m, bars15: (i.desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs: b.feedNowMs });
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map };
+  const amd: Record<string, AmdRead> = {};
+  for (const side of ["left", "right"] as const) {
+    const sym = i.desk[side].symbol;
+    const b = bookOf(sym);
+    if (b.feedNowMs != null) amd[sym] = amdRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
+  }
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -75,6 +84,13 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
   }
   for (const m of Object.values(w.map)) {
     if (m.frozen && m.amd.expectManip) rows.push({ rule: "premarketMap", would: `${m.symbol} map @09:25: HTF ${m.biasStack.htf}/MTF ${m.biasStack.mtf}/LTF ${m.biasStack.ltf}, ${m.zone ?? "?"} of ${m.range?.lo}–${m.range?.hi} (EQ ${m.range?.eq}); expect the ${m.amd.expectManip} raid; ${m.arrays.length} arrays, ${m.pools.length} pools` });
+  }
+  for (const a of Object.values(w.amd)) {
+    const s = a.live;
+    if (!s) continue;
+    if (s.stage === "ARMED") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ARMED: ${s.raid?.name} raided, ${s.confirm?.why}; entry ${s.entry} (${s.entryWhy}), stop ${s.stop}, T1 ${s.t1?.name} ${s.t1?.price} (${s.t1?.r}R)` });
+    else if (s.stage === "ENTERED") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ENTER at ${s.entry}, stop ${s.stop}, T1 ${s.t1?.name} ${s.t1?.price} — the desk would fire here (shadow)` });
+    else if (s.stage === "MANIP" || s.stage === "CONFIRM") rows.push({ rule: "amd", would: `${a.symbol} ${s.side} ${s.stage}: ${s.log.at(-1)?.why}` });
   }
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });

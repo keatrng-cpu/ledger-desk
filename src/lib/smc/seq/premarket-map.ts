@@ -220,6 +220,9 @@ export function premarketMap(i: MapInput): PremarketMap {
   const pwl = dl(/^PWL\b/) ?? (pw.length ? Math.min(...pw.map((d) => d.l)) : null);
   if (pwh != null) levels.push({ name: "PWH", price: pwh, kind: "pwh" }); else missing.push("PWH: no prior-week sessions in the tape");
   if (pwl != null) levels.push({ name: "PWL", price: pwl, kind: "pwl" });
+  // older session extremes (D-2 … D-5): external liquidity resting at prior daily highs/lows
+  const olderD = dlist.filter((d) => d.key < (prevKey ?? session)).slice(-seqNum("premarketMap", "olderSessions", 10));
+  olderD.forEach((d, k) => { const n = olderD.length - k + 1; levels.push({ name: `D-${n} high`, price: d.h, kind: "session" }, { name: `D-${n} low`, price: d.l, kind: "session" }); });
   const cur = m1.filter((b) => sessionKeyOf(b.t) === session);
   const win = (a: number, z: number) => cur.filter((b) => { const hm = etOf(b.t).hm; return a <= z ? hm >= a && hm < z : hm >= a || hm < z; });
   const named: [string, number, number][] = [["Asia", 20 * 60, 24 * 60], ["London", 2 * 60, 5 * 60], ["Premarket", 7 * 60, 9 * 60 + 30], ["Overnight", 18 * 60, 9 * 60 + 30]];
@@ -239,7 +242,9 @@ export function premarketMap(i: MapInput): PremarketMap {
   const win0 = Math.max((atr15 ?? 0) * seqNum("premarketMap", "windowAtr", 8), 1e-9);
   const near = (p: number) => Math.abs(p - px0) <= win0;
   const poolsAll = tol > 0 ? [...equalPools(series["5m"]!.slice(-300), "5m", tol), ...equalPools(series["15m"]!.slice(-200), "15m", tol)] : [];
-  const pools = poolsAll.filter((p) => near(p.price)).sort((a, b) => Math.abs(a.price - px0) - Math.abs(b.price - px0)).slice(0, seqNum("premarketMap", "maxPools", 8));
+  const byDist = (a: MapPool, b: MapPool) => Math.abs(a.price - px0) - Math.abs(b.price - px0);
+  const perSide = Math.max(1, Math.floor(seqNum("premarketMap", "maxPools", 8) / 2));
+  const pools = [...poolsAll.filter((p) => near(p.price) && p.side === "buyside").sort(byDist).slice(0, perSide), ...poolsAll.filter((p) => near(p.price) && p.side === "sellside").sort(byDist).slice(0, perSide)];
   for (const p of pools) levels.push({ name: `EQ${p.side === "buyside" ? "H" : "L"} ${p.tf} ×${p.touches}`, price: p.price, kind: "pool" });
   // dealing range: prior session + overnight (one session each)
   const on = ranges["Overnight"];

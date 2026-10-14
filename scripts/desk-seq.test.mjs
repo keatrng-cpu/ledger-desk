@@ -126,3 +126,46 @@ test("F1 premarketMap: 10/14 MNQ (Yahoo NQ=F) — bear stack, expect the high ra
   assert.ok(mp.arrays.some((a) => a.dir === "bear" && ["30m", "1h"].includes(a.tf) && a.lo <= 30656 && a.hi >= 30600));
   assert.ok(mp.levels.some((l) => l.name === "PDL"));
 });
+
+const amdm = await import("../src/lib/smc/seq/amd-state.ts");
+test("F4 amd: no lookahead — the read at T equals the prefix of the read at a later time", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-MNQ.json") }, () => {
+  const m = yahoo("MNQ").filter((b) => b.t % 60e3 === 0);
+  const cut = Date.UTC(2026, 9, 14, 13, 26);
+  const map = pm.premarketMap({ symbol: "MNQ", minute: m.filter((b) => b.t + 60e3 <= cut && b.t > cut - 12 * 864e5), nowMs: cut });
+  const bars = m.filter((b) => b.t > cut - 6 * 36e5);
+  const T = Date.UTC(2026, 9, 14, 13, 55); // 09:55 ET
+  const early = amdm.amdRead("MNQ", map, bars, T);
+  const late = amdm.amdRead("MNQ", map, bars, Date.UTC(2026, 9, 14, 15, 0));
+  const lateLogs = late.setups.flatMap((s) => s.log.filter((l) => l.t <= T).map((l) => `${s.side}:${l.t}:${l.stage}`));
+  const earlyLogs = early.setups.flatMap((s) => s.log.map((l) => `${s.side}:${l.t}:${l.stage}`));
+  assert.deepEqual(earlyLogs.sort(), lateLogs.sort());
+  // feeding future bars must not change the read at T
+  const same = amdm.amdRead("MNQ", map, bars.filter((b) => b.t + 60e3 <= T), T);
+  assert.deepEqual(same.setups.map((s) => s.log), early.setups.map((s) => s.log));
+});
+
+test("F4 amd: 10/14 MNQ — raids the 15m bear breaker 09:40, confirms on a closed 5m inversion 09:55, CE ≈30,583; arms only if a real target clears minR", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-MNQ.json") }, async () => {
+  const { setSeqOverrides } = await import("../src/lib/smc/seq/rules.ts");
+  const m = yahoo("MNQ").filter((b) => b.t % 60e3 === 0);
+  const cut = Date.UTC(2026, 9, 14, 13, 26);
+  const map = pm.premarketMap({ symbol: "MNQ", minute: m.filter((b) => b.t + 60e3 <= cut && b.t > cut - 12 * 864e5), nowMs: cut });
+  const bars = m.filter((b) => b.t > cut - 6 * 36e5);
+  const r = amdm.amdRead("MNQ", map, bars, Date.UTC(2026, 9, 14, 15, 0));
+  const s = r.setups.find((x) => x.side === "short" && /15m breaker/.test(x.raid?.name ?? ""));
+  assert.ok(s, "the 15m bear breaker raid is a MANIP");
+  assert.ok(s.log.some((l) => l.stage === "CONFIRM"));
+  assert.equal(s.stage, "EXPIRED"); // shipped minR 1.25: the only real liquidity below (RTH low 30,498) is < 1R from the CE
+  assert.match(s.log.at(-1).why, /no real target/);
+  setSeqOverrides({ amd: { minR: 0.9 } });
+  try {
+    const r2 = amdm.amdRead("MNQ", map, bars, Date.UTC(2026, 9, 14, 15, 0));
+    const e = r2.setups.find((x) => x.side === "short" && (x.stage === "ARMED" || x.stage === "ENTERED") && x.entry > 30570 && x.entry < 30600);
+    assert.ok(e, "at minR 0.9 it arms the displacement-gap CE (≈30,583) on the 09:55 5m close");
+    assert.ok(e.stop > 30660.75); // real stop beyond the manipulation extreme
+  } finally { setSeqOverrides(null); }
+});
+
+test("F4 amd: no map / thin tape → no setups, never throws", () => {
+  const r = amdm.amdRead("X", null, [], Date.now());
+  assert.equal(r.setups.length, 0);
+});
