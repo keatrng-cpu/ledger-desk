@@ -314,7 +314,30 @@ export class NavGrid {
       idx = far + 1;
     }
     pts.push(b);
-    return pts;
+    return this.roundCorners(a, pts);
+  }
+
+  /** floor-62 #21: cut each corner with two points (≤0.35 m back along each leg) when the shortcut stays on free floor. */
+  roundCorners(a: V2, pts: V2[]): V2[] {
+    if (pts.length < 2) return pts;
+    const out: V2[] = [];
+    let prev: V2 = a;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p = pts[i]!;
+      const n = pts[i + 1]!;
+      const back = (q: V2): V2 => {
+        const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        const k = d > 0 ? Math.min(0.35, d * 0.3) / d : 0;
+        return [p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k];
+      };
+      const c1 = back(prev);
+      const c2 = back(n);
+      if (this.lineFree(c1, c2) && this.free(...this.cellOf(c1[0], c1[1])) && this.free(...this.cellOf(c2[0], c2[1]))) out.push(c1, c2);
+      else out.push(p);
+      prev = p;
+    }
+    out.push(pts[pts.length - 1]!);
+    return out;
   }
 }
 
@@ -732,6 +755,12 @@ class Avatar {
   private nav: NavGrid | null = null;
   /** floor-62 #10: everyone else on the floor, for personal space (set by the scene). */
   others: () => V2[] = () => [];
+  /** floor-62 #28: an urgent exchange walks faster. */
+  urgent = false;
+  /** floor-62 #23: whom a standing listener turns toward while someone else speaks. */
+  listenTo: V2 | null = null;
+  /** floor-62 #22: 0..1, how close price is to the card's entry — standing people lean in as it nears. */
+  tension = 0;
   mode: "stand" | "sit" | "couch" | "stool" = "stand";
   private walkPhase = 0;
   moving = false;
@@ -1171,7 +1200,7 @@ class Avatar {
       const dx = next[0] - this.pos[0];
       const dz = next[1] - this.pos[1];
       const d = Math.hypot(dx, dz);
-      const gait = this.anim === "PACING" ? WALK.pace : WALK.walk;
+      const gait = this.anim === "PACING" ? WALK.pace : this.urgent ? WALK.urgent : WALK.walk;
       // floor-62 #11: ease in, decelerate over the last metres; #17: turn toward the first leg before stepping off.
       let rem = d;
       for (let i = 1; i < this.path.length; i++) rem += Math.hypot(this.path[i]![0] - this.path[i - 1]![0], this.path[i]![1] - this.path[i - 1]![1]);
@@ -1198,6 +1227,7 @@ class Avatar {
       if (!this.path.length) {
         this.moving = false;
         this.speedNow = 0;
+        this.urgent = false;
         if (target) this.mode = target.pose;
       }
     } else if (target) {
@@ -1216,7 +1246,8 @@ class Avatar {
           this.walkPhase += dt * WALK.pace * 4.4;
         }
       } else {
-        const want = this.gaze && target.pose === "stand" ? yawTo(this.pos, this.gaze) : target.yaw;
+        const look = target.pose === "stand" ? this.listenTo ?? this.gaze : null;
+        const want = look ? yawTo(this.pos, look) : target.yaw;
         this.yaw = angleLerp(this.yaw, want, 1 - Math.exp(-6 * dt));
         this.mode = target.pose;
       }
@@ -1234,6 +1265,9 @@ class Avatar {
       g.rotation.y += (r[1] - g.rotation.y) * k;
       g.rotation.z += (r[2] - g.rotation.z) * k;
     };
+    if (!this.moving && this.mode === "stand" && this.tension > 0) {
+      pose.spine = [pose.spine[0] + 0.14 * this.tension, pose.spine[1], pose.spine[2]];
+    }
     setR(this.spine, pose.spine);
     setR(this.head, pose.head);
     setR(this.shL, pose.shL);
@@ -1887,6 +1921,10 @@ export class FloorScene {
   private qualityLevel = 0;
   /** floor-62 #14: prefers-reduced-motion — no pacing, no ambient camera drift. */
   readonly reducedMotion = typeof window !== "undefined" && (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false);
+  private tensionNow(): number {
+    const away = this.frame?.trace.entry?.entry.awayPts;
+    return away == null ? 0 : Math.max(0, Math.min(1, 1 - Math.abs(away) / 50));
+  }
   private fpsMeter(dt: number) {
     if (dt <= 0) return;
     this.fpsEma += (1 / dt - this.fpsEma) * 0.05;
@@ -1904,6 +1942,12 @@ export class FloorScene {
   }
   /** People an exchange sent somewhere (to the board, to the coffee): a cycle refresh leaves them be until it ends. */
   private readonly away = new Set<Character>();
+  /** floor-62 #24: when the last exchange sent someone away; nobody is left stranded past AWAY_MAX_SEC. */
+  private awayAt = 0;
+  /** floor-62 #20: how long the next line has waited for its speaker to arrive. */
+  private arriveWait = 0;
+  /** floor-62 #60: shadows re-render at 15 Hz, not every frame. */
+  private shadowAt = 0;
 
   constructor(container: HTMLElement, opts: FloorSceneOptions = {}) {
     this.container = container;
@@ -1916,6 +1960,8 @@ export class FloorScene {
     this.renderer.toneMappingExposure = 1.05;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.needsUpdate = true;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = "block";
     // Touch: let the page scroll vertically until the canvas is focused.
@@ -2557,8 +2603,11 @@ export class FloorScene {
       if (!m) continue;
       const zone = m.zone ?? this.frame?.output.room_state.character_locations[who] ?? "THE_WHITEBOARD";
       const act: AgentAct | null = m.spot ? { act: "chat", since: this.time, spot: m.spot, with: null } : null;
-      this.avatars.get(who)!.goTo(this.targetFor(who, zone, act, used), this.nav);
+      const av = this.avatars.get(who)!;
+      av.urgent = b.urgency >= 2;
+      av.goTo(this.targetFor(who, zone, act, used), this.nav);
       this.away.add(who);
+      this.awayAt = this.time;
     }
     this.opts.onTalk?.(b.id, "started");
   }
@@ -3055,6 +3104,10 @@ export class FloorScene {
     // floor-62 #19: a slow frame is run as several ≤0.1 s steps (up to 0.5 s), so walking keeps wall time with speech.
     let real = Math.min(this.clock.getDelta(), 0.5);
     this.fpsMeter(real);
+    if (this.time - this.shadowAt >= 1 / 15) {
+      this.shadowAt = this.time;
+      this.renderer.shadowMap.needsUpdate = true;
+    }
     while (real > 1e-6) {
       const dt = Math.min(real, 0.1);
       real -= dt;
@@ -3109,7 +3162,15 @@ export class FloorScene {
     this.fadeOccluders(dt);
     // The meeting, one line at a time.
     const wall = this.wallSec();
-    if (this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
+    if (this.away.size && this.time - this.awayAt > 90 && !this.speaking()) this.sendHome();
+    const tn = this.tensionNow();
+    for (const a of this.avatars.values()) a.tension = tn;
+    const nextUp = this.lines[this.lineIdx + 1];
+    const nextAv = nextUp ? this.avatars.get(nextUp.character) : undefined;
+    const waitForWalk = Boolean(nextAv?.moving) && this.arriveWait < 4;
+    if (waitForWalk && this.lines.length && wall >= this.lineEndsAt) this.arriveWait += dt;
+    if (!waitForWalk && this.lines.length && wall >= this.lineEndsAt && this.lineIdx < this.lines.length) {
+      this.arriveWait = 0;
       let line: DialogueLine | null = null;
       const now = Date.now();
       while (this.lineIdx < this.lines.length) {
@@ -3127,9 +3188,11 @@ export class FloorScene {
         line = next;
         break;
       }
+      const spk = line ? this.avatars.get(line.character) : undefined;
       for (const a of this.avatars.values()) {
         a.speaking = Boolean(line && a.who === line.character);
         a.say(a.speaking && line ? line.text : null);
+        a.listenTo = spk && a !== spk && !this.reducedMotion ? spk.pos : null;
       }
       if (line) {
         this.lineEndsAt = wall + speakHoldSec(line.character, line.text, line.animation) / this.speed;
