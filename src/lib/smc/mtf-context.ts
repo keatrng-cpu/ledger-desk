@@ -64,6 +64,8 @@ export interface LtfReversal {
    * (`killClearedOf`). kill.clear.mode live → also sets `rearmed` (capped A-); shadow → reported only.
    */
   killCleared?: { t: number; why: string } | null;
+  /** Standing rule (no single-TF rule), SHADOW: rungs 1m–4h holding a fresh opposing IFVG (≤ IFVG5_MAX_AGE own bars). Kill would need ≥ 2. */
+  killMtf?: { rungs: string[]; wouldKill: boolean };
 }
 export interface BookMtf {
   symbol: string;
@@ -356,7 +358,7 @@ export function ltfReversalsOf(
     };
     const cleared = killClearedOf(m, side, ks);
     const rearmed = rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) ?? (KILL_CLEAR.mode === "live" ? cleared : null);
-    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed, killCleared: cleared, smc });
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed, killCleared: cleared, smc, killMtf: killMtfOf(rows, side) });
   }
   return out;
 }
@@ -382,6 +384,13 @@ export function killVoided(m: OhlcBar[], side: Side, killT: number, level: numbe
   }
   if (lastT - killT > RULES.kill.maxAgeMin * 60_000) return { t: lastT, why: `kill aged out (> ${RULES.kill.maxAgeMin} min)` };
   return null;
+}
+
+/** Shadow multi-TF kill read: every rung, not the 5m alone. */
+export function killMtfOf(rows: Parameters<typeof ltfReversalsOf>[0], side: Side): { rungs: string[]; wouldKill: boolean } {
+  const opp = side === "long" ? "bear" : "bull";
+  const rungs = [...new Set(rows.filter((r) => r.kind === "ifvg" && !r.mitigated && r.dir === opp && r.ageBars <= IFVG5_MAX_AGE).map((r) => r.tf))];
+  return { rungs, wouldKill: rungs.length >= 2 };
 }
 
 /** Fix A rules (shared/desk-rules.json kill.clear). */
