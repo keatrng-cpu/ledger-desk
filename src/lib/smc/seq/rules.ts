@@ -18,3 +18,17 @@ export const seqNum = (k: string, f: string, d: number): number => {
 };
 export const seqItem = <T = unknown>(k: string, f: string): T | undefined => DS[k]?.[f] as T | undefined;
 export const r2 = (n: number) => Math.round(n * 100) / 100;
+
+const OFF = new Map<number, number>();
+/** ET wall clock of an epoch ms: { day: YYYY-MM-DD, hm: minutes after midnight, wd: 0=Sun }. DST-safe (hourly offset cache). */
+export function etOf(t: number): { day: string; hm: number; wd: number } {
+  const key = Math.floor(t / 3_600_000);
+  let off = OFF.get(key);
+  if (off == null) {
+    const s = new Date(t).toLocaleString("en-US", { timeZone: "America/New_York", hourCycle: "h23" });
+    off = Math.round((new Date(s + " UTC").getTime() - Math.floor(t / 1000) * 1000) / 60_000);
+    OFF.set(key, off);
+  }
+  const e = new Date(t + off * 60_000);
+  return { day: e.toISOString().slice(0, 10), hm: e.getUTCHours() * 60 + e.getUTCMinutes(), wd: e.getUTCDay() };
+}

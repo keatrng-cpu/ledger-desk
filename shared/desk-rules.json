@@ -841,6 +841,12 @@
     "brainBooks": {
       "mode": "shadow",
       "_doc": "F5: brain words per book x side; Floor/master/grok_agree read the ticket book+side. A STAND/WAIT on a DIFFERENT symbol is a caution, not a block; same symbol opposite side is never weakened."
+    },
+    "pdLeg": {
+      "mode": "shadow",
+      "eqBand": 0.05,
+      "lookbackMin": 120,
+      "_doc": "F6: pd_half judged at the POI inside the dealing leg (manipulation extreme to the extreme since, closed 1m by feed time), EQ band = no edge; EQ stack = prior session (PDH/PDL), this session, Asia, London, NY OR, overnight (one session each, 18:00 ET roll). Shadow: never flips the legacy must."
     }
   }
 }
