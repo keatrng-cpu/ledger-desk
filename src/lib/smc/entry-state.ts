@@ -7,7 +7,8 @@
  *   missed — past by more, or T1 already traded
  * Every rung 1m–4h is read (standing rule: no single-timeframe rule): `byTf` is the distance in that
  * rung's own ATR, and `stateMtf` is the state from the MEDIAN of those distances scaled to the 15m
- * horizon (ATR_tf × √(15/tfMin)). `state` stays on ATR15 for parity with the execution gates.
+ * horizon (ATR_tf × √(15/tfMin)); `state` = that combined read (ATR15 fallback). `distAtr` stays ATR15 so it
+ * reads like the execution gates, which are unchanged (watcher entry_distance 0.5×ATR, loss.late, late_pnl).
  * Late/missed propose a re-entry ONLY at a real POI already on the wire: an unmitigated FVG/IFVG/sponsored
  * row of the side's direction on any rung (its CE), or the retest of the broken entry zone. No invented levels.
  * Shown on the card as e.g. "A, waiting for retest".
@@ -71,8 +72,9 @@ export function entryStateOf(o: {
   }
   scaled.sort((x, y) => x - y);
   const med = scaled.length ? scaled[Math.floor(scaled.length / 2)]! : null;
-  const state = classify(d, inZone, t1Hit);
+  // All timeframes combined: the state is read from the 1m–4h median (ATR15 only when no rung has an ATR).
   const stateMtf = med == null ? null : classify(med, inZone, t1Hit);
+  const state = stateMtf ?? classify(d, inZone, t1Hit);
   let reentry: EntryState["reentry"] = null;
   if (state === "late" || state === "missed") {
     const want = long ? "bull" : "bear";
