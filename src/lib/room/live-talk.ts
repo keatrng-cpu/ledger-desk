@@ -1954,7 +1954,13 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
     draft.droppedLines = (draft.droppedLines ?? 0) + (ex.lines.length - lines.length); // floor-62 #34
     // A seat whose line was dropped is not walked anywhere to say nothing.
     const speaking = new Set(lines.map((l) => l.character));
-    const moves = Object.fromEntries(Object.entries(ex.moves).filter(([who]) => speaking.has(who as Character))) as typeof ex.moves;
+    let moves = Object.fromEntries(Object.entries(ex.moves).filter(([who]) => speaking.has(who as Character))) as typeof ex.moves;
+    // floor-62 #29: one table maps an event to a walk — a card or level exchange with no walk of its own sends a speaker whose
+    // gesture is a board gesture to the whiteboard.
+    if (!Object.keys(moves).length && EVENT_WALK[c.kind] && c.urgency >= 1) {
+      const l = lines.find((x) => EVENT_WALK[c.kind]!.anims.includes(x.animation));
+      if (l) moves = { [l.character]: { zone: EVENT_WALK[c.kind]!.zone } };
+    }
     if (!lines.length) {
       draft.suppressed += 1;
       st = draft;
@@ -2115,6 +2121,13 @@ function geometryCands(w: TalkWorld, st: TalkState, out: Cand[]) {
 
 /* floor-62 #33: turn-taking — a seat that has been silent 20 minutes gets the floor for its own beat, on its own data, only when
  * that data changed since it last spoke. Jax reads the tape; Vince reads the pipe and the book. */
+const BOARD_ANIMS: readonly string[] = ["WRITING_ON_WHITEBOARD", "GESTICURING_AT_WALL"];
+/** floor-62 #29: event kind → who walks where (when the exchange named no walk). */
+export const EVENT_WALK: Partial<Record<TalkKind, { zone: "THE_WHITEBOARD"; anims: readonly string[] }>> = {
+  card: { zone: "THE_WHITEBOARD", anims: BOARD_ANIMS },
+  level: { zone: "THE_WHITEBOARD", anims: BOARD_ANIMS },
+  calendar: { zone: "THE_WHITEBOARD", anims: BOARD_ANIMS },
+};
 const QUIET_SEAT_MS = 20 * 60_000;
 function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   const now = w.nowMs;

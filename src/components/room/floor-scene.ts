@@ -757,6 +757,9 @@ class Avatar {
   others: () => V2[] = () => [];
   /** floor-62 #28: an urgent exchange walks faster. */
   urgent = false;
+  private wasReacting = false;
+  /** floor-62 #27: seconds left getting up from a seat before the first step. */
+  private rise = 0;
   /** floor-62 #23: whom a standing listener turns toward while someone else speaks. */
   listenTo: V2 | null = null;
   /** floor-62 #22: 0..1, how close price is to the card's entry — standing people lean in as it nears. */
@@ -1188,6 +1191,7 @@ class Avatar {
       }
       this.path = path;
       this.moving = true;
+      if (this.mode !== "stand") this.rise = 0.45;
       this.mode = "stand";
     }
   }
@@ -1195,7 +1199,9 @@ class Avatar {
   update(dt: number, t: number) {
     const target = this.target;
     // Locomotion.
-    if (this.moving && this.path.length) {
+    if (this.moving && this.path.length && this.rise > 0) {
+      this.rise -= dt; // standing up: the body rises (bodyY damps to standing) before the feet move
+    } else if (this.moving && this.path.length) {
       const next = this.path[0]!;
       const dx = next[0] - this.pos[0];
       const dz = next[1] - this.pos[1];
@@ -1257,9 +1263,11 @@ class Avatar {
 
     // Pose. A live reaction (cheer, facepalm) beats the ambient one, never the walk.
     const reacting = this.reaction && t < this.reaction.until ? this.reaction.key : null;
-    const key: AnimKey = this.moving ? "WALK" : reacting ?? (this.pace && this.mode === "stand" ? "PACING" : this.anim);
+    const key: AnimKey = this.moving && this.rise <= 0 ? "WALK" : reacting ?? (this.pace && this.mode === "stand" ? "PACING" : this.anim);
     const pose = poseFor(key, t, this.moving ? "stand" : this.mode, this.hipH, this.walkPhase);
-    const k = 1 - Math.exp(-12 * dt);
+    // floor-62 #25: a reaction blends in and out over ~0.3 s instead of snapping.
+    const k = 1 - Math.exp(-(reacting || this.wasReacting ? 6 : 12) * dt);
+    this.wasReacting = Boolean(reacting);
     const setR = (g: THREE.Object3D, r: V3) => {
       g.rotation.x += (r[0] - g.rotation.x) * k;
       g.rotation.y += (r[1] - g.rotation.y) * k;
