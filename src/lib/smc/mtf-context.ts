@@ -50,6 +50,14 @@ export interface LtfReversal {
   level: number;
   /** Temporary kill: set once sweep → displacement → inversion-back prints. Card is capped A- then. */
   rearmed: { t: number; why: string } | null;
+  /**
+   * smcUnity shadow read (F1/F7, audit 2026-10-14). `failedOnly`: every piece of
+   * evidence is an iFVG that already closed back through its origin side — the
+   * kill has no live evidence. `killTInv`: the kill anchored on the inversion
+   * time. Changes nothing unless smcUnity.ifvgFail.mode is "live" (then a
+   * failed-only kill is never emitted).
+   */
+  smc?: { failedOnly: boolean; failed: string[]; killTInv: number | null };
 }
 export interface BookMtf {
   symbol: string;
@@ -239,6 +247,8 @@ export function htfBiasOf(ctx: MtfContext | null | undefined, symbol: string) {
   return { symbol, bias1h: r("1h"), bias4h: r("4h") };
 }
 
+const SMCU = ((RULES as unknown) as { smcUnity?: Record<string, { mode?: string }> }).smcUnity ?? {};
+const BOTH_KILLS_LIVE = SMCU.bothKills?.mode === "live";
 export let IFVG5_MAX_AGE = RULES.kill.ifvg5MaxAge; // kill-tune 2026-10-13: 4 vs 6 ≈ same precision (0.507 vs 0.503); 6 kept — 4 misses the 10:33 ES replay
 export let REJECT_WICK_FRAC = RULES.kill.rejectWickFrac;
 export let DISP1_ATR = RULES.kill.disp1Atr; // kill-tune: 1.25 → 1.0 (0.481 → 0.507; still kills the 10:33 ES replay)
@@ -253,7 +263,7 @@ export const REJECT_LOOKBACK = 10;
 export const EXTREME_LOOKBACK = 10;
 
 type Side = "long" | "short";
-interface Kill { side: Side; t: number; level: number; why: string }
+interface Kill { side: Side; t: number; level: number; why: string; failed?: boolean; tInv?: number | null }
 
 /**
  * LTF reversal against a side (Keaton 2026-10-13 10:33 ET). Triggers, CLOSED bars:
@@ -264,7 +274,7 @@ interface Kill { side: Side; t: number; level: number; why: string }
  * (see `rearmAfter`); then the card is capped at A-.
  */
 export function ltfReversalsOf(
-  rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number }[],
+  rows: { tf: string; kind: string; dir: "bull" | "bear"; ageBars: number; mitigated: boolean; lo?: number; hi?: number; failed?: boolean; invertedT?: number | null }[],
   minute: OhlcBar[] | null | undefined,
 ): LtfReversal[] {
   const m = (minute ?? []).slice(0, -1); // drop the forming bar
@@ -274,7 +284,8 @@ export function ltfReversalsOf(
     if (r.tf !== "5m" || r.kind !== "ifvg" || r.mitigated || r.ageBars > IFVG5_MAX_AGE) continue;
     const side: Side = r.dir === "bear" ? "long" : "short";
     const level = side === "long" ? (r.hi ?? NaN) : (r.lo ?? NaN);
-    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b) against the ${side}` });
+    const failed = r.failed === true;
+    kills.push({ side, t: lastT - r.ageBars * 300e3, level, why: `5m IFVG ${r.dir} (${r.ageBars}b)${failed ? " [failed]" : ""} against the ${side}`, failed, tInv: r.invertedT ?? null });
   }
   const atrs = m.length ? rollingAtr(m) : [];
   const n = m.length;
@@ -330,7 +341,13 @@ export function ltfReversalsOf(
     const levels = ks.map((x) => x.level).filter((x) => Number.isFinite(x));
     // The rebuild must reclaim the FARTHEST opposing edge of the evidence.
     const level = levels.length ? (side === "long" ? Math.max(...levels) : Math.min(...levels)) : NaN;
-    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) });
+    const failedKs = ks.filter((x) => x.failed);
+    const smc = {
+      failedOnly: failedKs.length === ks.length,
+      failed: failedKs.map((x) => x.why),
+      killTInv: ks.reduce<number | null>((a, x) => (x.tInv != null && (a == null || x.tInv > a) ? x.tInv : a), null),
+    };
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level), smc });
   }
   return out;
 }
@@ -365,8 +382,9 @@ export function ltfReversalOf(
 ): LtfReversal | null {
   const all = ltfReversalsOf(rows, minute);
   const live = all.filter((r) => !r.rearmed).sort((a, b) => b.killT - a.killT);
-  // Two live kills on opposite sides = no clean read.
-  if (live.length === 2) return null;
+  // Two live kills on opposite sides = no clean read. (smcUnity.bothKills live:
+  // the newest is returned here and both stay on `ltfReversals` — audit F12.)
+  if (live.length === 2 && !BOTH_KILLS_LIVE) return null;
   return live[0] ?? all.sort((a, b) => b.killT - a.killT)[0] ?? null;
 }
 

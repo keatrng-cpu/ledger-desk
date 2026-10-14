@@ -23,6 +23,7 @@ import { mtfArrays, WIRE_ARRAYS_CAP, type ArrayRow } from "@/lib/smc/mtf-arrays"
 import type { DeskPayload } from "./build-desk";
 import { evaluateOptionsDesk } from "./options-desk";
 import { isJudasWindow } from "./sessions";
+import { buildSmcUnity, type SmcUnityWire } from "@/lib/smc/smc-unity-wire";
 import type { GrokReport } from "@/lib/desk/grok-report";
 
 export interface DeskListenCard {
@@ -99,6 +100,8 @@ export interface DeskWire {
     right: { symbol: string; price: number; source: string; lagSec: number };
   };
   mtf?: ReturnType<typeof wireMtf> | null;
+  /** SMC/unity shadow reads (shared rules smcUnity.*; audit 2026-10-14). Shadow = changes nothing. */
+  smcUnity?: SmcUnityWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
   strategy: {
@@ -390,6 +393,11 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     execution: { phase, to: "grok", account: "agentic-6158", broker: "robinhood" },
   };
   wire.master = masterSeat(masterInputOf(wire, desk.mtfContext ?? null, "normal"));
+  try {
+    wire.smcUnity = buildSmcUnity(desk, top ?? null, arrRows, book ? { symbol: book.symbol, side: book.side, word: book.word } : null, wire.floor.ticket?.dte ?? null);
+  } catch {
+    wire.smcUnity = null; // shadow layer must never break the card
+  }
   const said = [
     {
       who: "Vince",

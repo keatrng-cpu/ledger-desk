@@ -741,5 +741,60 @@
       ],
       "_doc": "Keaton 2026-10-13 18:29 CT: debit cap $650 for EVERY grade (desk RH_MAX_DEBIT_TOTAL = envelope.maxDebit 650); max contracts stay the grade ladder (A+ 4 / A 2 / A- 1 / B+ 1). Single options only (fastChain.spreadFallback=false, sizeToFit.spread=false). $50 floor, BP gate, daily loss cap and -$300 weekly lock unchanged."
     }
+  },
+  "smcUnity": {
+    "_doc": "SMC/unity audit 2026-10-14 (audits/smc-unity-audit-2026-10-14.md). Every item is shadow: computed, logged on wire.smcUnity / watcher shadow:smc:* rows, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only). Depends on fix/stale-veto-q-timing (kill.clear, timing) and feat/ltf-arm (1m-5m arming) — does not duplicate them.",
+    "rungs": [
+      "1m",
+      "2m",
+      "3m",
+      "4m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "4h"
+    ],
+    "ifvgFail": {
+      "mode": "shadow",
+      "_doc": "F1: an IFVG that CLOSES back through its origin side (bull IFVG close < lo, bear IFVG close > hi) is a failed inversion: row.failed=true, it no longer kills; killT anchors to the inversion time (F7)."
+    },
+    "continuation": {
+      "mode": "shadow",
+      "_doc": "F2: while the side's structure holds on >= minRungs closed rungs (same-dir FVGs holding, opposite IFVGs failing, lower highs/higher lows), the card rolls T1 to the next real liquidity beyond price (>= minR from the new POI) and re-anchors entry to the newest unmitigated same-direction array formed after the last BOS on any rung; pd_half is judged at the POI inside the latest leg; the late guard measures from that POI; same-leg continuation is not a 'second entry'.",
+      "minRungs": 3,
+      "minR": 1.0,
+      "t1NearAtr": 0.5,
+      "eqSplit": 0.5
+    },
+    "killzoneLive": {
+      "mode": "shadow",
+      "_doc": "F3: watcher runs killzone.detect each closed 1m bar in nyAm/nyPm without lookahead (shadow:kz rows); taps read arrays on 1m-1h."
+    },
+    "brainPerBook": {
+      "mode": "shadow",
+      "_doc": "F4: a brain STAND/side on a different book than the ticket is a caution, not a block."
+    },
+    "extensionMtf": {
+      "mode": "shadow",
+      "_doc": "F8: extension guard accepts closed reversal evidence on any rung 1m-30m; caps at A- instead of skip."
+    },
+    "feedClock": {
+      "mode": "shadow",
+      "minuteMaxStaleS": 120,
+      "_doc": "F9: closed-bar tests use the series' feed time (marketTimeMs), not the server clock; a 1m series older than minuteMaxStaleS never feeds kills, re-arms or LTF structure."
+    },
+    "floorDte": {
+      "mode": "shadow",
+      "_doc": "F10: intraday SMT/killzone tickets take optExec.dteByTime (0DTE before zeroDteUntilEt) instead of a fixed 5 DTE."
+    },
+    "ranges": {
+      "mode": "shadow",
+      "_doc": "F11/Keaton: premium/discount per rung on that rung's own dealing range (last confirmed swing high to swing low on closed bars), session ranges (Asia/London/NY/OR) from closed 1m by feed time; the impulse leg is anchored on the newest multi-rung sweep, not a 15m-only one."
+    },
+    "bothKills": {
+      "mode": "shadow",
+      "_doc": "F12: two live opposite kills are both reported (each side killed), not null."
+    }
   }
 }
