@@ -2184,6 +2184,8 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
   const t = card.ticket;
   const send = rhSendableFromTicket(t);
   if (!send.ok) holds.push(send.reason);
+  // Uncut envelope only ($50–$650). A sizeCut card is held to the CUT cap ($325 on A+) by cutCapHold() in gateHand,
+  // which walks the cut contracts down and sends the card to WATCH if one contract is over (Accuracy ac6c36ee).
   else if (t.estDebitTotal < RH_MIN_DEBIT_TOTAL || t.estDebitTotal > RH_MAX_DEBIT_TOTAL) {
     holds.push(`Live debit $${Math.round(t.estDebitTotal)} is outside $${RH_MIN_DEBIT_TOTAL}–$${RH_MAX_DEBIT_TOTAL}.`);
   }

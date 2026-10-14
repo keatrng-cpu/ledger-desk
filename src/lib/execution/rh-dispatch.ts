@@ -11,6 +11,7 @@
  */
 import { mayPlaceAfterReview, rhAutofireEnabled, rhLiveArmed, RH_ORDER_REVIEW_MAX_AGE_MS } from "./rh-autofire";
 import { rhAccountFromPortfolio } from "./rh-account";
+import { RH_MAX_DEBIT_TOTAL, rhSizeCutDebit } from "./rh-autofire-gates";
 import { toManagerRhAccount, type ManagerRhAccount } from "./manager-account";
 import { failedHoldClose, type RhCycle, type RhHeld, type RhOrder } from "./rh-cycle";
 import { refIdFor, type DeskOpen, type RhLedger, type RhPos, type RhQuote, type RhReview, type RhTooling } from "./rh-tools";
@@ -395,6 +396,8 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
     pathBand: manager?.path?.band ?? null,
     // fireFix.gateHand cut: the cut cap ($325 on A+) is held on the review-time live ask (Accuracy ac6c36ee).
     sizeCut: manager?.floor?.sizeCut === true,
+    // The candidate's cap rides into review on its own, not only through sizeCut (Accuracy 1c6af45c note).
+    maxDebitTotal: rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, manager?.floor?.sizeCut === true),
     nowMs: clock(),
   });
   if (!may.ok) return { cycle, sent: false, why: may.reason, orderId: null };

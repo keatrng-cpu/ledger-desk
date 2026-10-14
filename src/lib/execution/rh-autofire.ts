@@ -317,9 +317,10 @@ export function proposeRhLiveOption(args: {
   while (args.candidate.sizeCut === true && shape.quantity > RH_MIN_CONTRACTS && shape.debitTotal > cutCap + 1e-9) {
     shape = buildRhReviewPlaceShape({ ...args.ticket, contracts: shape.quantity - 1 }, ref, args.liveQuote ?? null, nowMs);
   }
-  if (args.candidate.sizeCut === true && shape.debitTotal > cutCap + 1e-9) {
+  // maxDebitTotal is enforced on its own (Accuracy 1c6af45c note): any candidate cap, cut or not, refuses debit_cap here.
+  if (shape.debitTotal > cutCap + 1e-9) {
     return {
-      gated: { ok: false, gate: "debit_cap", reason: `Live debit $${shape.debitTotal.toFixed(0)} for 1 contract exceeds the ${args.candidate.sizeCut ? "cut " : ""}cap $${cutCap.toFixed(0)}.` },
+      gated: { ok: false, gate: "debit_cap", reason: `Live debit $${shape.debitTotal.toFixed(0)} for ${shape.quantity} contract(s) exceeds the ${args.candidate.sizeCut ? "cut " : ""}cap $${cutCap.toFixed(0)}.` },
       ticket: null, placeShape: null, mode: "refused", flags,
     };
   }

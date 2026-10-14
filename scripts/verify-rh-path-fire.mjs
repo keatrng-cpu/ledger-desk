@@ -157,6 +157,8 @@ console.log("\nlive option quote REQUIRED (missing refuses; present can pass)");
   check("cut review: 2ct at live $3.00 (~$604) refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 2, sizeCut: true }).ok, false);
   check("cut review: 1ct at live $3.00 (~$302) may place", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 1, sizeCut: true }).ok, true);
   check("cut review: 1ct at live $4.50 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(4.5), quantity: 1, sizeCut: true }).ok, false);
+  check("review maxDebitTotal $325 alone (no sizeCut): 2ct at $3.00 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 2, maxDebitTotal: 325 }).ok, false);
+  check("review maxDebitTotal $325 alone: 1ct at $3.00 may place", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 1, maxDebitTotal: 325 }).ok, true);
   check("uncut review: 2ct at live $3.00 may place (<= $650)", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 2 }).ok, true);
   check("review with stale live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5, 60_000), quantity: 2 }).ok, false);
   check("review with null live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: null, quantity: 2 }).ok, false);
