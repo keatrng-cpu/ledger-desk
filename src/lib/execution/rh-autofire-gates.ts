@@ -480,6 +480,16 @@ export function rhSizeCutContracts(n: number | null | undefined, cut: boolean | 
   return Math.max(1, Math.floor(n * (mult > 0 && mult < 1 ? mult : 0.5)));
 }
 
+/**
+ * The cut's debit cap (Accuracy 5211b6e0): the watcher's firefix.effective_caps legacy cut halves BOTH contracts and the
+ * debit cap (maxc x0.5, maxd x0.5). A cut A+ is 2 contracts at most $325 on both sides.
+ */
+export function rhSizeCutDebit(cap: number, cut: boolean | null | undefined): number {
+  if (!cut) return cap;
+  const mult = Number((RULES as { loss?: { htf?: { sizeMult?: number } } }).loss?.htf?.sizeMult ?? 0.5);
+  return cap * (mult > 0 && mult < 1 ? mult : 0.5);
+}
+
 export function evaluateRhAutofireGates(c: RhAutofireCandidate, flags: RhAutofireFlags): RhAutofireGateResult {
   if (!flags.autofireEnabled) {
     return { ok: false, gate: "autofire_off", reason: "RH_OPTIONS_AUTOFIRE_ENABLED is not true." };

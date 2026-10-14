@@ -199,6 +199,7 @@ function cardEntry(desk: DeskPayload, card: RhStrategyCard): RoomEntryRead {
     // fireFix.gateHand live hands A+/A with soft holds at a one-step size cut; the desk dispatcher reads THIS
     // number, so it must carry the same cut as the watcher (Accuracy 2026-10-13).
     deskContracts: rhSizeCutContracts(card.ticket?.contracts ?? null, card.sizeCut === true),
+    sizeCut: card.sizeCut === true,
     sizedFrom: card.ticket?.sizedFrom ?? null,
     latePnl: card.ticket?.latePnlPending
       ? { pending: true, px: null, t1: null, spot: null, delta: null, ...(card.ticket.latePnlInputs ?? {}) }

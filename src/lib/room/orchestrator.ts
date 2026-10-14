@@ -206,6 +206,8 @@ export interface RoomEntryRead {
   smcMissing: string;
   /** The desk ticket's contract count — the room may only shrink it. Null = no ticket. */
   deskContracts: number | null;
+  /** fireFix.gateHand one-step cut: deskContracts is already halved; the debit cap is halved in the manager feed. */
+  sizeCut?: boolean;
   sizedFrom: "level" | "ceiling" | null;
   /** Floor ticket latePnlPending (lateEntry.modelPricePending) + its inputs; the RH gate re-checks on the live ask. */
   latePnl?: { pending: boolean; px: number | null; t1: number | null; spot: number | null; delta: number | null } | null;

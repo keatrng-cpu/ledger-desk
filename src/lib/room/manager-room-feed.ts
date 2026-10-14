@@ -51,6 +51,7 @@ import {
   RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING,
   isBplusBand,
   rhPathFloorForBand,
+  rhSizeCutDebit,
 } from "../execution/rh-autofire-gates";
 
 /* ── Input: one room frame (duck-typed slice of FloorFrame) ─────────────── */
@@ -158,7 +159,11 @@ export function managerAgreeFromRoom(args: {
     // vetoed it (debit_cap) although ONE contract ($329) is inside the envelope. Fewer contracts is less risk and is the Stand's
     // job ("may only shrink"); the envelope itself ($50-$550, 1-4) is unchanged, and if even one contract is over the cap the
     // ticket still refuses with debit_cap.
-    if (estDebitEach != null) while (contracts > 1 && Math.round(estDebitEach * 100 * contracts) > RH_MAX_DEBIT_TOTAL) contracts -= 1;
+    // A sizeCut card (fireFix.gateHand) halves the debit cap with the contracts, same as the watcher's firefix.py
+    // effective_caps legacy cut (maxd x0.5): a cut A+ is 2 contracts at most $325 (Accuracy 5211b6e0).
+    const debitCap = rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, card.sizeCut === true);
+    if (estDebitEach != null) while (contracts > 1 && Math.round(estDebitEach * 100 * contracts) > debitCap) contracts -= 1;
+    if (estDebitEach != null && card.sizeCut === true && Math.round(estDebitEach * 100 * contracts) > debitCap && !blocks.includes("debit_cap")) blocks.push("debit_cap");
     estDebitTotal = estDebitEach != null ? Math.round(estDebitEach * 100 * contracts) : null;
     if (!strikeOffset) blocks.push("strike_offset");
     const env = evaluateRhTicketEnvelope({ contracts, debitTotal: estDebitTotal ?? Number.NaN, strikeOffset: strikeOffset ?? String(plan.offset) });

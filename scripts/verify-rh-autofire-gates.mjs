@@ -525,6 +525,69 @@ console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless lateP
   check("desk-read deskContracts carries the sizeCut", /deskContracts: rhSizeCutContracts\(card\.ticket\?\.contracts \?\? null, card\.sizeCut === true\)/.test(dr), true);
   const ods = read("src/lib/trading/options-desk.ts");
   check("gateHand uses gateHandSoftHold", /const soft = gateHandSoftHold;/.test(ods), true);
+
+  // Accuracy 5211b6e0: the cut halves the debit cap too, WAIT cuts, one trigger set on both sides.
+  check("cut debit cap: $650 -> $325", gates.rhSizeCutDebit(650, true), 325);
+  check("no cut keeps $650", gates.rhSizeCutDebit(650, false), 650);
+  {
+    const mf = await import("../src/lib/room/manager-room-feed.ts");
+    const cardX = (o) => ({ card: "path_continuation", name: "PATH", verdict: "ARMED", blocks: [], underlier: "QQQ", type: "PUT", dte: 0,
+      band: "A+", confluence: 0.8, futSymbol: "MNQ", futSide: "short", smcWord: "WAIT", smcMissing: "", sizedFrom: "level", deltaMin: 0.3, deltaMax: 0.6,
+      plan: { entry: 21000, stop: 21030, t1: 20950, t2: null, rr1: 1.6 }, tier: "live", awayPts: 0, pT1: 0.6, expR: 0.3, pFill: 1, patterns: null, strategy: "TJR", ...o });
+    const frameX = (c, ask) => ({ id: 1, nowMs: Date.now(),
+      output: { broker_action: { execute_trade: true, action_type: "BUY_OPEN", underlying: "QQQ", option_type: "PUT", strike_offset: "ATM", contracts_quantity: c.deskContracts, target_position_id: null } },
+      trace: { beat: "fill", gates: [{ id: "trigger", ok: true, label: "x" }], refusal: null, refusalGate: null, optionsOpen: true, meeting: null,
+        entry: { entry: c, exp: "2026-10-14", offset: "ATM", quote: { ask, bid: ask - 0.03, mid: ask - 0.01, strike: 600, delta: -0.5, iv: 0.2, thetaDay: 0 }, qty: c.deskContracts, capUsd: 650, debitUsd: ask * 100 * c.deskContracts } } });
+    const agree = (c, ask) => { const r = mf.managerAgreeFromRoom({ frame: frameX(c, ask), card: c, newsBlackout: false, synthetic: false, hold: null }); return [r.contracts, r.estDebitTotal, r.blocks.includes("debit_cap")]; };
+    const cutAp = cardX({ deskContracts: gates.rhSizeCutContracts(4, true), sizeCut: true });
+    check("cut A+ deskContracts is 2", cutAp.deskContracts, 2);
+    check("cut A+ at a $3.00 ask: manager feed sizes 1ct / $300 (<= $325), no debit_cap", agree(cutAp, 3.0), [1, 300, false]);
+    check("cut A+ at a $3.50 ask: 1ct $350 > $325 refuses debit_cap", agree(cutAp, 3.5)[2], true);
+    check("uncut A+ at a $3.00 ask: 2ct / $600 (<= $650)", agree(cardX({ deskContracts: 4 }), 3.0).slice(0, 2), [2, 600]);
+    const mrf = read("src/lib/room/manager-room-feed.ts");
+    check("manager feed walks contracts down to the CUT debit cap", /const debitCap = rhSizeCutDebit\(RH_MAX_DEBIT_TOTAL, card\.sizeCut === true\);/.test(mrf) && /> debitCap\) contracts -= 1/.test(mrf), true);
+    check("manager feed refuses debit_cap when 1 cut contract is over the cut cap", /card\.sizeCut === true && Math\.round\(estDebitEach \* 100 \* contracts\) > debitCap/.test(mrf), true);
+    check("desk-read carries sizeCut to the manager feed", /sizeCut: card\.sizeCut === true,/.test(dr), true);
+  }
+  check("WAIT is a cut trigger on the desk", od.gateHandCutTrigger("Brain is waiting. no sweep"), "brain_wait");
+  check("WAIT is soft (cut, not WATCH)", od.gateHandSoftHold("Brain is waiting."), true);
+  check("ticketHolds raises WAIT", /book\.word === "WAIT"\) holds\.push\(`Brain is waiting\./.test(ods), true);
+  check("1h/4h against is a cut trigger", od.gateHandCutTrigger("1h/4h bias against the ticket (1h)."), "htf_against");
+  check("SMT regex is anchored: mid-string SMT is not soft", od.gateHandSoftHold("No entry price. SMT pending."), false);
+  check("SMT at start is soft", od.gateHandCutTrigger("SMT divergence against the ticket."), "smt_direction");
+  check("model ticket is a cut trigger", od.gateHandCutTrigger(od.MODEL_TICKET_HOLD), "model_ticket");
+  check("model-only hold on live A+/A sets sizeCut", /return cut \? \{ \.\.\.card, handTo: "watcher", holds, sizeCut: true \}/.test(ods), true);
+  {
+    const tk = { live: true, pricedFrom: "live_chain", order: { kind: "marketable_limit", limitPerShare: 1.5, restAt: null, reason: "" }, estDebitTotal: 300, underlier: "QQQ", side: "put", contracts: 2 };
+    const mkDesk = (word, bandOver = {}) => ({ smcMaster: { oneBook: { symbol: "MNQ", side: "short", word, missing: "no sweep" } },
+      scan: { candidates: [{ symbol: "MNQ", side: "short", entryPx: 21000, confluence: 0.9, pathBand: "A+", ...bandOver }] } });
+    const mkCard = () => ({ verdict: "ARMED", ticket: tk, blocks: [] });
+    const live = (RULES_JSON.fireFix?.gateHand?.mode === "live");
+    const w = od.gateHand(mkDesk("WAIT"), mkCard());
+    check("desk: brain WAIT on A+ holds 'Brain is waiting'", (w.holds ?? []).some((h) => /^Brain is waiting/.test(h)), true);
+    if (live) check("desk: brain WAIT on A+ (gateHand live) stays ARMED with sizeCut", [w.verdict, w.sizeCut === true], ["ARMED", true]);
+    else check("desk: brain WAIT on A+ (gateHand shadow) goes WATCH", w.verdict, "WATCH");
+    const t = od.gateHand(mkDesk("TAKE"), mkCard());
+    check("desk: brain TAKE, live ticket, no holds: full size (no sizeCut)", [t.verdict, t.sizeCut === true], ["ARMED", false]);
+    const h = od.gateHand(mkDesk("TAKE", { bias4h: "bull" }), mkCard());
+    check("desk: 4h bias against a put cuts", live ? [h.verdict, h.sizeCut === true] : h.verdict, live ? ["ARMED", true] : "WATCH");
+    const opp = od.gateHand({ ...mkDesk("WAIT"), smcMaster: { oneBook: { symbol: "MNQ", side: "long", word: "WAIT" } } }, mkCard());
+    check("desk: WAIT + opposite-side brain still goes WATCH", opp.verdict, "WATCH");
+  }
+  const TRIG = ["brain_stand", "brain_wait", "brain_no_book", "htf_against", "smt_direction", "cross_book_same_side", "model_ticket"];
+  check("desk trigger set", [...od.GATE_HAND_CUT_TRIGGERS], TRIG);
+  {
+    const fs = await import("node:fs");
+    const wp = process.env.WATCHER_GATES_PY ?? "/workspace/dw-fire/watcher/gates.py";
+    if (fs.existsSync(wp)) {
+      const py = fs.readFileSync(wp, "utf8");
+      const m = /GATE_HAND_CUT_TRIGGERS = \(([^)]*)\)/.exec(py);
+      const wt = m ? [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]) : null;
+      check("parity: watcher gates.py trigger set == desk", wt, TRIG);
+      check("parity: watcher cuts on brain STAND/WAIT/no book", /GATE_HAND_BRAIN_CUT = \("STAND", "WAIT", None\)/.test(py), true);
+      check("parity: watcher honors the desk sizeCut (stricter wins)", /_dcut = snap\.get\("desk_size_cut"\) is True/.test(py) && /or _bcut or _dcut/.test(py), true);
+    } else console.log("  (watcher gates.py not found; set WATCHER_GATES_PY to check parity)");
+  }
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -2189,6 +2189,8 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
   if (!book?.symbol || !book.side) holds.push("Brain has no book for this ticket.");
   else if (book.word === "STAND") holds.push(`Brain is standing. ${book.missing ?? ""}`.trim());
   else {
+    // Brain WAIT is a cut trigger on the watcher (gates.py gate_hand_cut); the desk cuts on it too (Accuracy 5211b6e0).
+    if (book.word === "WAIT") holds.push(`Brain is waiting. ${book.missing ?? ""}`.trim());
     const under = /ES/.test(book.symbol) ? "SPY" : "QQQ";
     const opt = book.side === "long" ? "call" : "put";
     if (t.underlier !== under || t.side !== opt) {
@@ -2197,6 +2199,19 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
     const match = desk.scan.candidates.find((c) => c.symbol === book.symbol && c.side === book.side);
     if (match?.entryPx == null) holds.push("No entry price. Price is not at the array.");
   }
+  // 1h/4h bias against the ticket: the watcher's htf size cut (gates.py htf_bias keys bias1h/bias4h). The desk reads the
+  // same optional keys off the top candidate; absent keys raise nothing, as on the watcher.
+  const top = desk.scan?.candidates?.[0] as unknown as Record<string, unknown> | undefined;
+  const want = t.side === "call" ? "bull" : "bear";
+  const norm = (v: unknown) => {
+    const x = String(v ?? "").toLowerCase();
+    return ["bull", "bullish", "long", "up"].includes(x) ? "bull" : ["bear", "bearish", "short", "down"].includes(x) ? "bear" : null;
+  };
+  const opp = (["1h", "4h"] as const).filter((tf) => {
+    const b = norm(top?.[tf === "1h" ? "bias1h" : "bias4h"]);
+    return b != null && b !== want;
+  });
+  if (opp.length) holds.push(`1h/4h bias against the ticket (${opp.join(", ")}).`);
   return holds;
 }
 
@@ -2219,10 +2234,28 @@ function deskTopBand(desk: DeskPayload): string | null {
  * the card goes WATCH, so the desk dispatcher (room-step -> runRhDesk) refuses it exactly as the watcher's fast:agree does.
  */
 export function gateHandSoftHold(h: string): boolean {
-  if (h === MODEL_TICKET_HOLD) return true;
+  return gateHandCutTrigger(h) != null;
+}
+
+/**
+ * The ONE cut-trigger set (Accuracy 5211b6e0, ai/DECISIONS.md). The desk cuts (sizeCut) and the watcher cuts
+ * (gates.py gate_hand_cut + htf size_cut, and it honors the desk's wire sizeCut) on the union:
+ * brain STAND / WAIT / no book, 1h/4h bias against, SMT / direction, same-side ticket in the other book, model-estimate ticket.
+ * scripts/verify-rh-autofire-gates.mjs checks this list against watcher/gates.py.
+ */
+export const GATE_HAND_CUT_TRIGGERS = ["brain_stand", "brain_wait", "brain_no_book", "htf_against", "smt_direction", "cross_book_same_side", "model_ticket"] as const;
+export type GateHandCutTrigger = (typeof GATE_HAND_CUT_TRIGGERS)[number];
+
+export function gateHandCutTrigger(h: string): GateHandCutTrigger | null {
+  if (h === MODEL_TICKET_HOLD) return "model_ticket";
   const m = /^Ticket is \S+ (call|put)\. Brain is \S+ (long|short)\./i.exec(h);
-  if (m) return (m[1]!.toLowerCase() === "call") === (m[2]!.toLowerCase() === "long");
-  return /^Brain (is standing|has no book)|SMT|direction/i.test(h);
+  if (m) return (m[1]!.toLowerCase() === "call") === (m[2]!.toLowerCase() === "long") ? "cross_book_same_side" : null;
+  if (/^Brain is standing\b/i.test(h)) return "brain_stand";
+  if (/^Brain is waiting\b/i.test(h)) return "brain_wait";
+  if (/^Brain has no book\b/i.test(h)) return "brain_no_book";
+  if (/^1h\/4h bias against\b/i.test(h)) return "htf_against";
+  if (/^(SMT|Direction)\b/i.test(h)) return "smt_direction";
+  return null;
 }
 
 export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
@@ -2232,11 +2265,15 @@ export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCar
   // read WATCH and execution.phase never became "hand" (19 replay days + today: 0 ARMED / 0 hand). When the model-price
   // hold is the ONLY hold, the setup stays ARMED and is handed to the watcher, which prices it live on RH. The desk's own
   // sender still refuses (rhSendableFromTicket is unchanged), so nothing is sent from here.
-  if (holds.every((h) => h === MODEL_TICKET_HOLD)) return { ...card, handTo: "watcher", holds };
-  // fireFix.gateHand (Research P0 #1 / gate walk #1): on A+/A, brain / SMT / direction holds are caution notes, not WATCH.
-  // live = hand to the watcher (its fast chain still refuses a brain on the OPPOSITE side); shadow = annotate only.
   const gh = (RULES_DESK as { fireFix?: { gateHand?: { mode?: string; bands?: string[] } } }).fireFix?.gateHand;
   const band = deskTopBand(desk);
+  // A model-estimate ticket is a cut trigger in the shared set: on gateHand live A+/A it is handed at the one-step cut.
+  if (holds.every((h) => h === MODEL_TICKET_HOLD)) {
+    const cut = gh?.mode === "live" && band != null && (gh.bands ?? []).includes(band);
+    return cut ? { ...card, handTo: "watcher", holds, sizeCut: true } : { ...card, handTo: "watcher", holds };
+  }
+  // fireFix.gateHand (Research P0 #1 / gate walk #1): on A+/A, brain / SMT / direction holds are caution notes, not WATCH.
+  // live = hand to the watcher (its fast chain still refuses a brain on the OPPOSITE side); shadow = annotate only.
   const soft = gateHandSoftHold;
   if (gh && band && (gh.bands ?? []).includes(band) && holds.every(soft)) {
     if (gh.mode === "live") return { ...card, handTo: "watcher", holds, sizeCut: true };
