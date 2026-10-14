@@ -41,7 +41,7 @@ export function closed5m(closed1m: OhlcBar[]): OhlcBar[] {
   for (const b of closed1m) {
     const k = Math.floor(b.t / 300_000) * 300_000;
     const L = out[out.length - 1];
-    if (L && L.t === k) { L.h = Math.max(L.h, b.h); L.l = Math.min(L.l, b.l); L.c = b.c; } else out.push({ t: k, o: b.o, h: b.h, l: b.l, c: b.c });
+    if (L && L.t === k) { L.h = Math.max(L.h, b.h); L.l = Math.min(L.l, b.l); L.c = b.c; } else out.push({ ...b, t: k });
   }
   const last = closed1m[closed1m.length - 1];
   if (out.length && last && out[out.length - 1]!.t + 300_000 > last.t + 60_000) out.pop();
