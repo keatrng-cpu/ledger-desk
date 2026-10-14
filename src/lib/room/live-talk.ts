@@ -2128,14 +2128,18 @@ export const EVENT_WALK: Partial<Record<TalkKind, { zone: "THE_WHITEBOARD"; anim
   level: { zone: "THE_WHITEBOARD", anims: BOARD_ANIMS },
   calendar: { zone: "THE_WHITEBOARD", anims: BOARD_ANIMS },
 };
-const QUIET_SEAT_MS = 20 * 60_000;
+const QUIET_SEAT_MS = 10 * 60_000;
 function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   const now = w.nowMs;
-  const silent = (who: Character) => (st.spoke[who] ?? []).every((t) => now - t > QUIET_SEAT_MS);
+  // Never the same quiet topic twice in a row: the most recently spoken topic waits for someone else first.
+  let lastTopic: string | null = null;
+  let lastAt = -1;
+  for (const [k, t] of Object.entries(st.topicAt)) if (t > lastAt) [lastTopic, lastAt] = [k, t];
+  const silent = (who: Character) => lastTopic !== `quiet:${who.toLowerCase()}` && (st.spoke[who] ?? []).every((t) => now - t > QUIET_SEAT_MS);
   const b = w.books.QQQ ?? w.books.SPY;
   // floor-62 #42: a price is quoted only off a fresh tape (last print ≤ 120 s old).
   if (b && silent("Jax") && w.feed.kind !== "synthetic" && w.feed.kind !== "none" && (w.feed.lagSec == null || w.feed.lagSec <= 120)) {
-    const sig = `${Math.round(b.px / 10)}|${b.rangeUsedPct != null ? Math.round(b.rangeUsedPct / 10) : ""}`;
+    const sig = `${Math.round(b.px / 5)}|${b.rangeUsedPct != null ? Math.round(b.rangeUsedPct) : ""}|${b.volRatio != null ? Math.round(b.volRatio * 10) : ""}`;
     if (st.topicSig["quiet:jax"] !== sig)
       out.push({
         id: `quiet|jax|${sig}`,
@@ -2149,7 +2153,7 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
           const f = c.f;
           const chg = b.changePct != null ? `, ${b.changePct >= 0 ? "up" : "down"} ${f.pct(Math.abs(b.changePct), 2)} on the day` : "";
           const rng = b.rangeUsedPct != null ? `, ${f.pct(b.rangeUsedPct)} of a normal day's range used` : "";
-          return { lines: V.compact([V.line("Jax", "POINTING", `${b.say} ${f.lvl(b.px)}${chg}${rng}. I'm watching, not chasing.`)]), moves: {} };
+          return { lines: V.compact([V.line("Jax", "POINTING", `${b.say} ${f.lvl(b.px)}${chg}${rng}${b.volRatio != null ? `, volume ${f.x(b.volRatio)} normal` : ""}. I'm watching, not chasing.`)]), moves: {} };
         },
         commit: (s) => {
           s.topicSig["quiet:jax"] = sig;
@@ -2159,7 +2163,7 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
   if (silent("Vince") && w.feed.kind !== "synthetic" && w.feed.kind !== "none") {
     const lag = w.feed.lagSec;
     const vix = w.pulse.vix;
-    const sig = `${w.feed.kind}|${lag != null ? Math.min(9, Math.floor(lag / 30)) : ""}|${w.book.positions.length}|${w.book.monthEntries}|${vix != null ? Math.round(vix * 2) : ""}`;
+    const sig = `${w.feed.kind}|${lag != null ? Math.min(9, Math.floor(lag / 30)) : ""}|${w.book.positions.length}|${w.book.monthEntries}|${vix != null ? Math.round(vix * 10) : ""}|${w.pulse.tenYear != null ? Math.round(w.pulse.tenYear * 100) : ""}`;
     if (st.topicSig["quiet:vince"] !== sig)
       out.push({
         id: `quiet|vince|${sig}`,
@@ -2173,7 +2177,7 @@ function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
           const f = c.f;
           const age = lag != null ? `last print ${f.span(lag)} old` : "no print age";
           return {
-            lines: V.compact([V.line("Vince", "STEADY_MONITORING", `Pipe check: ${age}; ${f.int(w.book.positions.length)} open, ${f.int(w.book.monthEntries)} PATH entries this month${vix != null ? `, VIX ${f.raw(vix.toFixed(1))}` : ""}.`)]),
+            lines: V.compact([V.line("Vince", "STEADY_MONITORING", `Pipe check: ${age}; ${f.int(w.book.positions.length)} open, ${f.int(w.book.monthEntries)} PATH entries this month${vix != null ? `, VIX ${f.raw(vix.toFixed(1))}` : ""}${w.pulse.tenYear != null ? `, ten-year ${f.raw(w.pulse.tenYear.toFixed(2))}%` : ""}.`)]),
             moves: {},
           };
         },

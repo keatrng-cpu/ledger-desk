@@ -259,8 +259,8 @@ export function exInvNews(c: Ctx, d: { inv: InvestLite; n: NewsLite; hit: { key:
       "Gemma",
       ANIM.Gemma.explain!,
       pick(c, "inv-news-head", [
-        () => `${n.publishedMs != null ? `${f.clock(n.publishedMs)} ET, ` : `${f.clock(c.now)} ET, `}${f.raw(n.source)}: “${f.raw(clip(n.title, 96))}” — it touches ${f.raw(touch)}.`,
-        () => `On the wire at ${f.clock(n.publishedMs ?? c.now)} ET from ${f.raw(n.source)}: “${f.raw(clip(n.title, 90))}”. That's ${f.raw(touch)}.`,
+        () => `${n.publishedMs != null ? `${f.clock(n.publishedMs)} ET, ` : "publish time unknown, "}${f.raw(n.source)}: “${f.raw(clip(n.title, 96))}” — it touches ${f.raw(touch)}.`,
+        () => `On the wire ${n.publishedMs != null ? `at ${f.clock(n.publishedMs)} ET` : "(publish time unknown)"} from ${f.raw(n.source)}: “${f.raw(clip(n.title, 90))}”. That's ${f.raw(touch)}.`,
       ]),
     ),
   );

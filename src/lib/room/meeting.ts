@@ -758,7 +758,7 @@ function preNews(f: Facts, m: Meeting): Line[] {
     say("Gemma", `${e.name} at ${e.timeEt} ET — ${e.minutes} minutes. The blackout runs ${clockEt(t - 15)}–${clockEt(t + 15)}; nothing new opens inside it.`, "GESTICURING_AT_WALL"),
     say("Jax", "So we load up before it prints?", "POINTING"),
     say("Gemma", "No. The first impulse off a release is usually the raid. We trade the retest, after.", "EXPLAINING"),
-    say("Nova", "And the print's direction isn't an edge — the desk tested the release-direction idea on 4 years of releases and rejected it.", "WRITING_ON_WHITEBOARD"),
+    say("Nova", "And the print's direction isn't an edge — the desk tested the release-direction idea and rejected it.", "WRITING_ON_WHITEBOARD"),
     say("Sterling", open ? `${open} open. Those keep their level exits through it; nothing new until ${clockEt(t + 15)}.` : "We're flat into it. Good.", "CROSSING_ARMS"),
     say("Vince", `Orders off until ${clockEt(t + 15)}. I'll have quotes up the second it prints.`, "STEADY_MONITORING"),
   ];

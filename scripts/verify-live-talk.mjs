@@ -616,6 +616,34 @@ const QUIET = (() => {
   sim.run(6 * 3600 + 14 * 60, walker(61));
   return sim;
 })();
+// floor-62 (Accuracy Review): the same quiet day with the data frozen — chatter must rise when the data moves.
+const FLAT = (() => {
+  const sim = new Sim(at(2026, 10, 6, 9, 46), {
+    dt: 2000,
+    make: (t, o) => {
+      const drift = 0;
+      return {
+        ...o,
+        bookOver: {
+          QQQ: { rangeUsedPct: 40 + drift * 3, volRatio: drift % 3 === 0 ? 1.5 : 0.9 },
+          SPY: { rangeUsedPct: 35 + drift * 3 },
+        },
+        pulse: { vix: 17.2 + drift * 0.15, tenYear: 4.12, at: t },
+        minds: mkMinds({ Jax: { caffeine: drift % 4 === 1 ? 0.1 : 0.6 }, Sterling: { stress: drift % 5 === 2 ? 0.8 : 0.2 }, memories: [{ who: "Jax", against: "Sterling", clock: "09:36", kind: "chase_call", text: "Jax called calls on QQQ at 481.20", outcome: "wrong" }] }),
+        lab: { refusals: [{ gate: "ev", n: 2 + drift, pnlUsd: -40 * drift, wins: 0 }], twins: { n: 3, deltaUsd: 12 }, calibration: { n: 4 + drift, meanP: 0.3, hitRate: 0.25, brier: 0.2 }, track: {} },
+        card: { key: "MNQ:long:B+:2", name: "B+ MNQ long", verdict: "WATCH", u: "QQQ", type: "CALL", band: "B+", tier: "forming", awayPts: 100, futSymbol: "MNQ", futSide: "long", entry: 29_900, stop: 29_860, t1: 30_000, pT1: 0.27, expR: 0.01, block: "LTF shift not printed", strategy: null },
+      };
+    },
+  });
+  sim.run(6 * 3600 + 14 * 60, walker(61));
+  return sim;
+})();
+{
+  const moving = QUIET.items.filter((i) => i.kind === "heartbeat").length;
+  const frozen = FLAT.items.filter((i) => i.kind === "heartbeat").length;
+  check(`chatter rises when the data moves (${moving} moving vs ${frozen} frozen)`, moving > frozen * 1.2 && moving - frozen >= 5, `${moving} vs ${frozen}`);
+}
+
 {
   const sim = QUIET;
   const chatter = sim.items.filter((i) => i.kind === "heartbeat");
@@ -653,9 +681,9 @@ const QUIET = (() => {
   const speakers = {};
   for (const i of sim.items) for (const l of i.lines) speakers[l.character] = (speakers[l.character] ?? 0) + 1;
   console.log("  speakers", JSON.stringify(speakers));
-  check("all five people talk (floor-62 #33: the quiet seats get turns)", CREW5.every((c) => (speakers[c] ?? 0) >= 5), JSON.stringify(speakers));
+  check("all five people talk (floor-62 #33: the quiet seats get turns)", CREW5.every((c) => (speakers[c] ?? 0) >= 10), JSON.stringify(speakers));
   const distinct = Object.fromEntries(CREW5.map((c) => [c, new Set(sim.items.flatMap((i) => i.lines.filter((l) => l.character === c).map((l) => l.text))).size]));
-  check("each of them has a lot to say, not a short loop (no line twice)", CREW5.every((c) => distinct[c] >= 2 && distinct[c] === sim.items.flatMap((i) => i.lines.filter((l) => l.character === c)).length), JSON.stringify(distinct));
+  check("each of them has a lot to say, not a short loop (no line twice)", CREW5.every((c) => distinct[c] >= 12 && distinct[c] === sim.items.flatMap((i) => i.lines.filter((l) => l.character === c)).length), JSON.stringify(distinct));
   check("every exchange is legal", sim.items.every((i) => legal(i).length === 0), JSON.stringify(sim.items.flatMap(legal).slice(0, 4)));
   check("every number in every line was produced by code", sim.items.every((i) => unsourced(i).length === 0), JSON.stringify(sim.items.flatMap(unsourced).slice(0, 6)));
   check("nothing is said about a move: the tape never moved", !sim.items.some((i) => i.kind === "tape"));
