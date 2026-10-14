@@ -835,5 +835,12 @@
       "mode": "shadow",
       "_doc": "F12: two live opposite kills are both reported (each side killed), not null."
     }
+  },
+  "deskSeq": {
+    "_doc": "Keaton's trade sequence (audits/desk-sequence-brief-2026-10-14.md fixes 1-10). Every item is shadow: computed on wire.deskSeq, logged by the watcher as shadow:seq:<rule>, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only); the 650 USD cap and daily/weekly locks are not read or written. Closed bars by feed time only; session ranges one session with an 18:00 ET roll; other book = different symbol only.",
+    "brainBooks": {
+      "mode": "shadow",
+      "_doc": "F5: brain words per book x side; Floor/master/grok_agree read the ticket book+side. A STAND/WAIT on a DIFFERENT symbol is a caution, not a block; same symbol opposite side is never weakened."
+    }
   }
 }
