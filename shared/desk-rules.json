@@ -835,5 +835,120 @@
       "mode": "shadow",
       "_doc": "F12: two live opposite kills are both reported (each side killed), not null."
     }
+  },
+  "deskSeq": {
+    "_doc": "Keaton's trade sequence (audits/desk-sequence-brief-2026-10-14.md fixes 1-10). Every item is shadow: computed on wire.deskSeq, logged by the watcher as shadow:seq:<rule>, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only); the 650 USD cap and daily/weekly locks are not read or written. Closed bars by feed time only; session ranges one session with an 18:00 ET roll; other book = different symbol only.",
+    "brainBooks": {
+      "mode": "shadow",
+      "_doc": "F5: brain words per book x side; Floor/master/grok_agree read the ticket book+side. A STAND/WAIT on a DIFFERENT symbol is a caution, not a block; same symbol opposite side is never weakened."
+    },
+    "pdLeg": {
+      "mode": "shadow",
+      "eqBand": 0.05,
+      "lookbackMin": 120,
+      "_doc": "F6: pd_half judged at the POI inside the dealing leg (manipulation extreme to the extreme since, closed 1m by feed time), EQ band = no edge; EQ stack = prior session (PDH/PDL), this session, Asia, London, NY OR, overnight (one session each, 18:00 ET roll). Shadow: never flips the legacy must."
+    },
+    "premarketMap": {
+      "mode": "shadow",
+      "freezeEtMin": 565,
+      "eqTolAtr": 0.1,
+      "windowAtr": 8,
+      "maxPerTf": 3,
+      "maxPools": 8,
+      "_doc": "F1: premarket map per book frozen at 09:25 ET from closed bars: arrays FVG/IFVG/sponsored on 1m-4h + 1D, OB/breaker/rejection on 5m-4h + 1D (CE + edges, live/failed), kept within windowAtr x ATR15 of price, nearest maxPerTf per tf/kind/dir; PDH/PDL, PWH/PWL, D-2..D-(olderSessions+1) session highs/lows, Asia/London/premarket/overnight H/L, midnight + 18:00 opens; EQH/EQL pools (5m/15m, tol eqTolAtr x ATR15, unswept, nearest maxPools/2 per side); dealing range = prior session + overnight with EQ; bias per rung 1m-1D + HTF/MTF/LTF stack; AMD phase + expected manipulation side. 30s listed missing (not synthesized). Keaton 10/14: unswept fractal swings on 15m-1D are ranked pools; lows are only short targets and highs only long targets (a broken PDL is never buyside); T1 = nearest LIQUIDITY clearing minR before array edges; EQH/EQL from eqPools.",
+      "olderSessions": 10,
+      "swingPoolTfs": [
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1D"
+      ],
+      "sideTypedTargets": true,
+      "liquidityFirstT1": true,
+      "poolSource": "eqPools"
+    },
+    "amd": {
+      "mode": "shadow",
+      "startEtMin": 570,
+      "endEtMin": 660,
+      "dispAtr": 1.0,
+      "stopBufAtr15": 0.15,
+      "minR": 1.25,
+      "fillMin": 30,
+      "confirmMin": 30,
+      "maxPerSide": 2,
+      "_doc": "F4: AMD state machine per book 09:30-11:00 ET on closed bars: WATCH -> MANIP (a 1m wick takes a mapped level/pool or a live opposing 15m-1D array beyond the open; a new raid needs a new extreme; only ENTERED setups count toward maxPerSide) -> CONFIRM (body close on any closed rung 1m/2m/3m/5m/15m back through the last swing (CHoCH) or through a raid-direction gap (inversion), displacement body >= dispAtr x ATR1m x sqrt(tf)) -> ARMED (entry = CE of the newest unfilled displacement gap 1m-5m after the extreme, else the displacement OB; stop = beyond the extreme + stopBufAtr15 x ATR15; T1 = nearest real mapped level/pool/array edge clearing minR (map targets + RTH extremes printed before the raid); risk >= minRiskAtr15 x ATR15) -> ENTERED (later bar trades the entry). Invalid: accepted beyond the raided level (a run) -> WATCH; T1 before fill = MISSED; fillMin/confirmMin expire. Late is a transition, never a decaying score. Shadow. Defaults chosen walk-forward on the first 75% of 19 Yahoo sessions (confirm on 2m+ closes, stop buffer 0.15 x ATR15, minR 1.25): train 41 tr 48.8% +0.12R, holdout 13 tr 53.8% +0.33R.",
+      "minRiskAtr15": 0.15,
+      "raidTfs": "15m-1D arrays + map levels/pools",
+      "confirmMinTfMin": 2
+    },
+    "continuation": {
+      "mode": "shadow",
+      "endEtMin": 690,
+      "minR": 1.0,
+      "fillMin": 20,
+      "maxPerSide": 2,
+      "stopBufAtr15": 0.15,
+      "_doc": "F9: after an AMD ENTER, while structure holds (not both the last closed 5m and 15m closing beyond the last 5m swing against the trade) T1 rolls to the next real mapped pool/level beyond the printed one (labelled), entry re-anchors to the newest unmitigated same-side 1m-30m gap after the fill, stop beyond the last 5m swing + stopBufAtr15 x ATR15, T1 >= minR; armed only in regime trend (2 consecutive closed 15m bars beyond the session open, hysteresis); not a second entry (own maxPerSide); until endEtMin ET. Keaton 10/14: a body close through a mapped sellside/buyside level beyond the RTH open also opens continuation (bosParents); entry = the tallest unmitigated gap of the breaking leg (re-anchor only after a new extreme); stop = CE of the nearest live opposing 5m-1h gap beyond entry within maxStopAtr15 (gapCeStop), else the 5m swing; regime anchored on the 18:00 ET session open.",
+      "bosParents": true,
+      "bosGapLookbackMin": 10,
+      "gapCeStop": true,
+      "maxStopAtr15": 4
+    },
+    "intradayExec": {
+      "mode": "shadow",
+      "maxCrossSkewS": 60,
+      "maxStaleS": 120,
+      "_doc": "F10: (a) AMD/continuation intraday tickets use optExec.dteByTime (0DTE before zeroDteUntilEt, never past session.zeroDteCutoffEt) on the book ETF (MNQ->QQQ, ES->SPY) at a live cross ratio (ETF and future quotes within maxCrossSkewS by feed time), model strikes refused; the 5DTE swing card stays separate. (b) every rung 1m/2m/3m/5m/15m judges its last CLOSED bar (feed time) per mapped array: wick = sweep/tap, body close = respect/fail; minute series older than maxStaleS -> stale, LTF decisions refused."
+    },
+    "eqPools": {
+      "mode": "shadow",
+      "tfs": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1D"
+      ],
+      "tolTicks": 2,
+      "eqTolAtr": 0.1,
+      "minTouches": 2,
+      "maxAgeSessions": {
+        "1m": 1,
+        "5m": 2,
+        "15m": 5,
+        "30m": 8,
+        "1h": 10,
+        "4h": 20,
+        "1D": 60
+      },
+      "intradayRaids": true,
+      "_doc": "EQH/EQL audit fix: fractal-2 swings confirmed by closed bars on every rung 1m-1D, tol max(tolTicks x tick, eqTolAtr x rung ATR), minTouches, pool price = the extreme, age cap per rung; first later wick beyond = USED (kept as evidence, never a target/draw/raid). Feeds the premarket map pools/levels, T1 ranking, AMD sweep detection (intraday 1m/5m pools), wire rows (brain) and shadow:seq:eqPools (watcher)."
+    },
+    "scenarios": {
+      "mode": "shadow",
+      "_doc": "F2: four scripted open plays per book from the 09:25 map (S1-bear sweep high->reverse->invert->lower draws; S2-bear sweep low->gap+consolidate->CE retrace->down; S1-bull/S2-bull mirrors) with trigger, invalidation, real draws; ranked by prior (F7 odds when scenarioOdds.lr is set). Yahoo 19 sessions x2: top-2 hit 52.6% (holdout 60%), target 70%."
+    },
+    "respect": {
+      "mode": "shadow",
+      "minNet": 2,
+      "_doc": "F3: respect ledger per book from 09:30 ET on closed bars: first touch of each live mapped/intraday array scored by the touching bar body close (held +1 / failed -1) per tier LTF/MTF/HTF; stronger side when |net| >= minNet. Yahoo: next-30-min direction hit 58.9% (holdout 60%), target 65%."
+    },
+    "scenarioOdds": {
+      "mode": "shadow",
+      "_doc": "F7: P(script) = train base rate x likelihood ratios of map features (fitLr, Laplace, train sessions only). Holdout Brier 0.607 vs 0.532 base-rate-only and 0.703 heuristic prior: does NOT beat the base rate; lr table not shipped."
+    },
+    "calibrate": {
+      "mode": "shadow",
+      "minEdgeR": 0.1,
+      "_doc": "F8: isotonic score(T1 R:R)->P(win) fitted on train AMD trades; E[R]=p*RR-(1-p); shadow gate minEdgeR. Holdout: kept 13/15, win 38.5%, no improvement; P>=0.65 bucket 0/2. Table not shipped (no calibrated edge)."
+    },
+    "sessionGateStudy": {
+      "mode": "shadow",
+      "_doc": "Keaton: session gate refusals (out of 08:30-11:00 / 13:30-16:00 ET, shock exception 2.0xATR & 1.5xvol unchanged). Continuation run all day on Yahoo 19 sessions x2: lunch refusals 15 trades 40% win -0.083R -576 USD/wk; HTF-aligned & >=4 rungs 7 trades -0.246R; others 8 trades +0.059R -146 USD/wk. No bucket positive after costs: no exception proposed; live thresholds unchanged."
+    }
   }
 }

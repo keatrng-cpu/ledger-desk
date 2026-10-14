@@ -1,5 +1,6 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
 import { RULES_HASH } from "@/lib/desk/rules-hash";
+import { buildDeskSeq, type DeskSeqWire } from "@/lib/smc/seq/wire";
 import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { htfBiasOf, wireMtf, type SmtRead } from "@/lib/smc/mtf-context";
@@ -110,6 +111,8 @@ export interface DeskWire {
   mtf?: ReturnType<typeof wireMtf> | null;
   /** SMC/unity shadow reads (shared rules smcUnity.*; audit 2026-10-14). Shadow = changes nothing. */
   smcUnity?: SmcUnityWire | null;
+  /** Keaton's trade sequence shadow reads (shared rules deskSeq.*; brief 2026-10-14). Shadow = changes nothing. */
+  deskSeq?: DeskSeqWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
   strategy: {
@@ -412,6 +415,15 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     wire.smcUnity = buildSmcUnity(desk, top ?? null, arrRows, book ? { symbol: book.symbol, side: book.side, word: book.word } : null, wire.floor.ticket?.dte ?? null);
   } catch {
     wire.smcUnity = null; // shadow layer must never break the card
+  }
+  try {
+    wire.deskSeq = buildDeskSeq({
+      desk, top: top ?? null, rows: arrRows,
+      legacyBrain: book ? { symbol: book.symbol, side: book.side, word: book.word } : null,
+      floorTicket: wire.floor.ticket ? { underlier: wire.floor.ticket.underlier, side: wire.floor.ticket.side } : null,
+    });
+  } catch {
+    wire.deskSeq = null; // shadow layer must never break the card
   }
   const said = [
     {
