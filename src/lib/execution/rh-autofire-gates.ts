@@ -278,6 +278,10 @@ export type RhPathBand = "A+" | "A" | "A-" | "B+" | string;
 export interface RhAutofireCandidate {
   floorVerdict: "ARMED" | "WATCH" | "STAND" | string;
   deskContracts: number;
+  /** fireFix.gateHand cut: the Floor card carried sizeCut. Live checks hold the debit to rhSizeCutDebit (A+ cut = $325). */
+  sizeCut?: boolean;
+  /** The debit cap the live checks enforce: rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, sizeCut). Absent = RH_MAX_DEBIT_TOTAL. */
+  maxDebitTotal?: number | null;
   pathActionable: boolean;
   pathBand: RhPathBand | null;
   confluence: number;

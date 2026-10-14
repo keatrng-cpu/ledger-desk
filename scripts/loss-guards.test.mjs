@@ -17,7 +17,7 @@ test("1) 1h+4h both oppose: block under A, size cut at A/A-... A+ needs sweep+di
   assert.equal(g.htfGuard("long", ...both, "A-", true, true).block, true);   // A- is under A
   const a = g.htfGuard("long", ...both, "A", false, false); assert.equal(a.block, false); assert.equal(a.sizeMult, L.htf.sizeMult);
   const ap = g.htfGuard("long", ...both, "A+", true, false); assert.equal(ap.capBand, "A"); assert.equal(ap.sizeMult, L.htf.sizeMult);
-  const ok = g.htfGuard("long", ...both, "A+", true, true); assert.equal(ok.capBand, null); assert.equal(ok.sizeMult, 1);
+  const ok = g.htfGuard("long", ...both, "A+", true, true); assert.equal(ok.capBand, null); assert.equal(ok.sizeMult, L.htf.sizeMult);   // both against = cut, even A+ sweep+disp
   assert.equal(g.htfGuard("long", "bull", "bear", "B+", false, false).bothOppose, false);
   assert.equal(g.htfGuard("short", "neutral", "bull", "B+", false, false).bothOppose, false);
   // audit 2026-10-01 13:45 ET MNQ long 30868 (stopped 30814.75 in 9m): 1h bear + 4h bear on the desk's own mtf rungs
@@ -65,7 +65,7 @@ test("7) option net at T1 after theta and spread", () => {
   assert.equal(g.optionNetAtT1("XYZ", 1, 2, 10).net, null);
 });
 test("watcher (Python) mirrors the TS guards on the same inputs", () => {
-  const dirs = [process.env.WATCHER_DIR, "/workspace/desk-watcher-next", "/workspace/desk-watcher"].filter(Boolean);
+  const dirs = [process.env.WATCHER_DIR, "/workspace/dw-fire", "/workspace/desk-watcher", "/workspace/desk-watcher-next"].filter(Boolean);
   const dir = dirs.find((d) => existsSync(`${d}/watcher/gates.py`) && readFileSync(`${d}/watcher/gates.py`, "utf8").includes("def loss_htf"));
   if (!dir) return; // watcher checkout not on this box / not yet on the loss guards
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import gates\nout={}\nfor band in ["A+","A","A-","B+"]:\n  for sw in (True,False):\n    out[band+str(sw)]=list(gates.loss_htf("long",[("1h","bear"),("4h","bear")],band,sw,sw)[:2])\nout["rules"]=gates.RULES["loss"]\nprint(json.dumps(out))`;

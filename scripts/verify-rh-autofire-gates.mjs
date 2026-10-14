@@ -343,6 +343,26 @@ console.log("\nhappy path when fully armed + confirmed + envelope");
     check(`propose liveQuote asOfMs ${tag} refuses`, [noAsOf.mode, noAsOf.gated.gate, noAsOf.placeShape], ["refused", "live_quote", null]);
   }
   check("liveQuote future skew max is 5s", rh.RH_LIVE_QUOTE_MAX_FUTURE_SKEW_MS, 5_000);
+
+  // Accuracy ac6c36ee: the cut cap ($325) is held on the LIVE ask at propose, not only on the model price.
+  {
+    const cutT = { ...ticket, contracts: 2, estDebitEach: 1.6, maxDebitTotal: 320 };
+    const cutC = { ...QUALIFIED, sizeCut: true, maxDebitTotal: gates.rhSizeCutDebit(gates.RH_MAX_DEBIT_TOTAL, true) };
+    const hi = rh.proposeRhLiveOption({ candidate: cutC, ticket: cutT, flags: ARMED_FLAGS, refIdHint: "cut-1", liveQuote: { ...liveQuote, askPrice: 3.0, bidPrice: 2.97 } });
+    const okResize = hi.mode === "live_when_armed" && hi.placeShape?.quantity === 1 && hi.placeShape.debitTotal <= 325;
+    const okRefuse = hi.mode === "refused" && hi.placeShape === null;
+    check("cut: model $1.60x2 fits, live ask $3.00 -> resize to 1ct <= $325 or refuse", okResize || okRefuse, true);
+    check("cut: model $1.60x2 / live $3.00 resizes to exactly 1ct (<= $325)", [hi.mode, hi.placeShape?.quantity, (hi.placeShape?.debitTotal ?? 999) <= 325], ["live_when_armed", 1, true]);
+    const over = rh.proposeRhLiveOption({ candidate: cutC, ticket: { ...cutT, contracts: 1 }, flags: ARMED_FLAGS, refIdHint: "cut-2", liveQuote: { ...liveQuote, askPrice: 4.5, bidPrice: 4.45 } });
+    check("cut: one contract live $4.50 (> $325) refuses debit_cap", [over.mode, over.gated.gate], ["refused", "debit_cap"]);
+    const full = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket: cutT, flags: ARMED_FLAGS, refIdHint: "cut-3", liveQuote: { ...liveQuote, askPrice: 3.0, bidPrice: 2.97 } });
+    check("no cut: model $1.60x2 / live $3.00 keeps 2ct (<= $650)", [full.mode, full.placeShape?.quantity], ["live_when_armed", 2]);
+    check("candidateFromFloorPathStand carries sizeCut -> maxDebitTotal $325", (() => { const c = rh.candidateFromFloorPathStand({ floor: { verdict: "ARMED", deskContracts: 2, sizeCut: true, band: "A+", confluence: 0.8 }, pathActionable: true, optionsSessionOpen: true, newsBlackout: false, riskHalt: false, oneBookBlocked: false }); return [c.sizeCut, c.maxDebitTotal]; })(), [true, 325]);
+    check("rhLiveDebitCap: cut 325, uncut 650", [rh.rhLiveDebitCap({ sizeCut: true }), rh.rhLiveDebitCap({}), rh.rhLiveDebitCap({ maxDebitTotal: 650, sizeCut: true })], [325, 650, 325]);
+    const disp = read("src/lib/execution/rh-dispatch.ts");
+    check("dispatcher passes floor sizeCut into mayPlaceAfterReview", /sizeCut: manager\?\.floor\?\.sizeCut === true,/.test(disp), true);
+    check("manager feed floor + live loop carry sizeCut", /sizeCut: card\?\.sizeCut === true,/.test(read("src/lib/room/manager-room-feed.ts")) && /sizeCut: manager\.floor\.sizeCut === true/.test(read("src/lib/room/manager-live-loop.ts")), true);
+  }
   {
     const skew4 = rh.proposeRhLiveOption({ candidate: QUALIFIED, ticket, flags: ARMED_FLAGS, refIdHint: "test-ref-1", liveQuote: { ...liveQuote, asOfMs: NOW + 4_000 } });
     check("propose liveQuote asOfMs future +4s accepted", [skew4.mode, Boolean(skew4.placeShape)], ["live_when_armed", true]);
@@ -551,12 +571,12 @@ console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless lateP
   }
   check("WAIT is a cut trigger on the desk", od.gateHandCutTrigger("Brain is waiting. no sweep"), "brain_wait");
   check("WAIT is soft (cut, not WATCH)", od.gateHandSoftHold("Brain is waiting."), true);
-  check("ticketHolds raises WAIT", /book\.word === "WAIT"\) holds\.push\(`Brain is waiting\./.test(ods), true);
+  check("ticketHolds raises WAIT", /word === "WAIT"\) holds\.push\(`Brain is waiting\./.test(ods), true);
   check("1h/4h against is a cut trigger", od.gateHandCutTrigger("1h/4h bias against the ticket (1h)."), "htf_against");
   check("SMT regex is anchored: mid-string SMT is not soft", od.gateHandSoftHold("No entry price. SMT pending."), false);
   check("SMT at start is soft", od.gateHandCutTrigger("SMT divergence against the ticket."), "smt_direction");
   check("model ticket is a cut trigger", od.gateHandCutTrigger(od.MODEL_TICKET_HOLD), "model_ticket");
-  check("model-only hold on live A+/A sets sizeCut", /return cut \? \{ \.\.\.card, handTo: "watcher", holds, sizeCut: true \}/.test(ods), true);
+  check("model-only hold on live A+/A sets sizeCut", /: \{ \.\.\.card, handTo: "watcher", holds, sizeCut: true \}/.test(ods), true);
   {
     const tk = { live: true, pricedFrom: "live_chain", order: { kind: "marketable_limit", limitPerShare: 1.5, restAt: null, reason: "" }, estDebitTotal: 300, underlier: "QQQ", side: "put", contracts: 2 };
     const mkDesk = (word, bandOver = {}) => ({ smcMaster: { oneBook: { symbol: "MNQ", side: "short", word, missing: "no sweep" } },
@@ -574,19 +594,52 @@ console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless lateP
     const opp = od.gateHand({ ...mkDesk("WAIT"), smcMaster: { oneBook: { symbol: "MNQ", side: "long", word: "WAIT" } } }, mkCard());
     check("desk: WAIT + opposite-side brain still goes WATCH", opp.verdict, "WATCH");
   }
-  const TRIG = ["brain_stand", "brain_wait", "brain_no_book", "htf_against", "smt_direction", "cross_book_same_side", "model_ticket"];
-  check("desk trigger set", [...od.GATE_HAND_CUT_TRIGGERS], TRIG);
+  // Parity never skips silently (Accuracy ac6c36ee): the watcher's trigger list is vendored at
+  // scripts/fixtures/gate-hand-triggers.json (same file as the watcher's tests/fixtures). The desk list must equal it;
+  // when a watcher checkout is present its gates.py must equal it too. In CI with no watcher, the fixture still checks.
+  const FX = JSON.parse(read("scripts/fixtures/gate-hand-triggers.json"));
+  const TRIG = FX.triggers;
+  check("desk trigger set == vendored watcher fixture", [...od.GATE_HAND_CUT_TRIGGERS], TRIG);
+  check("fixture: only TAKE is full size", FX.brainFull, ["TAKE"]);
   {
     const fs = await import("node:fs");
-    const wp = process.env.WATCHER_GATES_PY ?? "/workspace/dw-fire/watcher/gates.py";
-    if (fs.existsSync(wp)) {
+    const cands = [process.env.WATCHER_GATES_PY, "/workspace/dw-fire/watcher/gates.py", "/workspace/desk-watcher/watcher/gates.py"].filter(Boolean);
+    const wp = cands.find((p) => fs.existsSync(p));
+    if (process.env.WATCHER_GATES_PY && !fs.existsSync(process.env.WATCHER_GATES_PY)) check("WATCHER_GATES_PY points at a file", false, true);
+    if (wp) {
       const py = fs.readFileSync(wp, "utf8");
       const m = /GATE_HAND_CUT_TRIGGERS = \(([^)]*)\)/.exec(py);
       const wt = m ? [...m[1].matchAll(/"([a-z_]+)"/g)].map((x) => x[1]) : null;
-      check("parity: watcher gates.py trigger set == desk", wt, TRIG);
-      check("parity: watcher cuts on brain STAND/WAIT/no book", /GATE_HAND_BRAIN_CUT = \("STAND", "WAIT", None\)/.test(py), true);
+      check(`parity: ${wp} trigger set == fixture`, wt, TRIG);
+      check("parity: watcher full size only on TAKE", /GATE_HAND_BRAIN_FULL = \("TAKE",\)/.test(py) && /snap\.get\("brain_word"\) not in GATE_HAND_BRAIN_FULL/.test(py), true);
       check("parity: watcher honors the desk sizeCut (stricter wins)", /_dcut = snap\.get\("desk_size_cut"\) is True/.test(py) && /or _bcut or _dcut/.test(py), true);
-    } else console.log("  (watcher gates.py not found; set WATCHER_GATES_PY to check parity)");
+    } else console.log("  (no watcher checkout on this box: parity checked against the vendored fixture only)");
+  }
+  {
+    const tk = { live: true, pricedFrom: "live_chain", order: { kind: "marketable_limit", limitPerShare: 1.5, restAt: null, reason: "" }, estDebitTotal: 300, underlier: "QQQ", side: "put", contracts: 2 };
+    const d = (book, cands) => ({ smcMaster: { oneBook: book }, scan: { candidates: cands ?? [{ symbol: "MNQ", side: "short", entryPx: 21000, confluence: 0.9, pathBand: "A+" }] } });
+    const live = (RULES_JSON.fireFix?.gateHand?.mode === "live");
+    const cutOf = (r) => (live ? [r.verdict, r.sizeCut === true] : r.verdict);
+    const CUT = live ? ["ARMED", true] : "WATCH";
+    for (const w of [null, undefined, "", "HOLD", "UNKNOWN"]) {
+      const r = od.gateHand(d({ symbol: "MNQ", side: "short", word: w }), { verdict: "ARMED", ticket: tk, blocks: [] });
+      check(`desk: brain word ${JSON.stringify(w)} (not TAKE) cuts`, cutOf(r), CUT);
+    }
+    check("desk: 'Brain is not TAKE' is a cut trigger", od.gateHandCutTrigger("Brain is not TAKE (word null)."), "brain_not_take");
+    // 1h/4h read from the candidate that MATCHES the ticket (QQQ put -> NQ short), not candidates[0].
+    const two = [{ symbol: "ES", side: "long", entryPx: 5800, confluence: 0.9, pathBand: "A+", bias1h: "bear", bias4h: "bear" }, { symbol: "MNQ", side: "short", entryPx: 21000, confluence: 0.9, pathBand: "A+" }];
+    const nm = od.ticketHolds(d({ symbol: "MNQ", side: "short", word: "TAKE" }, two), { verdict: "ARMED", ticket: tk, blocks: [] });
+    check("desk: htf read from the matching candidate (top ES long bias ignored for a QQQ put)", nm.some((h) => /^1h\/4h/.test(h)), false);
+    const two2 = [{ symbol: "ES", side: "long", entryPx: 5800, confluence: 0.9, pathBand: "A+" }, { symbol: "MNQ", side: "short", entryPx: 21000, confluence: 0.9, pathBand: "A+", bias1h: "bull", bias4h: "bull" }];
+    const mm = od.ticketHolds(d({ symbol: "MNQ", side: "short", word: "TAKE" }, two2), { verdict: "ARMED", ticket: tk, blocks: [] });
+    check("desk: matching candidate 1h+4h both against raises the htf hold", mm.some((h) => /^1h\/4h bias against the ticket \(1h, 4h\)/.test(h)), true);
+    const lg = await import("../src/lib/smc/loss-guards.ts");
+    check("desk htfGuard: both against A+ sweep+disp is a CUT (watcher loss_htf matches)", lg.htfGuard("long", "bear", "bear", "A+", true, true).sizeMult < 1, true);
+    // options-desk hold uses the cut cap: model 2ct x $3.40 cut -> 1ct $340 > $325 -> WATCH.
+    const pricey = { ...tk, estDebitTotal: 680, contracts: 2 };
+    check("desk: cutCapHold flags 1 cut contract over $325", typeof od.cutCapHold({ verdict: "ARMED", ticket: pricey, blocks: [] }), "string");
+    check("desk: cutCapHold passes $300 x1", od.cutCapHold({ verdict: "ARMED", ticket: { ...tk, estDebitTotal: 600, contracts: 2 }, blocks: [] }), null);
+    if (live) check("desk: WAIT + cut contract over $325 goes WATCH", od.gateHand(d({ symbol: "MNQ", side: "short", word: "WAIT" }), { verdict: "ARMED", ticket: pricey, blocks: [] }).verdict, "WATCH");
   }
 }
 

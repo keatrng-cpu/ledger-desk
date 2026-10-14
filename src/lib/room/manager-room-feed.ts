@@ -297,6 +297,7 @@ export function managerStateFromRoom(args: {
     floor: {
       verdict: card?.verdict === "ARMED" ? "ARMED" : card?.verdict === "WATCH" ? "WATCH" : "STAND",
       deskContracts: card?.deskContracts ?? 0,
+      sizeCut: card?.sizeCut === true,
       latePnl: card?.latePnl ?? null,
       cardKey: card ? decisionKey : null,
       strategy: card?.strategy ?? null,

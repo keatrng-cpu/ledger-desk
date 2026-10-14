@@ -48,6 +48,8 @@ import {
   RH_MAX_CONTRACTS,
   RH_MAX_DEBIT_TOTAL,
   RH_MIN_DEBIT_TOTAL,
+  rhSizeCutContracts,
+  rhSizeCutDebit,
   confidenceFloorFor,
   contractsAfterEvent,
 } from "@/lib/execution/rh-autofire-gates";
@@ -2189,8 +2191,11 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
   if (!book?.symbol || !book.side) holds.push("Brain has no book for this ticket.");
   else if (book.word === "STAND") holds.push(`Brain is standing. ${book.missing ?? ""}`.trim());
   else {
-    // Brain WAIT is a cut trigger on the watcher (gates.py gate_hand_cut); the desk cuts on it too (Accuracy 5211b6e0).
-    if (book.word === "WAIT") holds.push(`Brain is waiting. ${book.missing ?? ""}`.trim());
+    // Whitelist (Accuracy ac6c36ee): only TAKE is full size. WAIT, and a null / unknown word, are cut triggers on both
+    // sides (watcher gates.py GATE_HAND_BRAIN_CUT = anything but TAKE).
+    const word = String((book as { word?: unknown }).word ?? "").toUpperCase();
+    if (word === "WAIT") holds.push(`Brain is waiting. ${book.missing ?? ""}`.trim());
+    else if (word !== "TAKE") holds.push(`Brain is not TAKE (word ${word || "null"}).`);
     const under = /ES/.test(book.symbol) ? "SPY" : "QQQ";
     const opt = book.side === "long" ? "call" : "put";
     if (t.underlier !== under || t.side !== opt) {
@@ -2200,8 +2205,13 @@ export function ticketHolds(desk: DeskPayload, card: RhStrategyCard): string[] {
     if (match?.entryPx == null) holds.push("No entry price. Price is not at the array.");
   }
   // 1h/4h bias against the ticket: the watcher's htf size cut (gates.py htf_bias keys bias1h/bias4h). The desk reads the
-  // same optional keys off the top candidate; absent keys raise nothing, as on the watcher.
-  const top = desk.scan?.candidates?.[0] as unknown as Record<string, unknown> | undefined;
+  // same optional keys off the candidate that MATCHES the ticket (its futures book + side), not the top one; absent keys
+  // raise nothing, as on the watcher. KNOWN GAP (DECISIONS): the desk does not produce bias1h/bias4h yet, so this is
+  // dead code until it does. One or both against is a cut on A+/A (both sides; the watcher no longer gives A+ full size
+  // on sweep + displacement). Below A, both against still blocks on the watcher.
+  const tSide = t.side === "call" ? "long" : "short";
+  const tBook = t.underlier === "SPY" ? /ES/ : /NQ/;
+  const top = desk.scan?.candidates?.find((c) => c.side === tSide && tBook.test(String(c.symbol ?? ""))) as unknown as Record<string, unknown> | undefined;
   const want = t.side === "call" ? "bull" : "bear";
   const norm = (v: unknown) => {
     const x = String(v ?? "").toLowerCase();
@@ -2243,7 +2253,7 @@ export function gateHandSoftHold(h: string): boolean {
  * brain STAND / WAIT / no book, 1h/4h bias against, SMT / direction, same-side ticket in the other book, model-estimate ticket.
  * scripts/verify-rh-autofire-gates.mjs checks this list against watcher/gates.py.
  */
-export const GATE_HAND_CUT_TRIGGERS = ["brain_stand", "brain_wait", "brain_no_book", "htf_against", "smt_direction", "cross_book_same_side", "model_ticket"] as const;
+export const GATE_HAND_CUT_TRIGGERS = ["brain_stand", "brain_wait", "brain_not_take", "brain_no_book", "htf_against", "smt_direction", "cross_book_same_side", "model_ticket"] as const;
 export type GateHandCutTrigger = (typeof GATE_HAND_CUT_TRIGGERS)[number];
 
 export function gateHandCutTrigger(h: string): GateHandCutTrigger | null {
@@ -2252,9 +2262,25 @@ export function gateHandCutTrigger(h: string): GateHandCutTrigger | null {
   if (m) return (m[1]!.toLowerCase() === "call") === (m[2]!.toLowerCase() === "long") ? "cross_book_same_side" : null;
   if (/^Brain is standing\b/i.test(h)) return "brain_stand";
   if (/^Brain is waiting\b/i.test(h)) return "brain_wait";
+  if (/^Brain is not TAKE\b/i.test(h)) return "brain_not_take";
   if (/^Brain has no book\b/i.test(h)) return "brain_no_book";
   if (/^1h\/4h bias against\b/i.test(h)) return "htf_against";
   if (/^(SMT|Direction)\b/i.test(h)) return "smt_direction";
+  return null;
+}
+
+/**
+ * The options-desk debit hold at the CUT cap (Accuracy ac6c36ee): a cut card is held to rhSizeCutDebit ($325 on A+).
+ * The cut contracts are walked down to fit; if even one contract is over the cut cap the card is held (WATCH).
+ */
+export function cutCapHold(card: RhStrategyCard): string | null {
+  const t = card.ticket;
+  if (!t || !(t.contracts >= 1) || !Number.isFinite(t.estDebitTotal)) return null;
+  const cap = rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, true);
+  const each = t.estDebitTotal / t.contracts;
+  let n = rhSizeCutContracts(t.contracts, true) ?? 1;
+  while (n > 1 && each * n > cap + 1e-9) n -= 1;
+  if (each * n > cap + 1e-9) return `Live debit $${Math.round(each * n)} is outside $${RH_MIN_DEBIT_TOTAL}–$${Math.round(cap)} (gateHand cut cap).`;
   return null;
 }
 
@@ -2270,13 +2296,19 @@ export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCar
   // A model-estimate ticket is a cut trigger in the shared set: on gateHand live A+/A it is handed at the one-step cut.
   if (holds.every((h) => h === MODEL_TICKET_HOLD)) {
     const cut = gh?.mode === "live" && band != null && (gh.bands ?? []).includes(band);
-    return cut ? { ...card, handTo: "watcher", holds, sizeCut: true } : { ...card, handTo: "watcher", holds };
+    if (!cut) return { ...card, handTo: "watcher", holds };
+    const over = cutCapHold(card);
+    return over ? { ...card, verdict: "WATCH", blocks: [...card.blocks, over].slice(0, 6), holds: [...holds, over] } : { ...card, handTo: "watcher", holds, sizeCut: true };
   }
   // fireFix.gateHand (Research P0 #1 / gate walk #1): on A+/A, brain / SMT / direction holds are caution notes, not WATCH.
   // live = hand to the watcher (its fast chain still refuses a brain on the OPPOSITE side); shadow = annotate only.
   const soft = gateHandSoftHold;
   if (gh && band && (gh.bands ?? []).includes(band) && holds.every(soft)) {
-    if (gh.mode === "live") return { ...card, handTo: "watcher", holds, sizeCut: true };
+    if (gh.mode === "live") {
+      const over = cutCapHold(card);
+      if (over) return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds, over].slice(0, 6), holds: [...holds, over] };
+      return { ...card, handTo: "watcher", holds, sizeCut: true };
+    }
     return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6), holds: [...holds, `shadow:fireFix.gateHand WOULD hand ${band} to the watcher`] };
   }
   return { ...card, verdict: "WATCH", blocks: [...card.blocks, ...holds].slice(0, 6) };

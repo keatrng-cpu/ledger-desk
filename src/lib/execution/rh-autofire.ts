@@ -24,6 +24,7 @@ import {
   RH_PATH_FLOOR,
   rhPathFloorForBand,
   rhSpendable,
+  rhSizeCutDebit,
   evaluateRhBandSize,
   isBplusBand,
   type RhAccountSnapshot,
@@ -248,6 +249,13 @@ export function buildRhReviewPlaceShape(
   };
 }
 
+/** The debit cap the live checks hold: the candidate's cut cap when it carries one, never above RH_MAX_DEBIT_TOTAL. */
+export function rhLiveDebitCap(c: { sizeCut?: boolean; maxDebitTotal?: number | null } | null | undefined): number {
+  const cut = rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, c?.sizeCut === true);
+  const m = Number(c?.maxDebitTotal);
+  return Number.isFinite(m) && m > 0 ? Math.min(cut, m) : cut;
+}
+
 export function proposeRhLiveOption(args: {
   candidate: RhAutofireCandidate;
   ticket: RhLiveTicket | null;
@@ -302,7 +310,19 @@ export function proposeRhLiveOption(args: {
       flags,
     };
   }
-  const shape = buildRhReviewPlaceShape(args.ticket, ref, args.liveQuote ?? null, nowMs);
+  let shape = buildRhReviewPlaceShape(args.ticket, ref, args.liveQuote ?? null, nowMs);
+  // fireFix.gateHand cut (Accuracy ac6c36ee): the cut cap ($325 on A+) is held on the LIVE ask, not only the model price.
+  // A model $1.60x2 that reads $3.00 live resizes to 1 contract ($300); one contract over the cut cap refuses debit_cap.
+  const cutCap = rhLiveDebitCap(args.candidate);
+  while (args.candidate.sizeCut === true && shape.quantity > RH_MIN_CONTRACTS && shape.debitTotal > cutCap + 1e-9) {
+    shape = buildRhReviewPlaceShape({ ...args.ticket, contracts: shape.quantity - 1 }, ref, args.liveQuote ?? null, nowMs);
+  }
+  if (args.candidate.sizeCut === true && shape.debitTotal > cutCap + 1e-9) {
+    return {
+      gated: { ok: false, gate: "debit_cap", reason: `Live debit $${shape.debitTotal.toFixed(0)} for 1 contract exceeds the ${args.candidate.sizeCut ? "cut " : ""}cap $${cutCap.toFixed(0)}.` },
+      ticket: null, placeShape: null, mode: "refused", flags,
+    };
+  }
   // The live debit is what will actually be charged — re-run envelope + BP on it.
   const liveEnv = evaluateRhTicketEnvelope({
     contracts: shape.quantity,
@@ -345,6 +365,10 @@ export function mayPlaceAfterReview(args: {
   pathBand?: string | null;
   /** The dispatcher sets this: the liveQuote must carry readAtMs from a read taken after review_option_order. */
   requireReviewQuote?: boolean;
+  /** fireFix.gateHand cut on the Floor card: hold the live debit to rhSizeCutDebit (A+ cut $325). */
+  sizeCut?: boolean;
+  /** Explicit debit cap (the candidate's maxDebitTotal). The stricter of this and the sizeCut cap wins. */
+  maxDebitTotal?: number | null;
   nowMs?: number;
 }): { ok: true } | { ok: false; reason: string } {
   if (!args.gatesStillOk) return { ok: false, reason: "Gates no longer pass — do not place." };
@@ -372,8 +396,9 @@ export function mayPlaceAfterReview(args: {
     if (!(liveDebit >= RH_MIN_DEBIT_TOTAL)) {
       return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} under minimum $${RH_MIN_DEBIT_TOTAL}.` };
     }
-    if (!(liveDebit <= RH_MAX_DEBIT_TOTAL + 1e-9)) {
-      return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} exceeds maximum $${RH_MAX_DEBIT_TOTAL}.` };
+    const cap = rhLiveDebitCap({ sizeCut: args.sizeCut, maxDebitTotal: args.maxDebitTotal });
+    if (!(liveDebit <= cap + 1e-9)) {
+      return { ok: false, reason: `Live debit $${liveDebit.toFixed(0)} exceeds maximum $${cap.toFixed(0)}${args.sizeCut ? " (gateHand cut)" : ""}.` };
     }
     args = { ...args, debitTotal: Math.max(liveDebit, Number(args.debitTotal ?? 0) || 0) };
   }
@@ -403,6 +428,8 @@ export function candidateFromFloorPathStand(args: {
   floor: {
     verdict: string;
     deskContracts: number | null;
+    /** fireFix.gateHand cut on the Floor card → live debit cap rhSizeCutDebit (A+ cut $325). */
+    sizeCut?: boolean;
     band: string | null;
     confluence: number;
     /** Floor options card ticket.dteTarget. */
@@ -472,6 +499,8 @@ export function candidateFromFloorPathStand(args: {
   return {
     floorVerdict: f?.verdict ?? "STAND",
     deskContracts: f?.deskContracts ?? 0,
+    sizeCut: f?.sizeCut === true,
+    maxDebitTotal: rhSizeCutDebit(RH_MAX_DEBIT_TOTAL, f?.sizeCut === true),
     pathActionable: args.pathActionable,
     pathBand: f?.band ?? null,
     confluence: typeof f?.confluence === "number" ? f.confluence : 0,
@@ -516,7 +545,7 @@ export interface RhPathFireTrigger {
  */
 export function proposeRhFromPathFire(args: {
   fire: RhPathFireTrigger | null | undefined;
-  floor: { verdict: string; deskContracts: number | null; band: string | null; confluence: number; dte?: number | null; latePnl?: RhLatePnl | null } | null;
+  floor: { verdict: string; deskContracts: number | null; sizeCut?: boolean; band: string | null; confluence: number; dte?: number | null; latePnl?: RhLatePnl | null } | null;
   ticket: RhLiveTicket | null;
   manager?: ManagerRoomStateAgree | null;
   managerCall?: ManagerCallAgree | null;

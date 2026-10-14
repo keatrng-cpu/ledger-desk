@@ -121,6 +121,8 @@ export interface ManagerCloseResult {
 export interface FloorSnap {
   verdict: "ARMED" | "WATCH" | "STAND";
   deskContracts: number;
+  /** fireFix.gateHand one-step cut on the Floor card: the live debit cap is halved (rhSizeCutDebit). */
+  sizeCut?: boolean;
   /** Floor ticket latePnlPending + inputs (RhLatePnl). Pending → the RH gate needs latePnlCheck on the live ask. */
   latePnl?: { pending: boolean; px: number | null; t1: number | null; spot: number | null; delta: number | null } | null;
   cardKey: string | null;

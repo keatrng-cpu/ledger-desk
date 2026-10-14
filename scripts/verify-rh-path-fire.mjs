@@ -153,6 +153,11 @@ console.log("\nlive option quote REQUIRED (missing refuses; present can pass)");
   };
   check("review with fresh live quote may place", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5), quantity: 2 }).ok, true);
   check("review missing liveQuote refuses", rh.mayPlaceAfterReview({ ...base, quantity: 2 }).ok, false);
+  // Accuracy ac6c36ee: mayPlaceAfterReview holds the cut cap ($325) on the review-time ask.
+  check("cut review: 2ct at live $3.00 (~$604) refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 2, sizeCut: true }).ok, false);
+  check("cut review: 1ct at live $3.00 (~$302) may place", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 1, sizeCut: true }).ok, true);
+  check("cut review: 1ct at live $4.50 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(4.5), quantity: 1, sizeCut: true }).ok, false);
+  check("uncut review: 2ct at live $3.00 may place (<= $650)", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.0), quantity: 2 }).ok, true);
   check("review with stale live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(1.5, 60_000), quantity: 2 }).ok, false);
   check("review with null live quote refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: null, quantity: 2 }).ok, false);
   check("review live debit $704 > $650 refuses", rh.mayPlaceAfterReview({ ...base, liveQuote: q(3.5), quantity: 2 }).ok, false);

@@ -90,7 +90,7 @@ export function rhCandidateFromManagerFeed(args: {
   const tapeAgeSec = sig && Number.isFinite(sig.frameAt) && args.nowMs - sig.frameAt >= -5_000 ? Math.max(0, (args.nowMs - sig.frameAt) / 1000) : null;
   const candidate = candidateFromFloorPathStand({
     floor: manager
-      ? { verdict: manager.floor.verdict, deskContracts: manager.floor.deskContracts, band: manager.path.band, confluence: manager.path.confluence, dte: sig?.dte ?? null, latePnl: manager.floor.latePnl ?? null }
+      ? { verdict: manager.floor.verdict, deskContracts: manager.floor.deskContracts, sizeCut: manager.floor.sizeCut === true, band: manager.path.band, confluence: manager.path.confluence, dte: sig?.dte ?? null, latePnl: manager.floor.latePnl ?? null }
       : null,
     pathActionable: manager?.path.actionable === true,
     // THE Stand bit: Manager owns it (null for the stub / no feed → false).
@@ -138,7 +138,7 @@ export function proposeRhFromManagerFeed(args: {
   const sig = manager?.signals;
   const p = proposeRhFromPathFire({
     fire: args.fire,
-    floor: { verdict: candidate.floorVerdict, deskContracts: candidate.deskContracts, band: candidate.pathBand, confluence: candidate.confluence, dte: candidate.dte, latePnl: candidate.latePnl ?? null },
+    floor: { verdict: candidate.floorVerdict, deskContracts: candidate.deskContracts, sizeCut: candidate.sizeCut === true, band: candidate.pathBand, confluence: candidate.confluence, dte: candidate.dte, latePnl: candidate.latePnl ?? null },
     ticket: ticketFromManagerState(manager),
     manager,
     optionsSessionOpen: candidate.optionsSessionOpen,

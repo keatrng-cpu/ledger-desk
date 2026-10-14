@@ -1,0 +1,16 @@
+{
+  "_note": "Vendored copy of the gateHand cut-trigger set. Must equal options-desk.ts GATE_HAND_CUT_TRIGGERS and watcher/gates.py GATE_HAND_CUT_TRIGGERS (Accuracy ac6c36ee).",
+  "triggers": [
+    "brain_stand",
+    "brain_wait",
+    "brain_not_take",
+    "brain_no_book",
+    "htf_against",
+    "smt_direction",
+    "cross_book_same_side",
+    "model_ticket"
+  ],
+  "brainFull": [
+    "TAKE"
+  ]
+}

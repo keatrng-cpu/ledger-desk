@@ -393,6 +393,8 @@ export async function runRhDesk(args: RhDispatchArgs): Promise<RhDispatchResult>
     requireReviewQuote: true,
     quantity: qty,
     pathBand: manager?.path?.band ?? null,
+    // fireFix.gateHand cut: the cut cap ($325 on A+) is held on the review-time live ask (Accuracy ac6c36ee).
+    sizeCut: manager?.floor?.sizeCut === true,
     nowMs: clock(),
   });
   if (!may.ok) return { cycle, sent: false, why: may.reason, orderId: null };

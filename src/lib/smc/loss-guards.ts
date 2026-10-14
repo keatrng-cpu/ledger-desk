@@ -23,8 +23,10 @@ export function htfGuard(side: Side, bias1h: Bias, bias4h: Bias, band: string | 
     return { bothOppose: true, block: true, sizeMult: 0, capBand: null, why: `1h ${bias1h} + 4h ${bias4h} oppose the ${side}: band ${band} under ${LOSS.htf.minBand} — blocked` };
   if (band === "A+" && LOSS.htf.aPlusNeedsSweepDisp && !(sweep && displacement))
     return { bothOppose: true, block: false, sizeMult: LOSS.htf.sizeMult, capBand: "A", why: `1h+4h oppose: A+ needs sweep+displacement (sweep=${sweep} disp=${displacement}) — capped A, size ×${LOSS.htf.sizeMult}` };
-  return { bothOppose: true, block: false, sizeMult: band === "A+" ? 1 : LOSS.htf.sizeMult, capBand: null,
-    why: band === "A+" ? "1h+4h oppose: A+ with sweep+displacement — full size" : `1h+4h oppose: ${band} size ×${LOSS.htf.sizeMult}` };
+  // Accuracy ac6c36ee: both against is a CUT on every band that is not blocked, A+ with sweep+displacement included
+  // (was full size). The safer side of the desk/watcher parity gap; the watcher's loss_htf matches.
+  return { bothOppose: true, block: false, sizeMult: LOSS.htf.sizeMult, capBand: null,
+    why: band === "A+" ? `1h+4h oppose: A+ with sweep+displacement — size ×${LOSS.htf.sizeMult} (cut, not full)` : `1h+4h oppose: ${band} size ×${LOSS.htf.sizeMult}` };
 }
 
 /** 2a) early exit: no minR favourable within `minutes` of the fill. mfePts = best favourable excursion so far. */
