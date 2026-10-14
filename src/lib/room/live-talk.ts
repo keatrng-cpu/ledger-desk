@@ -1929,6 +1929,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   hallCands(w, st, cands);
   skepticCands(w, st, cands);
   geometryCands(w, st, cands);
+  quietSeatCands(w, st, cands);
   rulesCands(w, st, cands);
 
   cands.sort((a, b) => b.urgency - a.urgency || b.prio - a.prio || b.at - a.at);
@@ -2110,4 +2111,61 @@ function geometryCands(w: TalkWorld, st: TalkState, out: Cand[]) {
       s.topicSig["geometry"] = sig;
     },
   });
+}
+
+/* floor-62 #33: turn-taking — a seat that has been silent 20 minutes gets the floor for its own beat, on its own data, only when
+ * that data changed since it last spoke. Jax reads the tape; Vince reads the pipe and the book. */
+const QUIET_SEAT_MS = 20 * 60_000;
+function quietSeatCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const now = w.nowMs;
+  const silent = (who: Character) => (st.spoke[who] ?? []).every((t) => now - t > QUIET_SEAT_MS);
+  const b = w.books.QQQ ?? w.books.SPY;
+  if (b && silent("Jax") && w.feed.kind !== "synthetic") {
+    const sig = `${Math.round(b.px / 10)}|${b.rangeUsedPct != null ? Math.round(b.rangeUsedPct / 10) : ""}`;
+    if (st.topicSig["seat:jax"] !== sig)
+      out.push({
+        id: `quiet|jax|${sig}`,
+        kind: "heartbeat",
+        topic: "seat:jax",
+        urgency: 0,
+        prio: 2,
+        at: now,
+        label: "Jax on the tape",
+        build: (c) => {
+          const f = c.f;
+          const chg = b.changePct != null ? `, ${b.changePct >= 0 ? "up" : "down"} ${f.pct(Math.abs(b.changePct), 2)} on the day` : "";
+          const rng = b.rangeUsedPct != null ? `, ${f.pct(b.rangeUsedPct)} of a normal day's range used` : "";
+          return { lines: V.compact([V.line("Jax", "POINTING", `${b.say} ${f.lvl(b.px)}${chg}${rng}. I'm watching, not chasing.`)]), moves: {} };
+        },
+        commit: (s) => {
+          s.topicSig["seat:jax"] = sig;
+        },
+      });
+  }
+  if (silent("Vince") && w.feed.kind !== "synthetic" && w.feed.kind !== "none") {
+    const lag = w.feed.lagSec;
+    const vix = w.pulse.vix;
+    const sig = `${w.feed.kind}|${lag != null ? Math.min(9, Math.floor(lag / 30)) : ""}|${w.book.positions.length}|${w.book.monthEntries}|${vix != null ? Math.round(vix * 2) : ""}`;
+    if (st.topicSig["seat:vince"] !== sig)
+      out.push({
+        id: `quiet|vince|${sig}`,
+        kind: "heartbeat",
+        topic: "seat:vince",
+        urgency: 0,
+        prio: 2,
+        at: now,
+        label: "Vince on the pipe",
+        build: (c) => {
+          const f = c.f;
+          const age = lag != null ? `last print ${f.span(lag)} old` : "no print age";
+          return {
+            lines: V.compact([V.line("Vince", "STEADY_MONITORING", `Pipe check: ${age}; ${f.int(w.book.positions.length)} open, ${f.int(w.book.monthEntries)} PATH entries this month${vix != null ? `, VIX ${f.raw(vix.toFixed(1))}` : ""}.`)]),
+            moves: {},
+          };
+        },
+        commit: (s) => {
+          s.topicSig["seat:vince"] = sig;
+        },
+      });
+  }
 }

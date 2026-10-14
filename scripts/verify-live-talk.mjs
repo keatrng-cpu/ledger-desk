@@ -652,7 +652,8 @@ const QUIET = (() => {
   check(`never more than ${TALK.budget.max} exchanges in ten minutes`, !over);
   const speakers = {};
   for (const i of sim.items) for (const l of i.lines) speakers[l.character] = (speakers[l.character] ?? 0) + 1;
-  check("all five people talk", CREW5.every((c) => (speakers[c] ?? 0) >= 2), JSON.stringify(speakers));
+  console.log("  speakers", JSON.stringify(speakers));
+  check("all five people talk (floor-62 #33: the quiet seats get turns)", CREW5.every((c) => (speakers[c] ?? 0) >= 5), JSON.stringify(speakers));
   const distinct = Object.fromEntries(CREW5.map((c) => [c, new Set(sim.items.flatMap((i) => i.lines.filter((l) => l.character === c).map((l) => l.text))).size]));
   check("each of them has a lot to say, not a short loop (no line twice)", CREW5.every((c) => distinct[c] >= 2 && distinct[c] === sim.items.flatMap((i) => i.lines.filter((l) => l.character === c)).length), JSON.stringify(distinct));
   check("every exchange is legal", sim.items.every((i) => legal(i).length === 0), JSON.stringify(sim.items.flatMap(legal).slice(0, 4)));
