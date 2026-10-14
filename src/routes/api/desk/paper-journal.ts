@@ -1,13 +1,14 @@
 /**
  * /api/desk/paper-journal — PAPER futures journal (source=paper-futures), separate from every live stat.
- * GET: paper-only stats view. POST: one closed paper trade, `Authorization: Bearer <PAPER_JOURNAL_TOKEN>`.
+ * GET: paper-only stats view, `Authorization: Bearer <PAPER_JOURNAL_TOKEN>` (fails closed when unset). POST: one closed paper trade, `Authorization: Bearer <PAPER_JOURNAL_TOKEN>`.
  * No order endpoints; writes only desk_paper_journal.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/lib/alerts/cron";
 import { paperAuthorized, safePaperRow, insertPaperRow, paperStats } from "@/lib/desk/paper-journal";
 
-async function get(): Promise<Response> {
+async function get({ request }: { request: Request }): Promise<Response> {
+  if (!paperAuthorized(request.headers.get("authorization"))) return jsonResponse({ ok: false, error: "Unauthorized" }, 401, { "www-authenticate": "Bearer" });
   try { const { getSql } = await import("@/lib/db"); return jsonResponse({ ok: true, ...(await paperStats(await getSql())) }, 200, { "cache-control": "no-store" }); }
   catch (err) { console.error("[desk] paper journal read failed:", err); return jsonResponse({ ok: false, error: "paper journal unavailable" }, 503); }
 }

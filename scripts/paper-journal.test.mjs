@@ -20,3 +20,11 @@ test("live learning reads exclude paper; band edges stay floored at baseline", (
   assert.match(s, /Math\.max\(lo, Math\.min\(hi, to\)\)/);
   assert.doesNotMatch(readFileSync(new URL("../src/lib/desk/paper-journal.ts", import.meta.url), "utf8"), /desk_card_snap|desk_calibration/);
 });
+test("GET and POST both require the paper token; unset token fails closed", () => {
+  assert.equal(p.paperAuthorized("Bearer k", {}), false);
+  assert.equal(p.paperAuthorized(null, { PAPER_JOURNAL_TOKEN: "k" }), false);
+  assert.equal(p.paperAuthorized("Bearer ", { PAPER_JOURNAL_TOKEN: "" }), false);
+  const r = readFileSync(new URL("../src/routes/api/desk/paper-journal.ts", import.meta.url), "utf8");
+  assert.match(r, /async function get\(\{ request \}[^]*?if \(!paperAuthorized\(request\.headers\.get\("authorization"\)\)\) return jsonResponse\(\{ ok: false, error: "Unauthorized" \}, 401/);
+  assert.equal((r.match(/paperAuthorized\(request/g) || []).length, 2);
+});
