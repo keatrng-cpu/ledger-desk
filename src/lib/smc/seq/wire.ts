@@ -6,6 +6,7 @@ import type { Side } from "./rules";
 import { closedByFeed, feedClockRead } from "../smc-unity";
 import { pdLegRead, type PdLegRead } from "./pd-leg";
 import type { OhlcBar } from "@/lib/market/types";
+import { premarketMapCached, type PremarketMap } from "./premarket-map";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
 const UNDERLIER_BOOK: Record<string, string> = { QQQ: "MNQ", SPY: "ES", NQ: "MNQ", MNQ: "MNQ", ES: "ES", MES: "ES" };
@@ -18,6 +19,8 @@ export interface DeskSeqWire {
   floor: TicketWord | null;
   /** F6: premium/discount at the top card's POI inside the dealing leg + EQ stack. */
   pdLeg: PdLegRead | null;
+  /** F1: the premarket map per book (frozen at 09:25 ET). */
+  map: Record<string, PremarketMap>;
   /** Short human rows for the watcher's shadow:seq:* log. */
   rows: { rule: string; would: string }[];
 }
@@ -51,7 +54,14 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     const poi = (i.top as { entryPx?: number | null }).entryPx ?? (i.top.plan as { entry?: number | null } | null | undefined)?.entry ?? null;
     pdLeg = pdLegRead({ side: i.top.side as Side, poi, price: b.price, closed1m: b.closed1m, feedNowMs: b.feedNowMs, legacyFail: mb?.missing === "POI in correct half" });
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg };
+  const map: Record<string, PremarketMap> = {};
+  for (const side of ["left", "right"] as const) {
+    const sym = i.desk[side].symbol;
+    const b = bookOf(sym);
+    const deskLevels = (i.desk.levels.find((l) => l.symbol === sym)?.items ?? []).map((x) => ({ name: x.name, price: x.price }));
+    if (b.feedNowMs != null) map[sym] = premarketMapCached({ symbol: sym, minute: b.closed1m, bars15: (i.desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs: b.feedNowMs });
+  }
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -62,6 +72,9 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
     if (t.wouldUnblock) rows.push({ rule: "brainBooks", would: `${who} ${t.book} ${t.side}: legacy brain ${t.legacy.word} graded ${t.legacy.symbol} — per-book word TAKE, would not block` });
     else if (t.otherBookBlock) rows.push({ rule: "brainBooks", would: `${who} ${t.book} ${t.side}: legacy brain ${t.legacy.word} graded ${t.legacy.symbol} — per-book word ${t.word}, caution only` });
     if (t.wouldBlock) rows.push({ rule: "brainBooks", would: `${who} ${t.book} ${t.side}: legacy brain agreed via ${t.legacy.symbol}; this book says ${t.word} — would refuse` });
+  }
+  for (const m of Object.values(w.map)) {
+    if (m.frozen && m.amd.expectManip) rows.push({ rule: "premarketMap", would: `${m.symbol} map @09:25: HTF ${m.biasStack.htf}/MTF ${m.biasStack.mtf}/LTF ${m.biasStack.ltf}, ${m.zone ?? "?"} of ${m.range?.lo}–${m.range?.hi} (EQ ${m.range?.eq}); expect the ${m.amd.expectManip} raid; ${m.arrays.length} arrays, ${m.pools.length} pools` });
   }
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });

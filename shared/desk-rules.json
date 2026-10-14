@@ -847,6 +847,15 @@
       "eqBand": 0.05,
       "lookbackMin": 120,
       "_doc": "F6: pd_half judged at the POI inside the dealing leg (manipulation extreme to the extreme since, closed 1m by feed time), EQ band = no edge; EQ stack = prior session (PDH/PDL), this session, Asia, London, NY OR, overnight (one session each, 18:00 ET roll). Shadow: never flips the legacy must."
+    },
+    "premarketMap": {
+      "mode": "shadow",
+      "freezeEtMin": 565,
+      "eqTolAtr": 0.1,
+      "windowAtr": 8,
+      "maxPerTf": 3,
+      "maxPools": 8,
+      "_doc": "F1: premarket map per book frozen at 09:25 ET from closed bars: arrays FVG/IFVG/sponsored on 1m-4h + 1D, OB/breaker/rejection on 5m-4h + 1D (CE + edges, live/failed), kept within windowAtr x ATR15 of price, nearest maxPerTf per tf/kind/dir; PDH/PDL, PWH/PWL, Asia/London/premarket/overnight H/L, midnight + 18:00 opens; EQH/EQL pools (5m/15m, tol eqTolAtr x ATR15, unswept, nearest maxPools); dealing range = prior session + overnight with EQ; bias per rung 1m-1D + HTF/MTF/LTF stack; AMD phase + expected manipulation side. 30s listed missing (not synthesized)."
     }
   }
 }

@@ -85,3 +85,44 @@ test("F6 eqStack: prior session uses one session with the 18:00 ET roll", () => 
   const cur = st.find((r) => r.name === "This session");
   assert.deepEqual([cur.hi, cur.lo], [8, 6]);
 });
+
+const pm = await import("../src/lib/smc/seq/premarket-map.ts");
+const yahoo = (sym) => { try { return JSON.parse((await_fs()).readFileSync(`/workspace/audits/seq-data/yahoo-1m-${sym}.json`, "utf8")); } catch { return null; } };
+import * as fsmod from "node:fs";
+function await_fs() { return fsmod; }
+
+test("F1 premarketMap: frozen at 09:25 ET, reads no bar closing after the cut", () => {
+  const T9 = Date.UTC(2026, 9, 14, 13, 25); // 09:25 ET
+  const bars = [];
+  for (let k = -2000; k < 120; k++) { const p = 100 + Math.sin(k / 30) * 5 + (k > 0 ? 50 : 0); bars.push({ t: T9 + k * 60e3, o: p, h: p + 1, l: p - 1, c: p }); }
+  const a = pm.premarketMap({ symbol: "X", minute: bars, nowMs: T9 + 100 * 60e3 });
+  const b = pm.premarketMap({ symbol: "X", minute: bars.filter((x) => x.t + 60e3 <= T9), nowMs: T9 + 100 * 60e3 });
+  assert.equal(a.frozen, true);
+  assert.equal(a.asOfT, T9);
+  assert.deepEqual(a.levels, b.levels);           // bars after 09:25 (the +50 jump) never leak in
+  assert.ok(a.price < 120);
+  assert.ok(a.missing.some((m) => m.startsWith("30s")));
+});
+
+test("F1 premarketMap: blocks — OB, breaker and rejection detected on closed bars", () => {
+  const xs = [];
+  let p = 100;
+  for (let k = 0; k < 20; k++) { const w = [0, 0.6, 0.2, 0.9, 0.1][k % 5]; xs.push({ t: k * 300e3, o: p, h: p + 1 + w, l: p - 1 - w, c: p + (k % 2 ? 0.5 : -0.5) }); }
+  xs.push({ t: 20 * 300e3, o: 100, h: 100.2, l: 99, c: 99.2 });      // last down candle (bull OB)
+  xs.push({ t: 21 * 300e3, o: 99.2, h: 106, l: 99.1, c: 105.8 });    // displacement up through the swing highs
+  for (let k = 22; k < 30; k++) xs.push({ t: k * 300e3, o: 105, h: 106, l: 104, c: 105 });
+  const bl = pm.blocksOf(xs, "5m");
+  assert.ok(bl.some((b) => b.kind === "ob" && b.dir === "bull"));
+  xs.push({ t: 30 * 300e3, o: 104, h: 104, l: 97, c: 97.5 });        // close through the OB → breaker
+  assert.ok(pm.blocksOf(xs, "5m").some((b) => b.kind === "breaker" && b.dir === "bear"));
+});
+
+test("F1 premarketMap: 10/14 MNQ (Yahoo NQ=F) — bear stack, expect the high raid, bear arrays above price", { skip: !fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-MNQ.json") }, () => {
+  const m = yahoo("MNQ");
+  const now = Date.UTC(2026, 9, 14, 13, 40);
+  const mp = pm.premarketMap({ symbol: "MNQ", minute: m.filter((b) => b.t + 60e3 <= now), nowMs: now });
+  assert.equal(mp.biasStack.htf, "bear");
+  assert.equal(mp.amd.expectManip, "high");
+  assert.ok(mp.arrays.some((a) => a.dir === "bear" && ["30m", "1h"].includes(a.tf) && a.lo <= 30656 && a.hi >= 30600));
+  assert.ok(mp.levels.some((l) => l.name === "PDL"));
+});
