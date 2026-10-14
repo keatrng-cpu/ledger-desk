@@ -13,7 +13,8 @@ import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacement
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
-import { buildMtfContext, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
+import { entryStateOf } from "@/lib/smc/entry-state";
+import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
   DESK_BUDGET_MS,
@@ -1174,10 +1175,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const own = book?.ltfReversals.find((r) => r.against === c.side);
         const rev = own ?? book?.ltfReversal;
         if (!rev) continue;
+        if (rev.against === c.side && rev.rearmed && rev.killCleared && rev.rearmed === rev.killCleared) {
+          (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
+        }
         if (rev.against === c.side && rev.rearmed) {
           c.pathBand = capBand(c.pathBand, "A-") as never;
           c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
         } else if (rev.against === c.side) {
+          if (rev.killCleared) {
+            // Fix A shadow (kill.clear.mode shadow): the kill's evidence is invalidated but the veto stays.
+            (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
+            c.reasons.push(`shadow:killCleared (no effect, mode ${KILL_CLEAR.mode ?? "shadow"}): ${rev.killCleared.why}`);
+          }
           c.pathBand = capBand(c.pathBand, "C") as never;
           c.actionable = false;
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
@@ -1368,6 +1377,25 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
       for (const c of payload.scan.candidates) sealBand(c as never);
+      // Fix B: timing is entryState, not quality. Every card carries it (1m–4h distances); the quality-only
+      // q/band (chase penalty undone) is logged in shadow (timing.mode shadow) and IS q/band in live.
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const cx = ctxFor(c.symbol);
+        const entry = c.entryPx ?? c.plan?.entry ?? null;
+        const es = entryStateOf({
+          side: c.side as "long" | "short", band: c.pathBand, price: cx.price, entry, t1: c.plan?.t1 ?? null,
+          zone: c.plan?.entryZone ?? null, atr15: cx.atr15, minute: isL ? minuteL : minuteR, bars15: cx.closed15,
+          rows: mtfArrays(c.symbol, isL ? minuteL : minuteR, cx.closed15) as never,
+        });
+        (c as { entryState?: unknown }).entryState = es;
+        const ch = (c as { chase?: { qFactor: number; qBefore: number; applied: boolean } }).chase;
+        if (ch?.applied) {
+          const qq = ch.qFactor > 0 ? Math.min(0.99, +(c.confluence / ch.qFactor).toFixed(4)) : ch.qBefore;
+          (c as { qualityShadow?: unknown }).qualityShadow = { q: qq, band: bandFromQ(qq), liveQ: c.confluence, liveBand: c.pathBand };
+          c.reasons.push(`shadow:timing (no effect): quality-only q ${qq} (${bandFromQ(qq)}) vs live ${c.confluence} (${c.pathBand}); ${es?.label ?? "no entryState"}`);
+        } else if (es) c.reasons.push(`Timing: ${es.label} (${es.distAtr}×ATR15)`);
+      }
       // AUDIT F2: the top card is the best card (actionable, band, q), so the
       // wire, the Floor and the brain read the same first candidate.
       const bandRank = (b: string | undefined) => { const i = ["A+", "A", "A-", "B+", "B", "C"].indexOf(String(b)); return i < 0 ? 9 : i; };

@@ -58,6 +58,12 @@ export interface LtfReversal {
    * failed-only kill is never emitted).
    */
   smc?: { failedOnly: boolean; failed: string[]; killTInv: number | null };
+  /**
+   * Fix A (Keaton 10/14 09:55 ET, MNQ short vetoed by a bull IFVG price had already closed back below):
+   * every piece of kill evidence was invalidated on CLOSED bars across the 1m–4h ladder
+   * (`killClearedOf`). kill.clear.mode live → also sets `rearmed` (capped A-); shadow → reported only.
+   */
+  killCleared?: { t: number; why: string } | null;
 }
 export interface BookMtf {
   symbol: string;
@@ -264,6 +270,7 @@ export const EXTREME_LOOKBACK = 10;
 
 type Side = "long" | "short";
 interface Kill { side: Side; t: number; level: number; why: string; failed?: boolean; tInv?: number | null }
+export type { Kill as LtfKill };
 
 /**
  * LTF reversal against a side (Keaton 2026-10-13 10:33 ET). Triggers, CLOSED bars:
@@ -347,7 +354,9 @@ export function ltfReversalsOf(
       failed: failedKs.map((x) => `${x.why} [failed]`),
       killTInv: ks.reduce<number | null>((a, x) => (x.tInv != null && (a == null || x.tInv > a) ? x.tInv : a), null),
     };
-    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed: rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level), smc });
+    const cleared = killClearedOf(m, side, ks);
+    const rearmed = rearmAfter(m, atrs, side, ks[0].t, level) ?? killVoided(m, side, ks[0].t, level) ?? (KILL_CLEAR.mode === "live" ? cleared : null);
+    out.push({ against: side, why: [...new Set(ks.map((x) => x.why))].slice(0, 3), killT: ks[0].t, level, rearmed, killCleared: cleared, smc });
   }
   return out;
 }
@@ -373,6 +382,53 @@ export function killVoided(m: OhlcBar[], side: Side, killT: number, level: numbe
   }
   if (lastT - killT > RULES.kill.maxAgeMin * 60_000) return { t: lastT, why: `kill aged out (> ${RULES.kill.maxAgeMin} min)` };
   return null;
+}
+
+/** Fix A rules (shared/desk-rules.json kill.clear). */
+export const KILL_CLEAR = (RULES.kill as { clear?: { mode?: string; rungs?: string[]; minRungs?: number } }).clear ?? {};
+const CLEAR_RUNGS_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
+
+/**
+ * Fix A — stale kills clear. One piece of evidence (5m IFVG edge, or the 1m displacement origin) is
+ * INVALIDATED when price closes back beyond its level in the killed side's favour (bull IFVG vs a
+ * short: close < lo; bear IFVG vs a long: close > hi; reversal level reclaimed) — on CLOSED bars of
+ * every timeframe together, not one rung: per rung in kill.clear.rungs (1m…4h) the latest closed bar
+ * after the kill must sit beyond the level; ≥ kill.clear.minRungs rungs AND a majority of the rungs
+ * with a closed bar since the kill must agree, slowest ≥ 2m, so a lone 1m print never clears.
+ * The side clears only when EVERY piece of its evidence is invalidated. Returns the `killCleared` reason.
+ */
+export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: number; why: string } | null {
+  if (!m.length || !kills.length) return null;
+  const rungs = (KILL_CLEAR.rungs ?? ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h"]).filter((r) => CLEAR_RUNGS_MIN[r]);
+  const need = Math.max(1, KILL_CLEAR.minRungs ?? 3);
+  const lastEnd = m[m.length - 1]!.t + 60_000;
+  const closedOn = (tfMin: number) => {
+    const ms = tfMin * 60_000;
+    const out: { t: number; c: number }[] = [];
+    for (const b of m) { const k = Math.floor(b.t / ms) * ms; const L = out[out.length - 1]; if (L && L.t === k) L.c = b.c; else out.push({ t: k, c: b.c }); }
+    return out.filter((x) => x.t + ms <= lastEnd);
+  };
+  const series = rungs.map((r) => ({ r, min: CLEAR_RUNGS_MIN[r]!, bars: closedOn(CLEAR_RUNGS_MIN[r]!) }));
+  let tMax = 0;
+  const notes: string[] = [];
+  for (const k of kills) {
+    if (!Number.isFinite(k.level)) return null;
+    const beyond = (c: number) => (side === "long" ? c > k.level : c < k.level);
+    const agree: string[] = [];
+    let seen = 0, slowest = 0, tk = 0;
+    for (const s of series) {
+      const after = s.bars.filter((x) => x.t >= k.t);
+      if (!after.length) continue;
+      seen++;
+      const last = after[after.length - 1]!;
+      if (beyond(last.c)) { agree.push(s.r); slowest = Math.max(slowest, s.min); tk = Math.max(tk, last.t + s.min * 60_000); }
+    }
+    // ≥ minRungs rungs AND a majority of the rungs that closed since the kill, slowest ≥ 2m.
+    if (agree.length < need || agree.length * 2 <= seen || slowest < 2) return null;
+    tMax = Math.max(tMax, tk);
+    notes.push(`${k.why.split(" against")[0]} @ ${k.level} (${agree.join("/")} closed ${side === "long" ? "above" : "below"})`);
+  }
+  return { t: tMax, why: `killCleared: evidence invalidated on closed bars — ${notes.join("; ")}` };
 }
 
 /** The governing read: the newest live (un-rearmed) kill; else the newest re-armed one. */

@@ -27,6 +27,14 @@
     "modelPricePending": true,
     "_modelPricePendingDoc": "Late card whose only latePnlCheck miss is a model price (no live chain quote): Floor keeps it ARMED with ticket.latePnlPending=true; the watcher runs entry_distance_check pnlMinPct on the live RH option quote before placing and refuses on a fail or a missing quote. A miss on a live quote still drops the ticket."
   },
+  "timing": {
+    "_doc": "Fix B (Keaton 2026-10-14): q and band measure SETUP QUALITY only; distance from entry is entryState (at/near/late/missed + ATR distance on 1m-4h) shown on the card. live = discipline R3 chase no longer cuts q/band (and the brain retrace layer reads timing, not a must); shadow = old penalties applied, the quality-only q/band and entryState logged as shadow:timing rows. Execution gates unchanged: watcher entry_distance 0.5xATR, loss.late guard, lateEntry.pnlMinPct. A late/missed card proposes a re-entry only at a real POI on the wire (unmitigated FVG/IFVG CE on any rung 1m-4h, or the retest of the broken entry zone).",
+    "mode": "shadow",
+    "atAtr": 0.1,
+    "nearAtr": 0.5,
+    "lateAtr": 1.0,
+    "rungs": ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h"]
+  },
   "kill": {
     "disp1Atr": 1.0,
     "ifvg5MaxAge": 6,
@@ -34,7 +42,13 @@
     "boost": 0.02,
     "boostMax": 0.04,
     "voidCloses5m": 2,
-    "maxAgeMin": 60
+    "maxAgeMin": 60,
+    "clear": {
+      "_doc": "Fix A (Keaton 2026-10-14 09:55 ET): a kill clears (reason killCleared) once EVERY piece of its evidence is invalidated on CLOSED bars — bull IFVG closed back below lo / bear IFVG above hi / reversal level reclaimed — agreed by >= minRungs rungs and a majority of the rungs closed since the kill (1m-4h together; a lone 1m never clears). live = side re-arms (capped A-, same as rearmed); shadow = card reason + wire field only. Desk mtf-context killClearedOf; watcher ltf_kill reads the desk's ltfKilled/ltfKillCleared.",
+      "mode": "shadow",
+      "rungs": ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h"],
+      "minRungs": 3
+    }
   },
   "fire": {
     "persistS": 6,

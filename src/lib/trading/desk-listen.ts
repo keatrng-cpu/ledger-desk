@@ -122,6 +122,10 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
+    /** Fix A: the side's kill evidence is invalidated on closed bars (kill.clear); the watcher ltf_kill reads it with kill.clear.mode. */
+    ltfKillCleared: boolean;
+    /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
+    entryState: unknown;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -302,6 +306,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           judas,
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
+          ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
+          entryState: (top as { entryState?: unknown }).entryState ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,

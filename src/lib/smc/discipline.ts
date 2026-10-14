@@ -21,6 +21,8 @@ export const BANDS = ["A+", "A", "A-", "B+", "B", "C", "skip"] as const;
 export type Band = (typeof BANDS)[number];
 export const MIN_STOP_ATR = RULES.minStopAtr; // shared/desk-rules.json
 export const CHASE_STEP_ATR = 0.5;
+/** Fix B flag (shared rules timing.mode): live = q/band are setup quality only. */
+export const TIMING_MODE = String((RULES as { timing?: { mode?: string } }).timing?.mode ?? "shadow");
 export const FAST_INVALID_BODY_ATR5 = 1.25;
 export const CHOP_OVERLAP = 0.6;
 export const CHOP_RANGE_ATR = 3;
@@ -153,11 +155,18 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
     const d = Math.max(0, past) / atr;
     if (d > 0) {
       const steps = Math.floor(d / CHASE_STEP_ATR);
-      q = +(q * Math.max(0, 1 - 0.5 * d)).toFixed(4);
-      if (steps > 0) {
-        band = stepDown(band, steps);
-        note(`Chase ${d.toFixed(2)}×ATR past CE — ${steps} band step${steps > 1 ? "s" : ""} down`);
-      }
+      const factor = Math.max(0, 1 - 0.5 * d);
+      // Fix B (Keaton 10/14): chase is TIMING, not setup quality. timing.mode live → no q/band hit here;
+      // entryState (smc/entry-state.ts) carries it and the execution gates (late guard, late_pnl,
+      // watcher entry_distance) still refuse. shadow → applied as before, the would-be quality read is kept.
+      (c as { chase?: unknown }).chase = { distAtr: +d.toFixed(2), qFactor: +factor.toFixed(4), bandSteps: steps, qBefore: q, bandBefore: band, applied: TIMING_MODE !== "live" };
+      if (TIMING_MODE !== "live") {
+        q = +(q * factor).toFixed(4);
+        if (steps > 0) {
+          band = stepDown(band, steps);
+          note(`Chase ${d.toFixed(2)}×ATR past CE — ${steps} band step${steps > 1 ? "s" : ""} down`);
+        }
+      } else note(`Timing: ${d.toFixed(2)}×ATR past CE — quality unchanged, entryState carries it`);
     }
   }
   // R4
