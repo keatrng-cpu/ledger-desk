@@ -927,6 +927,28 @@
       },
       "intradayRaids": true,
       "_doc": "EQH/EQL audit fix: fractal-2 swings confirmed by closed bars on every rung 1m-1D, tol max(tolTicks x tick, eqTolAtr x rung ATR), minTouches, pool price = the extreme, age cap per rung; first later wick beyond = USED (kept as evidence, never a target/draw/raid). Feeds the premarket map pools/levels, T1 ranking, AMD sweep detection (intraday 1m/5m pools), wire rows (brain) and shadow:seq:eqPools (watcher)."
+    },
+    "scenarios": {
+      "mode": "shadow",
+      "_doc": "F2: four scripted open plays per book from the 09:25 map (S1-bear sweep high->reverse->invert->lower draws; S2-bear sweep low->gap+consolidate->CE retrace->down; S1-bull/S2-bull mirrors) with trigger, invalidation, real draws; ranked by prior (F7 odds when scenarioOdds.lr is set). Yahoo 19 sessions x2: top-2 hit 52.6% (holdout 60%), target 70%."
+    },
+    "respect": {
+      "mode": "shadow",
+      "minNet": 2,
+      "_doc": "F3: respect ledger per book from 09:30 ET on closed bars: first touch of each live mapped/intraday array scored by the touching bar body close (held +1 / failed -1) per tier LTF/MTF/HTF; stronger side when |net| >= minNet. Yahoo: next-30-min direction hit 58.9% (holdout 60%), target 65%."
+    },
+    "scenarioOdds": {
+      "mode": "shadow",
+      "_doc": "F7: P(script) = train base rate x likelihood ratios of map features (fitLr, Laplace, train sessions only). Holdout Brier 0.607 vs 0.532 base-rate-only and 0.703 heuristic prior: does NOT beat the base rate; lr table not shipped."
+    },
+    "calibrate": {
+      "mode": "shadow",
+      "minEdgeR": 0.1,
+      "_doc": "F8: isotonic score(T1 R:R)->P(win) fitted on train AMD trades; E[R]=p*RR-(1-p); shadow gate minEdgeR. Holdout: kept 13/15, win 38.5%, no improvement; P>=0.65 bucket 0/2. Table not shipped (no calibrated edge)."
+    },
+    "sessionGateStudy": {
+      "mode": "shadow",
+      "_doc": "Keaton: session gate refusals (out of 08:30-11:00 / 13:30-16:00 ET, shock exception 2.0xATR & 1.5xvol unchanged). Continuation run all day on Yahoo 19 sessions x2: lunch refusals 15 trades 40% win -0.083R -576 USD/wk; HTF-aligned & >=4 rungs 7 trades -0.246R; others 8 trades +0.059R -146 USD/wk. No bucket positive after costs: no exception proposed; live thresholds unchanged."
     }
   }
 }

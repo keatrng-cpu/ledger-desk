@@ -9,6 +9,8 @@ import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
 import { amdRead, type AmdRead } from "./amd-state";
 import { continuationRead, type ContRead } from "./continuation";
+import { scenarios, type ScenarioRead } from "./scenarios";
+import { respectRead, type RespectRead } from "./respect";
 import { intradayTicket, rungEval, ETF_OF, type IntradayTicket, type RungRead } from "./intraday-exec";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
@@ -28,6 +30,9 @@ export interface DeskSeqWire {
   amd: Record<string, AmdRead>;
   /** F9: continuation (rolled T1 / re-anchored entry) per book. */
   continuation: Record<string, ContRead>;
+  /** F2/F7 scenario cards with odds; F3 respect ledger (per book). */
+  scenarios: Record<string, ScenarioRead>;
+  respect: Record<string, RespectRead>;
   /** F10: 0DTE intraday ticket for the live AMD/continuation setup per book + close-vs-wick per rung. */
   intraday: Record<string, { ticket: IntradayTicket | null; rungs: RungRead }>;
   /** Short human rows for the watcher's shadow:seq:* log. */
@@ -96,7 +101,13 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
       : null;
     intraday[sym] = { ticket: tk, rungs: rungEval(b.closed1m, b.feedNowMs, map[sym]?.arrays ?? []) };
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday };
+  const scen: Record<string, ScenarioRead> = {}, respect: Record<string, RespectRead> = {};
+  for (const side of ["left", "right"] as const) {
+    const sym = i.desk[side].symbol; const b = bookOf(sym);
+    scen[sym] = scenarios(map[sym] ?? null);
+    if (b.feedNowMs != null) respect[sym] = respectRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
+  }
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday, scenarios: scen, respect };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -115,6 +126,8 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
     const live = m.pools.filter((p) => !p.used), used = m.pools.filter((p) => p.used);
     if (live.length || used.length) rows.push({ rule: "eqPools", would: `${m.symbol} EQH/EQL unswept: ${live.map((p) => `${p.name ?? p.tf} ${p.price}`).join(", ") || "none"}; used (swept): ${used.length}` });
   }
+  for (const sc of Object.values(w.scenarios ?? {})) if (sc.ranked.length) rows.push({ rule: "scenarios", would: `${sc.symbol} scripts: ${sc.ranked.slice(0, 2).map((x) => `${x.id} ${Math.round(x.prior * 100)}% (sweep ${x.trigger?.name ?? "?"} → ${x.draws[0]?.name ?? "?"})`).join(" / ")}` });
+  for (const r of Object.values(w.respect ?? {})) if (r.tiers.all.stronger) rows.push({ rule: "respect", would: `${r.symbol} respect net ${r.tiers.all.net} → ${r.tiers.all.stronger} stronger (LTF ${r.tiers.ltf.net}, MTF ${r.tiers.mtf.net}, HTF ${r.tiers.htf.net})` });
   for (const a of Object.values(w.amd)) {
     const s = a.live;
     if (!s) continue;

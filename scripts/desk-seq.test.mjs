@@ -263,3 +263,39 @@ test("EQH/EQL: every rung, ticks floor, swept → used; today ES pools", async (
     assert.ok(!pm.mappedTargets(map, "long", 0).some((t) => /PDL|\blow\b/.test(t.name)), "a low is never a buyside target");
   }
 });
+
+test("F2 scenarios: four scripts, priors sum to 1, draws are real liquidity; realised() classifies", async () => {
+  const sc = await import("../src/lib/smc/seq/scenarios.ts");
+  if (fsmod.existsSync("/workspace/audits/seq-data/yahoo-1m-MNQ.json")) {
+    const m = yahoo("MNQ").filter((b) => b.t % 60e3 === 0); const c = Date.UTC(2026, 9, 14, 13, 26);
+    const map = pm.premarketMap({ symbol: "MNQ", minute: m.filter((b) => b.t + 60e3 <= c && b.t > c - 12 * 864e5), nowMs: c });
+    const r = sc.scenarios(map);
+    assert.equal(r.ranked.length, 4);
+    assert.ok(Math.abs(r.ranked.reduce((a, x) => a + x.prior, 0) - 1) < 0.01);
+    assert.equal(r.ranked[0].id, "S1-bear"); // 10/14: bear stack, expect the high raid — matches what played
+    for (const s of r.ranked) for (const d of s.draws) assert.ok(d.liq);
+  }
+  const t0 = 0; const mk = (k, h, l, o, c) => ({ t: t0 + k * 60e3, o, h, l, c });
+  const up = [...Array(40)].map((_, k) => mk(k, 100 + k, 99 + k, 99.5 + k, 100 + k)); up[2] = mk(2, 101, 90, 100, 100);
+  assert.equal(sc.realised(up), "S1'-bull");
+  const lr = sc.fitLr([{ feats: ["a"], y: "S1-bear" }, { feats: ["b"], y: "S1'-bull" }]);
+  assert.ok(lr.a["S1-bear"] > lr.a["S1'-bull"]);
+});
+test("F3 respect: a body close back on the array side is held, through it is failed", async () => {
+  const rs = await import("../src/lib/smc/seq/respect.ts");
+  const t0 = Date.UTC(2026, 9, 14, 13, 0);
+  const map = { arrays: [{ tf: "15m", kind: "fvg", dir: "bear", lo: 100, hi: 102, ce: 101, live: true, t: 0 }, { tf: "1h", kind: "fvg", dir: "bull", lo: 90, hi: 92, ce: 91, live: true, t: 0 }] };
+  const bars = [...Array(60)].map((_, k) => ({ t: t0 + k * 60e3, o: 96, h: 97, l: 95, c: 96, v: 1 }));
+  bars[40] = { ...bars[40], h: 101, c: 99 };  // 09:40 ET taps the bear gap, closes below → held (bear)
+  bars[45] = { ...bars[45], l: 91, c: 89 };   // taps the bull gap, closes through → failed (bull)
+  const r = rs.respectRead("ES", map, bars, t0 + 60 * 60e3);
+  assert.equal(r.tiers.all.bear, 1); assert.equal(r.tiers.all.bull, -1); assert.equal(r.tiers.all.net, -2); assert.equal(r.tiers.all.stronger, "bear");
+});
+test("F8 calibrate: isotonic is monotone; E[R] and the minEdgeR shadow gate", async () => {
+  const cb = await import("../src/lib/smc/seq/calibrate.ts");
+  const t = cb.isotonic([{ x: 1, y: 1 }, { x: 2, y: 0 }, { x: 3, y: 1 }, { x: 4, y: 1 }]);
+  for (let i = 1; i < t.length; i++) assert.ok(t[i].p >= t[i - 1].p);
+  assert.equal(cb.edgeR(0.5, 2), 0.5);
+  const e = cb.edgeRead(1.2, 1.2, [{ x: 1.5, p: 0.4 }]);
+  assert.equal(e.p, 0.4); assert.ok(e.wouldRefuse);
+});

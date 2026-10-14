@@ -4,7 +4,7 @@
  * would have been made (no lookahead). Usage: npx tsx scripts/backtest-desk-seq.mts [--out file]
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { premarketMap } from "../src/lib/smc/seq/premarket-map";
+import { premarketMap, rungBias, closedBuckets } from "../src/lib/smc/seq/premarket-map";
 import { sessionKeyOf } from "../src/lib/smc/smc-unity";
 import { etOf } from "../src/lib/smc/seq/rules";
 import { setSeqOverrides } from "../src/lib/smc/seq/rules";
@@ -62,7 +62,7 @@ const report: Record<string, unknown> = { source: "yahoo 1m (NQ=F→MNQ, ES=F→
 
 // ---- current desk (replayDay), ltfArm (replayDayLtfArm) and the AMD state machine on the SAME sessions
 const CAP = 650;
-export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?: number; cont?: boolean } = {}): (Trade & { day: string; setup: AmdSetup })[] {
+export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?: number; cont?: boolean; contUntilHm?: number } = {}): (Trade & { day: string; setup: AmdSetup })[] {
   const cut = at(day, 9 * 60 + 26);
   const hist = m.filter((b) => b.t + 60_000 <= cut && b.t > cut - 12 * 86_400_000);
   if (hist.length < 500) return [];
@@ -85,7 +85,7 @@ export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?
       optPnlPct: optionPnlPct(DEFAULT_OPT[sym]!, s.side, s.entry!, px, mins), why: `amd ${s.raid?.name} → ${s.confirm?.why} → ${s.entryWhy}`, day, setup: s, ctx: { expect: map.amd.expectManip, htf: map.biasStack.htf, mtf: map.biasStack.mtf, zone: map.zone } } as never);
   }
   if (opts.cont) {
-    const c = continuationRead(sym, map, bars, at(day, 12 * 60), r);
+    const c = continuationRead(sym, map, bars, at(day, opts.contUntilHm ?? 12 * 60), r);
     for (const s of c.setups.filter((x) => x.stage === "ENTERED")) {
       const fill = bars.findIndex((b) => b.t + 60_000 === s.enteredT);
       if (fill < 0) continue;
@@ -97,10 +97,18 @@ export function seqTrades(sym: string, m: B[], day: string, opts: { timeStopMin?
       const mins = (stopOnFill ? fill : res.j) - fill;
       out.push({ symbol: sym, side: s.side, t: fb.t, entry: s.entry, stop: s.stop, target: s.t1.price, rr: s.t1.r, exitT: bars[stopOnFill ? fill : res.j]?.t ?? null, exitPx: px, outcome,
         r: outcome === "open" ? null : +(((s.side === "long" ? px - s.entry : s.entry - px) / risk)).toFixed(2), minutes: mins,
-        optPnlPct: optionPnlPct(DEFAULT_OPT[sym]!, s.side, s.entry, px, mins), why: `cont ${s.entryWhy} → ${s.t1.name}`, day, setup: { raid: null, confirm: { tf: "cont" } } as never, cont: true } as never);
+        optPnlPct: optionPnlPct(DEFAULT_OPT[sym]!, s.side, s.entry, px, mins), why: `cont ${s.entryWhy} → ${s.t1.name}`, day, setup: { raid: null, confirm: { tf: "cont" } } as never, cont: true, gateCtx: gateCtx(bars, fill, s.side, map) } as never);
     }
   }
   return out;
+}
+function gateCtx(bars: B[], fill: number, side: "long" | "short", map: ReturnType<typeof premarketMap>) {
+  const T = bars[fill]!.t; const win = bars.slice(Math.max(0, fill - 3000), fill); // closed before the fill bar
+  const want = side === "long" ? "bull" : "bear";
+  const rungs = [1, 2, 3, 5, 15, 30, 60].filter((mn) => rungBias(closedBuckets(win, mn * 60_000, T)) === want).length;
+  const w60 = win.slice(-60); const atr1 = w60.reduce((a, b) => a + (b.h - b.l), 0) / Math.max(1, w60.length);
+  const v20 = win.slice(-20).reduce((a, b) => a + b.v, 0) / 20; const fb = bars[fill - 1]!;
+  return { hm: etOf(T).hm, htfAligned: map.biasStack.htf === want, rungs, shockAtr: +((fb.h - fb.l) / (atr1 || 1)).toFixed(2), shockVol: +(fb.v / (v20 || 1)).toFixed(2) };
 }
 const dollars = (ts: Trade[]) => +ts.reduce((a, t) => a + (t.optPnlPct == null ? 0 : Math.max(-1, t.optPnlPct) * CAP), 0).toFixed(0);
 export function kpis(ts: (Trade & { day: string })[], nDays: number) {
@@ -110,7 +118,32 @@ export function kpis(ts: (Trade & { day: string })[], nDays: number) {
   const avgLoss = -done.filter((t) => t.r! <= 0).reduce((a, t) => a + t.r!, 0) / Math.max(1, done.filter((t) => t.r! <= 0).length);
   return { ...s, rrRealized: avgLoss ? +(avgWin / avgLoss).toFixed(2) : null, firesPerWeek: +(ts.length / weeks).toFixed(1), dollarsPerWeek: +(dollars(ts) / weeks).toFixed(0), dollarsTotal: dollars(ts) };
 }
-const GRID = args.includes("--grid");
+const GRID = args.includes("--grid") || args.includes("--gate");
+if (args.includes("--gate")) {
+  // session-gate study: continuation run all day; entries outside the killzones (08:30–11:00, 13:30–16:00 ET) are the
+  // refusals the gate makes when the rest of the sequence passed. Shock exception (≥2.0×ATR AND ≥1.5×vol) shown separately.
+  setSeqOverrides({ continuation: { endEtMin: 959 } });
+  const ts: any[] = [];
+  for (const sym of ["MNQ", "ES"]) for (const day of sessionsOf(TAPE[sym]!).slice(1)) ts.push(...seqTrades(sym, TAPE[sym]!, day, { cont: true, contUntilHm: 16 * 60 }).filter((t: any) => t.cont));
+  setSeqOverrides(null);
+  const inKz = (hm: number) => (hm >= 510 && hm < 660) || (hm >= 810 && hm < 960);
+  const nDays = sessionsOf(TAPE.MNQ!).slice(1).length;
+  const out: Record<string, unknown> = {};
+  const add = (k: string, xs: any[]) => { out[k] = kpis(xs, nDays); console.log(k.padEnd(44), JSON.stringify(out[k])); };
+  const oow = ts.filter((t) => !inKz(t.gateCtx.hm));
+  const refused = oow.filter((t) => !(t.gateCtx.shockAtr >= 2 && t.gateCtx.shockVol >= 1.5));
+  add("in-window continuation (gate passes)", ts.filter((t) => inKz(t.gateCtx.hm)));
+  add("out-of-window, shock exception passes", oow.filter((t) => !refused.includes(t)));
+  for (const [nm, f] of [["lunch 11:00-13:30", (t: any) => t.gateCtx.hm >= 660 && t.gateCtx.hm < 810], ["other out-of-window", (t: any) => !(t.gateCtx.hm >= 660 && t.gateCtx.hm < 810)]] as const) {
+    const b = refused.filter(f);
+    add(`REFUSED ${nm}`, b);
+    add(`REFUSED ${nm} | HTF-aligned & ≥4 rungs`, b.filter((t) => t.gateCtx.htfAligned && t.gateCtx.rungs >= 4));
+    add(`REFUSED ${nm} | not (HTF-aligned & ≥4 rungs)`, b.filter((t) => !(t.gateCtx.htfAligned && t.gateCtx.rungs >= 4)));
+  }
+  report.gate = { buckets: out, refusedTrades: refused.map((t) => ({ day: t.day, sym: t.symbol, side: t.side, ...t.gateCtx, r: t.r, opt$: t.optPnlPct == null ? null : Math.round(Math.max(-1, t.optPnlPct) * CAP), outcome: t.outcome })) };
+  if (outPath) writeFileSync(outPath, JSON.stringify(report, null, 1));
+  process.exit(0);
+}
 if (GRID) {
   // walk-forward: choose on the first 75% of sessions, report the untouched last 25% (holdout)
   const variants: [string, Record<string, Record<string, unknown>>][] = [
@@ -163,6 +196,11 @@ if (!GRID) {
   }
   const n = daysUsed.size;
   report.engines = { sessions: n, days: [...daysUsed].sort(), desk: kpis(desk, n), ltfArm: kpis(arm, n), amd: kpis(seq, n), continuation: kpis(cont, n), amdPlusCont: kpis([...seq, ...cont], n) };
+  { const all = [...daysUsed].sort(); const ci = Math.floor(all.length * 0.75); const H = new Set(all.slice(ci));
+    report.holdout = { days: all.slice(ci), desk: kpis(desk.filter((t) => H.has(t.day)), H.size), ltfArm: kpis(arm.filter((t) => H.has(t.day)), H.size), amd: kpis(seq.filter((t) => H.has(t.day)), H.size), continuation: kpis(cont.filter((t) => H.has(t.day)), H.size), amdPlusCont: kpis([...seq, ...cont].filter((t) => H.has(t.day)), H.size) };
+    report.train = { desk: kpis(desk.filter((t) => !H.has(t.day)), all.length - H.size), continuation: kpis(cont.filter((t) => !H.has(t.day)), all.length - H.size), amd: kpis(seq.filter((t) => !H.has(t.day)), all.length - H.size) };
+    console.log("HOLDOUT", JSON.stringify(report.holdout)); console.log("TRAIN", JSON.stringify(report.train)); }
+  report.contTrades = cont.map((t: any) => ({ day: t.day, sym: t.symbol, side: t.side, at: new Date(t.t).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false }), entry: t.entry, stop: t.stop, target: t.target, outcome: t.outcome, r: t.r, opt$: t.optPnlPct == null ? null : Math.round(Math.max(-1, t.optPnlPct) * CAP), why: t.why }));
   report.amdTrades = seq.map((t) => ({ day: t.day, sym: t.symbol, side: t.side, at: new Date(t.t).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false }), entry: t.entry, stop: t.stop, target: t.target, outcome: t.outcome, r: t.r, opt$: t.optPnlPct == null ? null : Math.round(Math.max(-1, t.optPnlPct) * CAP), why: t.why, raid: t.setup.raid?.name, confTf: t.setup.confirm?.tf, ctx: (t as never as { ctx: unknown }).ctx }));
   // F10: the same AMD fires priced as a 0DTE ticket (DEFAULT_OPT, 0–1DTE ATM approximation) vs a 5DTE ticket
   // (documented approximation: premium ≈3.75× the 0DTE ATM, theta/min ≈0.45×, delta 0.52, spread 0.03; model, not recorded chains)
