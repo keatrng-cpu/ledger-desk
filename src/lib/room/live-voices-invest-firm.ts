@@ -174,7 +174,7 @@ export function exFirmCompliance(c: Ctx, d: { inv: InvestLite }): Ex | null {
   const lines: (Line | null)[] = [];
   if (x.heldBanned.length) {
     lines.push(
-      line("Sterling", ANIM.Sterling.arms!, pick(c, "firm-comp-held", [() => `First, a flag. The book holds ${list(x.heldBanned.map((h) => h.ticker))}, and that is on the restricted list while the sleeve trades the same index.`])),
+      line("Sterling", ANIM.Sterling.arms!, pick(c, "firm-comp-held", [() => `First, a flag, ${f.int(x.heldBanned.length)} restricted holding${x.heldBanned.length === 1 ? "" : "s"}. The book holds ${list(x.heldBanned.map((h) => h.ticker))}, and that is on the restricted list while the sleeve trades the same index.`])),
     );
   }
   lines.push(

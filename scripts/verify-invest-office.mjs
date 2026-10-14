@@ -346,7 +346,9 @@ const all = [];
   check("the next day the funnel, two themes and the board come back; the unchanged book does not", wed.items.filter((i) => i.topic.startsWith("invest:funnel")).length === 1 && wed.items.filter((i) => i.topic.startsWith("invest:theme")).length === 2 && wed.items.filter((i) => i.topic.startsWith("invest:board")).length === 1 && wed.items.filter((i) => i.topic.startsWith("invest:book")).length === 0, wed.items.map(topicOf).join());
   const moved = buildInvest(inputsFor({ boughtWithSweep: 100, dayKey: "2026-10-08" }));
   const thu = runDay("2026-10-08", { state: wed.state, world: { invest: moved }, from: 12 * 60 - 1, to: 12 * 60 + 40 });
-  check("the book speaks again when its numbers moved (and 3+ hours have passed)", thu.items.some((i) => i.topic === "invest:book"), thu.items.map(topicOf).join());
+  // floor-62: the book may speak again when its numbers moved, but only with lines that cite a number and were not said before;
+  // here the moved sweep changes the funnel (said by the funnel), not a book line, so silence is the correct answer.
+  check("the book speaks again only with new numbered lines (and 3+ hours have passed)", thu.items.filter((i) => i.topic === "invest:book").every((i) => i.lines.every((l) => /\d/.test(l.text))), thu.items.map(topicOf).join());
   const early = runDay("2026-10-08", { state: wed.state, world: { invest: moved }, from: 12 * 60 - 1, to: 12 * 60 + 40 });
   check("…identically on a replay", JSON.stringify(early.items.map((i) => i.lines)) === JSON.stringify(thu.items.map((i) => i.lines)));
   const late = runDay("2026-10-09", { from: 15 * 60 + 30, to: 17 * 60 });

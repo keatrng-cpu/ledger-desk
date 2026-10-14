@@ -259,8 +259,8 @@ export function exInvNews(c: Ctx, d: { inv: InvestLite; n: NewsLite; hit: { key:
       "Gemma",
       ANIM.Gemma.explain!,
       pick(c, "inv-news-head", [
-        () => `${f.raw(n.source)}: “${f.raw(clip(n.title, 96))}” — it touches ${f.raw(touch)}.`,
-        () => `On the wire from ${f.raw(n.source)}: “${f.raw(clip(n.title, 90))}”. That's ${f.raw(touch)}.`,
+        () => `${n.publishedMs != null ? `${f.clock(n.publishedMs)} ET, ` : `${f.clock(c.now)} ET, `}${f.raw(n.source)}: “${f.raw(clip(n.title, 96))}” — it touches ${f.raw(touch)}.`,
+        () => `On the wire at ${f.clock(n.publishedMs ?? c.now)} ET from ${f.raw(n.source)}: “${f.raw(clip(n.title, 90))}”. That's ${f.raw(touch)}.`,
       ]),
     ),
   );
@@ -297,7 +297,7 @@ export function exInvBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
         ? pick(c, "inv-board-open", [
             () => `Board is in session. ${f.int(items.length)} ${plural(items.length, "item", "items")} on the agenda: ${f.raw(list(items))}.`,
           ])
-        : pick(c, "inv-board-empty", [() => "Board is in session. Nothing on the agenda — the plan stands."]),
+        : pick(c, "inv-board-empty", [() => `Board is in session, ${f.raw(inv.dayKey)}. ${f.int(0)} items on the agenda — the plan stands.`]),
     ),
   );
   if (inv.next) lines.push(line("Nova", ANIM.Nova.write!, pick(c, "inv-board-next", [() => `For the minutes: ${f.raw(clip(inv.next!.line, 140))}`])));
@@ -307,7 +307,7 @@ export function exInvBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
       line(
         "Jax",
         ANIM.Jax.point!,
-        pick(c, "inv-board-theme", [() => `Theme for the minutes: ${f.raw(t.name)}, ${t.tier} tier, evidence ${t.evidence}.`]),
+        pick(c, "inv-board-theme", [() => `Theme for the minutes, ${f.raw(inv.dayKey)}: ${f.raw(t.name)}, ${t.tier} tier, evidence ${t.evidence}.`]),
       ),
     );
   }
@@ -318,7 +318,7 @@ export function exInvBoard(c: Ctx, d: { inv: InvestLite }): Ex | null {
       line(
         "Sterling",
         ANIM.Sterling.tablet!,
-        pick(c, "inv-board-standing", [() => `The week's rhythm put ${standing.title.toLowerCase()} on today's calendar: ${standing.reviews.map((r) => FIRM_REVIEW_NAME[r]).join(", then ")}.`]),
+        pick(c, "inv-board-standing", [() => `The week's rhythm put ${standing.title.toLowerCase()} on today's calendar: ${standing.reviews.map((r) => FIRM_REVIEW_NAME[r]).join(", then ")} (${f.int(standing.reviews.length)} review${standing.reviews.length === 1 ? "" : "s"}).`]),
       ),
     );
   }

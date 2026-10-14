@@ -1949,7 +1949,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
       return null;
     }
     // floor-62 #7/#40: every line cites a live number and nothing said today is said again.
-    const lines = disciplineLines(ex.lines, [...draft.recent, ...(draft.saidDay ?? [])]);
+    const lines = disciplineLines(ex.lines, draft.saidDay ?? []);
     draft.droppedLines = (draft.droppedLines ?? 0) + (ex.lines.length - lines.length); // floor-62 #34
     // A seat whose line was dropped is not walked anywhere to say nothing.
     const speaking = new Set(lines.map((l) => l.character));
