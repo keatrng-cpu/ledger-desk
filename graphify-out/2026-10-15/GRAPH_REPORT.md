@@ -1,23 +1,23 @@
 # Graph Report - ledger-desk  (2026-10-15)
 
 ## Corpus Check
-- 1008 files · ~1,968,464 words
+- 1008 files · ~1,968,522 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 37 file(s) not represented in the graph (top: (none) 10, .service 7, .timer 5)
 
 ## Summary
-- 13164 nodes · 32462 edges · 374 communities (344 shown, 30 thin omitted)
+- 13164 nodes · 32473 edges · 372 communities (341 shown, 31 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 924 edges (avg confidence: 0.9)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `29d7cbca`
+- Built from commit: `e6fb4279`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- profit-path.tsx
-- market/types.ts
+- profit-path.ts
+- build-desk.ts
 - predict-parts.tsx
 - meeting.ts
 - room/drill.ts
@@ -30,19 +30,19 @@
 - ref_node_path
 - signal-engine.ts
 - compact
-- evaluateOptionsDesk
+- option-ticket.tsx
 - premarket-map.ts
 - pm-analyzer.tsx
 - floor-scene.ts
 - DECISIONS — ledger-desk (append-only)
-- send-server.ts
-- mtf-context.ts
+- getSql
+- buildTradingDesk
 - desk-atlas.ts
 - verify-room.mjs
 - journal/server.ts
 - cn
 - floor-screens.ts
-- structure.ts
+- session-brief.ts
 - sponsored-gap.ts
 - FloorScene
 - hi-alert.ts
@@ -56,7 +56,7 @@
 - MeadScene
 - manager-feed.ts
 - price-path-board.tsx
-- ltf-reaction.ts
+- chart-timeframes.ts
 - mead-screens.ts
 - Code index
 - tradovate-orders.ts
@@ -70,18 +70,18 @@
 - trading-floor-tab.tsx
 - agents.ts
 - build-replay-drills.mjs
-- react
+- created-with-grok-banner.tsx
 - backtest-account.mjs
 - mem.py
-- news.ts
+- aplus/config.ts
 - .tick
 - apex-sim-panel.tsx
 - paper-manager.ts
-- verify-attestation.mjs
+- lucide-react
 - scripts
 - rh-dispatch.ts
 - build-learn-figures.py
-- floor-props.ts
+- sessions.ts
 - verify-setup-anticipation.mjs
 - learn-tab.tsx
 - verify-pm-signal-engine.mjs
@@ -97,10 +97,10 @@
 - ref_node_assert
 - auth/client.ts
 - snapshot.ts
-- tradezella-analyze.ts
+- live-voices-invest-firm.ts
 - veteran-brain.ts
 - verify-rh-cycle.mjs
-- smc-shared.test.mjs
+- shock.ts
 - sleeve-sizing.ts
 - policy.ts
 - paper-backfill.ts
@@ -108,19 +108,19 @@
 - overnight-swing.ts
 - Transition Only What Changes
 - measure-room-ev.mjs
-- hi-alert-brain.ts
+- log-setup-dialog.tsx
 - snapshot-review.tsx
-- order-intent.ts
-- getSql
+- ingest.ts
+- paper-server.ts
 - spoken-form.ts
-- profit-path.ts
+- session-hud.tsx
 - databento.ts
 - trading/evidence.ts
 - replay_live.py
 - tf-ladder.ts
 - school-brief.ts
 - live-talk.ts
-- aplus/config.ts
+- draw.ts
 - auth/server.ts
 - journal/analytics.ts
 - verify-invest.mjs
@@ -130,12 +130,12 @@
 - discretion-memory.ts
 - box
 - manager-live-loop.ts
-- rh-bridge.ts
+- debate.ts
 - pandas
-- schedule.ts
+- US econ news calendar — maintenance
 - measure-model-claims.mjs
 - verify-curriculum.mjs
-- build-desk.ts
+- take-census.ts
 - numpy
 - log-trade.mjs
 - hall-lite.ts
@@ -148,15 +148,15 @@
 - exec-sql.ts
 - ghost-book.ts
 - direction-book.py
-- pathContinuation
+- evaluateOptionsDesk
 - verify-news-ipo.mjs
 - build_floor.py
 - grok-pwa-plugin.mjs
 - measure-amd-signals.mjs
 - verify-invest-office.mjs
 - verify-target-odds.mjs
-- setup-chart-panel.tsx
-- rnd.ts
+- setup-chart.tsx
+- risk-panel.tsx
 - measure-entry-location.mjs
 - verify-live-talk.mjs
 - replay-drill.ts
@@ -168,18 +168,18 @@
 - memory.py
 - smc-master.ts
 - verify-hit-odds.mjs
-- A2 — the mechanical sequence can now die
-- attest.ts
+- marks-server.ts
+- verify-attestation.mjs
 - learn.py
 - mead-hall-layout.ts
 - crew-year-backtest.py
 - measure-inducement-news.mjs
 - verify-detectors.mjs
 - month-contract.ts
-- month-ahead.ts
+- setup-anticipation.ts
 - discuss-tab.tsx
 - live-voices.ts
-- use-entry-state.ts
+- react
 - verify-desk-enhancements.mjs
 - smc-canon.ts
 - verify-tf-ladder.mjs
@@ -200,9 +200,9 @@
 - build-evidence-pack.mjs
 - capture-signals.mjs
 - measure-exit-plan.mjs
-- Dress
+- math
 - verify-race-talk.mjs
-- browser-smoke.mjs
+- brainlab/bars.py
 - mayPlaceAfterReview
 - minute-gaps.ts
 - db.ts
@@ -212,7 +212,7 @@
 - ManagerFeed
 - live-voices-invest.ts
 - retain.py
-- tradezella-chat.tsx
+- fit
 - verify-kill-watch.mjs
 - live-voices-mead.ts
 - measure-micro-entry.mjs
@@ -224,27 +224,27 @@
 - invest-panel.tsx
 - verify-entry-alarm.mjs
 - capture-1m-history.mjs
-- invest-firm.ts
+- long-board.ts
 - floor-cues.ts
 - verify-mead-talk.mjs
 - verify-exit-rules.mjs
-- ipo.ts
-- floor_pack.py
+- invest-firm.ts
+- options-swing.ts
 - ladder.test.mjs
 - verify-live-lesson.mjs
 - pd-leg.ts
-- loss-guards.ts
+- override-log.ts
 - capture-durability.mjs
 - capture-invest-universe.mjs
-- Facts
+- smc-shared.test.mjs
 - Engine bridge — Trading-Automation → Ledger desk
 - week-ahead.ts
 - .path
 - json
 - apex-sim.ts
-- card-journal.ts
+- learning.ts
 - LazyPGliteDriver
-- learning-stats.ts
+- verify-school-gate.mjs
 - verify-room-snapshot.mjs
 - test_ladder_rows_inert.py
 - Refined UI (product chrome and overlays)
@@ -252,12 +252,12 @@
 - FloorSound
 - executor.ts
 - Phase B integration notes — B4 alerts, B5 schedules, B6 snapshot review
-- option-math.ts
+- time-odds.ts
 - crew-years.ts
-- @tanstack/react-router
+- router.tsx
 - exec-server.ts
 - INTEGRATION-D — Phase C (evidence)
-- learning.ts
+- desk-fetch-guard.test.mjs
 - setup-scanner.tsx
 - floor-fx.ts
 - floor-locomotion.ts
@@ -276,7 +276,7 @@
 - room-step.mjs
 - verify-rnd.mjs
 - race-panel.tsx
-- feed.ts
+- news-tab.tsx
 - startup.sh
 - canon.ts
 - trading/scanner.ts
@@ -296,9 +296,9 @@
 - floor-ik.ts
 - Animations
 - shadow-store.ts
-- draw.ts
+- structure.ts
 - measure-news-bias.mjs
-- smc-playbook.tsx
+- QUIET
 - NY AM Session Brief — Tuesday, October 6, 2026
 - check
 - spot-cross.ts
@@ -307,20 +307,20 @@
 - verify-rh-dispatch.mjs
 - verify-sleeve-sizing.mjs
 - Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)
-- capture-intrabar.mjs
+- kz-disp.ts
 - rh-autofire.ts
 - learning-backfill.mts
 - Text Wrapping
 - Program Definition — DRAFT, NOT YET IN FORCE
 - verify-brain-vault.mjs
 - smc/discipline.ts
-- thesis-server.ts
+- inputsFor
 - INTEGRATION-P4 — automation bridge (branch `agents/phase-p4`)
 - housing
 - ref_node_fs
 - alpaca.ts
 - verify-shadow-book.mjs
-- calibration.mts
+- strip
 - runApexSim
 - Design & UI
 - minute-gapfill.test.mjs
@@ -355,29 +355,27 @@
 - GROK.md
 - check
 - core_ns
-- mead-fixture.mjs
+- mead-world.mjs
 - _hair_keep
 - build-learn-cases.mjs
 - curriculum.ts
-- conditions.ts
+- check
+- free
 - verify-day-change.mjs
-- tf-ladder-panel.tsx
 - install
 - install.sh
 - entry-state.test.mjs
 - vite.config.ts
 - smc-unity.test.mjs
 - longAt
-- verify-brain-fuel.mjs
+- brain-fuel.ts
 - exec-card.tsx
-- INTEGRATION-P1 — Journal + active risk governor
 - intent.ts
 - glb-stats.mjs
-- sessions.ts
+- startDay
 - verify-brain-nerve.mjs
 - start-on-boot.sh
 - test_boot.sh
-- news-tab.tsx
 - verify-hi-alert-brain.mjs
 - verify-no-bot-entry.mjs
 - verify-overnight.mjs
@@ -411,31 +409,31 @@
 ## Import Cycles
 - 3-file cycle: `src/lib/predict/predict-server.ts -> src/lib/predict/signal-engine.ts -> src/lib/predict/prediction-market-feed.ts -> src/lib/predict/predict-server.ts`
 
-## Communities (374 total, 30 thin omitted)
+## Communities (372 total, 31 thin omitted)
 
-### Community 0 - "profit-path.tsx"
-Cohesion: 0.13
-Nodes (20): IncomeGauge(), pct(), ProfitPathPanel(), Tile(), toGraded(), CadenceRead, EDGE_IS_ONE_TRADE_WIDE, FREQUENCY_CLIFF_PER_YEAR (+12 more)
-
-### Community 1 - "market/types.ts"
+### Community 0 - "profit-path.ts"
 Cohesion: 0.05
-Nodes (80): quoteFromDatabentoSeries(), DualRangeKey, fetchDualIndexes, loadSymbol(), parsePair(), RANGE_MAP, VALID_RANGE, VALID_SYM (+72 more)
+Nodes (65): IncomeGauge(), pct(), ProfitPathPanel(), Tile(), toGraded(), CloseTradeRow(), JournalPanel(), MetricTile() (+57 more)
+
+### Community 1 - "build-desk.ts"
+Cohesion: 0.02
+Nodes (171): runawayPrice, stoppedPrice, store, fmtPrice(), LiveClock(), PAIRS, paneMarkup(), RANGES (+163 more)
 
 ### Community 2 - "predict-parts.tsx"
 Cohesion: 0.05
-Nodes (83): BTN, c(), CARD, cents(), H3, INPUT, JournalCard(), loadRecent() (+75 more)
+Nodes (103): ENTRY_STYLE, MeadHallTab(), PaperTicket(), REACT_COLOR, useMeadFeed(), marketById(), categoryLabel(), cents() (+95 more)
 
 ### Community 3 - "meeting.ts"
-Cohesion: 0.06
-Nodes (118): funded, shelf, PeopleCards(), lastScored(), rankTitle(), recordLine(), relationWord(), Argument (+110 more)
+Cohesion: 0.07
+Nodes (99): funded, shelf, PeopleCards(), lastScored(), rankTitle(), recordLine(), relationWord(), gateRecord() (+91 more)
 
 ### Community 4 - "room/drill.ts"
-Cohesion: 0.06
-Nodes (70): What was wrong, at(), body, db, iCas, iDue, iFeed, iLease (+62 more)
+Cohesion: 0.05
+Nodes (99): What was wrong, at(), body, db, iCas, iDue, iFeed, iLease (+91 more)
 
 ### Community 5 - "universe.ts"
-Cohesion: 0.04
-Nodes (90): INPUT, LINK, pct(), VERDICT_CLS, LimitsCard(), ResearchCard(), Col, COLS (+82 more)
+Cohesion: 0.05
+Nodes (77): VERDICT_CLS, Judged, ResearchCard(), Col, COLS, ScreenTable(), SHORT, Line() (+69 more)
 
 ### Community 6 - "eval-desk-seq-f2378.mts"
 Cohesion: 0.05
@@ -443,35 +441,35 @@ Nodes (40): await_fs(), dayRead(), T, yahoo(), at(), B, base, bt (+32 more)
 
 ### Community 7 - "predict-server.ts"
 Cohesion: 0.04
-Nodes (82): GameCard(), buildBoard(), CODE_FIX, dateFromTicker(), disagreement(), EspnGame, EspnTeam, etDate() (+74 more)
+Nodes (76): buildBoard(), CODE_FIX, dateFromTicker(), disagreement(), EspnGame, EspnTeam, etDate(), GameExtras (+68 more)
 
 ### Community 8 - "index.tsx"
 Cohesion: 0.03
-Nodes (90): short, T0, book(), desk(), ChartsTab(), ct(), Index, LiquidityPanel() (+82 more)
+Nodes (102): book(), desk(), ChartsTab(), ct(), Index, EntryTriggerPanel(), PATH_BANDS, pendingFillToast() (+94 more)
 
 ### Community 9 - "floor-school-contracts.ts"
 Cohesion: 0.04
-Nodes (79): LAYOUT, TalkBatch, AgentPlan, Meeting, TRAITS, Lens, RaceRunner, allFloorSchoolSeatBundles() (+71 more)
+Nodes (79): LAYOUT, TalkBatch, AgentPlan, Meeting, TRAITS, Argument, Lens, RaceRunner (+71 more)
 
 ### Community 10 - "orchestrator.ts"
 Cohesion: 0.03
-Nodes (152): CycleArgs, FloorFrame, FloorScreens, RoomState, Agenda, AgentAct, Memory, MindState (+144 more)
+Nodes (194): FloorScreens, Memory, resolveMemories(), Situation, buildLadder(), LADDER_MAX_STEPS, LadderCard, LadderInput (+186 more)
 
 ### Community 11 - "ref_node_path"
 Cohesion: 0.03
-Nodes (40): out, SYMBOLS, VOIDS_SQL, at, id, marker, root, target (+32 more)
+Nodes (42): computeBrandWarnings(), MAX_CARD_BYTES, checkedOutputPath(), checkedUrl(), fail(), LOOPBACK_HOSTNAMES, consoleErrors, outPng (+34 more)
 
 ### Community 12 - "signal-engine.ts"
 Cohesion: 0.04
-Nodes (93): FeeModel, binIndex(), CalibrationBucket, calibrationBuckets(), core(), fitRecalibration(), gate(), groupBy() (+85 more)
+Nodes (93): binIndex(), CalibrationBucket, calibrationBuckets(), core(), fitRecalibration(), gate(), groupBy(), GroupScore (+85 more)
 
 ### Community 13 - "compact"
-Cohesion: 0.09
-Nodes (90): dateSay(), monthSay(), sentencesWithin(), clip(), compact(), exAtEntry(), exBoard(), exClosedStudy() (+82 more)
+Cohesion: 0.11
+Nodes (74): Facts, agoText(), clip(), compact(), exAtEntry(), exBoard(), exCalendar(), exClosedStudy() (+66 more)
 
-### Community 14 - "evaluateOptionsDesk"
-Cohesion: 0.14
-Nodes (24): BookFacts(), ChartMarks(), counterClass(), Fact(), FourFactsBoard(), wordClass(), Conditions(), COUNTER_TONE (+16 more)
+### Community 14 - "option-ticket.tsx"
+Cohesion: 0.26
+Nodes (12): Conditions(), COUNTER_TONE, CounterChip(), OptionTicket(), pickCard(), Row(), usd(), RhStrategyCard (+4 more)
 
 ### Community 15 - "premarket-map.ts"
 Cohesion: 0.09
@@ -479,7 +477,7 @@ Nodes (52): args, at(), B, dollars(), gateCtx(), kpis(), report, seqTrades() (+4
 
 ### Community 16 - "pm-analyzer.tsx"
 Cohesion: 0.04
-Nodes (67): readHallRecord(), createSignalHallFeed(), crowdLabel(), EMPTY_FEED, hallStateFromBoard(), hallViewFor(), IDLE_HALL, nextHallState() (+59 more)
+Nodes (70): readHallRecord(), createSignalHallFeed(), crowdLabel(), EMPTY_FEED, hallExtrasFrom(), HallFeedState, hallStateFromBoard(), hallViewFor() (+62 more)
 
 ### Community 17 - "floor-scene.ts"
 Cohesion: 0.05
@@ -489,17 +487,17 @@ Nodes (42): What exists today (checked in the code, so nothing below re-does it)
 Cohesion: 0.10
 Nodes (20): 2026-10-05 — Git is the bus, 2026-10-05 — Keep Graphify as the code map; markdown canon beside it, 2026-10-05 — One task in flight per repo, 2026-10-06 — Canon location: `ai/` (not `.grok/` or `PROGRAM.md`), 2026-10-06 — Phase 1–3 owner assignments; WS-KG0 in flight, 2026-10-07 — Graphify has been run; the vault holds the code graph and the book, 2026-10-07 — Lab tools sit beside the desk, not on the order path, 2026-10-07 — Robinhood is the only execution path (+12 more)
 
-### Community 19 - "send-server.ts"
-Cohesion: 0.07
-Nodes (56): RFC-8188, RFC-8291, AlertsPanel(), fmtTime(), disablePushAlerts(), enablePushAlerts(), EnableResult, isPushEnabled() (+48 more)
+### Community 19 - "getSql"
+Cohesion: 0.06
+Nodes (61): RFC-8188, RFC-8291, Database (server-only), Env vars — do **not** create a `.env` file, Migrations, Neon Postgres, Preview ↔ production parity, AlertsPanel() (+53 more)
 
-### Community 20 - "mtf-context.ts"
-Cohesion: 0.03
-Nodes (72): 2026-10-13 13:07 CT — LTF kills void on reclaim / age (both sides scored every poll), P0 (added 10:33 ET, Keaton's live case): ES long against an LTF reversal (FIXED), Bar, grid, out, [file, sym = "MNQ", side = "short", day = "2026-10-14", from = "09:40", to = "10:07"], m1all, raw (+64 more)
+### Community 20 - "buildTradingDesk"
+Cohesion: 0.02
+Nodes (156): 2026-10-13 13:07 CT — LTF kills void on reclaim / age (both sides scored every poll), P0 (added 10:33 ET, Keaton's live case): ES long against an LTF reversal (FIXED), Bar, grid, out, bars(), ctx(), HO (+148 more)
 
 ### Community 21 - "desk-atlas.ts"
 Cohesion: 0.07
-Nodes (56): hhmm(), recordEvents(), remember(), seenLately(), BrainFuel, fuelBrains(), savePeople(), SLOTS (+48 more)
+Nodes (58): shortStory, store, hhmm(), recordEvents(), remember(), seenLately(), fuelBrains(), noteNerve() (+50 more)
 
 ### Community 22 - "verify-room.mjs"
 Cohesion: 0.03
@@ -507,31 +505,31 @@ Nodes (62): argsQ, atr8, bad, badEv, blind, boardTable, calNeg, cals (+54 more)
 
 ### Community 23 - "journal/server.ts"
 Cohesion: 0.04
-Nodes (80): @hookform/resolvers, @radix-ui/react-dialog, react-hook-form, DisciplinePanel(), money(), SplitCell(), CloseTradeRow(), JournalPanel() (+72 more)
+Nodes (71): E1 — `OrderIntent`, INTEGRATION-E — D1 (one record) + E1 (order parity) + E4 (shadow log), Verified (real PGLite, `migrations/*.sql` 0001→0009 applied in order), LogSetupDialog(), etDay(), haltHitAlert(), CONTRACTS, buildOrderIntent() (+63 more)
 
 ### Community 24 - "cn"
 Cohesion: 0.04
-Nodes (102): 1. Mount `ReplayReport` in the Lab section, 2. Engine upload is already mounted, 4. Replay harness — API surface for the standalone automation project, INTEGRATION-P2 — wiring instructions for the desk/scanner integrator, What shipped, clsx, recharts, tailwind-merge (+94 more)
+Nodes (80): 1. Mount `ReplayReport` in the Lab section, 2. Engine upload is already mounted, 4. Replay harness — API surface for the standalone automation project, INTEGRATION-P2 — wiring instructions for the desk/scanner integrator, What shipped, clsx, recharts, tailwind-merge (+72 more)
 
 ### Community 25 - "floor-screens.ts"
 Cohesion: 0.09
 Nodes (76): BAND_COLOR, C, ChartSeries, clear(), CREW_COLOR, CREW_ORDER, Ctx, cuesOfFrame() (+68 more)
 
-### Community 26 - "structure.ts"
-Cohesion: 0.04
-Nodes (78): 2.1 The single plan object (item 16 / 1) — `card-plan.ts`, owner 2B, A1 — replay now scores the desk that actually trades, A3 — one scorer, ⚠️ Every prior replay/calibration number is void, Files changed, INTEGRATION-A — Phase A: one scoring path, What to do next, INTEGRATION-P0 — Truth & safety (branch agents/phase-p0) (+70 more)
+### Community 26 - "session-brief.ts"
+Cohesion: 0.03
+Nodes (96): 2.1 The single plan object (item 16 / 1) — `card-plan.ts`, owner 2B, A1 — replay now scores the desk that actually trades, A2 — the mechanical sequence can now die, A3 — one scorer, ⚠️ Every prior replay/calibration number is void, Files changed, INTEGRATION-A — Phase A: one scoring path, Invalidation rules, in evaluation order (+88 more)
 
 ### Community 27 - "sponsored-gap.ts"
-Cohesion: 0.22
-Nodes (9): sponsoredFor(), HiCtx, SchoolFacts, HTF, LIVE, px(), SPONSORED_NEAR_ATR, sponsoredRead (+1 more)
+Cohesion: 0.29
+Nodes (7): sponsoredFor(), HTF, LIVE, px(), SPONSORED_NEAR_ATR, sponsoredRead, SponsoredState
 
 ### Community 28 - "FloorScene"
 Cohesion: 0.06
 Nodes (6): A. Navigation and interactivity, Run 6: view it (Track A), FloorScene, screenLabel(), seeThrough(), StubManagerFeed
 
 ### Community 29 - "hi-alert.ts"
-Cohesion: 0.07
-Nodes (46): boardRankOf(), Delivery, deliveryLine(), deliveryOfLadder(), FocusCard, FocusPick, pickFocus(), cardRead() (+38 more)
+Cohesion: 0.06
+Nodes (50): boardRankOf(), Delivery, deliveryLine(), deliveryOfLadder(), FocusCard, FocusPick, pickFocus(), cardRead() (+42 more)
 
 ### Community 30 - "verify-invest-book.mjs"
 Cohesion: 0.03
@@ -539,7 +537,7 @@ Nodes (54): again, allVti, aug, big, cap, chart, check(), clean (+46 more)
 
 ### Community 31 - "jsonResponse"
 Cohesion: 0.06
-Nodes (75): 3 · build-desk checklist "risk" item + scanner suppression, What shipped, HaltBanner(), authorizeCronRequest(), CronAuthResult, CronRunResult, cronSecret(), cronUserId() (+67 more)
+Nodes (80): 1 · Mount in `src/routes/index.tsx`, 2 · Trigger on scanner cards (`src/components/desk/setup-scanner.tsx`), 3 · build-desk checklist "risk" item + scanner suppression, 4 · Props contracts (stable — other phases code against these), 5 · Server-fn call shapes, INTEGRATION-P1 — Journal + active risk governor, What shipped, @tanstack/react-router (+72 more)
 
 ### Community 32 - "package.json"
 Cohesion: 0.04
@@ -547,15 +545,15 @@ Nodes (54): pg, name, overrides, nf3, private, sideEffects, type, cmdk (+46 more
 
 ### Community 33 - "os"
 Cohesion: 0.06
-Nodes (50): day_dirs(), dir_size(), enforce_retention(), main(), load_bars(), main(), run(), globex_open() (+42 more)
+Nodes (53): day_dirs(), dir_size(), enforce_retention(), main(), load_bars(), main(), run(), globex_open() (+45 more)
 
 ### Community 34 - "store.ts"
 Cohesion: 0.07
-Nodes (81): Activity(), BookCard(), BuyForm(), DividendForm(), SellForm(), Tab, DataCard(), BUTTON (+73 more)
+Nodes (64): RebalanceAction, SleeveRead, addDays(), anniversary(), BuyEntry, BuySource, buyWashWarning(), DividendEntry (+56 more)
 
 ### Community 35 - "detectors.ts"
-Cohesion: 0.04
-Nodes (92): 3.3 Everything else that fights measured evidence, spansGap(), armOnBars(), better(), HTF, ltfArmOf(), ltfReversalInside(), ORDER (+84 more)
+Cohesion: 0.03
+Nodes (92): 3.3 Everything else that fights measured evidence, 4. NUMBERS, history, stride, history, stride, dayChangePct(), dayKey() (+84 more)
 
 ### Community 36 - "verify-predict.mjs"
 Cohesion: 0.03
@@ -569,21 +567,21 @@ Nodes (52): RhConnectorAccountRow, RhConnectorPortfolio, RH_BPLUS_MAX_CONTRACTS,
 Cohesion: 0.09
 Nodes (40): Plain(), PlainToggle(), usePlainEnglish(), usePlainify(), BookCol(), bookForSymbol(), DrawLine(), PricePathBoard() (+32 more)
 
-### Community 40 - "ltf-reaction.ts"
-Cohesion: 0.10
-Nodes (24): 0. COVERAGE CHECK, 0b. UNOWNED / MULTI-CLAIMED FILES — ONE AGENT EACH, 1. BUILD ORDER, 3.1 ITEM 4 — holding 1 DTE past 15:30. **REFUSE AS WRITTEN.** The rh-cycle group is right and this is the clearest call in the set., 3. CONTRADICTIONS AND DANGERS, 4. NUMBERS, 5. WHAT CANNOT BE DONE WITH WHAT IS ON DISK, LEDGER-DESK — ONE BUILD PLAN FROM SEVEN REPORTS (+16 more)
+### Community 40 - "chart-timeframes.ts"
+Cohesion: 0.08
+Nodes (41): fails, m15, minute, buildMiniScale(), finite(), MARK_PRIORITY, markColor(), MINI_BARS (+33 more)
 
 ### Community 41 - "mead-screens.ts"
-Cohesion: 0.04
-Nodes (84): three, ENTRY_STYLE, HallOptions, HallScreen, LINES, MeadHall, MeadMood, MOOD (+76 more)
+Cohesion: 0.05
+Nodes (58): three, HallOptions, HallScreen, LINES, MeadHall, MOOD, NPC_LOOK, V2 (+50 more)
 
 ### Community 42 - "Code index"
 Cohesion: 0.00
 Nodes (495): Code index, src\components\bridge\bridge-status.tsx, src\components\created-with-grok-banner.tsx, src\components\dashboard\aplus-ops.tsx, src\components\dashboard\candlestick-pane.tsx, src\components\dashboard\dual-index-charts.tsx, src\components\desk\alerts-panel.tsx, src\components\desk\brain-word.tsx (+487 more)
 
 ### Community 43 - "tradovate-orders.ts"
-Cohesion: 0.06
-Nodes (62): autofireEnabled(), autofireInput, AutofireResult, boolEnv(), refuse(), tryApexAutofire, APEX_AUTOMATION_CONFIRMED_IN_WRITING, APEX_AUTOMATION_PROHIBITED_REASON (+54 more)
+Cohesion: 0.05
+Nodes (70): @tanstack/react-start, zod, assertSameSiteRequest(), CrossSiteRequestError, authMiddleware, autofireEnabled(), autofireInput, AutofireResult (+62 more)
 
 ### Community 44 - "engine.ts"
 Cohesion: 0.05
@@ -591,55 +589,55 @@ Nodes (57): all, args, book, chunk(), days, diff, load(), args (+49 more)
 
 ### Community 45 - "build-hit-odds.mjs"
 Cohesion: 0.05
-Nodes (48): BARS, byDay, cache, calib, calibration(), cards, causalDaily(), cvLambda() (+40 more)
+Nodes (33): BARS, byDay, cache, calib, cards, DAYIDX, daysAll, draws (+25 more)
 
 ### Community 46 - "session-backtest.ts"
-Cohesion: 0.07
-Nodes (51): BacktestLayers, formatSkipAsProcessWin(), analysis, bestDays, causalAggregate(), causalClosedBars(), causalOkAll, causalOneMinute() (+43 more)
+Cohesion: 0.04
+Nodes (86): LogMode, AnalysisCard(), BiasPill(), ChatMessage, downloadDataUrl(), QUICK, Role, TradezellaChat() (+78 more)
 
 ### Community 47 - "dependencies"
 Cohesion: 0.04
 Nodes (53): dependencies, better-auth, class-variance-authority, clsx, cmdk, date-fns, @electric-sql/pglite, @hookform/resolvers (+45 more)
 
 ### Community 48 - "path-alarm.ts"
-Cohesion: 0.08
-Nodes (52): Trigger model (Keaton 2026-10-06), class-variance-authority, lucide-react, CopyClaudeHandoff(), LiveSessionCard(), PathAlarmBar(), fmtTime(), ShadowOrderReview() (+44 more)
+Cohesion: 0.07
+Nodes (64): Trigger model (Keaton 2026-10-06), PathAlarmBar(), alarmKey(), armPathAlarm(), bookRungs(), considerEntryAlarm(), considerPathAlarm(), ctx() (+56 more)
 
 ### Community 49 - "NOW — ledger-desk current truth"
 Cohesion: 0.20
 Nodes (9): Current state (2026-10-15), Goal, In flight (one task per repo), Last decision, NOW — ledger-desk current truth, Open questions (from plan §5 / HANDOFF; Keaton or named owner decides), Owners (desk map, from HANDOFF `ceb62b7` / issue #7), Read order (every session) (+1 more)
 
 ### Community 50 - "goal.ts"
-Cohesion: 0.07
-Nodes (47): arrivalPmf(), bisect(), Cell, Collision, collisions(), contractsFor(), dateOf(), dayPlan (+39 more)
+Cohesion: 0.05
+Nodes (63): Rung, arrivalPmf(), bisect(), Cell, Collision, collisions(), contractsFor(), dateOf() (+55 more)
 
 ### Community 51 - "trading-floor-tab.tsx"
-Cohesion: 0.06
-Nodes (56): openPredictAt(), loadBedMutes(), saveSoundPref(), frameIsEvent(), WireStatus, Bar(), BEAT_WORD, beatWord() (+48 more)
+Cohesion: 0.07
+Nodes (51): openPredictAt(), loadBedMutes(), loadSoundPref(), frameIsEvent(), WireStatus, Bar(), BEAT_WORD, beatWord() (+43 more)
 
 ### Community 52 - "agents.ts"
-Cohesion: 0.08
-Nodes (38): Activity, ACTIVITY_SPOTS, baseRel(), chooseFree(), clamp01(), clampRel(), decayNeeds(), DESK (+30 more)
+Cohesion: 0.09
+Nodes (37): Activity, ACTIVITY_SPOTS, baseRel(), chooseFree(), clamp01(), clampRel(), decayNeeds(), DESK (+29 more)
 
 ### Community 53 - "build-replay-drills.mjs"
 Cohesion: 0.05
 Nodes (46): argOf(), argv, BARS, capturedAt, cases, chosen, counts, dayPct() (+38 more)
 
-### Community 54 - "react"
-Cohesion: 0.30
-Nodes (8): react, CreatedWithGrokBanner(), fetchRemixEligible(), readEnv(), remixEligibilityUrl(), RemixIcon(), AuthProvider(), Route
+### Community 54 - "created-with-grok-banner.tsx"
+Cohesion: 0.33
+Nodes (7): CreatedWithGrokBanner(), fetchRemixEligible(), readEnv(), remixEligibilityUrl(), RemixIcon(), AuthProvider(), Route
 
 ### Community 55 - "backtest-account.mjs"
 Cohesion: 0.06
 Nodes (37): ALL_YEARS, anyhour, argv, atrAt(), atrCache, BARS, BASE, chosen (+29 more)
 
 ### Community 56 - "mem.py"
-Cohesion: 0.27
-Nodes (15): build(), changed(), context(), gbin(), graph(), install_hook(), last_decisions(), post_commit() (+7 more)
+Cohesion: 0.16
+Nodes (17): build(), changed(), context(), gbin(), graph(), install_hook(), last_decisions(), post_commit() (+9 more)
 
-### Community 57 - "news.ts"
-Cohesion: 0.04
-Nodes (45): 4. Live positions are still unmanaged, 5. Hooks for B4 (alerts) / B5 (cron) — owned by another agent, history, stride, dayChangePct(), dayKey(), history, hm() (+37 more)
+### Community 57 - "aplus/config.ts"
+Cohesion: 0.08
+Nodes (30): file, layers, plan, APLUS_RULES, riskDollars(), riskGradeFromScore(), riskPctForGrade(), riskPctForScore() (+22 more)
 
 ### Community 58 - ".tick"
 Cohesion: 0.08
@@ -650,12 +648,12 @@ Cohesion: 0.07
 Nodes (46): ApexSimPanel(), CAP_OPTIONS, ConfidenceTag(), DEFAULT_ROOM, diffTone(), Field(), FigureCell(), inputKey() (+38 more)
 
 ### Community 60 - "paper-manager.ts"
-Cohesion: 0.04
-Nodes (94): 2.6 Exec (owner 1B), 0. The B1 decision, stated once, 1. `src/components/journal/log-setup-dialog.tsx` — feed the gate real facts, 2. `src/routes/index.tsx` — pass the draw into the management tick (B3), 3. `src/components/desk/paper-book-panel.tsx` — surface the new fields, 6. `desk_trades.strategy` (migration 0008) is still unwritten, 7. Build state at hand-off, 8. Tuning note (read before changing a threshold) (+86 more)
+Cohesion: 0.05
+Nodes (74): 0. The B1 decision, stated once, 1. `src/components/journal/log-setup-dialog.tsx` — feed the gate real facts, 2. `src/routes/index.tsx` — pass the draw into the management tick (B3), 3. `src/components/desk/paper-book-panel.tsx` — surface the new fields, 6. `desk_trades.strategy` (migration 0008) is still unwritten, 7. Build state at hand-off, 8. Tuning note (read before changing a threshold), INTEGRATION-B — wiring left for the integrator (+66 more)
 
-### Community 61 - "verify-attestation.mjs"
-Cohesion: 0.07
-Nodes (24): baseTrade, chain, dateTyped, deleted, deletedVerdict, doctored, doctoredVerdict, extraField (+16 more)
+### Community 61 - "lucide-react"
+Cohesion: 0.13
+Nodes (25): class-variance-authority, lucide-react, CopyClaudeHandoff(), LiveSessionCard(), fmtTime(), ShadowOrderReview(), buildCoachNotes(), TradingCoach() (+17 more)
 
 ### Community 62 - "scripts"
 Cohesion: 0.04
@@ -669,9 +667,9 @@ Nodes (36): Arm and kill switch, Before it is switched on, It cannot open — fo
 Cohesion: 0.10
 Nodes (31): aligned(), assert_figure(), atr(), bear_structure_before(), et(), fig(), find_against(), find_breakout() (+23 more)
 
-### Community 65 - "floor-props.ts"
+### Community 65 - "sessions.ts"
 Cohesion: 0.03
-Nodes (103): canvasTex(), Ctx, cupTag(), drawBanner(), drawKillzoneClock(), drawManagerBook(), drawManagerCall(), drawScars() (+95 more)
+Nodes (116): EVID, pickOf(), rnd(), ROOM_EV, TIMES, canvasTex(), Ctx, cupTag() (+108 more)
 
 ### Community 66 - "verify-setup-anticipation.mjs"
 Cohesion: 0.05
@@ -687,7 +685,7 @@ Nodes (41): badModel, base, board, candles, cheap, cheapM, check(), closed (+33 
 
 ### Community 69 - "kill-watch.ts"
 Cohesion: 0.11
-Nodes (35): host(), KillWatchPanel(), go(), emit(), judgeKill(), KILL_STORE_EVENT, latestJudgement(), loadKillJudgements() (+27 more)
+Nodes (36): host(), KillWatchPanel(), go(), ALL_DOSSIERS, emit(), judgeKill(), KILL_STORE_EVENT, latestJudgement() (+28 more)
 
 ### Community 70 - "check-research-sources.mjs"
 Cohesion: 0.12
@@ -698,12 +696,12 @@ Cohesion: 0.05
 Nodes (29): argv, bars, counts, done, fetchMonth(), fetchMonthOnce(), INTERVAL_MIN, iso() (+21 more)
 
 ### Community 72 - "live-lesson.ts"
-Cohesion: 0.04
-Nodes (83): 2.2 Detectors (owner 1A), 2.3 Pipeline (owner 2A), 2.4 Canon / master (owner 2B), 2.5 Replay (owner 4), 2.7 Options chain (owner 3A) and freshness / news (owner 1C), 2. SHARED CONTRACTS, history, stride (+75 more)
+Cohesion: 0.08
+Nodes (44): BrainWord(), LessonCard(), LiveLessonBoard(), readDone(), stateChip(), arrayRead(), askRead(), barsOf() (+36 more)
 
 ### Community 73 - "options-desk.ts"
 Cohesion: 0.05
-Nodes (59): 6. THE SMALLEST SAFE FIRST WAVE, LessonCtx, ArrayRead, ArrayState, CHAIN_MAX_AGE_MS, ContractAim, contractsWithinRisk(), dteOf() (+51 more)
+Nodes (56): 6. THE SMALLEST SAFE FIRST WAVE, LessonCtx, etfFromFuture(), ArrayRead, ArrayState, brakeIsClock(), CHAIN_MAX_AGE_MS, ContractAim (+48 more)
 
 ### Community 74 - "databento_live_gateway.py"
 Cohesion: 0.06
@@ -723,51 +721,51 @@ Nodes (36): dteTarget(), OhlcBar, BookGrade, brainBooks, BrainWord, ticketWord, 
 
 ### Community 78 - "ref_node_assert"
 Cohesion: 0.04
-Nodes (34): tsx, base, card, card, card, T0, quiet, BASE (+26 more)
+Nodes (36): tsx, base, card, card, card, T0, quiet, BASE (+28 more)
 
 ### Community 79 - "auth/client.ts"
-Cohesion: 0.07
-Nodes (43): Env (`.env.example`), Auth, Env vars — do **not** create a `.env` file, Preventing auth flicker, Reading the user / protecting routes, Security model (already handled — don't undo it), Supported sign-in methods, What's pre-wired (`src/lib/auth/`) (+35 more)
+Cohesion: 0.09
+Nodes (38): Auth, Env vars — do **not** create a `.env` file, Preventing auth flicker, Reading the user / protecting routes, Security model (already handled — don't undo it), Supported sign-in methods, What's pre-wired (`src/lib/auth/`), Wiring (do this once) (+30 more)
 
 ### Community 80 - "snapshot.ts"
 Cohesion: 0.10
 Nodes (31): frames, GOAL, league, RICH, without, withSeats, afterPush(), freshPushMemory() (+23 more)
 
-### Community 81 - "tradezella-analyze.ts"
-Cohesion: 0.09
-Nodes (31): COMPONENT_WEIGHTS, ComponentWeight, CONFLUENCE_KNOWLEDGE, ConfluenceKnowledge, STRATEGY_CATALOG, ComponentKey, RAW_WEIGHTS, RAW_WEIGHTS_APPLIED (+23 more)
+### Community 81 - "live-voices-invest-firm.ts"
+Cohesion: 0.18
+Nodes (29): dateSay(), macroRead, monthSay(), r2(), sentencesWithin(), AT(), cash(), exFirmBoard() (+21 more)
 
 ### Community 82 - "veteran-brain.ts"
-Cohesion: 0.04
-Nodes (122): zustand, shortStory, store, CALL_TEXT, CALL_TONE, HiAlertPanel(), LimitBar(), money() (+114 more)
+Cohesion: 0.07
+Nodes (78): zustand, stratStatusClass(), tabStatusClass(), toneDot(), VeteranBrainPanel(), fetchYearStudySeed(), hydrateFromYearStudy(), toBucket() (+70 more)
 
 ### Community 83 - "verify-rh-cycle.mjs"
 Cohesion: 0.04
 Nodes (64): armed, armedCall, beAfter, beBefore, beRunning, dispatchIntact, dispatchPlan(), dispatchStopped (+56 more)
 
-### Community 84 - "smc-shared.test.mjs"
-Cohesion: 0.09
-Nodes (24): bar(), bearNarrative, book, clock, provFixture(), T0, tape(), BookShock (+16 more)
+### Community 84 - "shock.ts"
+Cohesion: 0.14
+Nodes (17): BookShock, detectBookShock(), fmtPts(), minPts(), NONE, readShock(), SHOCK_LOCK_MS, SHOCK_MIN_PTS (+9 more)
 
 ### Community 85 - "sleeve-sizing.ts"
 Cohesion: 0.11
-Nodes (22): fails, ROOT, brakeIsClock(), EFFECTIVE_STOP_FRAC, RH_SLEEVE_DEFAULT, RH_WORKING_STOP_PCT, CLOCK_WARN, exitLevelFor() (+14 more)
+Nodes (21): fails, ROOT, EFFECTIVE_STOP_FRAC, RH_SLEEVE_DEFAULT, RH_WORKING_STOP_PCT, CLOCK_WARN, exitLevelFor(), LiveSleeveSize (+13 more)
 
 ### Community 86 - "policy.ts"
-Cohesion: 0.08
-Nodes (37): 1. A figure comes from a page, with a date, 2. Check it by machine, not by confidence, 3. Arithmetic runs in code, 4. Verify the verifier, 5. Claims about an edge, 6. What gets said, 7. Skills installed on this machine: what each may do here, Desk accuracy (+29 more)
+Cohesion: 0.09
+Nodes (36): 1. A figure comes from a page, with a date, 2. Check it by machine, not by confidence, 3. Arithmetic runs in code, 4. Verify the verifier, 5. Claims about an edge, 6. What gets said, 7. Skills installed on this machine: what each may do here, Desk accuracy (+28 more)
 
 ### Community 87 - "paper-backfill.ts"
-Cohesion: 0.06
-Nodes (51): Per-user data (server-side — mandatory), @tanstack/react-start, zod, assertSameSiteRequest(), CrossSiteRequestError, authMiddleware, authConfigured, databaseConfigured (+43 more)
+Cohesion: 0.09
+Nodes (40): Contract notes (D1), D1 — what was actually broken, Files, Wiring step 1 — backfill on login / on mount when signed in, Wiring step 2 — the "not yet saved" badge, backfillPaperTrades, BackfillPaperTradesInput, backfillSchema (+32 more)
 
 ### Community 88 - "floor-brains.tsx"
 Cohesion: 0.10
 Nodes (29): Bar(), Bundle(), CREW, curve(), FloorBrains(), HUB, liveBetween(), Lobe() (+21 more)
 
 ### Community 89 - "overnight-swing.ts"
-Cohesion: 0.08
-Nodes (47): Cell(), ExitRing(), hm(), LayerPill(), MesVsOptions(), OvernightBoard(), wordTone(), buildClaudeHandoff() (+39 more)
+Cohesion: 0.09
+Nodes (36): Cell(), ExitRing(), hm(), LayerPill(), MesVsOptions(), OvernightBoard(), wordTone(), RhSleeve (+28 more)
 
 ### Community 90 - "Transition Only What Changes"
 Cohesion: 0.17
@@ -777,33 +775,33 @@ Nodes (11): CSS Example, Performance, Rules, Tailwind, Tailwind `transition-tran
 Cohesion: 0.06
 Nodes (32): BARS, CURVES, curvesAllSession, diff(), DTES, ETF, exits, H (+24 more)
 
-### Community 92 - "hi-alert-brain.ts"
-Cohesion: 0.19
-Nodes (15): clamp(), DeskAtlas, gradeAtlas(), PeopleBrains, schoolEdges(), schoolNodeId(), schoolSeeds(), Fed (+7 more)
+### Community 92 - "log-setup-dialog.tsx"
+Cohesion: 0.10
+Nodes (23): @hookform/resolvers, @radix-ui/react-dialog, react-hook-form, DisciplinePanel(), money(), SplitCell(), formSchema, FormValues (+15 more)
 
 ### Community 93 - "snapshot-review.tsx"
 Cohesion: 0.13
 Nodes (35): arr(), biasCls(), BiasSection(), Block(), CandidateCard(), Chip(), DrawsSection(), DrawTarget() (+27 more)
 
-### Community 94 - "order-intent.ts"
-Cohesion: 0.09
-Nodes (27): E1 — `OrderIntent`, Files, INTEGRATION-E — D1 (one record) + E1 (order parity) + E4 (shadow log), Verified (real PGLite, `migrations/*.sql` 0001→0009 applied in order), buildOrderIntent(), buildTargets(), contractKeys, finite() (+19 more)
+### Community 94 - "ingest.ts"
+Cohesion: 0.10
+Nodes (22): backtestSchema, biasSchema, DbRow, EngineRunKind, EngineRunMeta, EngineRunRow, journalRowSchema, JsonValue (+14 more)
 
-### Community 95 - "getSql"
-Cohesion: 0.06
-Nodes (56): Database (server-only), Env vars — do **not** create a `.env` file, Migrations, Neon Postgres, Preview ↔ production parity, A4 — the dead second paper engine is gone, ago(), BridgeStatus() (+48 more)
+### Community 95 - "paper-server.ts"
+Cohesion: 0.07
+Nodes (44): A4 — the dead second paper engine is gone, authorizeBridgeRequest(), BridgeAuthResult, bridgeToken(), bridgeUserId(), DEFAULT_BRIDGE_USER_ID, envValue(), secureEquals() (+36 more)
 
 ### Community 96 - "spoken-form.ts"
 Cohesion: 0.09
 Nodes (34): speakable(), ASIDE_WORDS, CAPS_WORDS, CODE_WORD, codeNames(), DIGEST_ABOVE_WORDS, digestOf(), dropRepeatedTickers() (+26 more)
 
-### Community 97 - "profit-path.ts"
-Cohesion: 0.10
-Nodes (24): buildProfitPath(), demoGradedTrades(), extractStrategy(), GradeBucketStats, gradeFromScore(), INCOMPLETE_PATTERNS, metricsByGrade(), metricsByStrategy() (+16 more)
+### Community 97 - "session-hud.tsx"
+Cohesion: 0.17
+Nodes (19): countdown(), NewsChip(), matchingGhost(), QuoteChip(), SessionHud(), shockSiren(), effectiveLagSec(), subscribeGhosts() (+11 more)
 
 ### Community 98 - "databento.ts"
-Cohesion: 0.17
-Nodes (26): aggregateBars(), authHeader(), continuous(), contractSymbol(), daysFor(), delayMinutes(), effectiveDelayMin(), etMinutes() (+18 more)
+Cohesion: 0.12
+Nodes (33): bars, days, endMs, HIST, mb, out, startMs, aggregateBars() (+25 more)
 
 ### Community 99 - "trading/evidence.ts"
 Cohesion: 0.12
@@ -814,24 +812,24 @@ Cohesion: 0.19
 Nodes (14): ct(), geom_fixed(), hard_fails(), bs(), N(), path(), run(), vel() (+6 more)
 
 ### Community 101 - "tf-ladder.ts"
-Cohesion: 0.13
-Nodes (27): submit(), buildTfLadder(), byTier(), CalTf, dailyFromIntraday(), glyph(), INTRADAY_MS, ipdaOf() (+19 more)
+Cohesion: 0.07
+Nodes (46): CardTape, Book(), Rungs(), TfLadderPanel(), TIERS, tone(), submit(), ConflictLedgerRow (+38 more)
 
 ### Community 102 - "school-brief.ts"
-Cohesion: 0.06
-Nodes (35): bare, line, missing, on, BiasRead, BRIEF_AS_OF, BRIEF_SOURCE, BriefFacet (+27 more)
+Cohesion: 0.07
+Nodes (32): BiasRead, BRIEF_AS_OF, BRIEF_SOURCE, BriefFacet, CheckState, Def, DEFS, Dir (+24 more)
 
 ### Community 103 - "live-talk.ts"
-Cohesion: 0.05
-Nodes (83): ceg, news, pack, smci, talk, voice, WireEntry, HALL_TALK_MAX_SEC (+75 more)
+Cohesion: 0.09
+Nodes (46): WireEntry, investLooks(), allowed(), bookCands(), calendarCands(), Cand, cardIn(), clone() (+38 more)
 
-### Community 104 - "aplus/config.ts"
-Cohesion: 0.03
-Nodes (75): react-dom, ELAPSED, hist, R_MULTIPLES, symbols, bars, entryArray, markup (+67 more)
+### Community 104 - "draw.ts"
+Cohesion: 0.06
+Nodes (48): ELAPSED, hist, R_MULTIPLES, symbols, CardGeometry, firstLevel(), GeometryVerdict, readCardGeometry() (+40 more)
 
 ### Community 105 - "auth/server.ts"
-Cohesion: 0.08
-Nodes (26): emailAndPasswordEnabled, emailAndPasswordOptions, signUpOpen, completionHtml(), completionResponse(), handleAuthPopupRequest(), PopupMessage, readCookie() (+18 more)
+Cohesion: 0.06
+Nodes (35): Env (`.env.example`), Per-user data (server-side — mandatory), emailAndPasswordEnabled, emailAndPasswordOptions, signUpOpen, completionHtml(), completionResponse(), handleAuthPopupRequest() (+27 more)
 
 ### Community 106 - "journal/analytics.ts"
 Cohesion: 0.10
@@ -850,8 +848,8 @@ Cohesion: 0.09
 Nodes (39): Where the Robinhood refresh token actually lives, contractId(), etParts(), ids, liveExpiry(), OptionMark, readOptionMarks(), tooling() (+31 more)
 
 ### Community 110 - "entry-trigger.ts"
-Cohesion: 0.10
-Nodes (35): plan, EntryTriggerPanel(), PATH_BANDS, pendingFillToast(), TIER_STYLE, MANAGEMENT_EVIDENCE, EntryTier, LossPreview (+27 more)
+Cohesion: 0.08
+Nodes (30): plan, short, T0, etTime(), OUTCOME_LABEL, TakeMomentsPanel(), MANAGEMENT_EVIDENCE, EntryTier (+22 more)
 
 ### Community 111 - "discretion-memory.ts"
 Cohesion: 0.10
@@ -865,17 +863,17 @@ Nodes (37): box(), bust(), cyl(), f_armchair(), f_bar_stool(), f_bar_table(), f_
 Cohesion: 0.13
 Nodes (21): Code, Floor rules on the RH path (`evaluateRhFloorRules`, fail closed), Done this session (each has a test; the count is the list), candidateFromFloorPathStand(), RhAutofireCandidate, proposeRhFromPathFire(), rhAutofireFlagsFromEnv(), RhLiveOptionQuote (+13 more)
 
-### Community 114 - "rh-bridge.ts"
-Cohesion: 0.08
-Nodes (32): CAPTURE_MAX_DAYS, banReason(), banReasonFrom(), recentUnderliersFrom(), RH_JOURNAL_CAP, rhMonth(), rhMonthFrom(), RhMonthRead (+24 more)
+### Community 114 - "debate.ts"
+Cohesion: 0.20
+Nodes (19): challengeFor(), clamp(), consensus(), CREW, fillRate(), lensesFor(), pc(), preMortem() (+11 more)
 
 ### Community 115 - "pandas"
-Cohesion: 0.04
-Nodes (58): compare_bars(), desk_bars(), _flatten(), mt5_bars(), yahoo_bars(), frame(), _render_case(), test_closed_never_peeks() (+50 more)
+Cohesion: 0.05
+Nodes (51): frame(), _render_case(), test_closed_never_peeks(), test_eq_snaps_to_tick(), test_fvg_detect_and_invert(), test_live_parse(), test_no_order_or_paid_data_paths(), test_paper_futures_dedup() (+43 more)
 
-### Community 116 - "schedule.ts"
-Cohesion: 0.10
-Nodes (21): addDays(), KIND, NewsTimeline(), Current coverage, Known coverage gaps (independent verification, 2026-08-10), US econ news calendar — maintenance, Weekly maintenance (do this every Sunday), addMinutes() (+13 more)
+### Community 116 - "US econ news calendar — maintenance"
+Cohesion: 0.40
+Nodes (4): Current coverage, Known coverage gaps (independent verification, 2026-08-10), US econ news calendar — maintenance, Weekly maintenance (do this every Sunday)
 
 ### Community 117 - "measure-model-claims.mjs"
 Cohesion: 0.08
@@ -885,13 +883,13 @@ Nodes (23): BARS, bucket(), claim(), claims, clustered(), clusteredDiff(), H, ID
 Cohesion: 0.10
 Nodes (17): all, broke, clean, conceptModules, drifted, empties, moduleIds, mustAppear (+9 more)
 
-### Community 119 - "build-desk.ts"
-Cohesion: 0.04
-Nodes (102): withBudget(), hasDatabentoKey(), budgetedLeg(), BudgetLeg, DESK_BUDGET_MS, DESK_COLD_CAP_MS, DeskBudgetRead, Entry (+94 more)
+### Community 119 - "take-census.ts"
+Cohesion: 0.17
+Nodes (14): fails, T0, TakeCensusPanel(), census, CENSUS_MAX, CENSUS_STORAGE, CensusVerdict, LayerBlock (+6 more)
 
 ### Community 120 - "numpy"
-Cohesion: 0.05
-Nodes (32): bake(), _bake_mesh(), _build_bvh(), build_floors(), build_walls(), classify(), _frame(), _hemisphere() (+24 more)
+Cohesion: 0.04
+Nodes (35): bake(), _bake_mesh(), _build_bvh(), build_floors(), build_walls(), classify(), _frame(), _hemisphere() (+27 more)
 
 ### Community 121 - "log-trade.mjs"
 Cohesion: 0.07
@@ -899,7 +897,7 @@ Nodes (25): { attribution, lesson }, contracts, doc, entryFill, exitFill, exitRe
 
 ### Community 122 - "hall-lite.ts"
 Cohesion: 0.11
-Nodes (36): PredictTabProps, isNflMarket(), ScanRow, hallLayout, SignalBoard, cents(), cents1(), crowdReaction() (+28 more)
+Nodes (35): PredictTabProps, isNflMarket(), ScanRow, SignalBoard, cents(), cents1(), crowdReaction(), eventWords() (+27 more)
 
 ### Community 123 - "claude-server.ts"
 Cohesion: 0.13
@@ -911,7 +909,7 @@ Nodes (17): FigureBar, getFigure(), againstScenarios(), BIAS_TAPES, biasScenario
 
 ### Community 125 - "room-engine.ts"
 Cohesion: 0.05
-Nodes (113): CLAUDE.md — reference sections (moved verbatim), Code map, UI map (categories), pullHall(), ageOf(), applyVoids(), bookScreen(), calendarFor() (+105 more)
+Nodes (91): CLAUDE.md — reference sections (moved verbatim), Code map, UI map (categories), CycleArgs, FloorFrame, pullHall(), ageOf(), bookScreen() (+83 more)
 
 ### Community 126 - "shadow-book.ts"
 Cohesion: 0.16
@@ -922,24 +920,24 @@ Cohesion: 0.11
 Nodes (24): fails, near(), NO_BONUS, ok(), DeskLevelKind, COMPONENT_KEYS, CHANNEL_RANK, DRAWN_AS (+16 more)
 
 ### Community 128 - "selfcheck.py"
-Cohesion: 0.05
-Nodes (16): assert_paths(), commit_notes(), write_note(), alternate(), atr(), legs(), say(), swings() (+8 more)
+Cohesion: 0.07
+Nodes (12): assert_paths(), commit_notes(), write_note(), alternate(), atr(), legs(), say(), swings() (+4 more)
 
 ### Community 129 - "exec-sql.ts"
 Cohesion: 0.13
 Nodes (12): json(), num(), PATCHABLE, PgExecStore, Query, rowOf(), ExecState, RunCtx (+4 more)
 
 ### Community 130 - "ghost-book.ts"
-Cohesion: 0.07
-Nodes (59): countdown(), NewsChip(), matchingGhost(), QuoteChip(), SessionHud(), DebriefBody(), pct(), tone() (+51 more)
+Cohesion: 0.11
+Nodes (41): DebriefBody(), pct(), tone(), TradeDebriefPanel(), analyze(), AnalyzeCtx, analyzeExpired(), analyzeMissed() (+33 more)
 
 ### Community 131 - "direction-book.py"
-Cohesion: 0.15
-Nodes (23): num(), bias_asof(), bias_series(), closed_candles(), collect(), day_key(), dt(), fvg_15() (+15 more)
+Cohesion: 0.10
+Nodes (27): buying_power(), _load_env(), login(), option_quote(), num(), bias_asof(), bias_series(), closed_candles() (+19 more)
 
-### Community 132 - "pathContinuation"
-Cohesion: 0.18
-Nodes (26): etfFromFuture(), afterSecondImpulse(), arrayStateOf(), componentsHint(), crossedSpot(), estimateSpot(), eventKind(), eventSecond() (+18 more)
+### Community 132 - "evaluateOptionsDesk"
+Cohesion: 0.20
+Nodes (27): afterSecondImpulse(), arrayStateOf(), componentsHint(), estimateSpot(), evaluateOptionsDesk(), eventKind(), eventSecond(), judasIfvg0dte() (+19 more)
 
 ### Community 133 - "verify-news-ipo.mjs"
 Cohesion: 0.07
@@ -965,21 +963,21 @@ Nodes (39): all, AllText, at(), bookOf(), clockAt(), ctxF(), diffFirm(), diffInt
 Cohesion: 0.09
 Nodes (26): allDown, allUp, bad, bar(), check(), down(), e, es (+18 more)
 
-### Community 139 - "setup-chart-panel.tsx"
+### Community 139 - "setup-chart.tsx"
 Cohesion: 0.04
-Nodes (82): lightweight-charts, fails, barTimeSec(), C, CandleHover, CandlestickPane(), paintOverlay(), CandlestickPaneProps (+74 more)
+Nodes (62): lightweight-charts, react-dom, bars, entryArray, markup, plan, T0, themed (+54 more)
 
-### Community 140 - "rnd.ts"
-Cohesion: 0.16
-Nodes (19): opportunityRate(), labRead, money(), round3(), RoomContext, meanOf(), poissonCI(), pts() (+11 more)
+### Community 140 - "risk-panel.tsx"
+Cohesion: 0.29
+Nodes (12): LimitBar(), money(), RiskPanel(), getRiskState, applyPaperPnl(), formatPaperChip(), getPaperAccount(), PAPER_START_EQUITY (+4 more)
 
 ### Community 141 - "measure-entry-location.mjs"
 Cohesion: 0.11
 Nodes (23): BAND, BARS, baseFills, cards, clusteredMean(), gate, H, halves() (+15 more)
 
 ### Community 142 - "verify-live-talk.mjs"
-Cohesion: 0.11
-Nodes (21): at(), BASE, clockAt(), CREW5, HALL_IDS, hallBoard(), legal(), levelsFor() (+13 more)
+Cohesion: 0.13
+Nodes (17): BASE, clockAt(), CREW5, HALL_IDS, hallBoard(), legal(), levelsFor(), lv() (+9 more)
 
 ### Community 143 - "replay-drill.ts"
 Cohesion: 0.05
@@ -991,15 +989,15 @@ Nodes (24): a, book, broke, check(), clean3, current, d, dLose (+16 more)
 
 ### Community 145 - "verify-smc-master.mjs"
 Cohesion: 0.04
-Nodes (46): allowedIncomplete, allSwept, bare, bareCisd, bars, basePlan, behind, blindStack (+38 more)
+Nodes (44): allowedIncomplete, allSwept, bare, bareCisd, bars, basePlan, behind, blindStack (+36 more)
 
 ### Community 146 - "build_office"
 Cohesion: 0.13
 Nodes (18): B(), build_emissives(), build_extras(), build_furniture(), build_office(), build_rooms(), build_screens(), ensure() (+10 more)
 
 ### Community 147 - "prediction-market-feed.ts"
-Cohesion: 0.07
-Nodes (38): createMeadFeed(), devBuild(), IDLE, MeadFeed, MeadFeedOptions, meadStateFrom(), BoardGame, League (+30 more)
+Cohesion: 0.06
+Nodes (42): createMeadFeed(), devBuild(), IDLE, MeadFeed, MeadFeedOptions, meadStateFrom(), BoardGame, League (+34 more)
 
 ### Community 148 - "figures.ts"
 Cohesion: 0.14
@@ -1010,28 +1008,28 @@ Cohesion: 0.12
 Nodes (15): _chroma(), index_ledger(), index_notes(), ledger_notes(), marqo_recall(), recall(), recall_like(), remember() (+7 more)
 
 ### Community 150 - "smc-master.ts"
-Cohesion: 0.06
-Nodes (61): Locator, Agreement data (committed files only), Concept table (✗ = disagreement before this branch), SMC shared detectors — audit (2026-10-13, branch feat/smc-shared-detectors), What this branch changes, Where each one decides, esShort, continuationArray (+53 more)
+Cohesion: 0.04
+Nodes (73): Agreement data (committed files only), SMC shared detectors — audit (2026-10-13, branch feat/smc-shared-detectors), What this branch changes, Where each one decides, 0. COVERAGE CHECK, 0b. UNOWNED / MULTI-CLAIMED FILES — ONE AGENT EACH, 1. BUILD ORDER, 2.2 Detectors (owner 1A) (+65 more)
 
 ### Community 151 - "verify-hit-odds.mjs"
 Cohesion: 0.09
 Nodes (23): arr, bars, base, bd, c, card, chart, check() (+15 more)
 
-### Community 152 - "A2 — the mechanical sequence can now die"
-Cohesion: 0.29
-Nodes (7): A2 — the mechanical sequence can now die, Invalidation rules, in evaluation order, Measured effect on real bars, New constants (both named, commented, exported), New fields on `MechanicalSequence`, New selection rule, MechanicalSequence
+### Community 152 - "marks-server.ts"
+Cohesion: 0.27
+Nodes (11): ChartJson, MARKS_MAX_TICKERS, parseDailyChart(), Range, rangeFor(), fetchChart(), getInvestMarks, HEADERS (+3 more)
 
-### Community 153 - "attest.ts"
-Cohesion: 0.11
-Nodes (33): RFC-3161, RFC-8785, ATTEST_EVENTS, AttestationRow, ATTESTED_FIELDS, attestedBody(), AttestedField, AttestEvent (+25 more)
+### Community 153 - "verify-attestation.mjs"
+Cohesion: 0.05
+Nodes (57): RFC-3161, RFC-8785, baseTrade, chain, dateTyped, deleted, deletedVerdict, doctored (+49 more)
 
 ### Community 154 - "learn.py"
 Cohesion: 0.06
 Nodes (36): crosscheck_fvg(), frame(), _library(), library_fvgs(), main(), Learning loop (shadow), ops/charts — automatic SMC trade charts + shadow learning loop, Review fixes (PR #25) (+28 more)
 
 ### Community 155 - "mead-hall-layout.ts"
-Cohesion: 0.06
-Nodes (46): arr(), BOUNDS_X1, buildMeadPlan(), patchSection(), cameras, CHECK, EAST, FILE (+38 more)
+Cohesion: 0.05
+Nodes (52): arr(), BOUNDS_X1, buildMeadPlan(), patchSection(), cameras, CHECK, EAST, FILE (+44 more)
 
 ### Community 156 - "crew-year-backtest.py"
 Cohesion: 0.21
@@ -1047,39 +1045,39 @@ Nodes (43): arm, armed, atr, bearishClose, big, bigBody, bigNoGap, blakeOk (+35 
 
 ### Community 159 - "month-contract.ts"
 Cohesion: 0.11
-Nodes (20): bad, early, good, small, stay, two, up, clamp() (+12 more)
+Nodes (21): bad, early, good, small, stay, two, up, clamp() (+13 more)
 
-### Community 160 - "month-ahead.ts"
-Cohesion: 0.14
-Nodes (23): BookCol(), LiqLine(), MonthAheadPanel(), PhaseRow(), px(), addDays(), barDateKey(), barInMonth() (+15 more)
+### Community 160 - "setup-anticipation.ts"
+Cohesion: 0.21
+Nodes (12): anticipate(), AnticipatedMark, EntryState, MARKUP_MIN_ENGINE, MARKUP_MIN_PROGRESS, pct(), SequenceRead, stateOf() (+4 more)
 
 ### Community 161 - "discuss-tab.tsx"
-Cohesion: 0.14
-Nodes (24): agree(), BIAS_STYLE, calm(), DiscussTab(), Entry, ExchangeCard(), fmtCountdown(), nextCheckpoint() (+16 more)
+Cohesion: 0.16
+Nodes (22): agree(), BIAS_STYLE, calm(), DiscussTab(), Entry, ExchangeCard(), fmtCountdown(), nextCheckpoint() (+14 more)
 
 ### Community 162 - "live-voices.ts"
-Cohesion: 0.07
-Nodes (46): jobsFor(), CardRead, LevelRef, Line, NewsLite, PositionRead, TalkState, TapeBook (+38 more)
+Cohesion: 0.09
+Nodes (39): jobsFor(), CardRead, LevelRef, PositionRead, TapeBook, BOARD, BoardData, CalData (+31 more)
 
-### Community 163 - "use-entry-state.ts"
+### Community 163 - "react"
 Cohesion: 0.10
-Nodes (38): Countdown(), EntryHero(), RhAccountStrip(), usd(), devPreview(), ENTRY_FLASH, FLASH, FlashKind (+30 more)
+Nodes (38): react, Countdown(), EntryHero(), RhAccountStrip(), usd(), devPreview(), ENTRY_FLASH, FLASH (+30 more)
 
 ### Community 164 - "verify-desk-enhancements.mjs"
 Cohesion: 0.09
 Nodes (19): agree, agreeing, blind, card, check(), clash, clashing, clock (+11 more)
 
 ### Community 165 - "smc-canon.ts"
-Cohesion: 0.09
-Nodes (21): CanonFactor, CanonInput, EtWindow, hhmm(), inModelWindow(), JOURNAL_TAGS, LiqKind, LiqScope (+13 more)
+Cohesion: 0.04
+Nodes (65): MetRing(), SCHOOL_ORDER, SmcPlaybook(), STEP_FACTORS, stepStates(), ComponentWeight, ConfluenceKnowledge, STRATEGY_CATALOG (+57 more)
 
 ### Community 166 - "verify-tf-ladder.mjs"
 Cohesion: 0.09
 Nodes (20): base, changed, check(), d1, daily, down, earlier, et() (+12 more)
 
 ### Community 167 - "rh-oauth.ts"
-Cohesion: 0.08
-Nodes (37): 3.2 ITEM 19 — unattended live closing. **The job already exists AND IT CAN OPEN, NOT ONLY CLOSE.** This is the single most dangerous standing fact in the whole set and it is live right now., key, RFC-8292, privateKey, publicKey, claimAlert(), getSessionUser(), authorizeUrl() (+29 more)
+Cohesion: 0.09
+Nodes (36): 3.2 ITEM 19 — unattended live closing. **The job already exists AND IT CAN OPEN, NOT ONLY CLOSE.** This is the single most dangerous standing fact in the whole set and it is live right now., key, RFC-8292, privateKey, publicKey, getSessionUser(), authorizeUrl(), clientIdFor() (+28 more)
 
 ### Community 168 - "devDependencies"
 Cohesion: 0.09
@@ -1099,7 +1097,7 @@ Nodes (16): account(), ctx(), db, exitIntent(), has(), intent(), k1, makeSim() (
 
 ### Community 172 - "cases.ts"
 Cohesion: 0.06
-Nodes (39): dayChangePct(), dayKey(), history, rows, top, argv, HIST, rows (+31 more)
+Nodes (41): all, card, dayChangePct(), deskAt(), history, rows, t0, argv (+33 more)
 
 ### Community 173 - "render-mead-attachments.mjs"
 Cohesion: 0.20
@@ -1119,7 +1117,7 @@ Nodes (13): TradeLogPanel(), attribute(), Attributed, Attribution, compliant(), 
 
 ### Community 177 - "live-types.ts"
 Cohesion: 0.04
-Nodes (70): auditSrc, empty, RaceScreen, ageDays(), AuditItem, deskAudit(), EARNINGS_AGEING_DAYS, freshnessItems() (+62 more)
+Nodes (73): auditSrc, empty, RaceScreen, ageDays(), AuditItem, deskAudit(), EARNINGS_AGEING_DAYS, freshnessItems() (+65 more)
 
 ### Community 178 - "hit-odds.ts"
 Cohesion: 0.11
@@ -1130,8 +1128,8 @@ Cohesion: 0.08
 Nodes (13): Base, _engine(), latency_ms(), mark_filled(), mark_sent(), open_db(), record(), slippage_report() (+5 more)
 
 ### Community 180 - "verify-mead-hall.mjs"
-Cohesion: 0.06
-Nodes (33): acts, all, cams, clear, crowd, east, far, free() (+25 more)
+Cohesion: 0.07
+Nodes (28): acts, all, cams, clear, crowd, east, far, glb (+20 more)
 
 ### Community 181 - "build-evidence-pack.mjs"
 Cohesion: 0.12
@@ -1145,17 +1143,17 @@ Nodes (17): argv, atrAt(), CHUNK, H, HIST, layerIds(), LIMIT, medianVol() (+9 mo
 Cohesion: 0.11
 Nodes (15): BARS, cards, externalT2(), gate, H, halves(), inBand, IS_YEARS (+7 more)
 
-### Community 184 - "Dress"
-Cohesion: 0.18
-Nodes (5): build(), Dress, Rx(), Ry(), Rz()
+### Community 184 - "math"
+Cohesion: 0.13
+Nodes (11): build(), Dress, Rx(), Ry(), Rz(), bs(), build(), ncdf() (+3 more)
 
 ### Community 185 - "verify-race-talk.mjs"
 Cohesion: 0.12
 Nodes (13): bookOf(), clockAt(), drain(), HALL_IDS, hallBoard(), legal(), mkWorld(), MORNING (+5 more)
 
-### Community 186 - "browser-smoke.mjs"
-Cohesion: 0.20
-Nodes (11): computeBrandWarnings(), MAX_CARD_BYTES, checkedOutputPath(), checkedUrl(), fail(), LOOPBACK_HOSTNAMES, consoleErrors, outPng (+3 more)
+### Community 186 - "brainlab/bars.py"
+Cohesion: 0.27
+Nodes (5): compare_bars(), desk_bars(), _flatten(), mt5_bars(), yahoo_bars()
 
 ### Community 187 - "mayPlaceAfterReview"
 Cohesion: 0.07
@@ -1163,11 +1161,11 @@ Nodes (48): 2026-10-06 — Merge path and standing guards, 2026-10-13 — auto-m
 
 ### Community 188 - "minute-gaps.ts"
 Cohesion: 0.13
-Nodes (23): ACTIVE_LOOKBACK_MIN, barStepMs(), classifyGap(), completeBuckets(), etFmt, etMinuteOfDay(), expectedMinutesBetween(), FilledMinute (+15 more)
+Nodes (23): ACTIVE_LOOKBACK_MIN, classifyGap(), classifyGaps(), etFmt, etMinuteOfDay(), expectedMinutesBetween(), FilledMinute, floorMinute() (+15 more)
 
 ### Community 189 - "db.ts"
-Cohesion: 0.06
-Nodes (48): card, names, sse, createNeonSql(), createPgliteSql(), createSql(), globalBoot, globalRef (+40 more)
+Cohesion: 0.05
+Nodes (65): [cmd, arg], rows, card, names, sse, createNeonSql(), createPgliteSql(), createSql() (+57 more)
 
 ### Community 190 - "preview-glb.mjs"
 Cohesion: 0.06
@@ -1186,24 +1184,24 @@ Cohesion: 0.09
 Nodes (15): damp(), drawBubble(), drawPlate(), makeBubble(), makePlate(), makeTag(), ManagerAvatar, mat() (+7 more)
 
 ### Community 194 - "live-voices-invest.ts"
-Cohesion: 0.12
-Nodes (32): AgendaItem, boardAgenda(), dayPhrase(), daysBetween(), FIRM_REVIEW_NAME, FIRM_WEEK, firmDay, macroRead (+24 more)
+Cohesion: 0.06
+Nodes (68): ceg, news, pack, smci, talk, voice, HALL_TALK_MAX_SEC, AgendaItem (+60 more)
 
 ### Community 195 - "retain.py"
 Cohesion: 0.21
 Nodes (6): classify(), _discretion(), main(), _px(), ResearchFacts, write_note()
 
-### Community 196 - "tradezella-chat.tsx"
-Cohesion: 0.15
-Nodes (22): LogMode, AnalysisCard(), BiasPill(), ChatMessage, downloadDataUrl(), QUICK, Role, TradezellaChat() (+14 more)
+### Community 196 - "fit"
+Cohesion: 0.22
+Nodes (11): calibration(), cvLambda(), fit(), ll(), pairedZ(), predict(), r4(), rowOf() (+3 more)
 
 ### Community 197 - "verify-kill-watch.mjs"
 Cohesion: 0.12
 Nodes (13): annotated, bare, both, check(), many, mem, now, numbered (+5 more)
 
 ### Community 198 - "live-voices-mead.ts"
-Cohesion: 0.13
-Nodes (44): subjectOf(), HallRowLite, exMead(), AT_BAR, AT_JUMBO, AT_TABLE, bandOf(), c() (+36 more)
+Cohesion: 0.11
+Nodes (47): subjectOf(), HallRowLite, TalkState, Ctx, exMead(), AT_BAR, AT_JUMBO, AT_TABLE (+39 more)
 
 ### Community 199 - "measure-micro-entry.mjs"
 Cohesion: 0.15
@@ -1230,8 +1228,8 @@ Cohesion: 0.14
 Nodes (14): byId, check(), fixture, fresh, here, live, longshot, noAsk1 (+6 more)
 
 ### Community 205 - "invest-panel.tsx"
-Cohesion: 0.09
-Nodes (40): InvestPanel(), readMarksCache(), writeMarksCache(), ExposureCard(), techOf(), FunnelCard(), LABEL, money() (+32 more)
+Cohesion: 0.08
+Nodes (69): InvestPanel(), readMarksCache(), writeMarksCache(), Activity(), BookCard(), BuyForm(), DividendForm(), SellForm() (+61 more)
 
 ### Community 206 - "verify-entry-alarm.mjs"
 Cohesion: 0.09
@@ -1241,29 +1239,29 @@ Nodes (7): book(), fails, L(), NOW, R(), store, T0
 Cohesion: 0.15
 Nodes (11): bars, etMin(), firstT, kb, { key, from: keyFrom }, lastT, out, parse() (+3 more)
 
-### Community 208 - "invest-firm.ts"
-Cohesion: 0.08
-Nodes (48): Fact(), LongBoard(), SLEEVE_LABEL, stateClass(), FUNNEL, FUNNEL_NAMES, funnelPlan(), FunnelSlice (+40 more)
+### Community 208 - "long-board.ts"
+Cohesion: 0.09
+Nodes (35): FunnelCard(), LABEL, money(), Rows(), Fact(), LongBoard(), SLEEVE_LABEL, stateClass() (+27 more)
 
 ### Community 209 - "floor-cues.ts"
 Cohesion: 0.10
 Nodes (20): a, agreed, base, fill, gone, late, raid, syn (+12 more)
 
 ### Community 210 - "verify-mead-talk.mjs"
-Cohesion: 0.09
-Nodes (20): call(), fn(), ALL_LINES, allowedNumbers(), board0, boardD, boardNo, build() (+12 more)
+Cohesion: 0.06
+Nodes (39): boardAt(), boardMemo, buildBoard(), driftHistory(), espn, FIXTURE, FIXTURE_MS, hallAt() (+31 more)
 
 ### Community 211 - "verify-exit-rules.mjs"
 Cohesion: 0.17
 Nodes (11): base, card, check(), closeThrough, fh, ok(), pm, sbase (+3 more)
 
-### Community 212 - "ipo.ts"
-Cohesion: 0.16
-Nodes (19): DESK_WATCH, IpoCard(), STAGE, WATCH_CLS, addDays(), DOC, ipoCapturedAt(), IpoDoc (+11 more)
+### Community 212 - "invest-firm.ts"
+Cohesion: 0.07
+Nodes (53): DESK_WATCH, STAGE, WATCH_CLS, durabilityCapturedAt(), profilesCapturedAt(), addDays(), DOC, ipoCapturedAt() (+45 more)
 
-### Community 213 - "floor_pack.py"
-Cohesion: 0.20
-Nodes (9): accessor_bytes(), colors_u8(), compact(), pack(), _primitives(), prune_flat(), read_glb(), write_glb() (+1 more)
+### Community 213 - "options-swing.ts"
+Cohesion: 0.22
+Nodes (8): rhRiskBudgetUsd(), evaluateOptionsSwing(), SWING_RISK_PCT, SWING_SPANS, SwingContractPlan, swingTiming, SwingVerdict, weekdayEt()
 
 ### Community 214 - "ladder.test.mjs"
 Cohesion: 0.24
@@ -1277,9 +1275,9 @@ Nodes (25): Custom card: generate `public/og.jpg`, Favicon: hand-author `public/
 Cohesion: 0.12
 Nodes (13): B, [cardsPath = "/workspace/desk-watcher/cards.log", dir = "/workspace/audits/seq-data"], out, samples, seen, tape, closed5m(), EqRow (+5 more)
 
-### Community 217 - "loss-guards.ts"
-Cohesion: 0.13
-Nodes (23): bars(), ctx(), HO, opt(), P, sim(), sum(), T (+15 more)
+### Community 217 - "override-log.ts"
+Cohesion: 0.22
+Nodes (9): crossCheck, MIN_N_FOR_READ, OverrideRecord, overrideScorecard(), RefusingLayer, round2(), STRONG_N, summarise() (+1 more)
 
 ### Community 218 - "capture-durability.mjs"
 Cohesion: 0.18
@@ -1289,17 +1287,17 @@ Nodes (8): cagr(), companies, doc, only, round4(), tickers, TYPES, universe
 Cohesion: 0.18
 Nodes (10): args, bIdx, captureEtfProfiles(), doc, ETF_MODE, { key, from }, num(), only (+2 more)
 
-### Community 220 - "Facts"
-Cohesion: 0.21
-Nodes (11): Facts, agoText(), exCalendar(), exDraw(), exGap(), exHot(), exLevel(), exNews() (+3 more)
+### Community 220 - "smc-shared.test.mjs"
+Cohesion: 0.24
+Nodes (7): bar(), bearNarrative, book, clock, provFixture(), T0, tape()
 
 ### Community 221 - "Engine bridge — Trading-Automation → Ledger desk"
 Cohesion: 0.17
 Nodes (11): Auth, curl, Engine bridge — Trading-Automation → Ledger desk, Environment (desk side), Idempotency semantics, `POST /api/engine/heartbeat`, `POST /api/engine/journal`, Python (requests) (+3 more)
 
 ### Community 222 - "week-ahead.ts"
-Cohesion: 0.16
-Nodes (19): addDays(), barInWeek(), etDateKey(), isEs(), isNq(), overlayBook(), overlayWeekAhead(), pad2() (+11 more)
+Cohesion: 0.10
+Nodes (33): addDays(), barDateKey(), barInMonth(), isEs(), isNq(), MONTH_OCT_2026, MONTH_SEP_2026, MonthPhaseId (+25 more)
 
 ### Community 223 - ".path"
 Cohesion: 0.23
@@ -1313,17 +1311,17 @@ Nodes (29): main(), parse_issue(), render(), safe_text(), Field mapping (engine 
 Cohesion: 0.07
 Nodes (38): ContractKey, accountCloseDay(), accountOpenDay(), accountTrade(), APEX_EVAL_DAYS, ApexContractSizing, ApexMechanic, ApexSimArmStats (+30 more)
 
-### Community 226 - "card-journal.ts"
-Cohesion: 0.09
-Nodes (32): findRows(), run(), SPEC, Sql, ANN_DDL, Annotation, AnnSrc, appendVoid() (+24 more)
+### Community 226 - "learning.ts"
+Cohesion: 0.05
+Nodes (90): findRows(), run(), SPEC, Sql, ANN_DDL, Annotation, AnnSrc, appendVoid() (+82 more)
 
 ### Community 227 - "LazyPGliteDriver"
 Cohesion: 0.14
 Nodes (6): @electric-sql/pglite, kysely, Client, LazyPGliteDriver, PGliteConnection, pgliteDialect()
 
-### Community 228 - "learning-stats.ts"
-Cohesion: 0.18
-Nodes (23): SnapCard, chaseStats(), clusters(), ctx(), decayW(), etHalfHour(), featureAccuracy(), grokVsDesk() (+15 more)
+### Community 228 - "verify-school-gate.mjs"
+Cohesion: 0.24
+Nodes (7): bare, line, missing, on, SCHOOL_GATE, px(), schoolPlanPrices()
 
 ### Community 229 - "verify-room-snapshot.mjs"
 Cohesion: 0.11
@@ -1343,7 +1341,7 @@ Nodes (20): base, ceilBound, check(), eq(), geo(), geoBase, lowDelta, near (+12 
 
 ### Community 233 - "FloorSound"
 Cohesion: 0.11
-Nodes (14): FloorEvent, BED_LAYERS, BedLayer, BedState, englishVoices(), FloorSound, loadCast(), loadSoundPref() (+6 more)
+Nodes (14): FloorEvent, BED_LAYERS, BedLayer, BedState, englishVoices(), FloorSound, loadCast(), saveBedMutes() (+6 more)
 
 ### Community 234 - "executor.ts"
 Cohesion: 0.14
@@ -1353,17 +1351,17 @@ Nodes (29): ExecDeps, StepRequest, checkEntry(), checkExit(), checkRun(), clockO
 Cohesion: 0.12
 Nodes (15): 1. Mount the snapshot review (B6) — `src/routes/index.tsx`, 2. Environment variables to set in Vercel, 3. Migration, 4. Web Push (B4) — zero new dependencies, 5. Scheduled jobs (B5) and the DST caveat, 6. Files added, 7. Security posture, Deliberately not done (+7 more)
 
-### Community 236 - "option-math.ts"
-Cohesion: 0.07
-Nodes (62): resolveMemories(), buildLadder(), ladderSteps(), r2(), exitFor(), clockEt(), stepGhost(), blackScholes() (+54 more)
+### Community 236 - "time-odds.ts"
+Cohesion: 0.19
+Nodes (13): at(), BAR_MINUTES, BAR_MS, before(), curveFor(), distBucket, MIN_CURVE_N, quantileBar() (+5 more)
 
 ### Community 237 - "crew-years.ts"
-Cohesion: 0.14
-Nodes (10): BOOK, BrainJobs, CREW_STUDY, CrewHalf, CrewPerson, BrainWho, PERFECT_STANDARD, PerfectGrade (+2 more)
+Cohesion: 0.16
+Nodes (10): CREW_STUDY, CrewHalf, CrewPerson, BrainWho, DeskAtlas, PeopleBrains, Fed, PERFECT_STANDARD (+2 more)
 
-### Community 238 - "@tanstack/react-router"
-Cohesion: 0.14
-Nodes (17): @tanstack/react-router, fastWire, Spike, eq(), safeWatcherStatus(), WATCHER_STALE_S, watcherAuthorized(), AppErrorComponent() (+9 more)
+### Community 238 - "router.tsx"
+Cohesion: 0.32
+Nodes (4): AppErrorComponent(), getRouter(), Register, @tanstack/react-router
 
 ### Community 239 - "exec-server.ts"
 Cohesion: 0.17
@@ -1373,13 +1371,13 @@ Nodes (27): BridgeHooks, deviceId(), execAfterCycle(), execFlatten(), ExecUi, ru
 Cohesion: 0.12
 Nodes (14): 1. The migration (0008), 2. Wiring the writers — **the integrator owns this**, 4. C4 — no new instruments, 5. What the panel gained, 6. Verification, 7. Known limits, INTEGRATION-D — Phase C (evidence), The one thing that matters (+6 more)
 
-### Community 241 - "learning.ts"
-Cohesion: 0.11
-Nodes (35): allGraded(), appliedCalibration(), bandEdgeMoves(), DDL, DIR_HORIZONS, DIR_RIGHT_ATR, DirGrade, FactorLift (+27 more)
+### Community 241 - "desk-fetch-guard.test.mjs"
+Cohesion: 0.25
+Nodes (6): brainPanel, brainSrc, CLEAN, HALTED, index, synapse
 
 ### Community 242 - "setup-scanner.tsx"
-Cohesion: 0.02
-Nodes (132): control, H, results, SYMS, fails, m15, minute, fails (+124 more)
+Cohesion: 0.06
+Nodes (50): 2.6 Exec (owner 1B), SetupMiniChart, BlockerStrip(), CANON_SORT_BONUS, CanonBadge(), CardPools, CardSequence, CardSession (+42 more)
 
 ### Community 243 - "floor-fx.ts"
 Cohesion: 0.15
@@ -1402,8 +1400,8 @@ Cohesion: 0.40
 Nodes (4): check(), firstDue, ok(), tuesdayDue
 
 ### Community 248 - "invest-office.ts"
-Cohesion: 0.09
-Nodes (49): HabitCard(), InvestOfficePanel(), KV(), money(), money2(), OtherIncome(), SectionId, SECTIONS (+41 more)
+Cohesion: 0.06
+Nodes (49): InvestOfficePanel(), KV(), money(), money2(), OtherIncome(), SectionId, SECTIONS, SLEEVE_COLOR (+41 more)
 
 ### Community 249 - "no-cache.ts"
 Cohesion: 0.53
@@ -1437,17 +1435,17 @@ Nodes (3): crons, headers, $schema
 Cohesion: 0.29
 Nodes (12): eventText(), GoalForm(), money(), OWNER_COLOR, pctSmall(), RacePanel(), RaceTrack(), SectionId (+4 more)
 
-### Community 263 - "feed.ts"
-Cohesion: 0.09
-Nodes (28): clip(), decodeEntities(), ENTITIES, FeedItem, FEEDS, FeedSource, Horizon, KILL_WORDS (+20 more)
+### Community 263 - "news-tab.tsx"
+Cohesion: 0.04
+Nodes (91): addDays(), ago(), EventRow(), Filter, IMPACT, isSports(), NewsTab(), sessionsAhead() (+83 more)
 
 ### Community 267 - "canon.ts"
 Cohesion: 0.27
 Nodes (8): CanonBox(), statusStyle(), whoColor(), CANON, CanonBlock, CanonClaim, CanonSource, CanonStatus
 
 ### Community 268 - "trading/scanner.ts"
-Cohesion: 0.04
-Nodes (67): FIX, KZ0, RULES, order(), T0, applyQuoteToLastBar(), closedBars(), intervalMs() (+59 more)
+Cohesion: 0.03
+Nodes (114): Locator, Concept table (✗ = disagreement before this branch), FIX, KZ0, RULES, order(), inWin, outWin (+106 more)
 
 ### Community 269 - "node:fs"
 Cohesion: 0.07
@@ -1459,19 +1457,19 @@ Nodes (21): Asymmetric Icons (Stars, Arrows, Carets), Buttons with Text + Icon, 
 
 ### Community 271 - "analytics-server.ts"
 Cohesion: 0.15
-Nodes (16): RFC-4180, 3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion, AnalyticsReport, ANALYTICS_RISK_PCT, analyticsInput, AnalyticsPayload, CSV_COLUMNS, csvCell() (+8 more)
+Nodes (17): RFC-4180, 3. C3 handoff — `strategyVerdict` replaces the hardcoded blake demotion, AnalyticsReport, ANALYTICS_RISK_PCT, analyticsInput, AnalyticsPayload, CSV_COLUMNS, csvCell() (+9 more)
 
 ### Community 272 - "verify-rh-desk-job.mjs"
-Cohesion: 0.08
-Nodes (10): k(), CANDS, RULES, WEEK, card(), livePos, manager(), openOrder (+2 more)
+Cohesion: 0.06
+Nodes (14): k(), control, H, results, SYMS, CANDS, RULES, WEEK (+6 more)
 
 ### Community 273 - "options-swing-panel.tsx"
-Cohesion: 0.15
-Nodes (20): OptionMarksStrip(), OptionsSwingPanel(), QuoteSheet(), SleeveBudgetBar(), usd(), verdictClass(), optionsDeskPlaybook(), RhVerdict (+12 more)
+Cohesion: 0.13
+Nodes (26): OptionMarksStrip(), OptionsSwingPanel(), QuoteSheet(), SleeveBudgetBar(), usd(), verdictClass(), optionsDeskPlaybook(), RhVerdict (+18 more)
 
 ### Community 274 - "discretion.ts"
-Cohesion: 0.11
-Nodes (25): ClosedTrade, AnalyticsTrade, MIN_STRATEGY_N, readClosed(), BACKTEST_WEIGHT, BacktestPrior, clamp(), computeDiscretion() (+17 more)
+Cohesion: 0.12
+Nodes (21): MIN_STRATEGY_N, BACKTEST_WEIGHT, BacktestPrior, clamp(), computeDiscretion(), DEMOTE_EFFECTIVE_N, DEMOTE_EXPECTANCY_R, DiscretionResult (+13 more)
 
 ### Community 275 - "replay-desk.mjs"
 Cohesion: 0.16
@@ -1513,17 +1511,17 @@ Nodes (15): Animations, Code Example, CSS Example, CSS-Only Stagger, CSS Transit
 Cohesion: 0.18
 Nodes (19): isTerminal(), loadShadowsLocal(), mergeShadows(), observeShadows(), saveShadowsLocal(), listShadowTrades, upsertShadowTrades, subscribeShadows() (+11 more)
 
-### Community 285 - "draw.ts"
-Cohesion: 0.07
-Nodes (40): all, card, dayChangePct(), deskAt(), history, rows, t0, ReplayRunMeta (+32 more)
+### Community 285 - "structure.ts"
+Cohesion: 0.05
+Nodes (58): INTEGRATION-P0 — Truth & safety (branch agents/phase-p0), B, F, KZ0, rows, ReplayRunMeta, ReplayRunPayload, runReplay (+50 more)
 
 ### Community 286 - "measure-news-bias.mjs"
 Cohesion: 0.29
 Nodes (9): atrAt(), dayKey(), etMin(), H, line(), measure(), pct(), weekday() (+1 more)
 
-### Community 287 - "smc-playbook.tsx"
-Cohesion: 0.22
-Nodes (10): MetRing(), SCHOOL_ORDER, SmcPlaybook(), STEP_FACTORS, stepStates(), CANON_RULES, CONFLUENCE_STACK, ENTRY_SKELETON (+2 more)
+### Community 287 - "QUIET"
+Cohesion: 0.38
+Nodes (4): at(), QUIET, Sim, walker()
 
 ### Community 288 - "NY AM Session Brief — Tuesday, October 6, 2026"
 Cohesion: 0.15
@@ -1553,9 +1551,9 @@ Nodes (31): CLAUDE.md — Ledger Desk (private MNQ/ES masterplace), Code map, Du
 Cohesion: 0.17
 Nodes (11): Fast path if usage is short, Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing), How to run this (the whole protocol), Not in this plan, and why, Risks, Run 1: see it (Track A, code only), Run 2: walk it (Track A, code only), Run 3: build it (Track B, Blender; can start with Run 1) (+3 more)
 
-### Community 296 - "capture-intrabar.mjs"
-Cohesion: 0.25
-Nodes (7): bars, days, endMs, HIST, mb, out, startMs
+### Community 296 - "kz-disp.ts"
+Cohesion: 0.38
+Nodes (6): KZ, KZ_SCORE_IMPL, KzItem, kzLiveItems(), kzScoreDelta(), kzSeatNote()
 
 ### Community 297 - "rh-autofire.ts"
 Cohesion: 0.05
@@ -1578,12 +1576,12 @@ Cohesion: 0.29
 Nodes (5): book, graph, report, seed, sequence
 
 ### Community 303 - "smc/discipline.ts"
-Cohesion: 0.05
-Nodes (48): Batch 1 of 1–25 plus Accuracy 1–4 and Judas (this commit), Fixes 26–30 (ad46c813), today's MNQ BSL-sweep case, ledger-desk full audit — 2026-10-13 (base main 3860e498), P0: kills trades or misstates the card, P1: contradictions between seats, P2: dead or unused paths, Round 2 (shipped 5d971ee7..44abb71f), Safety stops: unchanged (+40 more)
+Cohesion: 0.04
+Nodes (59): Batch 1 of 1–25 plus Accuracy 1–4 and Judas (this commit), Fixes 26–30 (ad46c813), today's MNQ BSL-sweep case, ledger-desk full audit — 2026-10-13 (base main 3860e498), P0: kills trades or misstates the card, P1: contradictions between seats, P2: dead or unused paths, Round 2 (shipped 5d971ee7..44abb71f), Safety stops: unchanged (+51 more)
 
-### Community 304 - "thesis-server.ts"
-Cohesion: 0.16
-Nodes (20): buildThesisInput(), parseThesis(), repairJson(), addDays(), ago(), build(), etDate(), etTime() (+12 more)
+### Community 304 - "inputsFor"
+Cohesion: 0.50
+Nodes (4): causalDaily(), elapsedFractionOf(), idxAt(), inputsFor()
 
 ### Community 305 - "INTEGRATION-P4 — automation bridge (branch `agents/phase-p4`)"
 Cohesion: 0.20
@@ -1594,12 +1592,16 @@ Cohesion: 0.22
 Nodes (5): glass_gap_behind(), housing(), monitor_below(), ring(), wall_top_below()
 
 ### Community 307 - "ref_node_fs"
-Cohesion: 0.05
-Nodes (30): brainPanel, brainSrc, CLEAN, HALTED, index, synapse, bars, fvgs (+22 more)
+Cohesion: 0.04
+Nodes (31): out, SYMBOLS, bars, fvgs, hist, n, symbol, at (+23 more)
 
 ### Community 308 - "alpaca.ts"
 Cohesion: 0.10
 Nodes (12): RFC-3339, ALPACA_DATA, ALPACA_TRADING, alpacaBroker(), call(), AlpacaConfig, AlpacaError, brokerFromEnv() (+4 more)
+
+### Community 310 - "strip"
+Cohesion: 0.50
+Nodes (4): marks, orders, rnd, strip()
 
 ### Community 311 - "runApexSim"
 Cohesion: 0.16
@@ -1634,8 +1636,8 @@ Cohesion: 0.29
 Nodes (6): Not yet present (named by the plan, do not link until they exist), On branches (not yet merged), On `main`, Other repo docs agents commonly need (on `main`, not research), Related coordination doc (not research — listed for read order), Research INDEX — ledger-desk
 
 ### Community 319 - "trend_paper.py"
-Cohesion: 0.06
-Nodes (42): load_env_local(), main(), Calling the API (server-only), Env vars — do **not** create a `.env` file, Imagine — image & video generation (server-only), Spend responsibly, Voice — text-to-speech (server-only), xAI API (Grok) (+34 more)
+Cohesion: 0.07
+Nodes (39): Calling the API (server-only), Env vars — do **not** create a `.env` file, Imagine — image & video generation (server-only), Spend responsibly, Voice — text-to-speech (server-only), xAI API (Grok), base(), card() (+31 more)
 
 ### Community 320 - "Ledger Masterplace"
 Cohesion: 0.29
@@ -1690,8 +1692,8 @@ Cohesion: 0.50
 Nodes (4): Exit Animations, Full Exit (When Context Matters), Good vs. Bad, Subtle Exit (Recommended)
 
 ### Community 336 - "trade-log.ts"
-Cohesion: 0.13
-Nodes (22): crossCheck, LayerRow, MIN_N_FOR_READ, OverrideRecord, overrideScorecard(), OverrideSummary, RefusingLayer, round2() (+14 more)
+Cohesion: 0.23
+Nodes (13): LayerRow, OverrideSummary, fingerprint(), SetupRecord, shapeLabel(), ShapeRecord, LAYERS, loggedRecords() (+5 more)
 
 ### Community 337 - "bar"
 Cohesion: 0.50
@@ -1701,9 +1703,9 @@ Nodes (4): bar(), oneMin(), quiet(), underTail
 Cohesion: 0.67
 Nodes (4): applyM(), armElbow(), armHand(), rotXYZ()
 
-### Community 346 - "mead-fixture.mjs"
-Cohesion: 0.10
-Nodes (28): boardAt(), boardMemo, buildBoard(), driftHistory(), espn, FIXTURE, FIXTURE_MS, hallAt() (+20 more)
+### Community 346 - "mead-world.mjs"
+Cohesion: 0.20
+Nodes (9): BASE, book(), clockAt(), CREW5, MIN, mkMinds(), mkWorld(), NEEDS (+1 more)
 
 ### Community 348 - "build-learn-cases.mjs"
 Cohesion: 0.29
@@ -1713,17 +1715,9 @@ Nodes (6): all, history, out, selected, t, t0
 Cohesion: 0.07
 Nodes (23): alias, file, hit, miss, take, wordOnly, LearnModule, MODULE_ORDER (+15 more)
 
-### Community 351 - "conditions.ts"
-Cohesion: 0.24
-Nodes (9): assessConditions(), atr(), DEFAULT_ATR_N, DEFAULT_BASELINE_ATR_N, DEFAULT_ER_N, DEFAULT_ER_TREND, DEFAULT_MAX_ATR_RATIO, DEFAULT_MIN_ATR_RATIO (+1 more)
-
 ### Community 352 - "verify-day-change.mjs"
 Cohesion: 0.18
 Nodes (10): base, check(), desk, dual, month, ok(), p, q (+2 more)
-
-### Community 353 - "tf-ladder-panel.tsx"
-Cohesion: 0.21
-Nodes (11): Book(), Rungs(), TfLadderPanel(), TIERS, tone(), LadderLite, LadderBias, LadderTier (+3 more)
 
 ### Community 359 - "entry-state.test.mjs"
 Cohesion: 0.38
@@ -1741,17 +1735,13 @@ Nodes (5): bar(), etMs(), failedBullIfvgTape(), T0, tape3()
 Cohesion: 0.60
 Nodes (5): canonOf(), card(), longAt(), seq(), shortAt()
 
-### Community 364 - "verify-brain-fuel.mjs"
-Cohesion: 0.25
-Nodes (6): base, empty, once, peers, people, twice
+### Community 364 - "brain-fuel.ts"
+Cohesion: 0.12
+Nodes (14): base, empty, once, peers, people, twice, BrainFuel, savePeople() (+6 more)
 
 ### Community 366 - "exec-card.tsx"
 Cohesion: 0.23
 Nodes (12): contractLabel(), etTime(), ExecCard(), OrderRow(), PHASES, STATUS_COLOR, flattenBroker(), flattenRhNow() (+4 more)
-
-### Community 368 - "INTEGRATION-P1 — Journal + active risk governor"
-Cohesion: 0.33
-Nodes (5): 1 · Mount in `src/routes/index.tsx`, 2 · Trigger on scanner cards (`src/components/desk/setup-scanner.tsx`), 4 · Props contracts (stable — other phases code against these), 5 · Server-fn call shapes, INTEGRATION-P1 — Journal + active risk governor
 
 ### Community 369 - "intent.ts"
 Cohesion: 0.29
@@ -1761,13 +1751,9 @@ Nodes (9): E4 — shadow mode (records; sends nothing), blankRow(), clientOrderI
 Cohesion: 0.47
 Nodes (4): argv, primTris(), readGlb(), stats()
 
-### Community 371 - "sessions.ts"
-Cohesion: 0.12
-Nodes (12): brute(), startDay(), tickets(), EVID, pickOf(), rnd(), ROOM_EV, TIMES (+4 more)
-
-### Community 381 - "news-tab.tsx"
-Cohesion: 0.16
-Nodes (25): addDays(), ago(), EventRow(), Filter, IMPACT, isSports(), NewsTab(), sessionsAhead() (+17 more)
+### Community 371 - "startDay"
+Cohesion: 1.00
+Nodes (3): brute(), startDay(), tickets()
 
 ### Community 383 - "verify-hi-alert-brain.mjs"
 Cohesion: 0.25
@@ -1792,22 +1778,22 @@ Nodes (3): FIX, fixture(), weekdays()
 ## Knowledge Gaps
 - **53 isolated node(s):** `probot`, `pg`, `@radix-ui/react-accordion`, `@radix-ui/react-alert-dialog`, `@radix-ui/react-avatar` (+48 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 5318 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **31 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Code map` connect `room-engine.ts` to `market/types.ts`, `predict-parts.tsx`, `meeting.ts`, `room/drill.ts`, `universe.ts`, `pathContinuation`, `ghost-book.ts`, `index.tsx`, `orchestrator.ts`, `trading/scanner.ts`, `node:fs`, `evaluateOptionsDesk`, `pm-analyzer.tsx`, `build_office`, `desk-atlas.ts`, `smc-master.ts`, `floor-screens.ts`, `FloorScene`, `hi-alert.ts`, `discuss-tab.tsx`, `store.ts`, `spot-cross.ts`, `live-voices.ts`, `detectors.ts`, `mead-screens.ts`, `live-types.ts`, `goal.ts`, `agents.ts`, `live-voices-mead.ts`, `floor-voice.ts`, `invest-panel.tsx`, `invest-firm.ts`, `snapshot.ts`, `policy.ts`, `spoken-form.ts`, `school-brief.ts`, `live-talk.ts`, `option-math.ts`, `rh-bridge.ts`, `setup-scanner.tsx`, `invest-office.ts`, `claude-server.ts`?**
-  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `Code map` connect `room-engine.ts` to `build-desk.ts`, `predict-parts.tsx`, `ghost-book.ts`, `room/drill.ts`, `universe.ts`, `evaluateOptionsDesk`, `index.tsx`, `orchestrator.ts`, `trading/scanner.ts`, `node:fs`, `pm-analyzer.tsx`, `build_office`, `desk-atlas.ts`, `floor-screens.ts`, `FloorScene`, `hi-alert.ts`, `structure.ts`, `discuss-tab.tsx`, `store.ts`, `spot-cross.ts`, `live-voices.ts`, `detectors.ts`, `chart-timeframes.ts`, `mead-screens.ts`, `live-types.ts`, `goal.ts`, `live-voices-invest.ts`, `live-voices-mead.ts`, `floor-voice.ts`, `invest-panel.tsx`, `long-board.ts`, `snapshot.ts`, `policy.ts`, `spoken-form.ts`, `school-brief.ts`, `live-talk.ts`, `debate.ts`, `setup-scanner.tsx`, `invest-office.ts`, `claude-server.ts`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
   _53 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `profit-path.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.1341991341991342 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `react` to `profit-path.tsx`, `ghost-book.ts`, `predict-parts.tsx`, `universe.ts`, `race-panel.tsx`, `index.tsx`, `setup-chart-panel.tsx`, `canon.ts`, `evaluateOptionsDesk`, `replay-drill.ts`, `pm-analyzer.tsx`, `options-swing-panel.tsx`, `send-server.ts`, `watcher-tab.tsx`, `journal/server.ts`, `cn`, `shadow-store.ts`, `smc-playbook.tsx`, `package.json`, `discuss-tab.tsx`, `store.ts`, `use-entry-state.ts`, `price-path-board.tsx`, `mead-screens.ts`, `calibration-panel.tsx`, `path-alarm.ts`, `setup-memory.ts`, `trading-floor-tab.tsx`, `apex-sim-panel.tsx`, `paper-manager.ts`, `learn-tab.tsx`, `tradezella-chat.tsx`, `kill-watch.ts`, `live-lesson.ts`, `analytics-panel.tsx`, `invest-panel.tsx`, `auth/client.ts`, `invest-firm.ts`, `veteran-brain.ts`, `policy.ts`, `floor-brains.tsx`, `overnight-swing.ts`, `snapshot-review.tsx`, `getSql`, `tf-ladder-panel.tsx`, `trading/evidence.ts`, `aplus/config.ts`, `propfirm-panel.tsx`, `entry-trigger.ts`, `exec-card.tsx`, `setup-scanner.tsx`, `news-tab.tsx`, `room-engine.ts`, `invest-office.ts`, `shadow-book-panel.tsx`?**
-  _High betweenness centrality (0.061) - this node is a cross-community bridge._
-- **Should `market/types.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.04957264957264957 - nodes in this community are weakly interconnected._
+- **Should `profit-path.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.050721954831543875 - nodes in this community are weakly interconnected._
+- **Why does `react` connect `react` to `profit-path.ts`, `build-desk.ts`, `ghost-book.ts`, `predict-parts.tsx`, `universe.ts`, `race-panel.tsx`, `news-tab.tsx`, `index.tsx`, `setup-chart.tsx`, `risk-panel.tsx`, `canon.ts`, `option-ticket.tsx`, `replay-drill.ts`, `pm-analyzer.tsx`, `options-swing-panel.tsx`, `getSql`, `watcher-tab.tsx`, `cn`, `shadow-store.ts`, `package.json`, `discuss-tab.tsx`, `smc-canon.ts`, `price-path-board.tsx`, `chart-timeframes.ts`, `calibration-panel.tsx`, `session-backtest.ts`, `path-alarm.ts`, `setup-memory.ts`, `trading-floor-tab.tsx`, `created-with-grok-banner.tsx`, `apex-sim-panel.tsx`, `paper-manager.ts`, `lucide-react`, `learn-tab.tsx`, `kill-watch.ts`, `live-lesson.ts`, `analytics-panel.tsx`, `invest-panel.tsx`, `auth/client.ts`, `long-board.ts`, `veteran-brain.ts`, `policy.ts`, `floor-brains.tsx`, `overnight-swing.ts`, `log-setup-dialog.tsx`, `snapshot-review.tsx`, `session-hud.tsx`, `trading/evidence.ts`, `tf-ladder.ts`, `propfirm-panel.tsx`, `entry-trigger.ts`, `exec-card.tsx`, `setup-scanner.tsx`, `room-engine.ts`, `take-census.ts`, `invest-office.ts`, `shadow-book-panel.tsx`?**
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+- **Should `build-desk.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.024161210090858334 - nodes in this community are weakly interconnected._
 - **Why does `Code index` connect `Code index` to `CLAUDE.md`?**
   _High betweenness centrality (0.056) - this node is a cross-community bridge._
