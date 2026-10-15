@@ -1,6 +1,7 @@
 import { stopText, ticketMatchesCard, dteFitsPlan, tapeStale } from "@/lib/smc/deep-audit";
 import { floorDteRead } from "@/lib/smc/smc-unity";
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { EVF, evCard, on as evOn } from "@/lib/desk/ev-fire";
 import { RULES_HASH } from "@/lib/desk/rules-hash";
 import { buildDeskSeq, type DeskSeqWire } from "@/lib/smc/seq/wire";
 import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
@@ -141,6 +142,10 @@ export interface DeskWire {
     /** qv2-1015 SHADOW score (shared/q-v2.json): never gates or fires. Carried only: the watcher and the brain/Floor seat
      *  receive it but do not log or display it yet. Its volPct and option inputs are null on the desk, so those terms are dead (0). */
     qV2: { q: number; band: string; deltas: { source: string; delta: number; note?: string }[]; vetoed: boolean } | null;
+    /** evFire (shared rules evFire, OFF by default): calibrated P(T1), EV_R, size, would-fire; null when evFire.mode is off. */
+    ev?: import("@/lib/desk/ev-fire").EvRead | null;
+    /** evFire.qRawOnce: q before R3 chase and before any seal. */
+    qRaw0?: number | null;
     /** Fix A: the side's kill evidence is invalidated on closed bars (kill.clear); the watcher ltf_kill reads it with kill.clear.mode. */
     ltfKillCleared: boolean;
     /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
@@ -219,6 +224,8 @@ export interface DeskWire {
   day?: { rToday: number | null; governor: "normal" | "A+ only"; closedToday: number; governorMode?: string };
   floor: {
     verdict: string;
+    /** evFire shadow: the Floor's EV line (EV_R, p, cost_R, reason). Never a vote; the Floor's STAND still blocks live. */
+    ev?: string | null;
     /** kzDisp item 49: Floor "Kill Zone" seat line (shadow note, never a vote). */
     kzSeat?: string;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
@@ -448,6 +455,23 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     wire.smcUnity = buildSmcUnity(desk, top ?? null, arrRows, book ? { symbol: book.symbol, side: book.side, word: book.word } : null, wire.floor.ticket?.dte ?? null);
   } catch {
     wire.smcUnity = null; // shadow layer must never break the card
+  }
+  try {
+    // evFire (OFF by default): EV read on the top card; rungs from the smcUnity continuation row (same text the watcher and the replay parse).
+    if (evOn(EVF.mode) && wire.strategy && top) {
+      const st = wire.strategy as unknown as { side: string; q: number; band: string | null; entry: number | null; stopPx?: number | null; t1?: number | null; bias1h?: string | null; bias4h?: string | null };
+      const want = st.side === "long" ? "bull" : "bear";
+      const htfOk = [st.bias1h, st.bias4h].every((b) => b == null || b === want);
+      const cont = (wire.smcUnity?.rows ?? []).find((r) => r.rule === "continuation")?.would ?? "";
+      const rungs = Number(/holds on (\d+) rungs/.exec(cont)?.[1] ?? 0);
+      const pl = top.plan as { stop?: number; t1?: number | null } | null | undefined;
+      const ev = evCard({ q: st.q, band: st.band, side: st.side, entry: st.entry, stop: pl?.stop ?? null, t1: pl?.t1 ?? null, rungs, htfOk });
+      (wire.strategy as { ev?: unknown }).ev = { ...ev, rungs, htfOk, mode: EVF.mode };
+      (wire.strategy as { qRaw0?: number | null }).qRaw0 = (top as { qRaw0?: number }).qRaw0 ?? null;
+      wire.floor.ev = ev.evR == null ? `EV: refuse — ${ev.why}` : `EV ${ev.evR.toFixed(2)}R, P(T1) ${(ev.p! * 100).toFixed(0)}% (measured), cost ${ev.costR}R, ${ev.would ? `WOULD fire $${ev.sizeUsd}` : "no fire"} [${EVF.mode}]`;
+    }
+  } catch {
+    // shadow layer must never break the card
   }
   try {
     wire.deskSeq = buildDeskSeq({

@@ -24,6 +24,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
 import { classifyGaps, fillMinuteSeries, findMinuteGaps, type MinuteGap } from "@/lib/market/minute-gaps";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
+import { EVF, ltfSoftCap, stopCrossed, on as evOn } from "@/lib/desk/ev-fire";
 import { entryStateOf } from "@/lib/smc/entry-state";
 import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
@@ -1280,10 +1281,21 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
             c.reasons.push(`shadow:killCleared (no effect, mode ${KILL_CLEAR.mode ?? "shadow"}): ${rev.killCleared.why}`);
           }
-          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "cap:LTF reversal");
-          c.actionable = false;
-          c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
-          c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
+          // evFire.ltfSoft (off|shadow|live; audit grade-audit-1015 fix 1): C cap → B cap, lifted when displacement
+          // on the card's own side >= liftDisp. shadow records the would-be cap only.
+          const softMode = EVF.ltfSoft.mode;
+          const softCap = evOn(softMode) ? ltfSoftCap(displacementStrength(c.symbol === left.symbol ? minuteL : minuteR, c.side as "long" | "short")?.score ?? null) : "C";
+          if (evOn(softMode)) (c as { ltfSoft?: unknown }).ltfSoft = { mode: softMode, cap: softCap, lifted: softCap == null };
+          if (softMode === "live") {
+            if (softCap) qWrite(c as never, "pathBand" as never, capBand(c.pathBand, softCap as never) as never, `cap:LTF reversal (evFire.ltfSoft ${softCap})`);
+            c.reasons.push(`LTF reversal against ${c.side} — evFire.ltfSoft ${softCap ? `capped at ${softCap}` : "lifted (displacement on this side)"}: ${rev.why.join("; ")}`);
+          } else {
+            qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "cap:LTF reversal");
+            c.actionable = false;
+            c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
+            c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
+            if (softMode === "shadow") c.reasons.push(`shadow:ltfSoft (no effect): WOULD ${softCap ? `cap at ${softCap}` : "lift the cap (displacement on this side)"}`);
+          }
         } else if (!rev.rearmed) {
           // Fix 29 (retuned 2026-10-13): flat TUNABLES.killBoost (base 0.02,
           // config.ts) — kill precision ≈ 0.50 on 5 sessions; the learning
@@ -1776,6 +1788,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const m = ((isL ? minuteL : minuteR) ?? []).slice(0, -1);
         const price = (isL ? lq : rq)?.price ?? null;
         const out = (c as { loss?: Record<string, unknown> }).loss = {} as Record<string, unknown>;
+        // evFire.dropCrossedStop (fire-logic-1015 fix 3): a plan whose stop has already traded is dead.
+        if (evOn(EVF.dropCrossedStop.mode) && stopCrossed(side, price, pl.stop)) {
+          const why = `stop ${pl.stop} already crossed (px ${price}) — plan dropped`;
+          (c as { stopCrossed?: boolean }).stopCrossed = true;
+          if (EVF.dropCrossedStop.mode === "live") { c.actionable = false; (c as { watchOnly?: boolean }).watchOnly = true; (c as { watchWhy?: string | null }).watchWhy = why; c.reasons.push(`WATCH row, not a card: ${why}`); continue; }
+          c.reasons.push(`shadow:dropCrossedStop (no effect): WOULD drop — ${why}`);
+        }
         type Guards = { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] };
         const guards: Guards = { live: [], shadow: [] };
         (c as { guards?: Guards }).guards = guards;

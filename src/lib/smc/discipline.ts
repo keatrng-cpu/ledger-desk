@@ -24,6 +24,8 @@ export const MIN_STOP_ATR = RULES.minStopAtr; // shared/desk-rules.json
 export const CHASE_STEP_ATR = 0.5;
 /** Fix B flag (shared rules timing.mode): live = q/band are setup quality only. */
 export const TIMING_MODE = String((RULES as { timing?: { mode?: string } }).timing?.mode ?? "shadow");
+/** evFire.qRawOnce live: sealBand reports qRaw0 (pre-chase, pre-seal) instead of the pre-clamp q. */
+export const Q_RAW_ONCE_LIVE = (RULES as { evFire?: { qRawOnce?: { mode?: string } } }).evFire?.qRawOnce?.mode === "live";
 export const FAST_INVALID_BODY_ATR5 = 1.25;
 export const CHOP_OVERLAP = 0.6;
 export const CHOP_RANGE_ATR = 3;
@@ -150,6 +152,8 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
       }
     }
   }
+  // evFire.qRawOnce (grade-audit-1015 fix 3): q before R3 chase and before any seal, recorded once.
+  if ((c as { qRaw0?: number }).qRaw0 == null) (c as { qRaw0?: number }).qRaw0 = q;
   // R3
   if (entry != null && Number.isFinite(entry) && ctx.price != null && atr != null && atr > 0) {
     const past = c.side === "long" ? ctx.price - entry : entry - ctx.price;
@@ -265,7 +269,8 @@ export function sealBand<T extends { confluence: number; pathBand?: string | nul
     c.scannerSkip = true;
     c.actionable = false;
     if (c.confluence > BAND_CEIL.C) {
-      c.qRaw = c.confluence;
+      const q0 = (c as { qRaw0?: number }).qRaw0;
+      c.qRaw = Q_RAW_ONCE_LIVE && q0 != null ? q0 : c.confluence;
       c.confluence = BAND_CEIL.C;
     }
     c.pathBand = "C";
@@ -275,7 +280,8 @@ export function sealBand<T extends { confluence: number; pathBand?: string | nul
   const qb = bandFromQ(c.confluence);
   if (!qb) return c;
   if (cap && idx(cap) > idx(qb)) {
-    c.qRaw = c.confluence;
+    const q0 = (c as { qRaw0?: number }).qRaw0;
+    c.qRaw = Q_RAW_ONCE_LIVE && q0 != null ? q0 : c.confluence;
     c.confluence = Math.min(c.confluence, BAND_CEIL[cap]);
   }
   c.pathBand = bandFromQ(c.confluence)!;
