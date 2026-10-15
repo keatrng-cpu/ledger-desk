@@ -13,6 +13,7 @@ import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
+import { fillMinuteSeries, findMinuteGaps, type MinuteGap } from "@/lib/market/minute-gaps";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
 import { entryStateOf } from "@/lib/smc/entry-state";
 import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
@@ -140,7 +141,9 @@ export interface DeskPayload {
   news: NewsRead;
   /** Where price is likely drawn, per symbol — empirical, from past sessions. */
   draws: { left: DrawRead; right: DrawRead };
-  feed: "databento" | "yahoo" | "synthetic" | "mixed";
+  feed: "databento" | "yahoo" | "synthetic" | "live_gateway" | "mixed";
+  /** 1m series integrity (#19). gapped = a Globex hole survived the fill; LTF arrays/levels are withheld and nothing may fire. */
+  minuteFeed: MinuteFeed;
   /** 15m / 1H / 4H SMT stack. scan.smt is the highest-TF active crack. */
   smtStack?: SmtStack;
   /** Multi-TF SMC tape — arrays + alerts the scanner and brain both read. */
@@ -239,6 +242,15 @@ const GATEWAY_BARS_BUDGET_MS = 1_500;
 /** 1m bars pulled from the gateway per build: 4h covers the whole window. */
 const GATEWAY_BARS_LIMIT = 240;
 
+export interface MinuteFeed {
+  gapped: boolean;
+  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number }[];
+}
+export function minuteFeedOf(rows: { symbol: string; gaps: MinuteGap[] }[]): MinuteFeed {
+  const gaps = rows.flatMap((r) => r.gaps.map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing })));
+  return { gapped: gaps.length > 0, gaps };
+}
+
 /** Cached values are handed to code that patches them in place — never share. */
 const cloneSeries = (s: SymbolSeries): SymbolSeries => structuredClone(s);
 const cloneBars = (b: OhlcBar[]): OhlcBar[] => b.map((x) => ({ ...x }));
@@ -261,28 +273,39 @@ async function loadDaily(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcB
   return { bars: r.value ?? [], leg: r.leg };
 }
 
-async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; leg: BudgetLeg }> {
-  const r = await budgetedLeg(
+interface MinuteRead { bars: OhlcBar[]; gaps: MinuteGap[] }
+
+async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; gaps: MinuteGap[]; leg: BudgetLeg }> {
+  const r = await budgetedLeg<MinuteRead>(
     `minute:${symbol}`,
     `minute:${symbol}`,
     async () => {
-      // Gateway 1m is the tape when it is streaming. Yahoo is the hole-fill
+      // Gateway 1m is the tape when it is streaming. Yahoo fills its holes
       // only — a delayed 1m print must not sit under a live book.
       const gw = await withBudget(
         readLiveBars(symbol, GATEWAY_BARS_LIMIT).catch(() => [] as OhlcBar[]),
         GATEWAY_BARS_BUDGET_MS,
         [] as OhlcBar[],
       );
-      if (gw.length >= 30) return gw.slice(-MINUTE_KEEP);
+      // #19 (2026-10-15): ≥30 gateway rows used to skip the fill even with a
+      // 9 h reconnect hole in them. Contiguous gateway → as before; holed
+      // gateway → fill from Yahoo (gateway wins), and report what is left.
+      if (gw.length >= 30) {
+        const tail = gw.slice(-MINUTE_KEEP);
+        if (!findMinuteGaps(tail).length) return { bars: tail, gaps: [] };
+        const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
+        const f = fillMinuteSeries(gw, y?.bars ?? [], MINUTE_KEEP);
+        return { bars: f.bars, gaps: f.gaps };
+      }
       const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
       const yahoo = y?.bars ?? [];
       const out = (gw.length ? mergeNewerBars(yahoo, gw) : yahoo).slice(-MINUTE_KEEP);
-      return out.length ? out : null;
+      return out.length ? { bars: out, gaps: findMinuteGaps(out) } : null;
     },
-    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: MINUTE_CACHE_MS, maxStaleMs: MINUTE_MAX_STALE_MS, isGood: (b) => b.length > 0 },
-    cloneBars,
+    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: MINUTE_CACHE_MS, maxStaleMs: MINUTE_MAX_STALE_MS, isGood: (m) => m.bars.length > 0 },
+    (m) => ({ bars: cloneBars(m.bars), gaps: m.gaps.map((g) => ({ ...g })) }),
   );
-  return { bars: r.value ?? [], leg: r.leg };
+  return { bars: r.value?.bars ?? [], gaps: r.value?.gaps ?? [], leg: r.leg };
 }
 
 function minutesOf(interval: YahooInterval): number {
@@ -581,7 +604,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     ]);
     const left = lb.series;
     const right = rb.series;
-    const [dailyL, dailyR, minuteL, minuteR] = [dL.bars, dR.bars, mL.bars, mR.bars];
+    // #19 fail-closed: a 1m series that still has a Globex hole after the
+    // Yahoo fill is not built on. Its LTF arrays / session levels would be
+    // phantoms (2026-10-15: fake FVGs, wrong PMH, no London). The minute
+    // series is dropped (same as a missed leg) and wire.feed.gapped blocks.
+    const minuteFeed = minuteFeedOf([
+      { symbol: data.left, gaps: mL.gaps },
+      { symbol: data.right, gaps: mR.gaps },
+    ]);
+    const [dailyL, dailyR] = [dL.bars, dR.bars];
+    const minuteL = mL.gaps.length ? [] : mL.bars;
+    const minuteR = mR.gaps.length ? [] : mR.bars;
     const lqR = quote(data.left, left, lb.status, lqIn, lb.fetchedAtMs);
     const rqR = quote(data.right, right, rb.status, rqIn, rb.fetchedAtMs);
     const lq = lqR.quote;
@@ -952,10 +985,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       scan.blocked.push(`Data quality: ${budget.line || "stale flag missing"} — execution blocked until a fresh build`);
     }
 
+    if (minuteFeed.gapped) {
+      for (const c of scan.candidates) c.actionable = false;
+      const g = minuteFeed.gaps.map((x) => `${x.symbol} ${x.fromIso.slice(11, 16)}–${x.toIso.slice(11, 16)}Z (${x.missing}m)`).join(", ");
+      scan.blocked.push(`Data quality: 1m feed gapped (${g}) — LTF arrays/levels withheld, execution blocked`);
+    }
+
     const feed: DeskPayload["feed"] =
       left.source === right.source &&
       (left.source === "yahoo" ||
         left.source === "databento" ||
+        left.source === "live_gateway" ||
         left.source === "synthetic")
         ? left.source
         : "mixed";
@@ -1069,6 +1109,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       news,
       draws: { left: drawL, right: drawR },
       feed,
+      minuteFeed,
       smtStack,
       smc,
       checklist,
