@@ -950,5 +950,11 @@
       "mode": "shadow",
       "_doc": "Keaton: session gate refusals (out of 08:30-11:00 / 13:30-16:00 ET, shock exception 2.0xATR & 1.5xvol unchanged). Continuation run all day on Yahoo 19 sessions x2: lunch refusals 15 trades 40% win -0.083R -576 USD/wk; HTF-aligned & >=4 rungs 7 trades -0.246R; others 8 trades +0.059R -146 USD/wk. No bucket positive after costs: no exception proposed; live thresholds unchanged."
     }
+  },
+  "primaryHysteresis": {
+    "_doc": "Review 2026-10-15 #3: ES/MNQ primary-card hysteresis. The challenger takes primary only after out-scoring the incumbent by margin for polls consecutive REAL polls (the same upstream fetch rebuilt is the same poll and does not tick); on a lead re-grade keepOtherBook restores the non-lead book. shadow = desk primary, candidate order and both books exactly as main; the hysteresis pick and what keepOtherBook would change are only logged on wire.primaryHysteresis. live = acts.",
+    "mode": "shadow",
+    "margin": 0.03,
+    "polls": 3
   }
 }

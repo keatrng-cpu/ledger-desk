@@ -70,7 +70,7 @@ export interface SessionBriefInput {
   scan: ScanResult;
   news: NewsRead;
   draws: { left: DrawRead; right: DrawRead };
-  feed: "databento" | "yahoo" | "synthetic" | "mixed";
+  feed: "databento" | "yahoo" | "synthetic" | "live_gateway" | "mixed";
   narrative: { left: MarketNarrative; right: MarketNarrative; summary: string };
   smtStack?: SmtStack;
 }

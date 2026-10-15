@@ -9,6 +9,7 @@
  * weights from src/lib/aplus/confluence.ts).
  */
 
+import { barStepMs, spansGap } from "@/lib/market/minute-gaps";
 import { GATE } from "./gate-tuning";
 import type { OhlcBar } from "@/lib/market/types";
 
@@ -266,11 +267,14 @@ export function detectFvgs(bars: OhlcBar[]): FvgResult[] {
   if (bars.length < MIN_BARS) return [];
   const atr = rollingAtr(bars);
   const out: FvgResult[] = [];
+  const step = barStepMs(bars);
 
   for (let i = 2; i < bars.length; i++) {
     const a = bars[i - 2]!;
     const mid = bars[i - 1]!;
     const c = bars[i]!;
+    // #19: a 3-candle pattern across a hole is not a gap in price, it is a gap in the tape.
+    if (spansGap(a.t, mid.t, step) || spansGap(mid.t, c.t, step)) continue;
     const atrHere = atr[i - 1]!;
     if (!Number.isFinite(atrHere) || atrHere <= 0) continue;
     const ratio = body(mid) / atrHere;
@@ -468,10 +472,11 @@ export interface DisplacementEvent {
  *  and detectOrderBlocks/detectMechanicalModel already call it, so routing
  *  displacement through it would multiply the cost the file's own
  *  performance note warns about. */
-function gapLeftBy(bars: OhlcBar[], i: number, direction: "bull" | "bear"): DisplacementGap | null {
+function gapLeftBy(bars: OhlcBar[], i: number, direction: "bull" | "bear", step: number | null = barStepMs(bars)): DisplacementGap | null {
   if (i < 1 || i + 1 >= bars.length) return null;
   const a = bars[i - 1]!;
   const c = bars[i + 1]!;
+  if (spansGap(a.t, bars[i]!.t, step) || spansGap(bars[i]!.t, c.t, step)) return null; // #19: no gap across a tape hole
   if (direction === "bull") {
     if (!(a.h < c.l)) return null;
     return { top: c.l, bottom: a.h, createdIndex: i + 1, createdT: c.t };
@@ -513,6 +518,7 @@ export function detectDisplacements(
   }
 
   const out: DisplacementEvent[] = [];
+  const stepD = barStepMs(bars);
   for (let i = ATR_PERIOD; i < bars.length; i++) {
     const b = bars[i]!;
     const a = atr[i]!;
@@ -522,7 +528,7 @@ export function detectDisplacements(
     const bs = body(b);
     const bodyQualified = bs >= GATE.displacementK * a;
 
-    const gap = gapLeftBy(bars, i, direction);
+    const gap = gapLeftBy(bars, i, direction, stepD);
     let gapHeld = false;
     let gapClosedIndex: number | null = null;
     if (gap) {

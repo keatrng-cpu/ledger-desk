@@ -2,6 +2,8 @@ import { planTargetText } from "@/lib/trading/card-plan";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
+import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
+import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
 import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
@@ -15,6 +17,7 @@ import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
+import { classifyGaps, fillMinuteSeries, findMinuteGaps, type MinuteGap } from "@/lib/market/minute-gaps";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
 import { entryStateOf } from "@/lib/smc/entry-state";
 import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
@@ -142,7 +145,9 @@ export interface DeskPayload {
   news: NewsRead;
   /** Where price is likely drawn, per symbol — empirical, from past sessions. */
   draws: { left: DrawRead; right: DrawRead };
-  feed: "databento" | "yahoo" | "synthetic" | "mixed";
+  feed: "databento" | "yahoo" | "synthetic" | "live_gateway" | "mixed";
+  /** 1m series integrity (#19). gapped = a Globex hole survived the fill; LTF arrays/levels are withheld and nothing may fire. */
+  minuteFeed: MinuteFeed;
   /** 15m / 1H / 4H SMT stack. scan.smt is the highest-TF active crack. */
   smtStack?: SmtStack;
   /** Multi-TF SMC tape — arrays + alerts the scanner and brain both read. */
@@ -247,6 +252,21 @@ const GATEWAY_BARS_BUDGET_MS = 1_500;
 /** 1m bars pulled from the gateway per build: 4h covers the whole window. */
 const GATEWAY_BARS_LIMIT = 240;
 
+export interface MinuteFeed {
+  /**
+   * True only when a BLOCKING hole exists (classifyGap in minute-gaps.ts): live-end stall, >= 15 missing minutes,
+   * >= 6 missing in London 02:00–05:00 ET, ending inside the last ACTIVE_LOOKBACK_MIN (240) minutes, or any overlap
+   * with NY premarket 07:00–09:30 / RTH 09:30–16:00 ET. Minor holes are listed with blocking:false; the detectors
+   * skip patterns/buckets across them and premarket-map flags the windows they touch.
+   */
+  gapped: boolean;
+  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean; blocking: boolean; why: string }[];
+}
+export function minuteFeedOf(rows: { symbol: string; gaps: MinuteGap[] }[], nowMs = Date.now()): MinuteFeed {
+  const gaps = rows.flatMap((r) => classifyGaps(r.gaps, nowMs).map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing, ...(g.trailing ? { trailing: true } : {}), blocking: g.blocking === true, why: g.why ?? "" })));
+  return { gapped: gaps.some((g) => g.blocking), gaps };
+}
+
 /** Cached values are handed to code that patches them in place — never share. */
 const cloneSeries = (s: SymbolSeries): SymbolSeries => structuredClone(s);
 const cloneBars = (b: OhlcBar[]): OhlcBar[] => b.map((x) => ({ ...x }));
@@ -288,28 +308,42 @@ async function loadHourly(symbol: IndexSymbol, t0: number): Promise<{ bars: Ohlc
   return { bars: r.value ?? [], leg: r.leg };
 }
 
-async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; leg: BudgetLeg }> {
-  const r = await budgetedLeg(
+interface MinuteRead { bars: OhlcBar[]; gaps: MinuteGap[] }
+
+async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; gaps: MinuteGap[]; leg: BudgetLeg }> {
+  const r = await budgetedLeg<MinuteRead>(
     `minute:${symbol}`,
     `minute:${symbol}`,
     async () => {
-      // Gateway 1m is the tape when it is streaming. Yahoo is the hole-fill
+      // Gateway 1m is the tape when it is streaming. Yahoo fills its holes
       // only — a delayed 1m print must not sit under a live book.
       const gw = await withBudget(
         readLiveBars(symbol, GATEWAY_BARS_LIMIT).catch(() => [] as OhlcBar[]),
         GATEWAY_BARS_BUDGET_MS,
         [] as OhlcBar[],
       );
-      if (gw.length >= 30) return gw.slice(-MINUTE_KEEP);
+      // #19 (2026-10-15): ≥30 gateway rows used to skip the fill even with a
+      // 9 h reconnect hole in them. Contiguous gateway → as before; holed
+      // gateway → fill from Yahoo (gateway wins), and report what is left.
+      if (gw.length >= 30) {
+        const tail = gw.slice(-MINUTE_KEEP);
+        // nowMs: a gateway that stalled (live end hole) is gapped too — Yahoo
+        // carrying on does not make the live tape live.
+        const nowMs = Date.now();
+        if (!findMinuteGaps(tail, undefined, nowMs).length) return { bars: tail, gaps: [] };
+        const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
+        const f = fillMinuteSeries(gw, y?.bars ?? [], MINUTE_KEEP, nowMs);
+        return { bars: f.bars, gaps: f.gaps };
+      }
       const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
       const yahoo = y?.bars ?? [];
       const out = (gw.length ? mergeNewerBars(yahoo, gw) : yahoo).slice(-MINUTE_KEEP);
-      return out.length ? out : null;
+      return out.length ? { bars: out, gaps: findMinuteGaps(out) } : null;
     },
-    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: MINUTE_CACHE_MS, maxStaleMs: MINUTE_MAX_STALE_MS, isGood: (b) => b.length > 0 },
-    cloneBars,
+    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: MINUTE_CACHE_MS, maxStaleMs: MINUTE_MAX_STALE_MS, isGood: (m) => m.bars.length > 0 },
+    (m) => ({ bars: cloneBars(m.bars), gaps: m.gaps.map((g) => ({ ...g })) }),
   );
-  return { bars: r.value ?? [], leg: r.leg };
+  return { bars: r.value?.bars ?? [], gaps: r.value?.gaps ?? [], leg: r.leg };
 }
 
 function minutesOf(interval: YahooInterval): number {
@@ -610,7 +644,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     ]);
     const left = lb.series;
     const right = rb.series;
-    const [dailyL, dailyR, minuteL, minuteR] = [dL.bars, dR.bars, mL.bars, mR.bars];
+    // #19 fail-closed: a 1m series that still has a Globex hole after the
+    // Yahoo fill is not built on. Its LTF arrays / session levels would be
+    // phantoms (2026-10-15: fake FVGs, wrong PMH, no London). The minute
+    // series is dropped (same as a missed leg) and wire.feed.gapped blocks.
+    const minuteFeed = minuteFeedOf([
+      { symbol: data.left, gaps: mL.gaps },
+      { symbol: data.right, gaps: mR.gaps },
+    ]);
+    const [dailyL, dailyR] = [dL.bars, dR.bars];
+    const blocks = (sym: string) => minuteFeed.gaps.some((g) => g.symbol === sym && g.blocking);
+    const minuteL = blocks(data.left) ? [] : mL.bars;
+    const minuteR = blocks(data.right) ? [] : mR.bars;
     const lqR = quote(data.left, left, lb.status, lqIn, lb.fetchedAtMs);
     const rqR = quote(data.right, right, rb.status, rqIn, rb.fetchedAtMs);
     const lq = lqR.quote;
@@ -983,10 +1028,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       scan.blocked.push(`Data quality: ${budget.line || "stale flag missing"} — execution blocked until a fresh build`);
     }
 
+    if (minuteFeed.gapped) {
+      for (const c of scan.candidates) c.actionable = false;
+      const g = minuteFeed.gaps.filter((x) => x.blocking).map((x) => `${x.symbol} ${x.fromIso.slice(11, 16)}–${x.toIso.slice(11, 16)}Z (${x.missing}m)`).join(", ");
+      scan.blocked.push(`Data quality: 1m feed gapped (${g}) — LTF arrays/levels withheld, execution blocked`);
+    }
+
     const feed: DeskPayload["feed"] =
       left.source === right.source &&
       (left.source === "yahoo" ||
         left.source === "databento" ||
+        left.source === "live_gateway" ||
         left.source === "synthetic")
         ? left.source
         : "mixed";
@@ -1100,6 +1152,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       news,
       draws: { left: drawL, right: drawR },
       feed,
+      minuteFeed,
       smtStack,
       smc,
       checklist,
@@ -1187,6 +1240,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
         };
       };
+      for (const c of payload.scan.candidates) trackCard(c as never);
+      capStage("discipline+mtf");
       for (const c of payload.scan.candidates) {
         applyDiscipline(c as never, ctxFor(c.symbol));
         // MTF context (one read for scanner, brain, Floor) + SMT fix 2.
@@ -1408,7 +1463,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.exitPlan = exitPlanOf(minute, side, (isL ? lq : rq)?.price ?? null, kill);
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
-      for (const c of payload.scan.candidates) sealBand(c as never);
+      for (const c of payload.scan.candidates) { preSeal(c as never); capStage("seal"); sealBand(c as never); }
+      capStage("post-seal plan/guards");
       // Fix B: timing is entryState, not quality. Every card carries it (1m–4h distances); the quality-only
       // q/band (chase penalty undone) is logged in shadow (timing.mode shadow) and IS q/band in live.
       for (const c of payload.scan.candidates) {
@@ -1642,11 +1698,33 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const was = payload.scan.candidates[0];
         const w = (c: unknown) => Number(Boolean((c as { watchOnly?: boolean }).watchOnly));
         payload.scan.candidates.sort((a, b) => w(a) - w(b));
+        // Review 2026-10-15 #3: hysteresis (shared rules primaryHysteresis). live: the primary symbol flips only after the
+        // challenger out-scores it by margin for `polls` consecutive real polls (stable sort keeps each symbol's order).
+        // shadow (default): order and books exactly as main; the pick is only logged on wire.primaryHysteresis.
+        const phLive = primaryHysteresisLive();
+        let phLog: Record<string, unknown> | null = null;
+        if (PRIMARY_HYSTERESIS.mode !== "off") {
+          const scores: Record<string, number | null> = {};
+          for (const c of payload.scan.candidates) if (!w(c) && scores[c.symbol] == null) scores[c.symbol] = c.qualityScore ?? c.confluence;
+          const pollKey = `${lb.fetchedAtMs ?? ""}|${rb.fetchedAtMs ?? ""}|${mL.bars.at(-1)?.t ?? ""}|${mR.bars.at(-1)?.t ?? ""}`;
+          const hp = primaryForPoll(new Date(nowCtxPlan).toLocaleDateString("en-CA", { timeZone: "America/New_York" }), pollKey, scores);
+          const mainLead = payload.scan.candidates.find((c) => !w(c))?.symbol ?? null;
+          phLog = { mode: PRIMARY_HYSTERESIS.mode, ...hp, mainPrimary: mainLead, wouldDiffer: hp.symbol != null && hp.symbol !== mainLead };
+          (payload as { primaryHysteresis?: unknown }).primaryHysteresis = phLog;
+          if (phLive && hp.symbol) payload.scan.candidates.sort((a, b) => w(a) - w(b) || Number(b.symbol === hp.symbol) - Number(a.symbol === hp.symbol));
+        }
         const lead = payload.scan.candidates.find((c) => !w(c));
         if (lead && lead !== was) {
           const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
           const keep = new Map(payload.scan.candidates.map((c) => [c, c.plan]));
+          const before = smcMaster;
           smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+          // Review 2026-10-15 #3 (08:33:36 CT MNQ case): a primary flip must not rewrite the OTHER book. Same build,
+          // same bars, so its structure is unchanged: keep its own book (entry/stop/T1, status) exactly as graded.
+          // live only; shadow logs whether it would have restored a book and leaves smcMaster as main grades it.
+          const kept = keepOtherBook(before, smcMaster, lead.symbol);
+          if (phLog) phLog.keepOtherBook = { wouldRestore: kept.left !== smcMaster.left || kept.right !== smcMaster.right, applied: phLive };
+          if (phLive) smcMaster = kept;
           smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
           attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
           // the new book and any plan attached just now go through the same sanity check
@@ -1656,6 +1734,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Per-rule mode:
       // "live" acts; "shadow" only records what it WOULD do on c.guards.shadow (wire.strategy.guards) and changes
       // nothing — q, band, size, stop, watch row, brain word and fire stay as before.
+      capStage("loss guards");
       const lossBlocked = new Map<string, string>();
       const isLive = (m: string): boolean => String(m) === "live";
       for (const c of payload.scan.candidates) {
@@ -1825,7 +1904,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         : null;
     }
     // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
+    capStage("ltfArm cap");
     for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
+    for (const c of payload.scan.candidates) resolveWhy(c as never);
+    capStage("scan");
     const coach = {
       xai: Boolean(process.env.XAI_API_KEY?.trim()),
       anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),

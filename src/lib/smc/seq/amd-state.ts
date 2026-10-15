@@ -17,6 +17,13 @@
  * A state does not decay while price runs toward the target: "late" is a transition (missed), never a
  * falling score. Shadow: wire.deskSeq.amd + shadow:seq:amd rows; never moves q/band/fire.
  */
+import { blockingGaps, findMinuteGaps } from "@/lib/market/minute-gaps";
+/**
+ * #22: holes of 6+ Globex minutes in the closed 1m series are candidates; only a BLOCKING one (classifyGap:
+ * live-end, >= 15m, London >= 6m, inside the active lookback, or in premarket/RTH) refuses the AMD read.
+ * Smaller/minor holes are left to the gap-aware detectors (no 3-candle pattern or bucket across a hole).
+ */
+const AMD_GAP_MIN_MISSING = 6;
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { closedBuckets, mappedTargets, pickT1, type PremarketMap } from "./premarket-map";
@@ -49,6 +56,9 @@ export interface AmdRead {
   setups: AmdSetup[];
   /** The live setup (furthest along, newest). */
   live: AmdSetup | null;
+  /** #19/#22: the 1m series has a Globex hole (desk minuteFeed, or a >5 min gap pre-open) — no map/setups built. */
+  gapped?: boolean;
+  gapReason?: string;
 }
 
 const P = {
@@ -80,12 +90,19 @@ function raidables(map: PremarketMap, side: Side, open: number) {
  * Replay the machine over CLOSED 1m bars from the window start to `nowMs` (deterministic; reads no bar that
  * closes after nowMs). `bars` must include pre-open history (≥ 30 bars) for ATR and swings.
  */
-export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[], nowMs: number): AmdRead {
+export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[], nowMs: number, opts: { gapped?: boolean } = {}): AmdRead {
   const mode = seqMode("amd");
   const closed = bars.filter((b) => b.t + 60_000 <= nowMs);
   const nowEt = etOf(nowMs).hm;
   const inWindow = nowEt >= P.startEt() && nowEt <= P.endEt() + 60;
   const out: AmdRead = { mode, symbol, inWindow, phase: nowEt < P.startEt() ? "accumulation" : "unknown", setups: [], live: null };
+  if (opts.gapped) return { ...out, gapped: true, gapReason: "1m feed gapped (desk wire.feed) — AMD withheld" };
+  // #22: a map built over a multi-hour hole passes the length checks below. Any Globex gap > 5 min refuses.
+  const holes = blockingGaps(findMinuteGaps(closed, AMD_GAP_MIN_MISSING), nowMs);
+  if (holes.length) {
+    const h = holes[holes.length - 1]!;
+    return { ...out, gapped: true, gapReason: `1m hole ${new Date(h.fromMs).toISOString().slice(11, 16)}–${new Date(h.toMs).toISOString().slice(11, 16)}Z (${h.missing}m) — AMD withheld` };
+  }
   if (!map || !map.levels.length || closed.length < 40) return out;
   const day = etOf(closed[closed.length - 1]!.t).day;
   const startIdx = closed.findIndex((b) => etOf(b.t).day === day && etOf(b.t).hm >= P.startEt());

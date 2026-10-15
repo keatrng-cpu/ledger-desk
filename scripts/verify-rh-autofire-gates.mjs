@@ -490,7 +490,7 @@ console.log("\nsource posture");
   const gsrc = read("src/lib/execution/rh-autofire-gates.ts");
   check("gates file says review_option_order is the preview", /review_option_order/.test(gsrc) && /preview_option_order/.test(gsrc), true);
   check("confirmation is true with Keaton chat cite", /RH_OPTIONS_LIVE_CONFIRMED_IN_WRITING = true/.test(gsrc) && /Keaton confirmed in writing in chat/.test(gsrc), true);
-  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = 50/.test(gsrc) && /fireFix\?\.envelope\?\.maxDebit \?\? 650/.test(gsrc), true);
+  check("envelope constants present", /RH_MIN_DEBIT_TOTAL = (50|\(RULES[^\n]*minDebit \?\? 50)/.test(gsrc) && /fireFix\?\.envelope\?\.maxDebit \?\? 650/.test(gsrc), true);
   check("no place call in gates module", /CallDynamicTool|place_option_order\(/.test(gsrc), false);
   check("propose uses evaluateRhTicketEnvelope", /evaluateRhTicketEnvelope/.test(src), true);
   check("propose + place re-check evaluateRhBuyingPower", (src.match(/evaluateRhBuyingPower\(/g) ?? []).length >= 2, true);

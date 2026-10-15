@@ -1,0 +1,2 @@
+# crontab alternative (crontab -e):
+@reboot /workspace/paper-futures/boot/start-on-boot.sh

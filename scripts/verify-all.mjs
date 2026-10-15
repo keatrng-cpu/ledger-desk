@@ -76,6 +76,10 @@ for (const f of files) {
   const r = spawnSync("npx", ["tsx", `scripts/${f}`], {
     cwd: ROOT,
     encoding: "utf8",
+    // Review 2026-10-15 #6: no single verifier may hang the hook; a timeout is a FAIL (status null), not a pass.
+    timeout: Number(process.env.VERIFY_TIMEOUT_MS ?? 240_000),
+    killSignal: "SIGKILL",
+    maxBuffer: 64 * 1024 * 1024,
     shell: process.platform === "win32",
   });
   ran++;
@@ -86,6 +90,7 @@ for (const f of files) {
   // exit code — which is the thing that actually decides.
   const m = out.match(/(\d+)\s+passed,\s*(\d+)\s+failed/);
   const ok = r.status === 0;
+  if (r.error?.code === "ETIMEDOUT" || r.signal === "SIGKILL") console.log(`TIMEOUT after ${(Date.now() - t0) / 1000 | 0}s total`);
 
   const failing = m ? Number(m[2]) : ok ? 0 : 1;
   const known = knownOf(label);

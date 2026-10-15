@@ -9,6 +9,7 @@
  * OB / breaker / rejection blocks on 5m–4h and 1D. Each array carries CE and both edges. Body closes decide
  * respect; wicks decide sweeps (fix 10 reads them live).
  */
+import { completeBuckets, LONDON_BLOCK_MIN, openMinutesInEtWindow, spansGap } from "@/lib/market/minute-gaps";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { mtfArrays, type ArrayRow } from "../mtf-arrays";
@@ -18,7 +19,7 @@ import { etOf, r2, seqItem, seqMode, seqNum, type Mode, type Side } from "./rule
 
 export type MapTf = "1m" | "2m" | "3m" | "4m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1D";
 export interface MapArray { tf: MapTf; kind: "fvg" | "ifvg" | "sponsored" | "ob" | "breaker" | "rejection"; dir: "bull" | "bear"; lo: number; hi: number; ce: number; live: boolean; failed?: boolean; t: number }
-export interface MapLevel { name: string; price: number; kind: "pdh" | "pdl" | "pwh" | "pwl" | "session" | "open" | "pool" | "swing" }
+export interface MapLevel { name: string; price: number; kind: "pdh" | "pdl" | "pwh" | "pwl" | "session" | "open" | "pool" | "swing"; /** #19: a tape hole overlaps this window — the extreme may not be the real one. */ incomplete?: boolean }
 export interface MapPool { side: "buyside" | "sellside"; price: number; touches: number; tf: string; used?: boolean; sweptT?: number | null; name?: string }
 export type AmdPhase = "accumulation" | "manipulation" | "distribution" | "unknown";
 export interface PremarketMap {
@@ -28,6 +29,8 @@ export interface PremarketMap {
   asOfT: number | null;
   frozen: boolean;
   missing: string[];
+  /** #19: session windows (Asia/London/Premarket/Overnight) a tape hole overlaps → { missing minutes, withheld }. */
+  incomplete?: Record<string, { missingMin: number; withheld: boolean }>;
   arrays: MapArray[];
   levels: MapLevel[];
   pools: MapPool[];
@@ -52,7 +55,8 @@ export function resample(bars: OhlcBar[], ms: number): OhlcBar[] {
 }
 /** Closed buckets only: a bucket counts once its whole span has closed at cutT. */
 export function closedBuckets(bars: OhlcBar[], ms: number, cutT: number): OhlcBar[] {
-  return resample(bars, ms).filter((b) => b.t + ms <= cutT);
+  // #19: a bucket missing a Globex-open source bar is dropped, not shown as that timeframe's candle.
+  return completeBuckets(bars, ms).filter((b) => b.t + ms <= cutT);
 }
 /** Session bars (18:00 ET roll) → one daily bar per session (the desk's "1D"). */
 export function sessionDaily(bars: OhlcBar[]): (OhlcBar & { key: string })[] {
@@ -228,12 +232,26 @@ export function premarketMap(i: MapInput): PremarketMap {
   const win = (a: number, z: number) => cur.filter((b) => { const hm = etOf(b.t).hm; return a <= z ? hm >= a && hm < z : hm >= a || hm < z; });
   const named: [string, number, number][] = [["Asia", 20 * 60, 24 * 60], ["London", 2 * 60, 5 * 60], ["Premarket", 7 * 60, 9 * 60 + 30], ["Overnight", 18 * 60, 9 * 60 + 30]];
   const ranges: Record<string, { hi: number; lo: number }> = {};
+  // #19: holes inside the session (consecutive closed 1m bars skipping Globex-open minutes), per window.
+  const holes: [number, number][] = [];
+  for (let k = 1; k < cur.length; k++) if (spansGap(cur[k - 1]!.t, cur[k]!.t, 60_000)) holes.push([cur[k - 1]!.t + 60_000, cur[k]!.t]);
+  const incomplete: Record<string, { missingMin: number; withheld: boolean }> = {};
   for (const [n, a, z] of named) {
     const xs = win(a, z);
     if (!xs.length) continue;
+    const miss = holes.reduce((s0, [h0, h1]) => s0 + openMinutesInEtWindow(h0, h1, a, z), 0);
+    // A London hole of LONDON_BLOCK_MIN+ blocks the London levels (and the London-sweep read built on them).
+    const withheld = miss > 0 && n === "London" && miss >= LONDON_BLOCK_MIN;
+    if (miss > 0) {
+      incomplete[n] = { missingMin: miss, withheld };
+      missing.push(`${n} H/L incomplete: ${miss}m tape hole${withheld ? " — withheld" : " — flagged"}`);
+    }
+    if (withheld) continue;
     const hi = Math.max(...xs.map((b) => b.h)), lo = Math.min(...xs.map((b) => b.l));
     ranges[n] = { hi, lo };
-    levels.push({ name: `${n} high`, price: hi, kind: "session" }, { name: `${n} low`, price: lo, kind: "session" });
+    const inc = miss > 0 ? { incomplete: true as const } : {};
+    const tag = miss > 0 ? " (incomplete)" : "";
+    levels.push({ name: `${n} high${tag}`, price: hi, kind: "session", ...inc }, { name: `${n} low${tag}`, price: lo, kind: "session", ...inc });
   }
   const mid = cur.find((b) => etOf(b.t).hm === 0);
   if (mid) levels.push({ name: "Midnight open", price: mid.o, kind: "open" });
@@ -309,7 +327,7 @@ export function premarketMap(i: MapInput): PremarketMap {
     (groups.get(k) ?? groups.set(k, []).get(k)!).push(a);
   }
   for (const g of groups.values()) keep.push(...g.sort((a, b) => Math.abs(a.ce - px0) - Math.abs(b.ce - px0)).slice(0, per));
-  return { mode: seqMode("premarketMap"), symbol: i.symbol, session, asOfT: last.t + 60_000, frozen, missing, arrays: keep, levels, pools, range, zone, price, bias, biasStack, amd: { phase, asia, londonSwept, expectManip, why }, atr15: atr15 != null ? r2(atr15) : null };
+  return { mode: seqMode("premarketMap"), symbol: i.symbol, session, asOfT: last.t + 60_000, frozen, missing, ...(Object.keys(incomplete).length ? { incomplete } : {}), arrays: keep, levels, pools, range, zone, price, bias, biasStack, amd: { phase, asia, londonSwept, expectManip, why }, atr15: atr15 != null ? r2(atr15) : null };
 }
 
 /** Mapped targets beyond `px` on the trade side, nearest first (real levels, pools and array edges only). */
