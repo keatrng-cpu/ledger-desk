@@ -1,9 +1,9 @@
 diff --git a/tests/test_rule1_shadow.py b/tests/test_rule1_shadow.py
 new file mode 100644
-index 0000000..a531f76
+index 0000000..9afdbb0
 --- /dev/null
 +++ b/tests/test_rule1_shadow.py
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,72 @@
 +import json
 +from watcher import rule1_shadow
 +
@@ -69,8 +69,15 @@ index 0000000..a531f76
 +    mk()._rule1_shadow({"rule1": [TK]}, DAY_MS + 120_000)   # new Watcher = restart
 +    assert logged.count("rule1_would_fire") == 1 and "rule1_shadow_error" not in logged
 +    assert len(open(tmp_path / "rule1_shadow.jsonl").read().splitlines()) == 1
++
++def test_load_seen_skips_non_dict_lines_and_survives_os_errors(tmp_path):
++    good = {"kind": "rule1_would_fire", "ts": DAY_MS, "symbol": "ES", "side": "long", "at": "09:00"}
++    (tmp_path / rule1_shadow.FILE).write_text("\n".join([json.dumps([1, 2]), "7", "null", '"str"', json.dumps(good)]) + "\n")
++    assert rule1_shadow.load_seen(str(tmp_path), DAY_MS) == {("ES", "long", "09:00")}
++    d = tmp_path / "isdir"; d.mkdir(); (d / rule1_shadow.FILE).mkdir()          # IsADirectoryError is an OSError, not FileNotFoundError
++    assert rule1_shadow.load_seen(str(d), DAY_MS) == set()
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index 160d006..6c627ee 100644
+index fef22d2..6982311 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
 @@ -66,6 +66,7 @@ class Watcher:
@@ -81,7 +88,7 @@ index 160d006..6c627ee 100644
          self._fast(snap)
          prev = self.state.get("band_streak")
          bs = gates.band_streak_next(prev, snap); self.state["band_streak"] = bs; snap["band_streak"] = bs["n"]
-@@ -457,6 +458,18 @@ class Watcher:
+@@ -467,6 +468,18 @@ class Watcher:
          except Exception as e:
              self.log("kz_shadow_error", error=str(e))
  
@@ -102,10 +109,10 @@ index 160d006..6c627ee 100644
          kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
 diff --git a/watcher/rule1_shadow.py b/watcher/rule1_shadow.py
 new file mode 100644
-index 0000000..1626c73
+index 0000000..8d1b280
 --- /dev/null
 +++ b/watcher/rule1_shadow.py
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,68 @@
 +"""Rule 1 SHADOW logger for desk-watcher (ledger-desk shared/rule1.json, audits/entry-target-1015).
 +
 +Reads the desk feed's `rule1` tickets and appends what the watcher WOULD have fired to rule1_shadow.jsonl
@@ -167,8 +174,10 @@ index 0000000..1626c73
 +                    r = json.loads(line)
 +                except ValueError:
 +                    continue
++                if not isinstance(r, dict):   # a valid JSON line that is not an object (list, number, null) is skipped
++                    continue
 +                if r.get("kind") == "rule1_would_fire" and isinstance(r.get("ts"), (int, float)) and _ct_day(r["ts"]) == today:
 +                    seen.add((r.get("symbol"), r.get("side"), r.get("at")))
-+    except FileNotFoundError:
++    except OSError:   # missing, unreadable or a directory: start with an empty set, never crash the watcher
 +        pass
 +    return seen

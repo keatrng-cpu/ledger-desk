@@ -2,7 +2,7 @@
 
 **Mode: SHADOW.** Rule 1 builds a ticket and logs it beside the desk plan. It never fires live orders.
 
-- **Config:** `shared/rule1.json`. Kept out of `shared/desk-rules.json`, so **RULES_HASH is unchanged (`3de8579d25237421`)**. A test asserts this.
+- **Config:** `shared/rule1.json`. Kept out of `shared/desk-rules.json`, so **RULES_HASH is unchanged (`a4bfcb65c88badcd`, main after #24)**. A test asserts this.
 - **Engine:** `src/lib/trading/rule1.ts`, which builds `desk.rule1[]`. It is carried on the wire and in `MasterInput.rule1` (read-only for brain/Floor). `scripts/rule1.py` is the Python mirror.
 - **Daily report and shadow ledger:**
   ```

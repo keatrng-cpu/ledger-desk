@@ -59,8 +59,10 @@ def load_seen(path_dir, now_ms=None):
                     r = json.loads(line)
                 except ValueError:
                     continue
+                if not isinstance(r, dict):   # a valid JSON line that is not an object (list, number, null) is skipped
+                    continue
                 if r.get("kind") == "rule1_would_fire" and isinstance(r.get("ts"), (int, float)) and _ct_day(r["ts"]) == today:
                     seen.add((r.get("symbol"), r.get("side"), r.get("at")))
-    except FileNotFoundError:
+    except OSError:   # missing, unreadable or a directory: start with an empty set, never crash the watcher
         pass
     return seen
