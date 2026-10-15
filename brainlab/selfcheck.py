@@ -77,7 +77,7 @@ with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
 calm = list(np.linspace(100, 101, 40))
 with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as gate_dir:
     db = Path(gate_dir) / "fills.sqlite"
-    # The debit is derived: (ask + 2 cents) x 100 x contracts. 1.98 + 0.02 = 2.00 -> $200, inside the $150-$550 envelope.
+    # The debit is derived: (ask + 2 cents) x 100 x contracts. 1.98 + 0.02 = 2.00 -> $200, inside the $50-$650 envelope.
     fresh = {
         "symbol": "QQQ",
         "expiration": "2026-10-08",
@@ -103,8 +103,8 @@ with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as gate_dir:
     # What the page used to let through: a quote whose real ticket is outside the envelope, passed with a made-up debit.
     cheap = judge({**fresh, "bid": 0.98, "ask": 1.00, "debit": 200}, db)
     check("a made-up debit cannot make a $102 ticket usable", cheap["status"] == "unusable" and cheap["reason"] in ("debit_mismatch", "debit_floor"), cheap["reason"])
-    check("a ticket under $150 is refused on its real cost", judge({**fresh, "bid": 0.98, "ask": 1.00}, db)["reason"] == "debit_floor")
-    check("a ticket over $550 is refused on its real cost", judge({**fresh, "bid": 5.9, "ask": 5.98, "buying_power": 5000}, db)["reason"] == "debit_cap")
+    check("a ticket under $50 is refused on its real cost", judge({**fresh, "bid": 0.30, "ask": 0.32}, db)["reason"] == "debit_floor")
+    check("a ticket over $650 is refused on its real cost", judge({**fresh, "bid": 6.9, "ask": 6.98, "buying_power": 5000}, db)["reason"] == "debit_cap")
     check("a debit that agrees with the ask or the limit is accepted", judge({**fresh, "debit": 198.0}, db)["status"] == "usable" and judge({**fresh, "debit": 200.0}, db)["status"] == "usable")
     check("a debit that agrees with neither is refused", judge({**fresh, "debit": 260.0}, db)["reason"] == "debit_mismatch")
     check("five contracts is over the desk's cap of four", judge({**fresh, "qty": 5}, db)["status"] == "unusable")

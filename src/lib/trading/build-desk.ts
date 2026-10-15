@@ -2,6 +2,8 @@ import { planTargetText } from "@/lib/trading/card-plan";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
+import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
+import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
 import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
@@ -1207,6 +1209,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           levels: [b.pdh, b.pdl].filter((x): x is number => typeof x === "number" && Number.isFinite(x)),
         };
       };
+      for (const c of payload.scan.candidates) trackCard(c as never);
+      capStage("discipline+mtf");
       for (const c of payload.scan.candidates) {
         applyDiscipline(c as never, ctxFor(c.symbol));
         // MTF context (one read for scanner, brain, Floor) + SMT fix 2.
@@ -1428,7 +1432,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.exitPlan = exitPlanOf(minute, side, (isL ? lq : rq)?.price ?? null, kill);
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
-      for (const c of payload.scan.candidates) sealBand(c as never);
+      for (const c of payload.scan.candidates) { preSeal(c as never); capStage("seal"); sealBand(c as never); }
+      capStage("post-seal plan/guards");
       // Fix B: timing is entryState, not quality. Every card carries it (1m–4h distances); the quality-only
       // q/band (chase penalty undone) is logged in shadow (timing.mode shadow) and IS q/band in live.
       for (const c of payload.scan.candidates) {
@@ -1662,11 +1667,33 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const was = payload.scan.candidates[0];
         const w = (c: unknown) => Number(Boolean((c as { watchOnly?: boolean }).watchOnly));
         payload.scan.candidates.sort((a, b) => w(a) - w(b));
+        // Review 2026-10-15 #3: hysteresis (shared rules primaryHysteresis). live: the primary symbol flips only after the
+        // challenger out-scores it by margin for `polls` consecutive real polls (stable sort keeps each symbol's order).
+        // shadow (default): order and books exactly as main; the pick is only logged on wire.primaryHysteresis.
+        const phLive = primaryHysteresisLive();
+        let phLog: Record<string, unknown> | null = null;
+        if (PRIMARY_HYSTERESIS.mode !== "off") {
+          const scores: Record<string, number | null> = {};
+          for (const c of payload.scan.candidates) if (!w(c) && scores[c.symbol] == null) scores[c.symbol] = c.qualityScore ?? c.confluence;
+          const pollKey = `${lb.fetchedAtMs ?? ""}|${rb.fetchedAtMs ?? ""}|${mL.bars.at(-1)?.t ?? ""}|${mR.bars.at(-1)?.t ?? ""}`;
+          const hp = primaryForPoll(new Date(nowCtxPlan).toLocaleDateString("en-CA", { timeZone: "America/New_York" }), pollKey, scores);
+          const mainLead = payload.scan.candidates.find((c) => !w(c))?.symbol ?? null;
+          phLog = { mode: PRIMARY_HYSTERESIS.mode, ...hp, mainPrimary: mainLead, wouldDiffer: hp.symbol != null && hp.symbol !== mainLead };
+          (payload as { primaryHysteresis?: unknown }).primaryHysteresis = phLog;
+          if (phLive && hp.symbol) payload.scan.candidates.sort((a, b) => w(a) - w(b) || Number(b.symbol === hp.symbol) - Number(a.symbol === hp.symbol));
+        }
         const lead = payload.scan.candidates.find((c) => !w(c));
         if (lead && lead !== was) {
           const scan1 = { ...payload.scan, candidates: payload.scan.candidates.filter((c) => c.symbol !== lead.symbol || c === lead) };
           const keep = new Map(payload.scan.candidates.map((c) => [c, c.plan]));
+          const before = smcMaster;
           smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
+          // Review 2026-10-15 #3 (08:33:36 CT MNQ case): a primary flip must not rewrite the OTHER book. Same build,
+          // same bars, so its structure is unchanged: keep its own book (entry/stop/T1, status) exactly as graded.
+          // live only; shadow logs whether it would have restored a book and leaves smcMaster as main grades it.
+          const kept = keepOtherBook(before, smcMaster, lead.symbol);
+          if (phLog) phLog.keepOtherBook = { wouldRestore: kept.left !== smcMaster.left || kept.right !== smcMaster.right, applied: phLive };
+          if (phLive) smcMaster = kept;
           smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
           attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
           // the new book and any plan attached just now go through the same sanity check
@@ -1676,6 +1703,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Per-rule mode:
       // "live" acts; "shadow" only records what it WOULD do on c.guards.shadow (wire.strategy.guards) and changes
       // nothing — q, band, size, stop, watch row, brain word and fire stay as before.
+      capStage("loss guards");
       const lossBlocked = new Map<string, string>();
       const isLive = (m: string): boolean => String(m) === "live";
       for (const c of payload.scan.candidates) {
@@ -1845,7 +1873,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         : null;
     }
     // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
+    capStage("ltfArm cap");
     for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
+    for (const c of payload.scan.candidates) resolveWhy(c as never);
+    capStage("scan");
     const coach = {
       xai: Boolean(process.env.XAI_API_KEY?.trim()),
       anthropic: Boolean(process.env.ANTHROPIC_API_KEY?.trim()),

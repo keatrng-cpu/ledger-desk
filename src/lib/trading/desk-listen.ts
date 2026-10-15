@@ -474,6 +474,11 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         band: armedBand(c),
         pathBand: c.pathBand ?? c.grade ?? null,
         q: c.confluence,
+        /** Review 2026-10-15 #2: q before the seal and every cap/penalty that fired (band before/after). */
+        q_raw: (c as { q_raw?: number }).q_raw ?? null,
+        q_scan: (c as { q_scan?: number }).q_scan ?? null,
+        capReasons: ((c as { capReasons?: { stage: string; field: string; kind: string; before: unknown; after: unknown; bandBefore: string | null; bandAfter: string | null; why?: string | null }[] }).capReasons ?? [])
+          .filter((r) => r.kind !== "nudge").map(({ stage, field, kind, before, after, bandBefore, bandAfter, why }) => ({ stage, field, kind, before, after, bandBefore, bandAfter, why: why ?? null })),
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
         entry: c.entryPx ?? c.plan?.entry ?? null,

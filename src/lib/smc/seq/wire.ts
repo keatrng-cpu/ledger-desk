@@ -9,7 +9,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
 import { amdRead, type AmdRead } from "./amd-state";
 import { continuationRead, type ContRead } from "./continuation";
-import { scenarios, type ScenarioRead } from "./scenarios";
+import { scenarios, rerankOnOpen, type ScenarioRead } from "./scenarios";
 import { respectRead, type RespectRead } from "./respect";
 import { intradayTicket, rungEval, ETF_OF, type IntradayTicket, type RungRead } from "./intraday-exec";
 
@@ -105,6 +105,7 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
   for (const side of ["left", "right"] as const) {
     const sym = i.desk[side].symbol; const b = bookOf(sym);
     scen[sym] = scenarios(map[sym] ?? null);
+    if (b.feedNowMs != null) scen[sym] = rerankOnOpen(scen[sym], map[sym] ?? null, b.closed1m, b.feedNowMs);
     if (b.feedNowMs != null) respect[sym] = respectRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
   }
   const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday, scenarios: scen, respect };

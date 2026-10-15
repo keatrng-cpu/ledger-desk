@@ -67,3 +67,29 @@ export function fitLr(rows: { feats: string[]; y: ScriptId }[]): Record<string, 
   }
   return lr;
 }
+
+/**
+ * Review 2026-10-15 #4: re-rank latency. When the open contradicts the premarket plan — a CLOSED 1m bar after
+ * 09:30 ET whose body closes through the flip line (the map's dealing-range equilibrium) against the top script —
+ * re-rank on that very close: scripts in the tape's direction get REVERSAL_LR, then renormalise. No waiting.
+ */
+export const REVERSAL_LR = 3;
+export interface Rerank { atT: number; flip: number; dir: "up" | "down"; from: ScriptId; to: ScriptId; why: string }
+const etMin = (t: number) => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(t)); return Number(p.find((x) => x.type === "hour")!.value) * 60 + Number(p.find((x) => x.type === "minute")!.value); };
+export function rerankOnOpen(read: ScenarioRead, m: PremarketMap | null, closed1m: { t: number; o: number; c: number }[], nowMs: number): ScenarioRead & { rerank?: Rerank } {
+  const top = read.ranked[0]; const flip = m?.range?.eq;
+  if (!top || flip == null) return read;
+  const day = new Date(nowMs).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+  for (const b of closed1m) {
+    if (b.t + 60_000 > nowMs) break;                                  // closed bars only
+    if (new Date(b.t).toLocaleDateString("en-CA", { timeZone: "America/New_York" }) !== day) continue;
+    const mm = etMin(b.t); if (mm < 9 * 60 + 30 || mm >= 11 * 60) continue;
+    const up = b.o <= flip && b.c > flip, down = b.o >= flip && b.c < flip;
+    const dir = up ? "up" : down ? "down" : null;
+    if (!dir || dir === top.dist) continue;                           // only a CONTRADICTION re-ranks
+    const w = read.ranked.map((s) => s.prior * (s.dist === dir ? REVERSAL_LR : 1)); const tot = w.reduce((a, x) => a + x, 0);
+    const ranked = read.ranked.map((s, i) => ({ ...s, prior: +(w[i] / tot).toFixed(3) })).sort((a, b) => b.prior - a.prior);
+    return { ...read, ranked, rerank: { atT: b.t, flip, dir, from: top.id, to: ranked[0].id, why: `1m body closed ${dir === "up" ? "above" : "below"} the flip ${flip} against ${top.id}` } };
+  }
+  return read;
+}

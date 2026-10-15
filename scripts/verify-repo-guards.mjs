@@ -281,6 +281,15 @@ for (const [path] of FLOORS) {
     // Backtest engine (2026-10-13): driven only by scripts/backtest.mts and the replay/measure scripts
     // (scripts/dump-loss-features.mts); no src/ path imports it — the live desk never backtests.
     "src/lib/backtest/engine.ts",
+    // 2026-10-15: fast-chain.ts is the TS twin of watcher/fastchain.py — the WATCHER (Python) fires from the
+    // fastChain rules; this module exists for the parity test (scripts/fast-chain.test.mjs). Its intended desk
+    // use (Floor / Watcher tab showing the same rows) is not wired: watcher-tab.tsx is a read-only view of the
+    // watcher's own output, so it already shows the watcher's verdict. Wiring would be a UI feature, not a fix.
+    "src/lib/execution/fast-chain.ts",
+    // 2026-10-15: seq/calibrate.ts is the SHADOW isotonic calibration (Fix 8) — fitted offline and evaluated only
+    // by scripts/eval-desk-seq-f2378.mts. Promoting it to the live rank is a rules change needing Keaton's call
+    // (deskSeq.calibrate mode), so it stays scripts-only until then.
+    "src/lib/smc/seq/calibrate.ts",
   ]);
   // 2026-10-12: auth/verify.server.ts and market/tape-trust.ts came off — both now
   // imported from live src/ paths (inventory refresh; guards unchanged).
@@ -360,19 +369,27 @@ for (const [path] of FLOORS) {
 
   // What the CODE does about the Judas window.
   //
-  // UPDATED 2026-09-24. This used to assert that BOTH paths refuse the window
-  // unconditionally, which was correct until the trader made the call that the
-  // Judas swing is a model rather than a hazard. The guard is not deleted —
-  // it now pins the NEW invariant, which is the stricter and more easily
-  // broken one: both paths must still refuse BY DEFAULT and may only be
-  // released through `judas-window.ts`, which fails closed without sub-15m
-  // tape. An accidental edit that drops the release check entirely would open
-  // the window for the whole fifteen minutes, and that is what this catches.
-  const judasGuarded = /judasRead\.blocked/.test(master) && /judas \|\| judasUndergrade \|\| newsBlk \? "fail"/.test(master);
+  // UPDATED 2026-10-15. Keaton 2026-10-13: Judas 09:30-09:45 is TRADED; the
+  // window is a warning, never a block (judas-window.ts JUDAS_BLOCKS = false,
+  // a63bf6ca / fd86b3d1 / 430d18cf dropped judasRead.blocked). The previous
+  // assertion pinned the 2026-09-24 "blocked until released" design, which no
+  // longer exists, so it was red against a trader-approved change. This now
+  // pins the CURRENT invariant: (a) one switch, JUDAS_BLOCKS, exported false;
+  // (b) smc-master's clean layer fails on the NEWS print only, never the
+  // window; (c) paper-manager and both path-alarm sites still read readJudas
+  // and gate on JUDAS_BLOCKS, so flipping the one switch restores the
+  // fail-closed block everywhere instead of needing a hunt for call sites.
+  const alarm = read("src/lib/alerts/path-alarm.ts") ?? "";
+  const judasMod0 = read("src/lib/trading/judas-window.ts") ?? "";
+  const judasGuarded =
+    /export const JUDAS_BLOCKS = false;/.test(judasMod0) &&
+    /id: "clean",[\s\S]{0,120}?state: newsBlk \? "fail" : "pass"/.test(master) &&
+    /readJudas\(/.test(master);
   const judasFillGuarded =
-    /isJudasWindow\([^)]*\)\)\s*\{[\s\S]{0,400}?readJudas\([\s\S]{0,240}?ok: false/.test(paper);
-  ok(judasGuarded, "smc-master fails the clean layer during Judas unless judas-window released it");
-  ok(judasFillGuarded, "paper-manager refuses a Judas fill unless judas-window released it");
+    /isJudasWindow\([^)]*\)\)\s*\{[\s\S]{0,400}?readJudas\([\s\S]{0,240}?JUDAS_BLOCKS\)\s*\{\s*return \{ ok: false/.test(paper) &&
+    (alarm.match(/JUDAS_BLOCKS &&\s*isJudasWindow\([\s\S]{0,200}?readJudas\(/g) ?? []).length >= 2;
+  ok(judasGuarded, "Judas is warning-only: JUDAS_BLOCKS=false and smc-master's clean layer fails on news only");
+  ok(judasFillGuarded, "paper-manager + path-alarm gate the Judas read on the single JUDAS_BLOCKS switch");
 
   // The release must FAIL CLOSED. Without this the whole design inverts: no
   // minute tape would mean no block instead of no trade.

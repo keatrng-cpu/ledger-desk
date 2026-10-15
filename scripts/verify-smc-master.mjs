@@ -586,7 +586,11 @@ console.log("\nthe real engine — one price on a fully built desk");
     let takesWithGaps = 0;
     let books = 0;
     let pi = 0;
-    for (let i = 900; i < MNQ.length; i += 97) {
+    // Review 2026-10-15 #6: stride 97 over 4y (~960 full desk builds) took ~11.5 min and starved pre-push.
+    // Pre-push samples ~160 evenly spread bars across the same 4y; SMC_MASTER_FULL=1 runs the old full sweep.
+    const SAMPLES = Number(process.env.SMC_MASTER_SAMPLES ?? 160);
+    const STRIDE = process.env.SMC_MASTER_FULL === "1" ? 97 : Math.max(97, Math.ceil((MNQ.length - 900) / SAMPLES));
+    for (let i = 900; i < MNQ.length; i += STRIDE) {
       while (pi < ES.length && ES[pi].t <= MNQ[i].t) pi++;
       const slice = MNQ.slice(Math.max(0, i - 799), i + 1);
       const peer = ES.slice(Math.max(0, pi - 800), pi);

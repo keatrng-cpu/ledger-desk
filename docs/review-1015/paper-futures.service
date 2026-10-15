@@ -1,0 +1,10 @@
+# systemd --user unit (copy to ~/.config/systemd/user/, then: systemctl --user enable paper-futures; loginctl enable-linger $USER)
+[Unit]
+Description=Paper futures supervisor (paper only, no orders)
+After=network-online.target
+[Service]
+Type=forking
+ExecStart=/workspace/paper-futures/boot/start-on-boot.sh
+RemainAfterExit=yes
+[Install]
+WantedBy=default.target
