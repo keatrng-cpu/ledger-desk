@@ -24,10 +24,12 @@ def chart_one(tr, out_root, sources=None, render=True):
             from . import render as Rn
             drawn = Rn.render(tr, fr, st, f, png)
         except ImportError as ex: st["render_error"] = f"matplotlib missing: {ex}"
-    keep = {k: st[k] for k in ("bar_sources", "atr5", "atr1", "levels", "range", "pools", "sweeps", "ifvg_against", "in_fvg", "in_ob", "htf", "render_error") if k in st}
+    keep = {k: st[k] for k in ("bar_sources", "atr5", "atr1", "levels", "range", "pools", "sweeps", "ifvg_against", "in_fvg", "in_ob", "htf", "render_error", "levels_swept", "ifvg_after") if k in st}
     keep["fvg5_at_entry"] = [g for g in st.get("fvg5", []) if g["formed"] + pd.Timedelta(minutes=5) <= tr["fill_t"]][-8:]
     keep["obs_at_entry"] = [o for o in st.get("obs", []) if o["disp_t"] + pd.Timedelta(minutes=5) <= tr["fill_t"]][-5:]
-    rec = dict(schema=1, chart=drawn, trade={k: v for k, v in tr.items()}, features=f, structure_at_entry=keep,
+    try: summ = A.summary(tr, st, f)
+    except Exception as ex: summ = f"summary unavailable: {type(ex).__name__}"
+    rec = dict(schema=1, chart=drawn, summary=summ, trade={k: v for k, v in tr.items()}, features=f, structure_at_entry=keep,
                generated=pd.Timestamp.now(tz=CT).isoformat(timespec="seconds"))
     tmp = side + ".tmp"; json.dump(A._iso(rec), open(tmp, "w"), indent=1, default=str); os.replace(tmp, side)
     return png if drawn else None, side, f
@@ -42,11 +44,16 @@ def _one(args):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="trade_charts")
-    ap.add_argument("cmd", choices=["backfill", "exit", "learn", "nightly"])
+    ap.add_argument("cmd", choices=["backfill", "exit", "learn", "nightly", "publish"])
+    ap.add_argument("--dest", help="publish: site dir to copy charts into (default <repo>/public/trade-charts)")
     ap.add_argument("--since"); ap.add_argument("--until"); ap.add_argument("--signal"); ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--delay", type=float, default=0, help="seconds to wait first (watcher hook: let post-exit bars land)")
     a = ap.parse_args(argv); c = cfg_from_env()
     if a.delay: time.sleep(min(a.delay, 600))
+    if a.cmd == "publish":
+        from . import publish as P
+        dest = a.dest or os.path.join(os.path.dirname(__file__), "..", "..", "..", "public", "trade-charts")
+        print(json.dumps(P.publish(c["out"], os.path.abspath(dest)), indent=1)); return 0
     since = T.ts(a.since) if a.since else None; until = T.ts(a.until) if a.until else None
     if a.cmd == "exit":     # watcher hook: chart the most recent closed live trade (or --signal), then refresh learning
         tr = [t for t in T.load_live(c["watcher_dir"], pd.Timestamp.now(tz=CT) - pd.Timedelta(days=1)) if not a.signal or t["signal"] == a.signal][-1:]

@@ -1,6 +1,6 @@
 """Shadow learning loop: one row per trade from the JSON sidecars -> features.csv, report.md, and an extra-data feed
 for the check-weighting prototype. Nothing here writes desk rules, gates or watcher config."""
-import csv, glob, json, math, os, datetime as D
+import contextlib, csv, fcntl, glob, io, json, math, os, tempfile, datetime as D
 
 BIN = ["ifvg_against", "ifvg_with", "in_with_fvg", "in_with_ob", "wrong_half", "sweep_with_before", "sweep_against_before",
        "eq_pool_toward_target", "eq_pool_behind_stop", "brain_stand", "floor_armed", "actionable", "shadow_htf_block"]
@@ -19,12 +19,59 @@ K = 10   # shrinkage pseudo-count (same as proto-weighting SHRINK)
 CLIP = (-2.0, 3.0)   # R is clipped for the lift stats so one slipped stop (e.g. -4.1R) cannot carry a feature alone
 def _r(r): return min(CLIP[1], max(CLIP[0], float(r["R"])))
 
-def build_table(root):
-    rows = []
+def atomic_write(path, text):
+    """tmp file in the same dir + fsync + os.replace: a reader (proto-weighting, the desk) never sees a torn file."""
+    d = os.path.dirname(path) or "."; os.makedirs(d, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=d, prefix="." + os.path.basename(path) + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", newline="") as fh: fh.write(text); fh.flush(); os.fsync(fh.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        with contextlib.suppress(OSError): os.unlink(tmp)
+        raise
+
+@contextlib.contextmanager
+def locked(root):
+    """Exclusive flock on <root>/.learn.lock: the watcher EXIT hook and the nightly run never interleave writes."""
+    os.makedirs(root, exist_ok=True)
+    with open(os.path.join(root, ".learn.lock"), "a") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try: yield
+        finally: fcntl.flock(fh, fcntl.LOCK_UN)
+
+def _key(day, symbol, side, entry):
+    try: e = round(float(entry), 2)
+    except (TypeError, ValueError): e = None
+    return (str(day), str(symbol or "").upper(), str(side or "").lower(), e)
+
+def load_voids(root, path=None):
+    """Void annotations (append-only JSONL, same meaning as desk_learn_annotation.exclude_from_learning):
+    {"row_id": <signal|chart_id>, "exclude_from_learning": true} and/or {"day","symbol","side","entry"} (journal twin, entry to the
+    cent — the snapNotVoided rule). Path: TC_VOIDS or <root>/voids.jsonl. Returns (ids, keys)."""
+    path = path or os.environ.get("TC_VOIDS") or os.path.join(root, "voids.jsonl"); ids, keys = set(), set()
+    if not os.path.exists(path): return ids, keys
+    for line in open(path):
+        try: a = json.loads(line)
+        except ValueError: continue
+        if not isinstance(a, dict) or a.get("exclude_from_learning") is False: continue
+        if a.get("row_id"): ids.add(str(a["row_id"]))
+        if a.get("day") and a.get("entry") is not None: keys.add(_key(a["day"], a.get("symbol"), a.get("side"), a.get("entry")))
+    return ids, keys
+
+def is_voided(s, ids, keys):
+    t = s.get("trade") or {}; f = s.get("features") or {}
+    if t.get("voided") or t.get("exclude_from_learning") or f.get("exclude_from_learning"): return True
+    if str(t.get("signal")) in ids or str(t.get("chart_id")) in ids: return True
+    day = str(t.get("fill_t") or "")[:10]
+    return _key(day, t.get("symbol"), t.get("side"), t.get("entry")) in keys
+
+def build_table(root, voids=None):
+    rows = []; ids, keys = voids if voids is not None else load_voids(root)
     for p in sorted(glob.glob(os.path.join(root, "20??-??-??", "*.json"))):
         try: s = json.load(open(p))
         except Exception: continue
         f = s.get("features") or {}
+        if is_voided(s, ids, keys): continue     # snapNotVoided: voided trades never reach the table or the weights
         if not f.get("data_ok") or f.get("R") is None: continue
         t = s["trade"]; r = {c: f.get(c) for c in COLS}
         r.update(date=os.path.basename(os.path.dirname(p)), chart_id=t["chart_id"], signal=t["signal"], fill_t=t["fill_t"], exit_t=t["exit_t"], chart=s.get("chart"))
@@ -33,9 +80,8 @@ def build_table(root):
     return rows
 
 def write_table(rows, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=COLS); w.writeheader(); [w.writerow(r) for r in rows]
+    buf = io.StringIO(); w = csv.DictWriter(buf, fieldnames=COLS); w.writeheader(); [w.writerow(r) for r in rows]
+    atomic_write(path, buf.getvalue())
 
 def _mean(x): return sum(x) / len(x) if x else None
 
@@ -92,7 +138,7 @@ def report(rows, splits, path, proto_note=""):
     for r in rows:
         L.append(f"| {r['date']} | {r['chart_id']} | {r['source']} | {r['side']} | {r['session_phase']} | {r['premium_pct']} | {r['ifvg_against']} | {r['sweep_with_before']} | {r['htf_aligned']} | {r['displacement_atr']} | {r['rr_from_fill']} | {r['brain']} | {r['floor']} | {r['R']:+.2f} |")
     if proto_note: L += ["", "## proto-weighting feed", "", proto_note]
-    os.makedirs(os.path.dirname(path), exist_ok=True); open(path, "w").write("\n".join(L) + "\n")
+    atomic_write(path, "\n".join(L) + "\n")
     return path
 
 def proto_feed(rows, splits, proto_dir, cap=0.6):
@@ -107,10 +153,13 @@ def proto_feed(rows, splits, proto_dir, cap=0.6):
         w[s["feature"]] = dict(w=round(min(cap, max(0.0, s["lift_R_shrunk"])), 3), n_yes=s["yes"]["n"], n_no=s["no"]["n"], lift=s["lift_R"], lift_shrunk=s["lift_R_shrunk"])
     meta = dict(mode="shadow", n_trades=len(rows), rule="w = clip(lift_R * nmin/(nmin+10), 0, 0.6) — same as proto-weighting fit()",
                 generated=D.datetime.now().astimezone().isoformat(timespec="seconds"), note="extra data only; weighting.py/weights.json untouched")
-    json.dump(dict(meta=meta, weights=w), open(os.path.join(out, "weights_chart_features.json"), "w"), indent=1)
+    atomic_write(os.path.join(out, "weights_chart_features.json"), json.dumps(dict(meta=meta, weights=w), indent=1))
     return out
 
 def run(root, proto_dir=None):
+    with locked(root): return _run(root, proto_dir)
+
+def _run(root, proto_dir=None):
     rows = build_table(root); learn = os.path.join(root, "learn")
     write_table(rows, os.path.join(learn, "features.csv"))
     splits = all_splits(rows)
@@ -118,5 +167,5 @@ def run(root, proto_dir=None):
     note = (f"Wrote `{fed}/chart_features.csv` and `weights_chart_features.json` (shadow; weights.json untouched). "
             "Load with `extra_chart.py` in the prototype.") if fed else "proto-weighting dir not found; skipped."
     report(rows, splits, os.path.join(learn, "report.md"), note)
-    json.dump(splits, open(os.path.join(learn, "splits.json"), "w"), indent=1)
+    atomic_write(os.path.join(learn, "splits.json"), json.dumps(splits, indent=1))
     return rows, splits

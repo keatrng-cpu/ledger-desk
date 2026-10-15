@@ -4,6 +4,39 @@ import datetime as D
 import numpy as np
 import pandas as pd
 
+TICK = 0.25
+def snap(x, tick=TICK):
+    """Round a price to the instrument tick (ES/NQ/MES/MNQ: 0.25)."""
+    return None if x is None else round(round(float(x) / tick) * tick, 2)
+
+def swept_at(df, px, hi_side, start=None):
+    """First bar (open time) strictly after `start` that trades THROUGH px (high > px for a high, low < px for a low),
+    whether or not it closes back. That is when a level/pool stops being resting liquidity. None if never."""
+    if px is None or not len(df): return None
+    x = df if start is None else df[df.index > pd.Timestamp(start)]
+    hit = x[x.high > px] if hi_side else x[x.low < px]
+    return hit.index[0] if len(hit) else None
+
+def session_level_ends(t):
+    """When each session level is complete (sweeps only count after): PD -> prior 15:00, ON/PM -> 08:30 today."""
+    tz = "America/Chicago"; day = trading_day(t); prev = day - D.timedelta(days=1)
+    while prev.weekday() >= 5: prev -= D.timedelta(days=1)
+    at = lambda d, hh, mm: pd.Timestamp(D.datetime.combine(d, D.time(hh, mm))).tz_localize(tz)
+    e = dict(PD=at(prev, 15, 0), ON=at(day, 8, 30), PM=at(day, 8, 30))
+    return {k + s: v for k, v in e.items() for s in "HL"}
+
+def mark_swept(m1, levels, pools, t_in):
+    """{'PDH': ts, ...} for PD/ON/PM levels traded through after they formed, and pool['swept'] set in place for
+    EQH/EQL pools (after the pool's last touch is confirmed). Uses every bar in m1 (drawing, not entry features)."""
+    ends = session_level_ends(t_in); out = {}
+    for k, v in levels.items():
+        if k in ends:
+            ts = swept_at(m1, v, k.endswith("H"), max(ends[k], m1.index[0] - pd.Timedelta(minutes=1)) if len(m1) else ends[k])
+            if ts is not None: out[k] = ts
+    for p in pools:
+        p["swept"] = swept_at(m1, p["px"], p["kind"] == "EQH", p.get("t1", p.get("t0")) + pd.Timedelta(minutes=5) if p.get("t1", p.get("t0")) is not None else None)
+    return out
+
 def closed(df, asof, tf_min):
     if asof is None or not len(df): return df
     return df[df.index + pd.Timedelta(minutes=tf_min) <= asof]
@@ -121,7 +154,7 @@ def dealing_range(lv, t):
     rth_ok = "RTHH" in lv and (t.hour, t.minute) >= (8, 45) and t.hour < 15
     hi, lo, name = (lv.get("RTHH"), lv.get("RTHL"), "RTH") if rth_ok else (lv.get("ONH"), lv.get("ONL"), "ON")
     if hi is None or lo is None or hi <= lo: return None
-    return dict(hi=hi, lo=lo, eq=(hi + lo) / 2, name=name)
+    return dict(hi=hi, lo=lo, eq=snap((hi + lo) / 2), name=name)
 
 def session_phase(t):
     t = pd.Timestamp(t); m = t.hour * 60 + t.minute

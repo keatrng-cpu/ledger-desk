@@ -107,3 +107,114 @@ def test_end_to_end_synthetic(tmp_path, monkeypatch):
 def test_learn_empty(tmp_path):
     rows, splits = learn.run(str(tmp_path), None)
     assert rows == [] and splits == [] and "Trades: **0**" in open(tmp_path / "learn" / "report.md").read()
+
+# ---- review fixes (PR #25 Accuracy CHANGES) ----
+def test_eq_snaps_to_tick():
+    assert smc.snap(7754.375) in (7754.25, 7754.5) and smc.snap(7754.1) == 7754.0 and smc.snap(7754.13) == 7754.25
+    rg = smc.dealing_range(dict(ONH=7790.25, ONL=7718.0), pd.Timestamp("2026-10-15 08:00", tz=CT))
+    assert rg["eq"] * 4 == int(rg["eq"] * 4)                                 # (7790.25+7718)/2 = 7754.125 -> on the 0.25 grid
+    for hi, lo in ((100.25, 99.0), (30805.75, 30700.0), (7792.5, 7768.25)):
+        e = smc.dealing_range(dict(ONH=hi, ONL=lo), pd.Timestamp("2026-10-15 08:00", tz=CT))["eq"]
+        assert abs(e * 4 - round(e * 4)) < 1e-9 and abs(e - (hi + lo) / 2) <= 0.125
+
+def test_swept_at_and_mark_swept():
+    df = frame([(100, 101, 99, 100), (100, 101.5, 99.5, 100.5), (100.5, 102.5, 100, 102), (102, 102.2, 98.5, 99)])
+    assert smc.swept_at(df, 102.0, True) == df.index[2]                       # traded through, close irrelevant
+    assert smc.swept_at(df, 102.0, True, start=df.index[3]) is None and smc.swept_at(df, 102.0, True, start=df.index[2]) == df.index[3]           # only bars strictly after start
+    assert smc.swept_at(df, 99.0, False) == df.index[3] and smc.swept_at(df, 90, False) is None
+    idx = pd.date_range("2026-10-14 08:30", "2026-10-15 11:00", freq="1min", tz=CT)
+    m1 = pd.DataFrame(dict(open=100.0, high=101.0, low=99.0, close=100.0), index=idx)
+    m1.loc["2026-10-14 09:00", "high"] = 110; m1.loc["2026-10-15 10:15", "high"] = 111           # PDH 110 taken at 10:15 today
+    t = pd.Timestamp("2026-10-15 10:30", tz=CT); lv = smc.session_levels(m1, t)
+    pools = [dict(kind="EQL", px=98.0, t0=idx[10], t1=idx[20], n=2), dict(kind="EQH", px=100.5, t0=idx[10], t1=idx[20], n=2)]
+    sw = smc.mark_swept(m1, lv, pools, t)
+    assert sw["PDH"] == pd.Timestamp("2026-10-15 10:15", tz=CT) and "PDL" not in sw
+    assert pools[0]["swept"] is None and pools[1]["swept"] is not None       # EQH 100.5 traded through by the 101 highs
+
+def _render_case(tmp_path):
+    rng = np.random.default_rng(1); idx = pd.date_range("2026-10-14 17:00", "2026-10-15 14:00", freq="1min", tz=CT)
+    c = 7780 + np.cumsum(rng.normal(0, 0.8, len(idx))); o = np.r_[c[0], c[:-1]]
+    df = pd.DataFrame(dict(open=o, high=np.maximum(o, c) + 0.5, low=np.minimum(o, c) - 0.5, close=c), index=idx)
+    fill = float(df.loc["2026-10-15 12:30"].close)
+    tr = dict(signal="sig-t", chart_id="sig-t", source="live_rh", symbol="ES", side="long", band="B+", q=0.65, entry=fill, stop=fill - 5, t1=fill + 8, t2=fill + 15,
+              fill_t=pd.Timestamp("2026-10-15 12:30:30", tz=CT), fill_px=fill, exit_t=pd.Timestamp("2026-10-15 12:50", tz=CT), exit_px=fill - 5, R=-1.0, pnl_usd=-36,
+              events=[dict(t=pd.Timestamp("2026-10-15 12:30:30", tz=CT), what="FILL", px=fill, qty=1), dict(t=pd.Timestamp("2026-10-15 12:50", tz=CT), what="EXIT", px=fill - 5, qty=1, why="ticket stop hit")],
+              verdicts=dict(desk=dict(band="B+", q=0.65), brain="STAND", floor="WATCH"), gates=dict(live_block=[], soft_block=[], shadow_block=[]), option=None)
+    return df, tr, fill
+
+def test_render_swept_level_dimmed_and_labelled(tmp_path):
+    pytest.importorskip("matplotlib")
+    import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+    from trade_charts import render as Rn
+    df, tr, fill = _render_case(tmp_path)
+    fr = {"1m": df, "5m": B.resample(df, "5min")}
+    sw_t = pd.Timestamp("2026-10-15 12:40", tz=CT)
+    st = dict(levels=dict(PDH=fill + 1, ONL=fill - 3), levels_swept=dict(PDH=sw_t), range=dict(hi=fill + 4, lo=fill - 4, eq=smc.snap(fill), name="ON"),
+              pools=[dict(kind="EQL", px=fill - 2, t0=df.index[-200], t1=df.index[-190], n=2, swept=sw_t)])
+    fig, ax = plt.subplots()
+    Rn.draw_panel(ax, fr, st, tr, "1m", pd.Timestamp("2026-10-15 12:20", tz=CT), pd.Timestamp("2026-10-15 12:55", tz=CT), True)
+    texts = [t.get_text() for t in ax.texts]
+    assert "PDH %.2f swept 12:40 CT" % (fill + 1) in texts
+    assert "EQL (liquidity) %.2f swept 12:40 CT" % (fill - 2) in texts
+    assert not any(t.startswith("ONL") for t in texts)                       # resting level: drawn faint, not labelled
+    dashed = [l for l in ax.lines if l.get_alpha() is not None and l.get_alpha() <= 0.35 and abs(l.get_ydata()[0] - (fill + 1)) < 1e-9]
+    assert dashed                                                            # dimmed after the sweep
+    assert any(t.startswith("EQ ") and float(t.split()[1]) * 4 == round(float(t.split()[1]) * 4) for t in texts)
+    assert len(texts) <= Rn.MAX_LABELS + 3                                  # few labels (+ event numbers)
+    plt.close(fig)
+
+def test_summary_plain_english():
+    from trade_charts import analyze as A
+    t_in = pd.Timestamp("2026-10-15 13:02:10", tz=CT)
+    tr = dict(side="long", band="B+", fill_t=t_in, R=-1.0, exit_px=7775.0, stop=7775.0, events=[dict(why="ticket stop 7775.0 hit")])
+    st = dict(sweeps=[dict(kind="SSL", px=7768.5, t=t_in - pd.Timedelta(minutes=20))],
+              ifvg_after=[dict(side="bull", tf="1m", inverted=pd.Timestamp("2026-10-15 13:02", tz=CT), inv_close=pd.Timestamp("2026-10-15 13:03", tz=CT)),
+                          dict(side="bull", tf="1m", inverted=pd.Timestamp("2026-10-15 13:04", tz=CT), inv_close=pd.Timestamp("2026-10-15 13:05", tz=CT))])
+    s = A.summary(tr, st, dict(data_ok=True, premium_pct=87.2, wrong_half=True))
+    assert s.startswith("Long B+ after sweep of 7768.5 low in deep premium") and "inverted at 13:03/13:05" in s and "stopped \u22121R" in s and "Lesson:" in s
+
+def _sidecar(root, day, cid, R, **trade):
+    d = root / day; d.mkdir(parents=True, exist_ok=True)
+    t = dict(signal=cid, chart_id=cid, symbol="ES", side="long", entry=7782.63, fill_t=f"{day}T13:02:10-05:00", exit_t=f"{day}T13:05:00-05:00"); t.update(trade)
+    (d / f"{cid}.json").write_text(json.dumps(dict(trade=t, features=dict(data_ok=True, R=R, win=R > 0, ifvg_against=R < 0), chart=None)))
+    (d / f"{cid}.png").write_bytes(b"\x89PNG" + b"0" * 100)
+
+def test_learn_skips_voided(tmp_path, monkeypatch):
+    monkeypatch.delenv("TC_VOIDS", raising=False)
+    _sidecar(tmp_path, "2026-10-15", "keep-1", 1.0); _sidecar(tmp_path, "2026-10-15", "void-id", -4.1)
+    _sidecar(tmp_path, "2026-10-14", "void-twin", -2.0, entry=7790.004); _sidecar(tmp_path, "2026-10-14", "void-flag", -1.0, voided=True)
+    (tmp_path / "voids.jsonl").write_text(json.dumps(dict(row_id="void-id", exclude_from_learning=True)) + "\n"
+                                          + json.dumps(dict(day="2026-10-14", symbol="ES", side="long", entry=7790.0)) + "\n"
+                                          + json.dumps(dict(row_id="keep-1", exclude_from_learning=False)) + "\n")
+    assert [r["chart_id"] for r in learn.build_table(str(tmp_path))] == ["keep-1"]
+    proto = tmp_path / "proto"; proto.mkdir()
+    rows, _ = learn.run(str(tmp_path), str(proto))
+    assert len(rows) == 1 and json.load(open(proto / "extra" / "weights_chart_features.json"))["meta"]["n_trades"] == 1
+    assert "void" not in (proto / "extra" / "chart_features.csv").read_text()
+
+def test_atomic_writes_and_lock(tmp_path):
+    p = tmp_path / "a" / "x.json"; learn.atomic_write(str(p), "1"); learn.atomic_write(str(p), "2")
+    assert p.read_text() == "2" and [f.name for f in p.parent.iterdir()] == ["x.json"]   # no tmp leftovers
+    import fcntl
+    with learn.locked(str(tmp_path)):
+        fh = open(tmp_path / ".learn.lock")
+        with pytest.raises(BlockingIOError): fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fh.close()
+    src = open(os.path.join(os.path.dirname(__file__), "..", "trade_charts", "learn.py")).read()
+    assert 'open(path, "w")' not in src and 'open(os.path.join(out, "weights_chart_features.json"), "w")' not in src
+
+def test_hook_patch_drops_home():
+    s = open(os.path.join(os.path.dirname(__file__), "..", "watcher-exit-hook.patch")).read()
+    line = next(l for l in s.splitlines() if "env = {k: v" in l)
+    assert '"HOME"' not in line and '"PATH"' in line
+
+def test_publish_index_caps_and_whitelist(tmp_path):
+    from trade_charts import publish as P
+    src = tmp_path / "src"; _sidecar(src, "2026-10-14", "a-old", 1.0); _sidecar(src, "2026-10-15", "b-new", -1.0, option=dict(account="SECRET"))
+    big = src / "2026-10-15"; _sidecar(src, "2026-10-15", "c-big", 1.0); (big / "c-big.png").write_bytes(b"0" * (P.MAX_PNG + 1))
+    dest = tmp_path / "public" / "trade-charts"; dest.mkdir(parents=True); (dest / "stale.png").write_bytes(b"x")
+    out = P.publish(str(src), str(dest))
+    idx = json.load(open(dest / "index.json"))
+    assert [t["id"] for t in idx["trades"]] == ["b-new", "a-old"] and out["n"] == 2   # newest first, oversize skipped
+    assert not (dest / "stale.png").exists() and (dest / "2026-10-15" / "b-new.png").exists()
+    assert "SECRET" not in (dest / "2026-10-15" / "b-new.json").read_text()

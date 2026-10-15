@@ -49,7 +49,7 @@ def analyze(tr, sources=None):
     sweeps_1h = [s for s in sweeps if s["t"] >= t_in - pd.Timedelta(minutes=60)]
     fill = tr["fill_px"]; stop = tr["stop"]; risk = abs(fill - stop) if fill and stop else None
     near = lambda g: min(abs(fill - g["lo"]), abs(fill - g["hi"])) <= a5 or g["lo"] <= fill <= g["hi"]
-    against_inv = "bull" if not L else "bear"     # a bull FVG inverted is bearish (against a long)
+    against_inv = "bull" if L else "bear"     # a bull FVG inverted is bearish (against a long)
     recent = lambda g: g["inverted"] is not None and g["inverted"] >= t_in - pd.Timedelta(minutes=90)
     ifvg_ag = [g for g in g5 + g1 if g["side"] == against_inv and recent(g) and near(g)]
     ifvg_with = [g for g in g5 + g1 if g["side"] != against_inv and recent(g) and near(g)]
@@ -96,7 +96,56 @@ def analyze(tr, sources=None):
         R=tr.get("R"), win=(tr.get("R") or 0) > 0, pnl_usd=tr.get("pnl_usd"), t1_hit=t1_hit, mfe_R=mfe, mae_R=mae,
         hindsight_ifvg_against_after_entry=bool(inv_after),
     )
+    swept = smc.mark_swept(m1, lv, pools, t_in)
+    # against-side FVGs that inverted during the trade, stamped at the CLOSE of the inverting bar (when it was knowable)
+    after = []
+    for gs, tf in ((g5_all, 5), (g1_all, 1)):
+        for g in gs:
+            if g["side"] == against_inv and g["inverted"] is not None and near(g):
+                tc = g["inverted"] + pd.Timedelta(minutes=tf)
+                if t_in <= tc <= t_out + pd.Timedelta(minutes=1): after.append(dict(g, tf=f"{tf}m", inv_close=tc))
+    # the zone traded from, with its FULL-history inversion (as-of copies hide what happened after the fill)
+    def full(z, pool):
+        return next((g for g in pool if g["t"] == z["t"] and g["lo"] == z["lo"] and g["hi"] == z["hi"]), z) if z else None
+    ez = full(in_fvg[-1] if in_fvg else None, g5_all + g15_all)
+    eo = (next((o for o in obs_all if o["t"] == in_ob[-1]["t"] and o["lo"] == in_ob[-1]["lo"]), in_ob[-1]) if in_ob else None)
+    st.update(levels_swept=swept, ifvg_after=after, entry_zone=ez, entry_ob=eo)
     st.update(atr5=a5, atr1=a1, levels=lv, range=rng, pools=pools, sweeps=sweeps, swings=sw5[-12:],
               fvg5=g5_all, fvg1=g1_all, fvg15=g15_all, obs=obs_all, ifvg_against=ifvg_ag, in_fvg=in_fvg, in_ob=in_ob,
               htf=dict(h1=h1, h4=h4, card=ch or None))
     return fr, st, f
+
+
+def _ft(t): return pd.Timestamp(t).tz_convert(CT).strftime("%H:%M")
+def _px(x): return f"{x:.2f}".rstrip("0").rstrip(".")
+
+def summary(tr, st, f):
+    """Plain-English 'why it fired / what happened / lesson' line for the chart box and the desk Charts tab."""
+    if not f.get("data_ok"): return "No bars for this trade; chart not drawn."
+    L = tr["side"] == "long"; t_in = tr["fill_t"]; why = [("Long" if L else "Short") + (f" {tr['band']}" if tr.get("band") else "")]
+    sw = [s for s in st.get("sweeps", []) if s["kind"] == ("SSL" if L else "BSL") and s["t"] <= t_in]
+    if sw: why.append(f"after sweep of {_px(sw[-1]['px'])} {'low' if L else 'high'}")
+    p = f.get("premium_pct")
+    if p is not None: why.append("in deep premium" if p > 60 else "in deep discount" if p < 40 else "mid-range")
+    if f.get("in_with_fvg"): why.append("from a with-side FVG")
+    elif f.get("in_with_ob"): why.append("from a with-side OB")
+    what = []
+    inv = sorted({_ft(g.get("inv_close", g["inverted"])): g for g in st.get("ifvg_after", [])}.items())
+    if inv:
+        g0 = inv[0][1]; tfs = sorted({g.get("tf", "") for _, g in inv}); tfw = (tfs[0] + " ") if len(tfs) == 1 and tfs[0] else ""
+        what.append(f"{g0['side']} {tfw}FVGs inverted at {'/'.join(k for k, _ in inv[:4])}" if len(inv) > 1 else f"a {g0['side']} {tfw}FVG inverted at {inv[0][0]}")
+    R = tr.get("R"); ex = tr.get("exit_px"); stop = tr.get("stop")
+    rtxt = "" if R is None else f" {R:+.2f}R".replace("-", "\u2212").replace(".00R", "R")
+    whys = " ".join(str(e.get("why") or "") for e in tr.get("events", []))
+    if "stop" in whys.lower() or (ex is not None and stop is not None and abs(ex - stop) < 0.01):
+        what.append(("stopped" if (R or 0) <= 0 else "trailed stop hit") + rtxt)
+    elif f.get("t1_hit"): what.append("T1 hit, closed" + rtxt)
+    else: what.append("closed" + rtxt)
+    lesson = []
+    if (R or 0) > 0:
+        return f"{' '.join(why)}; {'; '.join(what)}. Lesson: plan worked" + (" despite an against-side iFVG at the fill (lucky; don't count on it)." if f.get("ifvg_against") else ".")
+    if f.get("ifvg_against"): lesson.append("an against-side iFVG was already at the fill: skip")
+    if inv and (R or 0) <= 0: lesson.append("a with-side FVG inverting after the fill is the invalidation: exit there, not at the stop")
+    if f.get("wrong_half"): lesson.append(f"{'longs in premium' if L else 'shorts in discount'} need a deeper pullback")
+    if not lesson: lesson.append("plan worked as drawn" if (R or 0) > 0 else "no structural warning at entry; normal loss")
+    return f"{' '.join(why)}; {'; '.join(what)}. Lesson: {lesson[0]}."

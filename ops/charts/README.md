@@ -48,3 +48,10 @@ Apply at a quiet time: `cd /workspace/desk-watcher && patch -p1 --dry-run < …/
 ## VPS
 `ops/vps/charts_nightly.py` + `ledger-charts.{service,timer}` (Mon–Fri 18:05 ET, after archive/backtest): MemoryMax=300M,
 `PrivateNetwork=yes`, no env file. It uses archive bars only if the last `archive.log` record has `cost_usd == 0`.
+
+## Review fixes (PR #25)
+- Swept levels: PD/ON/PM lines and EQH/EQL pools that price trades through are drawn dim + dashed after the sweep and labelled `swept HH:MM CT`; resting levels are drawn faint and unlabelled.
+- EQ is snapped to the 0.25 tick. Labels are cut to the levels that matter (entry FVG/OB, swept liquidity, iFVGs, entry/stop/targets, EQ); a plain-English summary box sits under the title.
+- Voids: `learn` skips voided trades (snapNotVoided rule) from `TC_VOIDS` or `<out>/voids.jsonl` (`{"row_id": ...}` or `{"day","symbol","side","entry"}`) and from `voided`/`exclude_from_learning` on the sidecar.
+- Writes are atomic (tmp + os.replace) and `learn.run` holds an flock on `<out>/.learn.lock`.
+- `python -m trade_charts publish [--dest public/trade-charts]` copies charts + whitelisted sidecars + `index.json` for the desk's read-only Charts tab (450 KB/PNG, 20 MB total caps).

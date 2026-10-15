@@ -83,6 +83,8 @@ def test_charts_unit_caps_and_no_network():
     s = rd("ledger-charts.service")
     assert "MemoryMax=300M" in s and "PrivateNetwork=yes" in s and ".env" not in s and "flock /run/ledger-ops/batch.lock" in s
     assert "Persistent=false" in rd("ledger-charts.timer")
+    assert "IPAddressDeny=any" in s and "\nCapabilityBoundingSet=\n" in s and "MemorySwapMax=0" in s
+    assert "OnCalendar=Mon..Fri *-*-* 17:20:00 America/New_York" in rd("ledger-charts.timer")
     src = open(os.path.join(HERE, "charts_nightly.py")).read()
     assert "get_range" not in src and "import databento" not in src
 

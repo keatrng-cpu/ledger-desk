@@ -14,10 +14,13 @@ ProtectHome=yes
 PrivateTmp=yes
 # no network at all: cannot reach Databento (or anything) -> no paid data is possible from this unit
 PrivateNetwork=yes
+IPAddressDeny=any
+CapabilityBoundingSet=
 ReadOnlyPaths=/var/lib/ledger-archive /var/lib/ledger-paper
 ReadWritePaths=/var/lib/ledger-charts /var/log/ledger-ops /run/ledger-ops
 Environment=ARCHIVE_DIR=/var/lib/ledger-archive TC_OUT=/var/lib/ledger-charts TC_VPS_PAPER_EVENTS=/var/lib/ledger-paper/events.jsonl MPLBACKEND=Agg MPLCONFIGDIR=/tmp
 MemoryMax=300M
+MemorySwapMax=0
 CPUQuota=50%
 IOSchedulingClass=idle
 TimeoutStartSec=30min
