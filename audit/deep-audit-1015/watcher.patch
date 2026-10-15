@@ -262,7 +262,7 @@ index badf3f8..5224af3 100644
          opts = rs.options.find_tradable_options(sym, exp, optionType=side) or []   # instruments only (fast); quote fetched for the pick
          by_strike = {float(o["strike_price"]): o for o in opts if o.get("tradability") == "tradable"}
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index c9f9920..93b2c15 100644
+index 5b19659..5c6be38 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
 @@ -93,7 +93,12 @@ class Watcher:
@@ -297,7 +297,7 @@ index c9f9920..93b2c15 100644
                  self.log("bplus_caution", signal=key, ok=bc[0][0], detail=bc[0][1]); sbc["bplus_caution"] = [bc[0][0], bc[0][1]]
          ga = [(ok, w) for n, ok, w in pre if n == "grok_agree"]
          if ga:
-@@ -405,7 +410,10 @@ class Watcher:
+@@ -412,7 +417,10 @@ class Watcher:
                  if last and prev and prev[-1] is not last: ticks.record(self.cfg, sym, last)
                  atr = snap.get("atr") if snap.get("symbol") == sym and snap.get("atr") else gates.DEFAULT_ATR.get(sym)
                  sp = self.agg.detect(sym, atr, int(now))
@@ -309,7 +309,7 @@ index c9f9920..93b2c15 100644
              self._kz_shadow(snap, now)
              self._kz_arm_shadow(now)
              if now - getattr(self, "_fast_posted", 0) >= 5:
-@@ -433,8 +441,10 @@ class Watcher:
+@@ -440,8 +448,10 @@ class Watcher:
              self.log("kz_shadow_error", error=str(e))
  
      def _gate_log(self, key, snap, g, dayst, broker=False):
@@ -322,7 +322,7 @@ index c9f9920..93b2c15 100644
          raw = getattr(self, "_last_card", None)
          if raw is not None and raw.get("at") != getattr(self, "_logged_at", None):
 diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
-index 10f6787..8e5e0a1 100644
+index 6305602..ad937f7 100644
 --- a/watcher/desk-rules.json
 +++ b/watcher/desk-rules.json
 @@ -197,6 +197,17 @@
@@ -344,7 +344,7 @@ index 10f6787..8e5e0a1 100644
        "mode": "shadow",
        "zeroDteUntilEt": "14:30",
 diff --git a/watcher/gates.py b/watcher/gates.py
-index 04dd79f..af831f0 100644
+index 53c0bf7..d81f7fa 100644
 --- a/watcher/gates.py
 +++ b/watcher/gates.py
 @@ -104,6 +104,9 @@ def snapshot(card):
@@ -357,7 +357,7 @@ index 04dd79f..af831f0 100644
          "ltf_kill_cleared": strat.get("ltfKillCleared") is True,
          "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
          "stop_px": _strict(strat.get("stopPx")),
-@@ -594,7 +597,7 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+@@ -603,7 +606,7 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      add("card_age", age is not None and -5 <= age <= 30, f"card age {age}s")
      dte = t.get("dte") if t else None
      from . import optexec as _oxd        # fix 5: the watcher picks the DTE by time of day (the desk ticket's dte is advisory)
