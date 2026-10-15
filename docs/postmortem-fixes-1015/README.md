@@ -15,6 +15,6 @@ Replay rows are base = unblock-2 rebased with `second_entry_band` removed. Each 
 | F9 short from iFVG / 1m read-priority (CE entry) | **live** (desk) | not replayable offline (needs new cards); see case |
 | F10 synth ticket DTE = optExec.dteByTime (0DTE before 14:30 ET) | **live** (watcher daemon) | 0 (replay already prices 0DTE) |
 | F12 read-priority: 2+ same-side 5m FVGs closed through on 1m → any band blocked, card → C, opposite side armed same poll | **live** | 0 |
-| Keaton 13:26: `second_entry_band` removed | **live** | +0.11R, +$33 vs before; **10/15 13:15:25 ES short fires** (live-state replay from 13:05 CT) |
+| Keaton 13:26: `second_entry_band` removed | **live** | 0 on the full replay (its open 09:45 MNQ long holds the one-position slot); **10/15 13:15:25 ES short fires** in the live-state replay from 13:05 CT (flat, 1 entry) |
 
-Shipped set (F1+F2+F3+F5+F9+F10+F12 + second entry removed): 5 fires, +0.22R, +$57 options / +$94 futures-equivalent.
+Open 09:45 long is marked to the latest bar (base +0.63R), so totals move with the tape. Shipped set (F1+F2+F3+F5+F9+F10+F12 + second entry removed): 5 fires, +0.22R, +$57 options / +$94 futures-equivalent.
