@@ -4,6 +4,9 @@ import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
+import { setQSource, qWrite } from "./q-source";
+import { applyDayNudge } from "./day-nudge";
+import { computeQV2, keySwept, sessionSplit, trendDay } from "./q-v2";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
 import { MACRO_NUDGE, TUNABLES } from "@/lib/trading/config";
@@ -1253,7 +1256,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const fight = smtFightsContinuation(mtfContext, c.symbol, c.side as "long" | "short");
         if (fight) {
           const before = c.pathBand;
-          c.pathBand = capBand(c.pathBand, "B") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "B") as never, "cap:SMT fight");
           c.actionable = false;
           c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
         }
@@ -1269,7 +1272,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
         }
         if (rev.against === c.side && rev.rearmed) {
-          c.pathBand = capBand(c.pathBand, "A-") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "A-") as never, "cap:LTF re-arm");
           c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
         } else if (rev.against === c.side) {
           if (rev.killCleared) {
@@ -1277,7 +1280,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
             c.reasons.push(`shadow:killCleared (no effect, mode ${KILL_CLEAR.mode ?? "shadow"}): ${rev.killCleared.why}`);
           }
-          c.pathBand = capBand(c.pathBand, "C") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "cap:LTF reversal");
           c.actionable = false;
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
           c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
@@ -1288,7 +1291,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
           const boost = TUNABLES.killBoost;
           (c as { killBoosted?: boolean }).killBoosted = true;
-          c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + boost).toFixed(4)) as never, "ltf:killBoost");
           c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
         }
       }
@@ -1303,7 +1306,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (!rs || killed) continue;
         c.setupRegime = "reversal";
         if (rs.ltfBreaks >= LTF_BREAKS_FOR_REVERSAL) {
-          c.confluence = +Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4)) as never, "reversal:nudge");
         }
         if (rs.htfRelease) {
           c.htfOk = true;
@@ -1330,16 +1333,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (b5.length < 10 || atr == null) { (c as { setups?: string[] }).setups = tags; continue; }
         const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price }));
         const ts = setups.turtleSoup(b5, levels);
-        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:turtleSoup"); }
         const br = setups.bosRetest(b5, atr, side);
-        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:bosRetest"); }
         const sp = setups.sponsoredHold(mtfArrays(c.symbol, minute, []), minute, side);
-        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:sponsoredHold"); }
         const legs = setups.legCount(b5, side);
         (c as { legs?: number }).legs = legs;
         if (regime === "trend" && legs >= 3) {
           tags.push(`leg ${legs} — continuation decays`);
-          c.confluence = +Math.max(0, c.confluence - 0.03).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.max(0, c.confluence - 0.03).toFixed(4)) as never, "setup:legDecay");
           if (c.pathBand && c.pathBand !== "skip") c.pathBand = capBand(c.pathBand as never, "A-") as never;
         }
         (c as { setups?: string[] }).setups = tags;
@@ -1421,7 +1424,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const qs = dayc.qSpread(c.strategyBoard as never);
         if (qs && qs.agree >= 3) nudge(0.01, `${qs.agree}/${qs.n} strategies within 0.05 of the best`);
         const total = Math.max(-0.06, Math.min(0.06, n));
-        if (total) c.confluence = +Math.max(0, Math.min(0.99, c.confluence + total)).toFixed(4);
+        applyDayNudge(c, total);
         (c as { dayCtx?: unknown }).dayCtx = {
           nudge: +total.toFixed(3), why, dailyBias: d.bias?.bias ?? null, pd: d.pd, sessionSeq: d.seq, pair,
           openingRange: d.or ? { high: d.or.high, low: d.or.low, read: d.or.read, sd: d.or.sd } : null,
@@ -1458,7 +1461,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (ds) {
           const nudge = +(DISP_NUDGE * (ds.score - 0.5) * 2).toFixed(4);
           if (nudge !== 0) {
-            c.confluence = +Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4);
+            qWrite(c as never, "confluence" as never, (+Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4)) as never, "dispStrength");
             c.reasons.push(`Displacement strength ${ds.score} (${ds.bodyAtr}×ATR5${ds.leftFvg ? ", left an FVG" : ""}) ${nudge > 0 ? "+" : ""}${nudge}`);
           }
         }
@@ -1466,7 +1469,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.exitPlan = exitPlanOf(minute, side, (isL ? lq : rq)?.price ?? null, kill);
       }
       // AUDIT F3: one band per card — strictly bandFromQ(q) after every cap.
-      for (const c of payload.scan.candidates) { preSeal(c as never); capStage("seal"); sealBand(c as never); }
+      for (const c of payload.scan.candidates) { setQSource(`seal:band ceiling (${c.pathBand})`); preSeal(c as never); capStage("seal"); sealBand(c as never); setQSource(null); }
       capStage("post-seal plan/guards");
       // Fix B: timing is entryState, not quality. Every card carries it (1m–4h distances); the quality-only
       // q/band (chase penalty undone) is logged in shadow (timing.mode shadow) and IS q/band in live.
@@ -1488,6 +1491,24 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (c as { qualityShadow?: unknown }).qualityShadow = { q: qq, band: bandFromQ(qq), liveQ: c.confluence, liveBand: c.pathBand };
           c.reasons.push(`shadow:timing (no effect): quality-only q ${qq} (${bandFromQ(qq)}) vs live ${c.confluence} (${c.pathBand}); ${es?.label ?? "no entryState"}`);
         } else if (es) c.reasons.push(`Timing: ${es.label} (${es.distAtr}×ATR15)`);
+      }
+      // qv2-1015: SHADOW q beside live q (shared/q-v2.json). Read-only on the card's live fields.
+      for (const c of payload.scan.candidates) {
+        try {
+          const isL = c.symbol === left.symbol;
+          const minute = isL ? minuteL : minuteR;
+          const b = isL ? biasL : biasR;
+          const sp = sessionSplit(minute, nowMs);
+          const side = c.side as "long" | "short";
+          const caps = ((c as { capReasons?: unknown[] }).capReasons ?? []) as never;
+          const qScan = (c as { q_scan?: number }).q_scan ?? c.confluence;
+          const vetoed = (c.vetoes?.length ?? 0) > 0 || c.ltfKilled === true;
+          (c as { q_v2?: unknown }).q_v2 = computeQV2({
+            side, qScan, components: c.components as string[], htfOk: c.htfOk, nowMs,
+            keySwept: keySwept(side, minute, { pdh: b.pdh, pdl: b.pdl, onh: sp.onh, onl: sp.onl }, nowMs),
+            trendDay: trendDay(sp.session), volPct: null, capReasons: caps, vetoed, option: null,
+          } as never);
+        } catch { /* shadow only: never break the live desk */ }
       }
       // AUDIT F2: the top card is the best card (actionable, band, q), so the
       // wire, the Floor and the brain read the same first candidate.
@@ -1587,7 +1608,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const add = Math.min(0.02, 0.06 - dc.nudge);
         if (!(add > 0)) continue;
         const wasQBand = c.pathBand === bandFromQ(c.confluence);
-        c.confluence = +Math.min(0.99, c.confluence + add).toFixed(4);
+        qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + add).toFixed(4)) as never, "dayContext:lateOB");
         if (wasQBand && c.pathBand !== "skip") c.pathBand = bandFromQ(c.confluence) as never;
         dc.obFvg = true; dc.nudge = +(dc.nudge + add).toFixed(3); dc.why.push(`+${add.toFixed(2)} ${ob.kind} overlaps the entry gap (late plan)`);
         c.reasons.push(`OB/FVG overlap on the late plan: +${add.toFixed(2)}`);
@@ -1797,7 +1818,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { liveMut = true; c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
         const v = lossGuards.velocityRead(m, entry, pl.t1);
         out.velocity = v;
-        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
+        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; qWrite(c as never, "confluence" as never, (+Math.max(0, c.confluence - v.penalty).toFixed(4)) as never, "loss:velocity"); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
         if (liveMut) sealBand(c as never);
         // 1) 1h AND 4h both against the side
         const hb = htfBiasOf(mtfContext, c.symbol);
@@ -1954,9 +1975,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: since });
         const kill = (why: string) => {
           if (c.actionable) c.actionable = false;
-          c.pathBand = capBand(c.pathBand, "C") as never;
-          sealBand(c as never);
-          c.pathBand = capBand(c.pathBand, "C") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
+          setQSource("dead:card seal"); sealBand(c as never); setQSource(null);
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
           c.reasons.push(why);
         };
         if (inv.invalid) {
@@ -1995,6 +2016,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       }
       // A dead lead must not keep the brain's book alive: invalidated, stale, played out (C-capped) or price-unknown → brain STAND (desk/brain/Floor unity).
       const isDead = (c: unknown) => { const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; priceUnknown?: boolean }; return Boolean(x.invalidated || x.staleTape || x.playedOut || x.priceUnknown); };
+      // qv2-1015 × #19: q_v2 is computed before this seal, so a card killed here (invalidated / played out / stale
+      // tape → live band C) must not keep a live-looking shadow grade. Shadow only; live fields untouched.
+      for (const c of payload.scan.candidates) {
+        const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; q_v2?: { band: string; vetoed: boolean; deltas: { source: string; delta: number; note?: string }[] } | null };
+        if (x.q_v2 && (x.invalidated || x.staleTape || x.playedOut)) {
+          x.q_v2 = { ...x.q_v2, band: "C", vetoed: true, deltas: [...x.q_v2.deltas, { source: "veto:dead card", delta: 0, note: x.invalidated ? "invalidated" : x.playedOut ? "played out" : "stale tape" }] };
+        }
+      }
       for (const bk of [smcMaster.left, smcMaster.right]) {
         const dead = payload.scan.candidates.find((c) => c.symbol === bk?.symbol && c.side === bk?.side && isDead(c));
         if (bk && dead && bk.word !== "STAND") { bk.word = "STAND"; bk.missing = dead.reasons[dead.reasons.length - 1] ?? "card dead"; }

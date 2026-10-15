@@ -1,0 +1,29 @@
+{
+  "_doc": "SHADOW q (q_v2). Not part of shared/desk-rules.json, so the rules hash is unchanged. Computed beside live q on every card (desk), carried on the wire to the brain/Floor seat and the watcher feed as strategy.qV2 (carried only: neither logs nor shows it yet; volPct and option are null, so those terms are dead). Never gates or fires. Weights fit walk-forward on train years only (audits/qv2-1015/wf.py, last window = train 2010-2025). Order of application = data-ranked order (report.md).",
+  "version": 1,
+  "mode": "shadow",
+  "bandEdges": { "A+": 0.75, "A": 0.68, "A-": 0.65, "B+": 0.6, "B": 0.5 },
+  "factorCap": 0.07,
+  "weights": {
+    "mechanical_model": 8, "structure": 8, "mid_bias": 4, "ifvg": 3, "smt": 0,
+    "sweep_significant": 4, "htf2_bias": 2, "weekly_pd": 2, "order_block": 0, "fvg_tap": 0,
+    "ote": 4, "cisd": 4, "blake_swing": 4, "displacement": 4, "mss": 4, "opening_bias": 4,
+    "pd": 0, "sponsored": 3, "breaker": 3, "mitigation": 3, "rejection": 3, "propulsion": 3, "daily_bias": 1.5,
+    "ltf_reaction": 0, "opening_raid": 0, "htf_gap": 0, "or_raid": 0
+  },
+  "htfBonus": 0.0125,
+  "anchor": {
+    "_doc": "Absolute base, same formula the walk-forward was fit and calibrated on (audits/qv2-1015/wf.py): q0 + slope*pts/denom + htfBonus + killzone. Replaces qScan+delta, which saturated at 0.99 on the desk (Accuracy review 10/15). Calibration on the train/test split: audits/qv2-1015/calib_split.json.",
+    "q0": 0.44, "slope": 0.40, "denom": 60,
+    "pts": { "mechanical_model": 8, "structure": 8, "displacement": 4, "sweep_significant": 4, "mss": 4, "ifvg": 3 },
+    "htfPts": 2, "killzoneBonus": 0.015, "killzoneBeforeMin": 660
+  },
+  "keySweep": { "boost": 0.06, "fullFromMin": 510, "fullToMin": 600, "zeroAtMin": 660, "lookbackMin": 60 },
+  "regime": { "trendDay": 0.02, "trendness": 0.6, "highVol": -0.01, "highVolPct": 0.33 },
+  "option": {
+    "spreadPctFree": 0.03, "spreadPctPerPt": 0.5, "spreadMax": 0.04,
+    "premiumVsMoveFree": 1.0, "premiumVsMovePer": 0.05, "premiumMax": 0.03,
+    "thetaFromMin": 780, "thetaPer30m": 0.01, "thetaMax": 0.03,
+    "totalMax": 0.07
+  }
+}

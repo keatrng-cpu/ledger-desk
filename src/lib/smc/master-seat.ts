@@ -21,6 +21,8 @@ export interface MasterInput {
     bias4h: string | null;
     dispScore: number | null;
     ltfKilled: boolean;
+    /** qv2-1015 shadow score, read-only (the seat never decides on it). */
+    qV2?: { q: number; band: string; vetoed: boolean } | null;
     reversal: string | null;
   } | null;
   brainWord: string | null;

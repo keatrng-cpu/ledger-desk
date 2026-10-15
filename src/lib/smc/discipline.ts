@@ -16,6 +16,7 @@ import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
+import { setQSource } from "@/lib/trading/q-source";
 
 export const BANDS = ["A+", "A", "A-", "B+", "B", "C", "skip"] as const;
 export type Band = (typeof BANDS)[number];
@@ -197,8 +198,12 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
     note(`Rejection wick at a level ${vote > 0 ? "for" : "against"} this side (${vote > 0 ? "+" : "−"}${WICK_NUDGE})`);
   }
   if (idx(band) > idx("B+")) c.actionable = false;
+  // Every discipline write is labelled R1–R8 (the chase source above wins when q moved by R3).
+  if (c.pathBand !== band) setQSource("discipline:band cap (R1/R2/R4/R5/R7/R3 steps)");
   c.pathBand = band;
+  if (c.confluence !== q) setQSource((c as { chase?: { applied?: boolean } }).chase?.applied ? "R3 chase (×factor, + R8 wick if any)" : "R8 rejection wick");
   c.confluence = q;
+  setQSource(null);
   return c;
 }
 
