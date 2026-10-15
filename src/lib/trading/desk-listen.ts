@@ -102,9 +102,12 @@ export interface DeskWire {
     headlineTone: "unknown";
     line: string;
   } | null;
+  /** 1m series integrity (#19). gapped=true → LTF arrays/levels withheld; the watcher blocks. */
+  feed: { gapped: boolean; gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean; blocking: boolean; why: string }[] };
   tape: {
     feed: string;
     fresh: boolean;
+    gapped: boolean;
     left: { symbol: string; price: number; source: string; lagSec: number };
     right: { symbol: string; price: number; source: string; lagSec: number };
   };
@@ -289,9 +292,11 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           line: desk.shock.line,
         }
       : null,
+    feed: { gapped: desk.minuteFeed?.gapped === true, gaps: desk.minuteFeed?.gaps ?? [] },
     tape: {
       feed: desk.feed,
       fresh: tapeFresh,
+      gapped: desk.minuteFeed?.gapped === true,
       left: { symbol: desk.quotes.left.symbol, price: desk.quotes.left.price, source: desk.quotes.left.source, lagSec: desk.quotes.left.lagSec },
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
     },
