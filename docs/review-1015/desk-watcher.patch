@@ -1,6 +1,6 @@
 diff -uN /tmp/dwpristine/tests/test_gates_log_parity.py dw-batch/tests/test_gates_log_parity.py
 --- /tmp/dwpristine/tests/test_gates_log_parity.py	2026-10-13 16:40:46.000000000 -0500
-+++ dw-batch/tests/test_gates_log_parity.py	2026-10-15 11:32:02.304926632 -0500
++++ dw-batch/tests/test_gates_log_parity.py	2026-10-15 12:00:44.084926632 -0500
 @@ -34,6 +34,7 @@
  
  PAIRS, _ = _pairs()
@@ -9,7 +9,7 @@ diff -uN /tmp/dwpristine/tests/test_gates_log_parity.py dw-batch/tests/test_gate
  @pytest.mark.skipif(not PAIRS, reason="no cards.log/gates.log pairs yet")
  def test_cards_log_replays_to_gates_log():
      cal = json.load(open(os.path.join(os.path.dirname(HERE), "data", "news-calendar.json")))
-@@ -41,8 +42,16 @@
+@@ -41,8 +42,20 @@
      for c, g in PAIRS:
          from tests.conftest import _raw_snapshot
          snap = _raw_snapshot(c["card"]); snap.update(c["extra"]); snap["_now_ms"] = c["now_ms"]
@@ -26,6 +26,10 @@ diff -uN /tmp/dwpristine/tests/test_gates_log_parity.py dw-batch/tests/test_gate
 +            sub = lambda v: json.loads(json.dumps(v).replace(old, gates.RULES_HASH))
 +            snap, dayst, exp = sub(snap), sub(dayst), sub(exp)
 +        got = [[n, ok, w] for n, ok, w in gates.evaluate_fire(snap, _cfg(c["cfg"]), c["now_ms"], dayst, None, cal)]
++        # shadow:* rows are advisory (always ok) and some live ones (e.g. shadow:fx:persistGrace) depend on state not saved
++        # in cards.log, so compare only the non-shadow rows.
++        noshadow = lambda rows: [r for r in rows if not str(r[0]).startswith("shadow:")]
++        got, exp = noshadow(got), noshadow(exp)
 +        if got != exp:
 +            diff = [(a, b) for a, b in zip(got, exp) if a != b][:3]
 +            bad.append((c["ts"], diff or (len(got), len(exp))))
