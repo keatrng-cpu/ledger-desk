@@ -103,7 +103,7 @@ export interface DeskWire {
     line: string;
   } | null;
   /** 1m series integrity (#19). gapped=true → LTF arrays/levels withheld; the watcher blocks. */
-  feed: { gapped: boolean; gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number }[] };
+  feed: { gapped: boolean; gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean }[] };
   tape: {
     feed: string;
     fresh: boolean;

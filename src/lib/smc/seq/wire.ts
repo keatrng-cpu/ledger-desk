@@ -79,7 +79,7 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
   for (const side of ["left", "right"] as const) {
     const sym = i.desk[side].symbol;
     const b = bookOf(sym);
-    if (b.feedNowMs != null) amd[sym] = amdRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
+    if (b.feedNowMs != null) amd[sym] = amdRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs, { gapped: (i.desk.minuteFeed?.gaps ?? []).some((g) => g.symbol === sym) });
   }
   const continuation: Record<string, ContRead> = {};
   for (const side of ["left", "right"] as const) {

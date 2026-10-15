@@ -244,10 +244,10 @@ const GATEWAY_BARS_LIMIT = 240;
 
 export interface MinuteFeed {
   gapped: boolean;
-  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number }[];
+  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean }[];
 }
 export function minuteFeedOf(rows: { symbol: string; gaps: MinuteGap[] }[]): MinuteFeed {
-  const gaps = rows.flatMap((r) => r.gaps.map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing })));
+  const gaps = rows.flatMap((r) => r.gaps.map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing, ...(g.trailing ? { trailing: true } : {}) })));
   return { gapped: gaps.length > 0, gaps };
 }
 
@@ -292,9 +292,12 @@ async function loadMinute(symbol: IndexSymbol, t0: number): Promise<{ bars: Ohlc
       // gateway → fill from Yahoo (gateway wins), and report what is left.
       if (gw.length >= 30) {
         const tail = gw.slice(-MINUTE_KEEP);
-        if (!findMinuteGaps(tail).length) return { bars: tail, gaps: [] };
+        // nowMs: a gateway that stalled (live end hole) is gapped too — Yahoo
+        // carrying on does not make the live tape live.
+        const nowMs = Date.now();
+        if (!findMinuteGaps(tail, undefined, nowMs).length) return { bars: tail, gaps: [] };
         const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);
-        const f = fillMinuteSeries(gw, y?.bars ?? [], MINUTE_KEEP);
+        const f = fillMinuteSeries(gw, y?.bars ?? [], MINUTE_KEEP, nowMs);
         return { bars: f.bars, gaps: f.gaps };
       }
       const y = await fetchYahooBars(symbol, "1d", "1m").catch(() => null);

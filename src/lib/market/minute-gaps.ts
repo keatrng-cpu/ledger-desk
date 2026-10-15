@@ -22,6 +22,30 @@ export interface MinuteGap {
   toMs: number;
   /** Globex minutes expected but missing between them. */
   missing: number;
+  /** Hole at the live end: last bar → now (gateway stalled). toMs is the current minute, not a bar. */
+  trailing?: boolean;
+}
+
+/** CME equity index futures tick. */
+export const TICK = 0.25;
+export const snapTick = (p: number, tick = TICK): number => Math.round(p / tick) * tick;
+export const floorMinute = (t: number): number => Math.floor(t / MIN) * MIN;
+
+/**
+ * Normalise fill (Yahoo) bars before they sit next to gateway bars: stamps
+ * floored to the minute (a 09:15:30 stamp would otherwise survive beside the
+ * gateway's 09:15:00 and double-count) and prices snapped to the 0.25 tick.
+ * Two fill bars landing on one minute are combined (first o, last c, max h, min l, Σv).
+ */
+export function normalizeFillBars(fill: OhlcBar[], tick = TICK): OhlcBar[] {
+  const map = new Map<number, OhlcBar>();
+  for (const b of [...fill].sort((a, b) => a.t - b.t)) {
+    const t = floorMinute(b.t);
+    const n = { t, o: snapTick(b.o, tick), h: snapTick(b.h, tick), l: snapTick(b.l, tick), c: snapTick(b.c, tick), v: b.v };
+    const prev = map.get(t);
+    map.set(t, prev ? { t, o: prev.o, c: n.c, h: Math.max(prev.h, n.h), l: Math.min(prev.l, n.l), v: (prev.v ?? 0) + (n.v ?? 0) } : n);
+  }
+  return [...map.values()];
 }
 
 const etFmt = new Intl.DateTimeFormat("en-US", {
@@ -52,8 +76,13 @@ export function expectedMinutesBetween(aMs: number, bMs: number): number {
   return n;
 }
 
-/** Holes in a sorted 1m series (only between its first and last bar). */
-export function findMinuteGaps(bars: OhlcBar[], minMissing = GAP_MIN_MISSING): MinuteGap[] {
+/**
+ * Holes in a sorted 1m series. Between bars always; with `nowMs`, also the
+ * live end (last bar → current minute), for a gateway that stalled. Pass
+ * nowMs only for a live source — a delayed source (Yahoo ~10 min) would
+ * always read as stalled.
+ */
+export function findMinuteGaps(bars: OhlcBar[], minMissing = GAP_MIN_MISSING, nowMs?: number): MinuteGap[] {
   const out: MinuteGap[] = [];
   for (let i = 1; i < bars.length; i++) {
     const a = bars[i - 1]!.t;
@@ -61,6 +90,14 @@ export function findMinuteGaps(bars: OhlcBar[], minMissing = GAP_MIN_MISSING): M
     if (b - a <= MIN) continue;
     const missing = expectedMinutesBetween(a, b);
     if (missing >= minMissing) out.push({ fromMs: a, toMs: b, missing });
+  }
+  if (nowMs != null && bars.length) {
+    const last = bars[bars.length - 1]!.t;
+    const nowMin = floorMinute(nowMs);
+    if (nowMin > last) {
+      const missing = expectedMinutesBetween(last, nowMin);
+      if (missing >= minMissing) out.push({ fromMs: last, toMs: nowMin, missing, trailing: true });
+    }
   }
   return out;
 }
@@ -87,11 +124,13 @@ export interface FilledMinute {
  * fill bars inside the window [first fill bar, last primary bar] are used, so
  * a delayed Yahoo print never sits on top of the live end.
  */
-export function fillMinuteSeries(primary: OhlcBar[], fill: OhlcBar[], keep: number): FilledMinute {
-  const gatewayGaps = findMinuteGaps(primary);
+export function fillMinuteSeries(primary: OhlcBar[], fill: OhlcBar[], keep: number, nowMs?: number): FilledMinute {
+  const gatewayGaps = findMinuteGaps(primary, GAP_MIN_MISSING, nowMs);
   const lastPrimary = primary.length ? primary[primary.length - 1]!.t : Infinity;
-  const usable = primary.length ? fill.filter((b) => b.t <= lastPrimary) : fill;
-  const merged = (fill.length ? mergePriority(primary, usable) : primary.slice()).slice(-keep);
-  const gaps = findMinuteGaps(merged);
+  const norm = normalizeFillBars(fill);
+  const usable = primary.length ? norm.filter((b) => b.t <= lastPrimary) : norm;
+  const merged = (usable.length ? mergePriority(primary, usable) : primary.slice()).slice(-keep);
+  // Trailing hole stays: Yahoo past the gateway end is not used (delayed, and no lookahead past the live tape).
+  const gaps = findMinuteGaps(merged, GAP_MIN_MISSING, nowMs);
   return { bars: merged, gaps, gatewayGaps, filled: usable.length > 0 && gatewayGaps.length > gaps.length };
 }

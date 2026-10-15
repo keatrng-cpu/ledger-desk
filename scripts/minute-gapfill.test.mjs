@@ -122,3 +122,61 @@ test("daily halt and weekend are not holes; thin 1–2 minute skips are not hole
   assert.equal(mg.globexOpenAt(et(15, 17, 30)), false); // halt
   assert.equal(mg.globexOpenAt(et(15, 3, 0)), true);
 });
+
+// ── PR #16 review (Accuracy Review CHANGES) ──────────────────────────────
+test("fill bars are snapped to the 0.25 tick (off-tick Yahoo prints never reach the series)", () => {
+  const { gw, yahoo } = esCase();
+  const off = yahoo.map((b) => ({ ...b, o: b.o + 0.07, h: b.h + 0.11, l: b.l - 0.13, c: b.c + 0.02 }));
+  const f = mg.fillMinuteSeries(gw, off, 2000);
+  for (const b of f.bars.filter((x) => x.v !== 999)) for (const k of ["o", "h", "l", "c"]) assert.equal(b[k] % 0.25, 0, `${k} ${b[k]} @ ${new Date(b.t).toISOString()}`);
+  assert.equal(mg.snapTick(7755.87), 7755.75);
+  assert.equal(mg.snapTick(29703.13), 29703.25);
+});
+
+test("Yahoo stamps are floored to the minute — no duplicate minute next to a gateway bar", () => {
+  const { gw, yahoo } = esCase();
+  // Yahoo stamps 30 s late (and one minute split into two prints).
+  const late = yahoo.map((b) => ({ ...b, t: b.t + 30_000 }));
+  late.push({ ...late[100], t: late[100].t + 15_000, h: late[100].h + 1, v: 5 });
+  const f = mg.fillMinuteSeries(gw, late, 5000);
+  assert.ok(f.bars.every((b) => b.t % 60_000 === 0), "every stamp minute-aligned");
+  assert.equal(new Set(f.bars.map((b) => b.t)).size, f.bars.length, "no duplicate minute");
+  // Gateway bar still wins on a minute both have.
+  assert.equal(f.bars.find((b) => b.t === et(15, 0, 5)).v, 999);
+  assert.deepEqual(f.gaps, []);
+  const split = mg.normalizeFillBars([{ t: 90_000, o: 1, h: 2, l: 0.5, c: 1.5, v: 1 }, { t: 100_000, o: 1.5, h: 3, l: 1, c: 2.5, v: 2 }]);
+  assert.deepEqual(split, [{ t: 60_000, o: 1, h: 3, l: 0.5, c: 2.5, v: 3 }]);
+});
+
+test("live-end hole: gateway stalled while Yahoo continues → trailing gap, Yahoo not stitched on", () => {
+  const { gw, yahoo } = esCase();
+  const stalled = gw.filter((b) => b.t <= et(15, 9, 20));
+  const now = et(15, 9, 29) + 20_000;
+  const raw = mg.findMinuteGaps(stalled, undefined, now);
+  assert.equal(raw.length, 2);
+  assert.equal(raw.at(-1).trailing, true);
+  assert.equal(raw.at(-1).fromMs, et(15, 9, 20));
+  assert.equal(raw.at(-1).toMs, et(15, 9, 29));
+  const f = mg.fillMinuteSeries(stalled, yahoo, 2000, now);
+  assert.equal(f.gaps.length, 1);
+  assert.equal(f.gaps[0].trailing, true);
+  assert.equal(f.bars.at(-1).t, et(15, 9, 20));
+  // A live gateway (forming minute present) has no trailing gap; the halt is not a stall.
+  assert.deepEqual(mg.findMinuteGaps(gw, undefined, et(15, 9, 30) + 5_000), mg.findMinuteGaps(gw));
+  assert.deepEqual(mg.findMinuteGaps([bar(et(15, 16, 59), 1, 1)], undefined, et(15, 17, 45)), []);
+});
+
+test("AMD read surfaces gapped (desk flag, or a >5 min Globex hole) instead of building on the hole", async () => {
+  const amd = await import("../src/lib/smc/seq/amd-state.ts");
+  const { gw, yahoo } = esCase();
+  const map = { levels: [{ name: "PMH", price: 7755.75, kind: "pm" }], arrays: [], atr15: 4 };
+  const now = et(15, 9, 30);
+  const holed = amd.amdRead("ES", map, gw, now);
+  assert.equal(holed.gapped, true);
+  assert.match(holed.gapReason, /1m hole .*541m/);
+  assert.equal(holed.live, null);
+  const flagged = amd.amdRead("ES", map, mg.fillMinuteSeries(gw, yahoo, 2000).bars, now, { gapped: true });
+  assert.equal(flagged.gapped, true);
+  const clean = amd.amdRead("ES", map, mg.fillMinuteSeries(gw, yahoo, 2000).bars, now);
+  assert.notEqual(clean.gapped, true);
+});
