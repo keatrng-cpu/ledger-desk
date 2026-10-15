@@ -138,6 +138,8 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
+    /** qv2-1015 SHADOW score (shared/q-v2.json): never gates or fires; brain, Floor and the watcher log it beside q. */
+    qV2: { q: number; band: string; deltas: { source: string; delta: number; note?: string }[]; vetoed: boolean } | null;
     /** Fix A: the side's kill evidence is invalidated on closed bars (kill.clear); the watcher ltf_kill reads it with kill.clear.mode. */
     ltfKillCleared: boolean;
     /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
@@ -345,6 +347,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           judas,
           scannerSkip: top.scannerSkip === true,
           ltfKilled: top.ltfKilled === true,
+          qV2: ((top as { q_v2?: unknown }).q_v2 as never) ?? null,
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
@@ -500,6 +503,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         q: c.confluence,
         /** Review 2026-10-15 #2: q before the seal and every cap/penalty that fired (band before/after). */
         q_raw: (c as { q_raw?: number }).q_raw ?? null,
+        q_v2: (c as { q_v2?: unknown }).q_v2 ?? null,
         q_scan: (c as { q_scan?: number }).q_scan ?? null,
         capReasons: ((c as { capReasons?: { stage: string; field: string; kind: string; before: unknown; after: unknown; bandBefore: string | null; bandAfter: string | null; why?: string | null }[] }).capReasons ?? [])
           .filter((r) => r.kind !== "nudge").map(({ stage, field, kind, before, after, bandBefore, bandAfter, why }) => ({ stage, field, kind, before, after, bandBefore, bandAfter, why: why ?? null })),
@@ -585,7 +589,7 @@ export function masterInputOf(
       ? {
           symbol: s.symbol, side: s.side, band: s.band, q: s.q, actionable: s.actionable, entry: s.entry,
           entryResting: s.entryResting, stopPx: s.stopPx, target: s.target, rr: s.rr, chop: s.chop,
-          bias1h: s.bias1h, bias4h: s.bias4h, dispScore: s.displacementStrength, ltfKilled: s.ltfKilled,
+          bias1h: s.bias1h, bias4h: s.bias4h, dispScore: s.displacementStrength, ltfKilled: s.ltfKilled, qV2: s.qV2 ?? null,
           reversal: s.regime === "reversal" ? "reversal setup (HTF released / LTF breaks)" : null,
         }
       : null,

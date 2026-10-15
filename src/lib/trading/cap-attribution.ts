@@ -5,11 +5,14 @@
  * q_scan is the scanner's q; q_raw is q immediately before the seal (sealBand) — both pre-seal.
  */
 import { bandFromQ } from "@/lib/smc/discipline";
+import { takeQSource } from "./q-source";
 
 export type CapReason = {
   stage: string; field: "pathBand" | "confluence"; kind: "cap" | "penalty" | "nudge";
   before: number | string | null; after: number | string | null;
   bandBefore: string | null; bandAfter: string | null; why?: string | null; _ri?: number;
+  /** qv2-1015: the writer's own label (q-source.ts). `why` is kept for history; `source` is authoritative. "untracked" = residual from writes on untracked copies. */
+  source?: string | null;
 };
 type Card = { confluence: number; pathBand?: string | null; reasons: string[]; capReasons?: CapReason[]; q_scan?: number; q_raw?: number };
 
@@ -34,7 +37,8 @@ export function trackCard<T extends Card>(c: T): T {
         const bandBefore = bandOf(c);
         const old = v; v = n;
         const down = field === "confluence" ? Number(n) < Number(old) : rank(n) < rank(old);
-        log.push({ stage, field, kind: down ? (field === "pathBand" ? "cap" : "penalty") : "nudge", before: old as never, after: n as never, bandBefore, bandAfter: bandOf(c), _ri: c.reasons.length });
+        const source = takeQSource();
+        log.push({ stage, field, source, kind: down ? (field === "pathBand" ? "cap" : "penalty") : "nudge", before: old as never, after: n as never, bandBefore, bandAfter: bandOf(c), _ri: c.reasons.length });
       },
     });
   }
@@ -45,6 +49,14 @@ export function trackCard<T extends Card>(c: T): T {
 export function preSeal<T extends Card>(c: T): T {
   c.q_raw = c.confluence;
   resolveWhy(c);
+  // qv2-1015: raises/penalties written on untracked copies never hit the setter. Log the residual so
+  // q_scan + Σ logged deltas == q_raw always holds.
+  const log = c.capReasons;
+  if (log && c.q_scan != null) {
+    const sum = log.filter((r) => r.field === "confluence").reduce((a, r) => a + (Number(r.after) - Number(r.before)), 0);
+    const resid = +(c.confluence - c.q_scan - sum).toFixed(4);
+    if (Math.abs(resid) >= 1e-4) log.push({ stage, field: "confluence", kind: resid > 0 ? "nudge" : "penalty", before: +(c.confluence - resid).toFixed(4), after: c.confluence, bandBefore: null, bandAfter: null, why: null, source: "untracked (write on a card copy)" });
+  }
   return c;
 }
 export function resolveWhy(c: Card): void {
