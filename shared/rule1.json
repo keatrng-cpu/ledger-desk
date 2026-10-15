@@ -1,0 +1,16 @@
+{
+  "_doc": "Rule 1 SHADOW ticket (audits/entry-target-1015/report.md). NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. Desk computes it, brain/Floor/watcher carry and log it; the watcher logs would-fire only and never places an order. Mirrored in scripts/rule1.py (parity test).",
+  "version": 1,
+  "mode": "shadow",
+  "window": { "fromMin": 510, "toMin": 540 },
+  "sweepLookbackBars5": 12,
+  "sweepCleanBars5": 24,
+  "atrBars5": 12,
+  "dispBodyAtr": 1.5,
+  "bonusBodyAtr": 3.0,
+  "stopLookbackMin": 15,
+  "stopBufferAtr": 0.02,
+  "targetR": 3,
+  "runnerMinR": 0.5,
+  "option": { "deltaMin": 0.5, "deltaMax": 0.7, "delta": 0.6, "debitCap": 650, "maxContracts": 4, "ratio": { "ES": 0.0917, "MES": 0.0917, "NQ": 0.0245, "MNQ": 0.0245 }, "underlier": { "ES": "SPY", "MES": "SPY", "NQ": "QQQ", "MNQ": "QQQ" }, "ivOverRealized": 1.2 }
+}

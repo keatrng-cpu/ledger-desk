@@ -1,0 +1,183 @@
+diff --git a/tests/test_rule1_shadow.py b/tests/test_rule1_shadow.py
+new file mode 100644
+index 0000000..9afdbb0
+--- /dev/null
++++ b/tests/test_rule1_shadow.py
+@@ -0,0 +1,72 @@
++import json
++from watcher import rule1_shadow
++
++TK = {"mode": "shadow", "symbol": "MNQ", "side": "long", "at": 1, "swept": "ONL", "bonus": True, "entry": 30758.0, "stop": 30590.72,
++      "target": 31259.83, "runner": 30906.0, "option": {"underlier": "QQQ", "right": "call", "strike": 753, "delta": 0.6, "contracts": 3, "premium": 1.98, "dte": 0}}
++
++
++def test_logs_would_fire_once_and_never_orders(tmp_path):
++    seen = set()
++    rows = rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, seen, 5)
++    assert len(rows) == 1 and rows[0]["broker"] is False and rows[0]["orders"] == 0 and rows[0]["delta_ok"]
++    assert rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, seen, 6) == []
++    assert len(open(tmp_path / "rule1_shadow.jsonl").read().splitlines()) == 1
++
++
++def test_ignores_non_shadow_and_missing(tmp_path):
++    assert rule1_shadow.log(str(tmp_path), {"rule1": [dict(TK, mode="live")]}, set()) == []
++    assert rule1_shadow.log(str(tmp_path), {}, set()) == []
++
++
++def test_module_has_no_broker_import():
++    src = open(rule1_shadow.__file__).read()
++    assert "broker" not in src.split('"""')[2].replace('"broker": False', "")
++
++
++DAY_MS = 1792076400000          # 2026-10-15 10:00 CT
++NEXT_DAY_MS = DAY_MS + 86_400_000
++
++
++def test_dedupe_survives_restart(tmp_path):
++    first = rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, rule1_shadow.load_seen(str(tmp_path), DAY_MS), DAY_MS)
++    assert len(first) == 1
++    # restart: fresh process, seen rebuilt from today's rows in rule1_shadow.jsonl
++    seen = rule1_shadow.load_seen(str(tmp_path), DAY_MS + 60_000)
++    assert ("MNQ", "long", 1) in seen
++    assert rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, seen, DAY_MS + 60_000) == []
++    assert len(open(tmp_path / "rule1_shadow.jsonl").read().splitlines()) == 1
++
++
++def test_load_seen_only_today_and_tolerates_junk(tmp_path):
++    rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, set(), DAY_MS)
++    with open(tmp_path / "rule1_shadow.jsonl", "a") as f:
++        f.write("not json\n")
++    assert rule1_shadow.load_seen(str(tmp_path), NEXT_DAY_MS) == set()
++    assert rule1_shadow.load_seen(str(tmp_path / "missing"), DAY_MS) == set()
++
++
++def test_daemon_seeds_seen_on_first_poll(tmp_path):
++    from watcher import daemon
++
++    class Cfg:
++        def path(self, p):
++            return str(tmp_path / p) if p else str(tmp_path)
++
++    logged = []
++
++    def mk():
++        w = daemon.Watcher.__new__(daemon.Watcher)
++        w.cfg = Cfg(); w.log = lambda kind, **kw: logged.append(kind)
++        return w
++
++    mk()._rule1_shadow({"rule1": [TK]}, DAY_MS)
++    mk()._rule1_shadow({"rule1": [TK]}, DAY_MS + 120_000)   # new Watcher = restart
++    assert logged.count("rule1_would_fire") == 1 and "rule1_shadow_error" not in logged
++    assert len(open(tmp_path / "rule1_shadow.jsonl").read().splitlines()) == 1
++
++def test_load_seen_skips_non_dict_lines_and_survives_os_errors(tmp_path):
++    good = {"kind": "rule1_would_fire", "ts": DAY_MS, "symbol": "ES", "side": "long", "at": "09:00"}
++    (tmp_path / rule1_shadow.FILE).write_text("\n".join([json.dumps([1, 2]), "7", "null", '"str"', json.dumps(good)]) + "\n")
++    assert rule1_shadow.load_seen(str(tmp_path), DAY_MS) == {("ES", "long", "09:00")}
++    d = tmp_path / "isdir"; d.mkdir(); (d / rule1_shadow.FILE).mkdir()          # IsADirectoryError is an OSError, not FileNotFoundError
++    assert rule1_shadow.load_seen(str(d), DAY_MS) == set()
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index fef22d2..6982311 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -66,6 +66,7 @@ class Watcher:
+             self.log("desk_unavailable", body=str(card)[:300]); return mode
+         key = gates.signal_key(snap, et_date)
+         nm = now_ms(); snap["_now_ms"] = nm
++        self._rule1_shadow(card, nm)
+         self._fast(snap)
+         prev = self.state.get("band_streak")
+         bs = gates.band_streak_next(prev, snap); self.state["band_streak"] = bs; snap["band_streak"] = bs["n"]
+@@ -467,6 +468,18 @@ class Watcher:
+         except Exception as e:
+             self.log("kz_shadow_error", error=str(e))
+ 
++    def _rule1_shadow(self, card, now):
++        """Rule 1 (ledger-desk shared/rule1.json): log what would have fired. Shadow only: no broker, no order, no gate."""
++        try:
++            from . import rule1_shadow
++            seen = self.__dict__.get("_r1_seen")
++            if seen is None:   # first poll after (re)start: seed from today's rows so a restart never re-logs
++                seen = self._r1_seen = rule1_shadow.load_seen(self.cfg.path(""), now)
++            for r in rule1_shadow.log(self.cfg.path(""), card, seen, now):
++                self.log("rule1_would_fire", **{k: r[k] for k in ("symbol", "side", "entry", "stop", "target", "strike", "contracts")})
++        except Exception as e:
++            self.log("rule1_shadow_error", error=str(e))
++
+     def _gate_log(self, key, snap, g, dayst, broker=False):
+         from . import hygiene
+         kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
+diff --git a/watcher/rule1_shadow.py b/watcher/rule1_shadow.py
+new file mode 100644
+index 0000000..8d1b280
+--- /dev/null
++++ b/watcher/rule1_shadow.py
+@@ -0,0 +1,68 @@
++"""Rule 1 SHADOW logger for desk-watcher (ledger-desk shared/rule1.json, audits/entry-target-1015).
++
++Reads the desk feed's `rule1` tickets and appends what the watcher WOULD have fired to rule1_shadow.jsonl
++(contracts, strike at delta 0.5-0.7, entry/stop/target). It never imports the broker, never places or stages an
++order, and does not touch gates, firing or the rules hash. One row per (day, symbol, side, at).
++The dedupe survives a watcher restart: load_seen() re-reads today's (America/Chicago) rows from the file on start.
++"""
++import json, os, time
++from datetime import datetime
++from zoneinfo import ZoneInfo
++
++CT = ZoneInfo("America/Chicago")
++
++FILE = "rule1_shadow.jsonl"
++
++
++def rows_from_feed(card, seen, now_ms=None):
++    out = []
++    for tk in (card or {}).get("rule1") or []:
++        if not isinstance(tk, dict) or tk.get("mode") != "shadow":
++            continue
++        k = (tk.get("symbol"), tk.get("side"), tk.get("at"))
++        if k in seen:
++            continue
++        seen.add(k)
++        o = tk.get("option") or {}
++        d = o.get("delta")
++        out.append({
++            "ts": now_ms or int(time.time() * 1000), "kind": "rule1_would_fire", "broker": False, "orders": 0,
++            "symbol": tk.get("symbol"), "side": tk.get("side"), "at": tk.get("at"), "swept": tk.get("swept"), "bonus": tk.get("bonus"),
++            "entry": tk.get("entry"), "stop": tk.get("stop"), "target": tk.get("target"), "runner": tk.get("runner"),
++            "underlier": o.get("underlier"), "right": o.get("right"), "strike": o.get("strike"), "delta": d,
++            "delta_ok": d is not None and 0.5 <= d <= 0.7, "contracts": o.get("contracts"), "premium": o.get("premium"), "dte": o.get("dte"),
++        })
++    return out
++
++
++def log(path_dir, card, seen, now_ms=None):
++    rows = rows_from_feed(card, seen, now_ms)
++    if rows:
++        with open(os.path.join(path_dir, FILE), "a") as f:
++            for r in rows:
++                f.write(json.dumps(r) + "\n")
++    return rows
++
++
++def _ct_day(ms):
++    return datetime.fromtimestamp(ms / 1000, CT).date()
++
++
++def load_seen(path_dir, now_ms=None):
++    """Keys (symbol, side, at) already logged TODAY (CT), so a restarted watcher never re-logs the same ticket."""
++    seen = set()
++    today = _ct_day(now_ms or int(time.time() * 1000))
++    try:
++        with open(os.path.join(path_dir, FILE)) as f:
++            for line in f:
++                try:
++                    r = json.loads(line)
++                except ValueError:
++                    continue
++                if not isinstance(r, dict):   # a valid JSON line that is not an object (list, number, null) is skipped
++                    continue
++                if r.get("kind") == "rule1_would_fire" and isinstance(r.get("ts"), (int, float)) and _ct_day(r["ts"]) == today:
++                    seen.add((r.get("symbol"), r.get("side"), r.get("at")))
++    except OSError:   # missing, unreadable or a directory: start with an empty set, never crash the watcher
++        pass
++    return seen
