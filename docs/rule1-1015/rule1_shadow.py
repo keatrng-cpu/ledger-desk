@@ -3,8 +3,13 @@
 Reads the desk feed's `rule1` tickets and appends what the watcher WOULD have fired to rule1_shadow.jsonl
 (contracts, strike at delta 0.5-0.7, entry/stop/target). It never imports the broker, never places or stages an
 order, and does not touch gates, firing or the rules hash. One row per (day, symbol, side, at).
+The dedupe survives a watcher restart: load_seen() re-reads today's (America/Chicago) rows from the file on start.
 """
 import json, os, time
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+CT = ZoneInfo("America/Chicago")
 
 FILE = "rule1_shadow.jsonl"
 
@@ -37,3 +42,25 @@ def log(path_dir, card, seen, now_ms=None):
             for r in rows:
                 f.write(json.dumps(r) + "\n")
     return rows
+
+
+def _ct_day(ms):
+    return datetime.fromtimestamp(ms / 1000, CT).date()
+
+
+def load_seen(path_dir, now_ms=None):
+    """Keys (symbol, side, at) already logged TODAY (CT), so a restarted watcher never re-logs the same ticket."""
+    seen = set()
+    today = _ct_day(now_ms or int(time.time() * 1000))
+    try:
+        with open(os.path.join(path_dir, FILE)) as f:
+            for line in f:
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    continue
+                if r.get("kind") == "rule1_would_fire" and isinstance(r.get("ts"), (int, float)) and _ct_day(r["ts"]) == today:
+                    seen.add((r.get("symbol"), r.get("side"), r.get("at")))
+    except FileNotFoundError:
+        pass
+    return seen

@@ -52,3 +52,12 @@ def test_rules_hash_unchanged():
     rules = json.load(open(ROOT / "shared" / "desk-rules.json"))
     assert "rule1" not in json.dumps(rules)
     assert json.load(open(ROOT / "shared" / "rule1.json"))["mode"] == "shadow"
+
+
+def test_watcher_dedupe_survives_restart(tmp_path):
+    tk = {"mode": "shadow", "symbol": "MNQ", "side": "long", "at": 1, "option": {"delta": 0.6}}
+    day = 1792076400000  # 2026-10-15 10:00 CT
+    assert len(W.log(str(tmp_path), {"rule1": [tk]}, W.load_seen(str(tmp_path), day), day)) == 1
+    seen = W.load_seen(str(tmp_path), day + 60_000)          # restarted watcher re-reads today's rows
+    assert W.log(str(tmp_path), {"rule1": [tk]}, seen, day + 60_000) == []
+    assert W.load_seen(str(tmp_path), day + 86_400_000) == set()   # next CT day starts clean
