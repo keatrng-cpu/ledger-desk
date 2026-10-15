@@ -1,0 +1,21 @@
+[Unit]
+Description=ledger-desk ops watchdog (heartbeats, gateway lag/gaps, desk API, VPS disk/mem) -> Supabase ops_alerts
+After=network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ledger-ops
+# gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
+BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
+EnvironmentFile=/opt/ledger-gateway/.env
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/ledger-watchdog /var/log/ledger-ops
+MemoryMax=64M
+CPUQuota=50%
+TimeoutStartSec=50
+ExecStart=/opt/ledger-ops/venv/bin/python watchdog.py

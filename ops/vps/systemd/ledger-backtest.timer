@@ -1,0 +1,7 @@
+[Unit]
+Description=Nightly paper-trend backtest, weekdays 17:45 ET (after the archive)
+[Timer]
+OnCalendar=Mon..Fri *-*-* 17:45:00 America/New_York
+Persistent=true
+[Install]
+WantedBy=timers.target
