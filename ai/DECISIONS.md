@@ -173,3 +173,9 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **1h/4h parity:** the desk reads bias1h/bias4h off the candidate matching the ticket (book + side), not candidates[0]. Both 1h and 4h against is a CUT on every unblocked band on both sides — the A+ sweep+displacement full-size exception is removed from `htfGuard` (loss-guards.ts) and `loss_htf` (gates.py); below loss.htf.minBand still blocks.
 - **Parity verify does not skip:** the trigger list is vendored at scripts/fixtures/gate-hand-triggers.json (identical copy in the watcher's tests/fixtures). The desk list is checked against it everywhere (CI included); a watcher checkout, when present, is checked too.
 - **Known gaps:** (1) the server never has a live chain, so every handed server A+/A carries the model-ticket trigger and is always cut; the cut cap is now enforced on the live ask at propose/review. (2) The desk does not produce bias1h/bias4h yet, so the desk-side htf trigger is dead code until those keys exist; the watcher still cuts on htf.
+
+### 2026-10-15 — restamp agents edit, never rewrite; every clone sets core.hooksPath
+- ADOPTED · after the 5aafe4d6 break
+- The restamp stub emptied `src/lib/trading/week-ahead.ts` at `5aafe4d6` and broke main; fixed in `cebd9c4d` (Accuracy APPROVE); the later restamp `78aef9fe` passed.
+- **Decision:** restamp agents make targeted edits, never whole-file rewrites; every clone runs `git config core.hooksPath scripts/hooks` so typecheck + `verify-all --baseline` run before push.
+- Why: the whole-file rewrite produced a stub, and a clone without the hook pushed it clean.

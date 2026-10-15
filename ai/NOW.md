@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-15 (current-state block); rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `graph/2026-10-06-ws-kg0-knowledge-spine` (not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -19,6 +19,13 @@
 Precedence already set by the repo: `AGENTS.md` defers to `CLAUDE.md`; if `CLAUDE.md` conflicts with `src/lib/aplus/config.ts`, **code wins**. This canon does not override either.
 
 ---
+
+## Current state (2026-10-15)
+
+- **Desk-sequence deployed:** main merge `5fa7e30e`, watcher `0bcf2f7`, rulesHash `e7338987cbc7eea5`. All 12 new modes are **shadow**. Watcher daemon PID 1241488 alive. Release Watch PASS, Accuracy PASS.
+- **week-ahead.ts:** restamp stub emptied it at `5aafe4d6`; restored in `cebd9c4d` (Accuracy APPROVE); restamp `78aef9fe` passed. Restamps edit, never rewrite; every clone sets `git config core.hooksPath scripts/hooks`.
+- **Paper futures** (box `/workspace/paper-futures`, 24/7 under a watchdog): $100k start, cash $93,896 raw. Opens only when the live gates pass (options-only gates excepted), stale-entry 0.5×ATR guard, 2% risk from the fill. 10-14 14:33 CT −$8,540 trade VOID (stale fill). Legacy loose-rule NQ long filled 15:23 CT, −$1,850. Gaps: `PAPER_JOURNAL_TOKEN` missing; no reboot persistence.
+- **Backtest (20 Yahoo days, 2026-09-17 → 10-14; no Databento key, so 2022–2026 not possible yet):** live rules 10 trades, 40% win, +0.44R avg, +0.25% on $50k ($126); at 2% risk +1.72% ($860). ~2.5 trades/week, far from the 75% goal. All 353 blocked fire-band signals = −0.16R avg, −55R total, so the gates save money. Shadow-study: fast:agree blocks (+0.35R, n=69), fast:entry blocks (+0.11R, n=104). Earning their keep: second_entry_band (−0.34R), persist, velocity.
 
 ## Goal
 
