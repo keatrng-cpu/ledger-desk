@@ -486,6 +486,20 @@ export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
   return null;
 }
 
+export function weekDayFor(dateKey: string): WeekDayPlan | null {
+  for (const plan of PLANS) {
+    const hit = plan.days.find((d) => d.date === dateKey);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
+  if (!read?.focus) return null;
+  const tag = read.today ? "TODAY" : "NEXT";
+  return `${tag} ${read.focus.weekday} · ${read.focus.dailyBias}`;
+}
+
 function stampPrints(plan: WeekPlan, dateKey: string): WeekPlan {
   const days = plan.days.map((d) => {
     if (d.date > dateKey) return d;
