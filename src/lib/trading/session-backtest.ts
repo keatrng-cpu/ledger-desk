@@ -13,7 +13,13 @@ import type { IndexSymbol, OhlcBar } from "@/lib/market/types";
 import { analyzeStructure, smtDivergence } from "./structure";
 import { summarizeDetectors } from "./detectors";
 import { assessConditions } from "./conditions";
-import { getSessionClock } from "./sessions";
+import { getSessionClock, etWallToEpochMs } from "./sessions";
+/** Deep-audit #17: parse "YYYY-MM-DDTHH:MM[:SS]" as America/New_York wall time (DST-correct; was a hardcoded -04:00). */
+export function etParse(s: string): number {
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(s);
+  if (!m) return NaN;
+  return etWallToEpochMs(m[1]!, `${m[2]}:${m[3]}`) + Number(m[4] ?? 0) * 1000;
+}
 import { scanSetups, type SetupCandidate } from "./scanner";
 import { ALWAYS_SCAN } from "./strategies";
 import {
@@ -175,8 +181,8 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     /(\d{4}-\d{2}-\d{2})\s*(?:to|through|[-–]|until)\s*(\d{4}-\d{2}-\d{2})/,
   );
   if (isoRange && (wantsBacktest || true)) {
-    const a = Date.parse(isoRange[1]! + "T00:00:00-04:00");
-    const b = Date.parse(isoRange[2]! + "T23:59:59-04:00");
+    const a = etParse(isoRange[1]! + "T00:00:00");
+    const b = etParse(isoRange[2]! + "T23:59:59");
     if (Number.isFinite(a) && Number.isFinite(b) && b > a) {
       const days = Math.round((b - a) / 86400000);
       // Clamped here specifically: this is the ONLY branch that accepts an
@@ -200,13 +206,13 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     const year = Number(monthYear[2]);
     if (mon != null && year >= 2018 && year <= 2030) {
       // first → last calendar day of month (ET)
-      const startMs = Date.parse(
-        `${year}-${pad(mon + 1)}-01T00:00:00-04:00`,
+      const startMs = etParse(
+        `${year}-${pad(mon + 1)}-01T00:00:00`,
       );
       // last day: day 0 of next month
       const last = new Date(Date.UTC(year, mon + 1, 0));
-      const endMs = Date.parse(
-        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59-04:00`,
+      const endMs = etParse(
+        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59`,
       );
       return {
         startMs,
@@ -225,12 +231,12 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     const mon = MONTHS[monthOnly[1]!.toLowerCase()];
     const year = 2026;
     if (mon != null) {
-      const startMs = Date.parse(
-        `${year}-${pad(mon + 1)}-01T00:00:00-04:00`,
+      const startMs = etParse(
+        `${year}-${pad(mon + 1)}-01T00:00:00`,
       );
       const last = new Date(Date.UTC(year, mon + 1, 0));
-      const endMs = Date.parse(
-        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59-04:00`,
+      const endMs = etParse(
+        `${year}-${pad(mon + 1)}-${pad(last.getUTCDate())}T23:59:59`,
       );
       return {
         startMs,
@@ -271,8 +277,8 @@ export function parseBacktestIntent(message: string): DateWindow | null {
     if (/\bweek\b/.test(lower)) {
       anchor = new Date(isoDay[1]! + "T16:00:00Z");
     } else if (wantsBacktest) {
-      const a = Date.parse(isoDay[1]! + "T00:00:00-04:00");
-      const b = Date.parse(isoDay[1]! + "T23:59:59-04:00");
+      const a = etParse(isoDay[1]! + "T00:00:00");
+      const b = etParse(isoDay[1]! + "T23:59:59");
       return { startMs: a, endMs: b, label: isoDay[1]!, kind: "day" };
     }
   }
@@ -291,11 +297,11 @@ export function parseBacktestIntent(message: string): DateWindow | null {
         if (/\bweek\b/.test(lower)) {
           anchor = new Date(Date.UTC(year, mon, day, 16, 0, 0));
         } else {
-          const startMs = Date.parse(
-            `${year}-${pad(mon + 1)}-${pad(day)}T00:00:00-04:00`,
+          const startMs = etParse(
+            `${year}-${pad(mon + 1)}-${pad(day)}T00:00:00`,
           );
-          const endMs = Date.parse(
-            `${year}-${pad(mon + 1)}-${pad(day)}T23:59:59-04:00`,
+          const endMs = etParse(
+            `${year}-${pad(mon + 1)}-${pad(day)}T23:59:59`,
           );
           return {
             startMs,
@@ -318,11 +324,11 @@ export function parseBacktestIntent(message: string): DateWindow | null {
   const fri = new Date(mon.getTime() + 4 * 86400000);
   const monEt = etParts(mon.getTime());
   const friEt = etParts(fri.getTime());
-  const startMs = Date.parse(
-    `${monEt.year}-${pad(monEt.month)}-${pad(monEt.day)}T00:00:00-04:00`,
+  const startMs = etParse(
+    `${monEt.year}-${pad(monEt.month)}-${pad(monEt.day)}T00:00:00`,
   );
-  const endMs = Date.parse(
-    `${friEt.year}-${pad(friEt.month)}-${pad(friEt.day)}T23:59:59-04:00`,
+  const endMs = etParse(
+    `${friEt.year}-${pad(friEt.month)}-${pad(friEt.day)}T23:59:59`,
   );
   return {
     startMs,
@@ -500,8 +506,8 @@ export function assertCausal(
 
 /** Decision clock: NY AM snapshot 10:00 ET, never in the future vs wall clock. */
 export function decisionMsForDay(dateKey: string, hourEt = 10, minuteEt = 0): number {
-  const raw = Date.parse(
-    `${dateKey}T${String(hourEt).padStart(2, "0")}:${String(minuteEt).padStart(2, "0")}:00-04:00`,
+  const raw = etParse(
+    `${dateKey}T${String(hourEt).padStart(2, "0")}:${String(minuteEt).padStart(2, "0")}:00`,
   );
   // no live future: cannot decide with bars that have not happened yet
   return Math.min(raw, Date.now());

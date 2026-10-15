@@ -179,3 +179,9 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - The restamp stub emptied `src/lib/trading/week-ahead.ts` at `5aafe4d6` and broke main; fixed in `cebd9c4d` (Accuracy APPROVE); the later restamp `78aef9fe` passed.
 - **Decision:** restamp agents make targeted edits, never whole-file rewrites; every clone runs `git config core.hooksPath scripts/hooks` so typecheck + `verify-all --baseline` run before push.
 - Why: the whole-file rewrite produced a stub, and a clone without the hook pushed it clean.
+
+### 2026-10-15: intraday option tickets are 0DTE ATM; 1DTE+ is swing-only; late day blocks
+- ADOPTED · Keaton (owner rule, chat 2026-10-15) · PR #19 · rulesHash 47c62fe3d2355d3d → 7d151e5fed7fe3eb (main e7338987cbc7eea5)
+- Intraday tickets (path/continuation, Judas/killzone) on QQQ/SPY are 0DTE ATM, with 1 OTM only when the cap needs it, and never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans).
+- From `optExec.intradayTicket.lateBlockEt` (15:25 ET) intraday is BLOCKED, never silently rolled to 1DTE (desk, Floor ticketCheck, watcher picker).
+- Supersedes the edge-research-1015 1DTE pick made earlier the same day.

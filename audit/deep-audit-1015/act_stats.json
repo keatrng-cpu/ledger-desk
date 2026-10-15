@@ -1,0 +1,34 @@
+{
+"strategy_polls": 4050,
+"band_ge_Bplus": 471,
+"live_guard_rules_on_Bplus+": [
+[
+"late",
+310
+],
+[
+"(no live guard; upstream actionable=false)",
+91
+],
+[
+"actionable",
+70
+]
+],
+"floor_verdict": [
+[
+"WATCH",
+2935
+],
+[
+"STAND",
+1115
+]
+],
+"phase": [
+[
+"look",
+4050
+]
+]
+}

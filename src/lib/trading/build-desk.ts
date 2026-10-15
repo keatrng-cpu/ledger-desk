@@ -1,4 +1,4 @@
-import { planTargetText } from "@/lib/trading/card-plan";
+import { planTargetText, orderTargets } from "@/lib/trading/card-plan";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
@@ -13,6 +13,8 @@ import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/tr
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
+import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
+import { sharedDeskBuild } from "@/lib/trading/desk-tick-cache";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
@@ -593,7 +595,8 @@ export const fetchTradingDesk = createServerFn({ method: "POST" })
     return { left, right };
   })
   .handler(async ({ data }): Promise<DeskPayload | DeskError> => {
-    const desk = await buildTradingDesk(data);
+    // deep-audit #10: one shared build per tick (card / read_desk / read_brain / read_floor reuse it).
+    const desk = await sharedDeskBuild(data, buildTradingDesk);
     if (!desk.ok) return desk;
     try {
       const { getSql } = await import("@/lib/db");
@@ -1475,6 +1478,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           side: c.side as "long" | "short", band: c.pathBand, price: cx.price, entry, t1: c.plan?.t1 ?? null,
           zone: c.plan?.entryZone ?? null, atr15: cx.atr15, minute: isL ? minuteL : minuteR, bars15: cx.closed15,
           rows: mtfArrays(c.symbol, isL ? minuteL : minuteR, cx.closed15) as never,
+          // deep-audit #2: T1 traded since the entry was last at = missed (was never passed → t1Hit always false)
+          sinceEntry: barsSinceEntry(isL ? minuteL : minuteR, entry),
         });
         (c as { entryState?: unknown }).entryState = es;
         const ch = (c as { chase?: { qFactor: number; qBefore: number; applied: boolean } }).chase;
@@ -1906,6 +1911,98 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
     capStage("ltfArm cap");
     for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
+    // DEEP AUDIT 2026-10-15 seal — runs after every plan mutation (discipline widening, loss guards, ltfArm):
+    //  #15 tick grid, #14 stop text from the number, #16 level hysteresis, #2 T1-traded = missed,
+    //  #1/#13 invalidated (price through the stop) = dead card, #12 stale tape withholds grades.
+    {
+      const stale = tapeStale([lq?.lagSec, rq?.lagSec]);
+      const nowSeal = Date.now();
+      for (const c of payload.scan.candidates) {
+        const isL = c.symbol === left.symbol;
+        const side = c.side as "long" | "short";
+        const minute = (isL ? minuteL : minuteR) ?? [];
+        const price = (isL ? lq : rq)?.price ?? null;
+        const closed = isL ? closedL : closedR;
+        if (c.plan && c.plan.entry != null && c.plan.stop != null) {
+          let pl = roundPlan(c.plan as never as PlanLike & typeof c.plan, side, c.symbol, price);
+          const barT = closed[closed.length - 1]?.t ?? 0;
+          const anchor = (c.plan as { raid?: { price: number } | null }).raid?.price ?? c.plan.sweep ?? null;
+          const pin = pinLevels(pinKey(c.symbol, side, `${c.completeStrategy || c.strategyPrimary || ""}@${anchor ?? "-"}`), { entry: pl.entry, stop: pl.stop, t1: pl.t1, t2: pl.t2, barT }, nowSeal);
+          if (pin.held) {
+            pl = { ...pl, entry: pin.levels.entry, stop: pin.levels.stop, t1: pin.levels.t1, t2: pin.levels.t2 };
+            const risk = Math.abs(pl.entry - pl.stop);
+            pl.riskPts = +risk.toFixed(2);
+            pl.rr1 = pl.t1 == null || !(risk > 0) ? null : +(Math.abs(pl.t1 - pl.entry) / risk).toFixed(2);
+            pl.rr2 = pl.t2 == null || !(risk > 0) ? null : +(Math.abs(pl.t2 - pl.entry) / risk).toFixed(2);
+            c.reasons.push("Levels held until the next closed 15m bar (hysteresis)");
+          }
+          c.plan = pl as typeof c.plan;
+          if (c.entryPx != null) c.entryPx = pl.entry;
+          c.invalidation = stopText(pl.stop, c.invalidation);
+          const tx = planTargetText(c.plan as never);
+          if (tx.length) c.targets = tx;
+        }
+        const entry = c.entryPx ?? c.plan?.entry ?? null;
+        const since = barsSinceEntry(minute, entry);
+        const atr = atr15Of(closed);
+        const es = entryStateOf({
+          side, band: c.pathBand, price, entry, t1: c.plan?.t1 ?? null, zone: c.plan?.entryZone ?? null,
+          atr15: atr, minute, bars15: closed, sinceEntry: since, stop: c.plan?.stop ?? null,
+          rows: mtfArrays(c.symbol, minute, closed) as never,
+        });
+        if (es) (c as { entryState?: unknown }).entryState = es;
+        const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: since });
+        const kill = (why: string) => {
+          if (c.actionable) c.actionable = false;
+          c.pathBand = capBand(c.pathBand, "C") as never;
+          sealBand(c as never);
+          c.pathBand = capBand(c.pathBand, "C") as never;
+          c.reasons.push(why);
+        };
+        if (inv.invalid) {
+          (c as { invalidated?: boolean }).invalidated = true;
+          if (es) (c as { entryState?: unknown }).entryState = { ...es, state: "invalidated", label: `${c.pathBand ?? "—"}, invalidated (stop printed)` };
+          kill(inv.why!);
+        } else if (inv.unknown) {
+          // no live price / no stop: unknown, never "valid" — not actionable (no C cap: nothing says it is dead)
+          (c as { priceUnknown?: boolean }).priceUnknown = true;
+          if (c.actionable) c.actionable = false;
+          c.reasons.push(inv.why!);
+        } else if (c.plan?.t1 != null && barsSinceEntry(minute, entry, 240, 30, "first").some((b) => (side === "long" ? b.h >= c.plan!.t1! : b.l <= c.plan!.t1!))) {
+          // T1 traded since the first entry touch in the window: spent, even if price came back to entry (no revive/re-alert)
+          (c as { playedOut?: boolean }).playedOut = true;
+          if (es) (c as { entryState?: unknown }).entryState = { ...es, state: "missed", label: `${c.pathBand ?? "—"}, played out (T1 traded)` };
+          kill(`Played out: T1 ${c.plan.t1} already traded since entry ${entry} was first touched — capped at C, no alert`);
+        }
+        if (stale) {
+          (c as { staleTape?: boolean }).staleTape = true;
+          kill(`STALE TAPE: quote lag ${lq?.lagSec ?? "?"}s / ${rq?.lagSec ?? "?"}s > ${STALE_TAPE_SEC}s — grade withheld`);
+        }
+      }
+      // deep-audit-1015: T2 must be beyond T1 (a long showed T2 29878.75 under T1 30174) — drop it otherwise, on cards and book plans.
+      for (const c of payload.scan.candidates) {
+        const pl = c.plan as { side?: "long" | "short"; t1: number | null; t2: number | null; rr2?: number | null } | null | undefined;
+        if (pl && orderTargets({ ...pl, side: c.side as "long" | "short" }) ) {
+          const was = pl.t2; pl.t2 = null; if ("rr2" in pl) pl.rr2 = null;
+          if ("runnerPool" in pl) (pl as { runnerPool?: unknown }).runnerPool = null;
+          c.reasons.push(`T2 ${was} not beyond T1 ${pl.t1} — T2 dropped`);
+          const tx = planTargetText(c.plan as never); c.targets = tx;
+        }
+      }
+      for (const bk of [smcMaster.left, smcMaster.right]) {
+        const bp = bk?.plan as { side?: "long" | "short"; t1: number | null; t2: number | null; rr2?: number | null } | null | undefined;
+        if (bk && bp && orderTargets({ ...bp, side: (bp.side ?? bk.side) as "long" | "short" })) { bp.t2 = null; if ("rr2" in bp) bp.rr2 = null; }
+      }
+      // A dead lead must not keep the brain's book alive: invalidated, stale, played out (C-capped) or price-unknown → brain STAND (desk/brain/Floor unity).
+      const isDead = (c: unknown) => { const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; priceUnknown?: boolean }; return Boolean(x.invalidated || x.staleTape || x.playedOut || x.priceUnknown); };
+      for (const bk of [smcMaster.left, smcMaster.right]) {
+        const dead = payload.scan.candidates.find((c) => c.symbol === bk?.symbol && c.side === bk?.side && isDead(c));
+        if (bk && dead && bk.word !== "STAND") { bk.word = "STAND"; bk.missing = dead.reasons[dead.reasons.length - 1] ?? "card dead"; }
+      }
+      // Accuracy PR #19: STABLE — only dead cards move behind live ones; live cards keep the scanner's order, so the
+      // card the watcher fires on changes only when the previous lead died (never by a band/q re-rank here).
+      payload.scan.candidates.sort((a, b) => Number(isDead(a)) - Number(isDead(b)));
+    }
     for (const c of payload.scan.candidates) resolveWhy(c as never);
     capStage("scan");
     const coach = {

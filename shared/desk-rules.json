@@ -197,6 +197,17 @@
       "stepFracOfHalfSpread": 0.25,
       "maxSteps": 4
     },
+    "intradayTicket": {
+      "mode": "live",
+      "dte": 0,
+      "strike": "ATM",
+      "fallback": "OTM_1",
+      "deltaBand": [0.45, 0.55],
+      "debitSpread": false,
+      "lateBlockEt": "15:25",
+      "swingOnlyDte1Plus": true,
+      "_why": "Owner rule (Keaton 2026-10-15): intraday option tickets (path, killzone/continuation) are 0DTE ATM singles on QQQ/SPY, 1 OTM only when the cap needs it, never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans keep their own DTE). From lateBlockEt (= session.zeroDteCutoffEt; RH blocks new 0DTE opens 15:30 ET) intraday is BLOCKED, never silently rolled to 1DTE. Supersedes the edge-research-1015 1DTE pick. Wins over dteByTime."
+    },
     "dteByTime": {
       "mode": "shadow",
       "zeroDteUntilEt": "14:30",

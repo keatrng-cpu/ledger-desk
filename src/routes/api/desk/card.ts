@@ -48,18 +48,6 @@ async function withJournal(card: DeskListenCard, ctx: Parameters<typeof masterIn
     const w = card.wire;
     const prices = { [card.quotes.left.symbol]: card.quotes.left.price, [card.quotes.right.symbol]: card.quotes.right.price };
     await j.resolveJournal(sql, prices, now);
-    if (w.strategy) {
-      await j.journalCards(sql, [{
-        symbol: w.strategy.symbol, side: w.strategy.side, band: w.strategy.band, q: w.strategy.q,
-        entry: w.strategy.entry, stopPx: w.strategy.stopPx, target: w.strategy.target, rr: w.strategy.rr,
-        context: {
-          mtfAlign: ctx?.books.find((b) => b.symbol === w.strategy!.symbol)?.align[w.strategy.side as "long" | "short"]?.score ?? null,
-          chop: w.strategy.chop, ltfKill: w.strategy.exitPlan?.killWhy ?? null, dispStrength: w.strategy.displacementStrength,
-          smt: w.smt?.lead ? `${w.smt.lead.tf} ${w.smt.lead.kind} ${w.smt.lead.leader}/${w.smt.lead.failing}` : null,
-          master: w.master?.verdict ?? null, judas: w.strategy.judas,
-        },
-      }], now);
-    }
     const rep = await j.journalReport(sql, now, 7);
     const governor = j.governorOf(rep.rToday);
     w.day = { rToday: rep.rToday, governor, closedToday: rep.closedToday };
@@ -69,6 +57,19 @@ async function withJournal(card: DeskListenCard, ctx: Parameters<typeof masterIn
     if (govLive && governor === "A+ only" && w.strategy && w.strategy.band !== "A+") w.strategy.actionable = false;
     w.day.governorMode = govLive ? "live" : "shadow";
     w.master = masterSeat(masterInputOf(w, ctx, govLive ? governor : "normal"));
+    // deep-audit #4: journal AFTER the final Master seat so the row records the verdict the card shipped with.
+    if (w.strategy && !w.strategy.invalidated && !w.strategy.staleTape) {
+      await j.journalCards(sql, [{
+        symbol: w.strategy.symbol, side: w.strategy.side, band: w.strategy.band, q: w.strategy.q,
+        entry: w.strategy.entry, stopPx: w.strategy.stopPx, target: w.strategy.target, rr: w.strategy.rr,
+        context: {
+          mtfAlign: ctx?.books.find((b) => b.symbol === w.strategy!.symbol)?.align[w.strategy.side as "long" | "short"]?.score ?? null,
+          chop: w.strategy.chop, ltfKill: w.strategy.exitPlan?.killWhy ?? null, dispStrength: w.strategy.displacementStrength,
+          smt: w.smt?.lead ? `${w.smt.lead.tf} ${w.smt.lead.kind} ${w.smt.lead.leader}/${w.smt.lead.failing}` : null,
+          master: w.master?.verdict ?? null, anchor: w.strategy.anchor ?? null, judas: w.strategy.judas,
+        },
+      }], now);
+    }
   } catch (err) {
     console.error("[desk] journal failed:", err);
   }

@@ -107,9 +107,11 @@ test("F9: feed clock — a stale 1m series cannot feed kills", () => {
 });
 
 test("F10: floor DTE by time", () => {
-  assert.equal(su.floorDteRead(9, 52, 5).want, 0);
+  assert.equal(su.floorDteRead(9, 52, 5).want, 0); // owner rule 2026-10-15: intradayTicket live = 0DTE; 1DTE+ swing-only
   assert.equal(su.floorDteRead(9, 52, 5).mismatch, true);
-  assert.equal(su.floorDteRead(15, 0, 1).want, 1);
+  assert.equal(su.floorDteRead(15, 0, 1).want, 0);
+  assert.equal(su.floorDteRead(15, 0, 1).mismatch, true);
+  assert.equal(su.floorDteRead(15, 40, 0).lateBlocked, true); // late: block, not a roll to 1
 });
 
 test("F8: extension guard overruled by ≥2 rungs of reversal evidence", () => {

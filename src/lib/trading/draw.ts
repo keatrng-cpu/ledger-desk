@@ -209,7 +209,7 @@ export function mergeCoincident(levels: RawLevel[], atr: number): RawLevel[] {
       name: `${lead.name} +${extras.length}`,
       price: group.reduce((a, g) => a + g.price, 0) / group.length,
       kind: lead.kind,
-      swept: group.every((g) => g.swept),
+      swept: group.some((g) => g.swept), // Accuracy PR #19: a coincident cluster where price swept any member is swept (was every → swept showed unswept)
       weight: Math.min(1, lead.weight * confluenceBoost),
     });
   };
