@@ -243,7 +243,12 @@ const GATEWAY_BARS_BUDGET_MS = 1_500;
 const GATEWAY_BARS_LIMIT = 240;
 
 export interface MinuteFeed {
-  /** True only when a BLOCKING hole exists (inside the active LTF lookback, large, in London/premarket/RTH, or live-end). */
+  /**
+   * True only when a BLOCKING hole exists (classifyGap in minute-gaps.ts): live-end stall, >= 15 missing minutes,
+   * >= 6 missing in London 02:00–05:00 ET, ending inside the last ACTIVE_LOOKBACK_MIN (240) minutes, or any overlap
+   * with NY premarket 07:00–09:30 / RTH 09:30–16:00 ET. Minor holes are listed with blocking:false; the detectors
+   * skip patterns/buckets across them and premarket-map flags the windows they touch.
+   */
   gapped: boolean;
   gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean; blocking: boolean; why: string }[];
 }

@@ -68,7 +68,10 @@ test("ES 2026-10-15: raw gateway has the 9h hole, the phantom 7732–7744 FVG an
   assert.equal(gaps.length, 1);
   assert.equal(gaps[0].fromMs, et(15, 0, 10));
   assert.equal(gaps[0].toMs, et(15, 9, 12));
-  assert.ok(hasGap(detectFvgs(gw), "bull", 7732, 7744), "repro: phantom FVG exists on the raw series");
+  // Gap-blind geometry (the pre-fix detector) sees the phantom; the gap-aware detector no longer prints it even unfilled.
+  const i = gw.findIndex((b) => b.t === et(15, 9, 12));
+  assert.ok(gw[i - 1].h === 7732 && gw[i + 1].l === 7744 && gw[i - 1].h < gw[i + 1].l, "repro: 3-candle gap 7732–7744 across the hole");
+  assert.ok(!hasGap(detectFvgs(gw), "bull", 7732, 7744), "detectFvgs skips a pattern spanning the hole");
   assert.ok(Math.max(...premarket(gw).map((b) => b.h)) < 7755.75, "repro: PMH missing");
 });
 
@@ -89,7 +92,9 @@ test("ES filled: real PMH 7755.75 and London present, phantom FVG gone, no resid
 
 test("MNQ filled: real low 29703 present, phantom 29803–29837 FVG gone", () => {
   const { gw, yahoo } = mnqCase();
-  assert.ok(hasGap(detectFvgs(gw), "bear", 29803, 29837), "repro: phantom MNQ FVG");
+  const i = gw.findIndex((b) => b.t === et(15, 9, 12));
+  assert.ok(gw[i - 1].l === 29837 && gw[i + 1].h === 29803, "repro: 3-candle gap 29803–29837 across the hole");
+  assert.ok(!hasGap(detectFvgs(gw), "bear", 29803, 29837), "detectFvgs skips a pattern spanning the hole");
   assert.equal(Math.min(...premarket(gw).map((b) => b.l)), 29784);
   const f = mg.fillMinuteSeries(gw, yahoo, 2000);
   assert.deepEqual(f.gaps, []);
@@ -215,4 +220,57 @@ test("large holes block: today's 00:10–09:12 ET (unfilled), a ≥15m overnight
   assert.match(pre.why, /premarket/);
   // Trailing live-end hole always blocks.
   assert.equal(mg.classifyGap({ fromMs: Z(3, 0), toMs: Z(3, 4), missing: 3, trailing: true }, Z(14, 15)).blocking, true);
+});
+
+// ── Gap-aware detectors (Accuracy Review on 4e112f2a) ────────────────────
+const flat = (t0, n, p = 100) => Array.from({ length: n }, (_, k) => bar(t0 + k * MIN, p, p + 0.25, 0.25));
+test("no FVG across a hole (1m, and in a resampled 5m rung), normal FVG unchanged", async () => {
+  const { rung } = await import("../src/lib/smc/mtf-arrays.ts");
+  const t0 = et(15, 1, 0);
+  // Normal case: contiguous bars, a real bull FVG 100.5 → 103 is found.
+  const base = flat(t0, 40);
+  const norm = [...base, { t: t0 + 40 * MIN, o: 100.5, c: 103.5, h: 104, l: 100.25, v: 1 }, { t: t0 + 41 * MIN, o: 103.5, c: 104, h: 104.5, l: 103, v: 1 }, ...flat(t0 + 42 * MIN, 5, 104)];
+  assert.ok(hasGap(detectFvgs(norm), "bull", 100.5, 103), "normal FVG still detected");
+  // Same geometry, but 5 minutes missing between candle 1 and candle 2 → skipped.
+  const holed = norm.map((b, k) => (k >= 40 ? { ...b, t: b.t + 5 * MIN } : b));
+  assert.ok(!hasGap(detectFvgs(holed), "bull", 100.5, 103), "no FVG across a 5-minute hole");
+  // Over the halt (16:59 → 18:00 ET) is NOT a hole.
+  const h0 = et(15, 16, 20);
+  const halt = [...flat(h0, 40), { t: et(15, 18, 0), o: 100.5, c: 103.5, h: 104, l: 100.25, v: 1 }, { t: et(15, 18, 1), o: 103.5, c: 104, h: 104.5, l: 103, v: 1 }];
+  assert.ok(hasGap(detectFvgs(halt), "bull", 100.5, 103), "halt is not a gap");
+  // 5m rung: a bucket missing 3+ minutes is dropped, a complete one kept.
+  const m = flat(et(15, 2, 0), 60).filter((b) => !(b.t >= et(15, 2, 21) && b.t <= et(15, 2, 23)));
+  const r5 = rung("TEST", m, "5m", et(15, 4, 0)).bars.map((b) => b.t);
+  assert.ok(!r5.includes(et(15, 2, 20)), "partial 5m bucket 02:20 dropped");
+  assert.ok(r5.includes(et(15, 2, 15)) && r5.includes(et(15, 2, 25)), "complete neighbours kept");
+  const thin = mg.completeBuckets(flat(et(15, 2, 0), 10).filter((b) => b.t !== et(15, 2, 2)), 5 * MIN, MIN).map((b) => b.t);
+  assert.deepEqual(thin, [et(15, 2, 0), et(15, 2, 5)], "1 thin minute does not drop a bucket");
+});
+
+test("premarket-map: London H/L flagged incomplete (small hole) / withheld (>= 6m), normal case unchanged", async () => {
+  const pmm = await import("../src/lib/smc/seq/premarket-map.ts");
+  const { yahoo } = esCase();
+  const now = et(15, 9, 0);
+  const minute = yahoo.filter((b) => b.t + MIN <= now);
+  const lvl = (map, n) => map.levels.filter((l) => l.name.startsWith(n));
+  const clean = pmm.premarketMap({ symbol: "ES", minute, nowMs: now });
+  assert.equal(clean.incomplete, undefined);
+  assert.equal(lvl(clean, "London high")[0].price, 7755.75);
+  assert.equal(lvl(clean, "London high")[0].incomplete, undefined);
+  assert.equal(lvl(clean, "London high")[0].name, "London high");
+  // 4-minute hole at 02:14–02:19 ET (today's thin-overnight shape): flagged, still shown.
+  const small = minute.filter((b) => !(b.t > et(15, 2, 14) && b.t < et(15, 2, 19)));
+  const s = pmm.premarketMap({ symbol: "ES", minute: small, nowMs: now });
+  assert.deepEqual(s.incomplete.London, { missingMin: 4, withheld: false });
+  assert.equal(lvl(s, "London high")[0].incomplete, true);
+  assert.match(lvl(s, "London high")[0].name, /\(incomplete\)/);
+  // 14-minute hole over the real London high (03:20–03:34 ET): withheld, never presented as the London high.
+  const big = minute.filter((b) => !(b.t > et(15, 3, 20) && b.t < et(15, 3, 35)));
+  const g = pmm.premarketMap({ symbol: "ES", minute: big, nowMs: now });
+  assert.deepEqual(g.incomplete.London, { missingMin: 14, withheld: true });
+  assert.equal(lvl(g, "London").length, 0);
+  assert.ok(g.missing.some((x) => /London H\/L incomplete: 14m.*withheld/.test(x)));
+  // And classifyGap: a 14-minute London hole now blocks; the 4-minute one stays minor.
+  assert.equal(mg.classifyGap({ fromMs: et(15, 3, 20), toMs: et(15, 3, 35), missing: 14 }, et(15, 10, 15)).blocking, true);
+  assert.equal(mg.classifyGap({ fromMs: et(15, 2, 14), toMs: et(15, 2, 19), missing: 4 }, et(15, 10, 15)).blocking, false);
 });

@@ -14,6 +14,7 @@
  * HTF rungs come from the 15m series. Resamples are cached by
  * (symbol, tf, first t, last t, length).
  */
+import { completeBuckets } from "@/lib/market/minute-gaps";
 import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, rollingAtr, type FvgResult } from "@/lib/trading/detectors";
@@ -63,7 +64,8 @@ export function rung(symbol: string, src0: OhlcBar[], tf: ArrayTf, nowMs = Date.
   if (hit) return hit;
   const ms = MIN[tf] * 60_000;
   const lastEnd = src[src.length - 1]!.t + srcMs;
-  const rs = tf === "1m" || tf === "15m" ? src : resampleMs(src, ms);
+  // #19: buckets missing a Globex-open source bar are dropped (no candle built across a hole).
+  const rs = tf === "1m" || tf === "15m" ? src : completeBuckets(src, ms, srcMs);
   const bars = rs.length && rs[rs.length - 1]!.t + ms > lastEnd ? rs.slice(0, -1) : rs;
   const out = { bars, gaps: detectFvgs(bars) };
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value!);

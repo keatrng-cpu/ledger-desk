@@ -18,7 +18,11 @@
  * falling score. Shadow: wire.deskSeq.amd + shadow:seq:amd rows; never moves q/band/fire.
  */
 import { blockingGaps, findMinuteGaps } from "@/lib/market/minute-gaps";
-/** #22: a gap of more than 5 Globex minutes in the closed 1m series refuses the AMD read. */
+/**
+ * #22: holes of 6+ Globex minutes in the closed 1m series are candidates; only a BLOCKING one (classifyGap:
+ * live-end, >= 15m, London >= 6m, inside the active lookback, or in premarket/RTH) refuses the AMD read.
+ * Smaller/minor holes are left to the gap-aware detectors (no 3-candle pattern or bucket across a hole).
+ */
 const AMD_GAP_MIN_MISSING = 6;
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
