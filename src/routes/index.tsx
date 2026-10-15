@@ -177,6 +177,7 @@ import {
 } from "@/lib/trading/desk-fetch-guard";
 import { cn } from "@/lib/utils";
 import { EntryHero } from "@/components/desk/entry-hero";
+import { TwoSidedLadderPanel } from "@/components/desk/two-sided-ladder-panel";
 import { ScreenFlash } from "@/components/desk/screen-flash";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
 import {
@@ -2035,6 +2036,7 @@ function MasterplacePage() {
                       cannot disagree about the entry. */}
                   <FourFactsBoard desk={desk} />
                   <EntryHero desk={desk} />
+                  <TwoSidedLadderPanel desk={desk} />
                   <PricePathBoard desk={desk} />
                   {/* 15:00–15:55 ET: the overnight decision is due, and the
                       trader is looking at the Now tab, not the Options tab. */}

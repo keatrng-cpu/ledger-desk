@@ -9,6 +9,8 @@ import { loadMacro } from "@/lib/market/macro";
 import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
+import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
+import type { LadderWire } from "@/lib/smc/seq/ladder";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
@@ -170,7 +172,13 @@ export interface DeskPayload {
    * come from `left.bars` / `right.bars`; the 30s rung is built client-side
    * from prints. Empty arrays when the fetch missed its budget.
    */
-  mtf: { left: { daily: OhlcBar[]; minute: OhlcBar[] }; right: { daily: OhlcBar[]; minute: OhlcBar[] } };
+  mtf: { left: { daily: OhlcBar[]; minute: OhlcBar[]; hourly?: OhlcBar[] }; right: { daily: OhlcBar[]; minute: OhlcBar[]; hourly?: OhlcBar[] } };
+  /**
+   * The two-sided ladder (seq/ladder.ts, 2026-10-15): bull AND bear entries, real stops, the full HTF target
+   * ladder with calibrated odds, and the flip line. DISPLAY-ONLY — nothing in q, band, actionable, brain, Floor
+   * verdict or fire reads it. Null when it could not be built.
+   */
+  twoSided?: LadderWire | null;
   /** Top-down read per book, from the series above (no 30s rung server-side). */
   ladder: { left: TfLadder; right: TfLadder };
   /**
@@ -256,6 +264,19 @@ async function loadDaily(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcB
     `daily:${symbol}`,
     async () => (await fetchYahooBars(symbol, "2y", "1d"))?.bars ?? null,
     { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: DAILY_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
+    cloneBars,
+  );
+  return { bars: r.value ?? [], leg: r.leg };
+}
+
+/** ~6 months of 1h bars for the two-sided ladder's 1h/4h swings, gaps and pools. Display-only; not a budget leg the grades read. */
+const HOURLY_CACHE_MS = 10 * 60_000;
+async function loadHourly(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; leg: BudgetLeg }> {
+  const r = await budgetedLeg(
+    `hourly:${symbol}`,
+    `hourly:${symbol}`,
+    async () => (await fetchYahooBars(symbol, "6mo", "60m", 4000))?.bars ?? null,
+    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: HOURLY_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
     cloneBars,
   );
   return { bars: r.value ?? [], leg: r.leg };
@@ -567,7 +588,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // 1mo 15m: 5d left the prior trading week only partially covered, so
     // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
     // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
-    const [lb, rb, dL, dR, mL, mR, lqIn, rqIn, spy, qqq] = await Promise.all([
+    const [lb, rb, dL, dR, mL, mR, lqIn, rqIn, spy, qqq, hL, hR] = await Promise.all([
       load(data.left, "1mo", "15m", t0),
       load(data.right, "1mo", "15m", t0),
       loadDaily(data.left, t0),
@@ -578,6 +599,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       quoteInputs(data.right, t0),
       loadSpot("SPY", t0),
       loadSpot("QQQ", t0),
+      loadHourly(data.left, t0),
+      loadHourly(data.right, t0),
     ]);
     const left = lb.series;
     const right = rb.series;
@@ -1753,8 +1776,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       }
     }
     const mtf = {
-      left: { daily: dailyL, minute: minuteL },
-      right: { daily: dailyR, minute: minuteR },
+      left: { daily: dailyL, minute: minuteL, hourly: hL.bars },
+      right: { daily: dailyR, minute: minuteR, hourly: hR.bars },
     };
     const ladderNow = Date.now();
     const ladder = {
@@ -1801,6 +1824,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     };
     // Re-stamp the receipt at the very end so elapsedMs covers the CPU half too.
     const budgetOut: DeskBudgetRead = { ...budget, elapsedMs: Date.now() - t0 };
+    // Display-only: built last, from the finished candidates; it cannot feed back into anything above.
+    const twoSided = buildLadderWire({ ...payload, mtf } as Parameters<typeof buildLadderWire>[0]);
     return {
       ...payload,
       smcMaster,
@@ -1808,6 +1833,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       coach,
       mtf,
+      twoSided,
       ladder,
       budget: budgetOut,
       stale: budgetOut.stale,

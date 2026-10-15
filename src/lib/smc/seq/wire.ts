@@ -11,6 +11,8 @@ import { amdRead, type AmdRead } from "./amd-state";
 import { continuationRead, type ContRead } from "./continuation";
 import { scenarios, type ScenarioRead } from "./scenarios";
 import { respectRead, type RespectRead } from "./respect";
+import { buildLadderWire } from "./ladder-wire";
+import type { LadderWire } from "./ladder";
 import { intradayTicket, rungEval, ETF_OF, type IntradayTicket, type RungRead } from "./intraday-exec";
 
 type Cand = DeskPayload["scan"]["candidates"][number];
@@ -35,6 +37,8 @@ export interface DeskSeqWire {
   respect: Record<string, RespectRead>;
   /** F10: 0DTE intraday ticket for the live AMD/continuation setup per book + close-vs-wick per rung. */
   intraday: Record<string, { ticket: IntradayTicket | null; rungs: RungRead }>;
+  /** Two-sided ladder (bull + bear entries, real stops, full HTF target ladder, calibrated odds, flip line). Display-only. */
+  ladder: LadderWire | null;
   /** Short human rows for the watcher's shadow:seq:* log. */
   rows: { rule: string; would: string }[];
 }
@@ -107,7 +111,8 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     scen[sym] = scenarios(map[sym] ?? null);
     if (b.feedNowMs != null) respect[sym] = respectRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
   }
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday, scenarios: scen, respect };
+  const ladder = (i.desk as { twoSided?: LadderWire | null }).twoSided ?? buildLadderWire(i.desk);
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday, scenarios: scen, respect, ladder };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -146,6 +151,7 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
     const ev = x.rungs.rungs.flatMap((r) => r.events.filter((e) => e.event === "sweep" || e.event === "fail").map((e) => `${r.tf} ${e.event} ${e.array}`));
     if (ev.length) rows.push({ rule: "intradayExec", would: `${sym} closed-rung reads: ${ev.slice(0, 4).join("; ")}` });
   }
+  for (const r of w.ladder?.rows ?? []) rows.push({ rule: "ladder", would: r });
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });
   else if (p?.noEdge) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} sits on the leg EQ ${p.leg!.eq} — no edge` });
