@@ -10,3 +10,6 @@
   ```
   See `report-2026-10-13.md` for an example.
 - **Watcher:** `watcher.patch` adds `watcher/rule1_shadow.py`. That module logs `rule1_would_fire` rows to `rule1_shadow.jsonl` (broker False, orders 0). The dedupe survives restarts: on the first poll the daemon seeds it from today's (CT) rows in that file (`load_seen`). The patch is NOT applied to the live watcher. Apply it manually with `git apply docs/rule1-1015/watcher.patch` after review.
+
+## Follow-up: load_seen hardening
+`watcher-load-seen.patch` applies on top of the live watcher after #29 (`watcher.patch` is already live; do not re-apply it). load_seen opens the log with `errors="replace"` and catches `(OSError, ValueError)`; tests cover undecodable bytes and a reader ValueError. Rules hash unchanged (a4bfcb65c88badcd).

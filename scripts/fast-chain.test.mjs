@@ -33,7 +33,7 @@ test("fastChain from shared rules: B+ / no hold timer: 2 consecutive polls, 90 s
   assert.ok(fc.fastSetupRows(BASE).every(([, ok]) => ok));
 });
 test("watcher (Python) fastchain.setup_rows matches the TS chain on the same cases", () => {
-  const dirs = [process.env.WATCHER_DIR, "/workspace/dw-unblock2", "/workspace/desk-watcher", "/workspace/dw-optpnl"].filter(Boolean);
+  const dirs = [process.env.WATCHER_DIR, "/workspace/desk-watcher", "/workspace/dw-unblock2", "/workspace/dw-optpnl"].filter(Boolean);
   const dir = dirs.find((d) => existsSync(`${d}/watcher/fastchain.py`));
   if (!dir) return;
   const snaps = CASES.map((c) => ({ ...BASE, ...c }));
