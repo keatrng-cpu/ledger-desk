@@ -38,6 +38,8 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   return r;
 }
 
+/** Twin of watcher gates.DEFAULT_ATR (points; used when the card has no ATR). */
+export const DEFAULT_ATR: Record<string, number> = { ES: 4.0, MNQ: 20.0 };
 export const ETF: Record<string, string> = { ES: "SPY", MES: "SPY", NQ: "QQQ", MNQ: "QQQ" };
 /** T2 only when it is beyond T1 on the card's side; a malformed T2 is treated as no T2 (fire-bugs-live 10/15). */
 export function effectiveT2(s: FastSnap): number | null {
@@ -61,7 +63,10 @@ export function invalidated(s: FastSnap): boolean {
   return false;
 }
 /** fast:entry failed because price is more than entryAtr x ATR from entry (twin of watcher fastchain._chased). */
-export const chased = (s: FastSnap) => s.px != null && s.entry != null && !!s.atr && Math.abs(s.px - s.entry) > FC.entryAtr * s.atr;
+export function chased(s: FastSnap): boolean {
+  const atr = s.atr && s.atr > 0 ? s.atr : DEFAULT_ATR[String(s.symbol)]; // default-ATR fallback, as the watcher
+  return s.px != null && s.entry != null && !!atr && Math.abs(s.px - s.entry) > FC.entryAtr * atr;
+}
 /** Velocity size cut (twin of watcher fastchain.velocity_size): ETA > cap -> x cutMult; > minSizeBeyondCapX x cap or unknown -> minimum. */
 export function velocitySize(n: number | null, expMin: number | null | undefined, minContracts = 1): number | null {
   if (n == null || FC.velocity.mode !== "size") return n;
@@ -70,9 +75,42 @@ export function velocitySize(n: number | null, expMin: number | null | undefined
   if (expMin > cap) return Math.min(n, Math.max(lo, Math.floor(n * FC.velocity.cutMult)));
   return n;
 }
+/**
+ * Velocity cut BEFORE sizing (twin of watcher fastchain.velocity_cap + gates.size_contracts; Accuracy CHANGES 10/15): the
+ * contract ceiling min(maxContracts, wanted) is cut by velocity, then the band $ cap (maxDebit) and the minDebit floor are
+ * enforced on the cut count (minimum 1 whole contract). Returns null when no count fits.
+ */
+export function velocitySizedContracts(ask: number | null | undefined, wanted: number | null | undefined, maxContracts: number, maxDebit: number,
+  minDebit: number, expMin: number | null | undefined, minContracts = 1): number | null {
+  if (ask == null || !(ask > 0) || maxContracts < minContracts) return null;
+  const lo = Math.max(1, minContracts); const base = Math.max(lo, Math.min(maxContracts, Math.floor(wanted || 1)));
+  const maxc = velocitySize(base, expMin, minContracts) ?? base;
+  const per = ask * 100;
+  if (per > maxDebit + 1e-9) return null;
+  let n = Math.max(minContracts, Math.min(maxc, Math.floor(wanted || 1)));
+  while (n > minContracts && n * per > maxDebit + 1e-9) n--;
+  if (n * per < minDebit - 1e-9) {
+    while (n < maxc && n * per < minDebit) n++;
+    if (n * per < minDebit - 1e-9 || n * per > maxDebit + 1e-9) return null;
+  }
+  return n;
+}
 export const setupId = (s: FastSnap) => `${s.symbol}:${s.side}:${s.entry ?? null}`;
 export interface SetupConfirm { firstMs: number; polls: number; lastAt: string | null; outOfZone?: boolean; rearmed?: number }
-export interface FastStreak { key: string | null; firstMs: number | null; polls: number; lastAt: string | null; byId: Record<string, SetupConfirm>; lastId: string | null }
+export interface SpentSetup { why: string; day: string | null }
+export interface FastStreak { key: string | null; firstMs: number | null; polls: number; lastAt: string | null; byId: Record<string, SetupConfirm>; lastId: string | null; spent?: Record<string, SpentSetup> }
+/** Session date (ET) for the spent set (twin of watcher fastchain.session_day). */
+export const sessionDay = (ms: number) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+/** After a fire the setup id is spent for the session (twin of watcher fastchain.mark_spent). */
+export function markSpent(st: FastStreak | null, sid: string, why = "fired", nowMs: number | null = null): FastStreak {
+  const base: FastStreak = st ? { ...st } : { key: null, firstMs: null, polls: 0, lastAt: null, byId: {}, lastId: null };
+  const spent = { ...(base.spent ?? {}) }; if (!spent[sid]) spent[sid] = { why, day: nowMs != null ? sessionDay(nowMs) : null };
+  const byId = { ...base.byId }; delete byId[sid];
+  const out: FastStreak = { ...base, spent, byId };
+  if (out.key === sid) { out.key = null; out.firstMs = null; out.polls = 0; }
+  if (out.lastId === sid) out.lastId = null;
+  return out;
+}
 /**
  * fast:persist (twin of watcher fastchain.streak_next; fire-bugs-live 10/15, Keaton): no hold timer. Fires the first time the
  * setup is fully actionable once the SAME setup id (symbol:side:entry) passed confirmPolls consecutive real polls, and only
@@ -89,7 +127,13 @@ export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string 
     by[k] = { ...v };
   }
   let lastId = prev?.lastId ?? null;
-  if (s.strategy_invalidated === true || invalidated(s)) { delete by[sid]; lastId = null; }
+  const day = sessionDay(nowMs);
+  const spent: Record<string, SpentSetup> = {};
+  for (const [k, v] of Object.entries(prev?.spent ?? {})) if (v && (v.day === day || v.day == null)) spent[k] = v;
+  if (s.strategy_invalidated === true || invalidated(s)) {
+    if ((sid in by || sid in spent) && !spent[sid]) spent[sid] = { why: "invalidated", day }; // stop / T1 touched: spent
+    delete by[sid]; lastId = null;
+  } else if (spent[sid]) { delete by[sid]; lastId = null; } // spent: never re-arms
   else {
     const cur = by[sid];
     if (cur && at != null && at === cur.lastAt && lastId === sid) { /* same card re-read */ }
@@ -107,7 +151,7 @@ export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string 
     }
   }
   const cur = by[sid];
-  return cur ? { key: sid, ...cur, byId: by, lastId } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId };
+  return cur ? { key: sid, ...cur, byId: by, lastId, spent } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId, spent };
 }
 /** fast:persist: confirmPolls consecutive passes and no older than maxActionableAgeS. */
 export function persistOk(st: FastStreak | null, nowMs: number): boolean {

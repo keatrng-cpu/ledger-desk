@@ -692,11 +692,6 @@
       "minT1Mult": 1.5,
       "_doc": "A-/B+ cap rises to maxDebit when projected T1 option value >= minT1Mult x (theta to T1 + spread)."
     },
-    "persistGrace": {
-      "mode": "shadow",
-      "maxDipCards": 1,
-      "_doc": "fast:persist hold survives one card whose q dips under minBand while price is still within entryAtr of entry."
-    },
     "nearMissFire": {
       "mode": "shadow",
       "qMin": 0.58,

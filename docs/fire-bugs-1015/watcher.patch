@@ -1,6 +1,23 @@
+diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/daemon.py dw-firebug/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-15 12:15:48.372926632 -0500
++++ b/watcher/daemon.py	2026-10-15 12:51:23.192926632 -0500
+@@ -246,8 +246,11 @@
+         if optexec.mode("limitWalk") == "live": lim, how = optexec.walk_limit(q.get("bid"), q["ask"], 0), "mid (walk 0)"   # fix 4
+         else: lim, how = gates.limit_price(q.get("bid"), q["ask"], self.cfg.slip, self.cfg.wide_spread)
+         n = int([w for nm, ok, w in g if nm == "sizing"][0].split("ct")[0].split("->")[-1].strip()) if any(nm == "sizing" for nm, ok, w in g) else None   # the gated size, always
+-        if n is None: n, _ = gates.size_contracts(q["ask"], snap["ticket"].get("contracts"), self.cfg, snap["band"], snap.get("size_cut", False) or snap.get("desk_size_cut") is True, view.get("week"))
+-        sig = self.state["signals"].setdefault(key, {}); sig["fired"] = time.time(); self.save()  # persist BEFORE send
++        if n is None: n, _ = gates.size_contracts(q["ask"], snap["ticket"].get("contracts"), self.cfg, snap["band"], snap.get("size_cut", False) or snap.get("desk_size_cut") is True, view.get("week"), vel_snap=snap)
++        sig = self.state["signals"].setdefault(key, {}); sig["fired"] = time.time()
++        from . import fastchain
++        if fastchain.live(): self.state["fast_streak"] = fastchain.mark_spent(self.state.get("fast_streak"), fastchain.setup_id(snap), "fired", int(time.time() * 1000))   # setup spent for the session
++        self.save()  # persist BEFORE send
+         try:
+             res = self.broker.buy(c, n, lim)
+         except BrokerRefused as e:
 diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/desk-rules.json dw-firebug/watcher/desk-rules.json
 --- a/watcher/desk-rules.json	2026-10-15 12:15:48.384926632 -0500
-+++ b/watcher/desk-rules.json	2026-10-15 12:21:16.228926632 -0500
++++ b/watcher/desk-rules.json	2026-10-15 12:53:40.152926632 -0500
 @@ -284,10 +284,21 @@
      "lossLock": -300
    },
@@ -42,10 +59,22 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/desk-rules.
    },
    "kzDisp": {
      "_doc": "Kill-zone opening-displacement detector (Keaton 2026-10-13, items 1-50). Every item starts mode=shadow: logged as shadow:kz:* ok rows, never changes band/fire/plan. Promote only when tools/kz_backtest.py shows hit/R/freq not worse on 6-12 months; see tools/kz_backtest_report.json. Twin: watcher/killzone.py, desk src/lib/desk/kz-disp.ts.",
+@@ -682,11 +692,6 @@
+       "minT1Mult": 1.5,
+       "_doc": "A-/B+ cap rises to maxDebit when projected T1 option value >= minT1Mult x (theta to T1 + spread)."
+     },
+-    "persistGrace": {
+-      "mode": "shadow",
+-      "maxDipCards": 1,
+-      "_doc": "fast:persist hold survives one card whose q dips under minBand while price is still within entryAtr of entry."
+-    },
+     "nearMissFire": {
+       "mode": "shadow",
+       "qMin": 0.58,
 diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.py dw-firebug/watcher/fastchain.py
 --- a/watcher/fastchain.py	2026-10-14 12:16:09.000000000 -0500
-+++ b/watcher/fastchain.py	2026-10-15 12:21:16.224926632 -0500
-@@ -31,34 +31,106 @@
++++ b/watcher/fastchain.py	2026-10-15 12:50:54.972926632 -0500
+@@ -31,34 +31,130 @@
      rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' BOTH AGAINST' if both else ''}"))
      rows.append(geometry_row(snap))
      vel = ((snap.get("loss") or {}).get("velocity") or {}); m = _num(vel.get("expMin"))
@@ -69,16 +98,23 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +    if m > cap: return v.get("cutMult", 0.5), f"ETA {m}m > cap: size x{v.get('cutMult', 0.5)}"
 +    return 1.0, "within cap: full size"
 +
-+def velocity_size(n, snap, cfg):
-+    """Apply the velocity size cut to a contract count (whole contracts, >= cfg.min_contracts, never above n so the
-+    debit cap that produced n still holds). Returns (n, note or None)."""
-+    if n is None or not (live() and velocity_size_mode()): return n, None
++def velocity_cap(maxc, wanted, snap, cfg):
++    """Velocity size cut applied BEFORE sizing (Accuracy CHANGES 10/15): returns (contract ceiling, note or None). The
++    ceiling is min(band max, wanted) cut by velocity_mult (whole contracts, >= cfg.min_contracts); size_contracts then
++    still enforces the band $ cap (e.g. $650) and the min_debit floor on the cut count."""
++    if not (live() and velocity_size_mode()): return maxc, None
 +    mult, why = velocity_mult(snap)
-+    if mult is not None and mult >= 1: return n, None
-+    lo = max(1, cfg.min_contracts)
-+    n2 = lo if mult is None else max(lo, int(n * mult))
-+    n2 = min(n, n2)
-+    return n2, f"velocity {why} -> {n2}ct (from {n}ct)"
++    if mult is not None and mult >= 1: return maxc, None
++    lo = max(1, cfg.min_contracts); base = max(lo, min(maxc, int(wanted or 1)))
++    n2 = lo if mult is None else max(lo, int(base * mult))
++    n2 = min(base, n2)
++    return n2, f"velocity {why} -> <= {n2}ct (from {base}ct)"
++
++def velocity_size(n, snap, cfg):
++    """Legacy post-sizing form (kept for tools); the fire path uses velocity_cap inside size_contracts."""
++    if n is None: return n, None
++    c, w = velocity_cap(n, n, snap, cfg)
++    return (c, w) if w else (n, None)
 +
 +def confirm_polls(): return FC["confirmPolls"]
 +def max_age_s(): return FC["maxActionableAgeS"]
@@ -124,13 +160,17 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +    invalidation (through the stop / T1 touched / strategy.invalidated) or a side change on the symbol.
 +    Entry re-arm (fastChain.entryRearm): a setup whose price ran more than entryAtr x ATR from entry stays alive; when price
 +    pulls back inside the zone (stop/T1 untouched, still >= minBand) the staleness clock and confirmPolls restart.
-+    Returns dict(key, first_ms, polls, last_at, by_id, last_id)."""
++    Spent (Accuracy CHANGES 10/15): a setup id that fired (mark_spent), hit its stop or touched T1 is spent for the session
++    and never re-arms or re-fires. Returns dict(key, first_ms, polls, last_at, by_id, last_id, spent)."""
 +    prev = prev or {}; by = {k: dict(v) for k, v in (prev.get("by_id") or {}).items()}
 +    sym, side = snap.get("symbol"), snap.get("side"); sid = setup_id(snap); at = snap.get("at")
 +    for k in [k for k in by if k.split(":")[0] == str(sym) and k.split(":")[1] != str(side)]: by.pop(k)   # side change
-+    last_id = prev.get("last_id")
++    last_id = prev.get("last_id"); day = session_day(now_ms); spent = {k: v for k, v in (prev.get("spent") or {}).items() if isinstance(v, dict) and v.get("day") in (day, None)}
 +    if snap.get("strategy_invalidated") is True or invalidated(snap):
++        if sid in by or sid in spent: spent.setdefault(sid, {"why": "invalidated", "day": day})      # stop / T1 touched: spent for the session
 +        by.pop(sid, None); last_id = None
++    elif sid in spent:
++        by.pop(sid, None); last_id = None                                   # spent (fired / stopped / T1 touched): never re-arms
 +    else:
 +        cur = by.get(sid)
 +        if cur is not None and at is not None and at == cur.get("last_at") and last_id == sid:
@@ -147,8 +187,21 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +                if (FC.get("entryRearm") or {}).get("mode") == "live" and _chased(snap): cur["out_of_zone"] = True
 +            last_id = None
 +    cur = by.get(sid)
-+    if not cur: return {"key": None, "first_ms": None, "polls": 0, "last_at": at, "by_id": by, "last_id": last_id}
-+    return {"key": sid, **cur, "by_id": by, "last_id": last_id}
++    if not cur: return {"key": None, "first_ms": None, "polls": 0, "last_at": at, "by_id": by, "last_id": last_id, "spent": spent}
++    return {"key": sid, **cur, "by_id": by, "last_id": last_id, "spent": spent}
++
++def session_day(now_ms):
++    """Session date (ET) for the spent set; spent setups clear on the next session."""
++    import datetime as _d, zoneinfo as _z
++    return _d.datetime.fromtimestamp(now_ms / 1000, _z.ZoneInfo("America/New_York")).date().isoformat()
++
++def mark_spent(st, sid, why="fired", now_ms=None):
++    """After a fire: the setup id is spent for the session (no re-fire on re-arm, nor after its stop / T1). Returns st."""
++    st = dict(st or {}); sp = dict(st.get("spent") or {}); sp.setdefault(sid, {"why": why, "day": session_day(now_ms) if now_ms is not None else None}); st["spent"] = sp
++    by = dict(st.get("by_id") or {}); by.pop(sid, None); st["by_id"] = by
++    if st.get("key") == sid: st.update(key=None, first_ms=None, polls=0)
++    if st.get("last_id") == sid: st["last_id"] = None
++    return st
 +
 +def persist_check(st, now_ms):
 +    """(ok, why) for fast:persist: confirmPolls consecutive passes and age <= maxActionableAgeS."""
@@ -171,7 +224,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
      names = {n for n, _, _ in rows}
      for n, ok, w in g:
          if n in names: continue
-@@ -71,7 +143,7 @@
+@@ -71,7 +167,7 @@
      """fast:geometry (hard; Floor review 2026-10-13 19:28 ET: a long plan card carried short levels). Refuse unless
      long: stop < entry < T1 (< T2) / short: stop > entry > T1 (> T2) for BOTH the plan stop and the management stop
      (resolve_stop), and the option side matches the card side: the traded ticket (call=long / put=short, ETF of the
@@ -180,7 +233,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
      from .gates import resolve_stop, SIDE_TO_TYPE
      side = snap.get("side"); e = _num(snap.get("entry")); t1 = _num(snap.get("first_target")); t2 = _num(snap.get("t2"))
      why = []
-@@ -83,12 +155,16 @@
+@@ -83,12 +179,16 @@
      st_plan = _num(snap.get("stop_px")); st_mgmt = resolve_stop(snap)[0]
      if not ok_order(st_plan): why.append(f"plan stop {st_plan} / entry {e} / T1 {t1} not {'stop<entry<T1' if L else 'stop>entry>T1'}")
      if st_mgmt is not None and not ok_order(st_mgmt): why.append(f"management stop {st_mgmt} on the wrong side")
@@ -201,9 +254,28 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +    if ds is not None and (ds != want or (du is not None and und is not None and du != und)): note.append(f"desk Floor ticket {du} {ds} ignored (not this card's {und} {want})")
 +    tail = ("; " + "; ".join(note)) if note else ""
 +    return ("fast:geometry", not why, ("; ".join(why) + tail) if why else f"{side}: stop {st_plan} / entry {e} / T1 {t1}" + (f" / T2 {t2}" if t2 else "") + f"; ticket {want}" + tail)
+diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/firefix.py dw-firebug/watcher/firefix.py
+--- a/watcher/firefix.py	2026-10-14 12:16:09.000000000 -0500
++++ b/watcher/firefix.py	2026-10-15 12:51:53.396926632 -0500
+@@ -84,15 +84,6 @@
+     ok = brain_ok and floor_ok and not both
+     return ok, f"q {q} near B+; brain {snap.get('brain_side')} {'same' if brain_ok else 'not same'} side; floor {snap.get('verdict')}; 1h/4h both against={both}"
+ 
+-def persist_grace(prev, snap, setup_ok_except_band, now_ms):
+-    """Keep the fast streak through ONE card whose only miss is band/q, while price is still at the entry."""
+-    if not prev or prev.get("since_ms") is None: return None
+-    key = f"{snap.get('symbol')}:{snap.get('side')}"
+-    if prev.get("key") != key or not setup_ok_except_band: return None
+-    dips = prev.get("dips", 0)
+-    if dips >= FX["persistGrace"]["maxDipCards"]: return None
+-    return {**prev, "dips": dips + 1, "last_at": snap.get("at")}
+-
+ def sole_blocker(g):
+     """One line for the Watcher tab: the single failing hard gate, else the count."""
+     bad = [(n, w) for n, ok, w in g if ok is False]
 diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw-firebug/watcher/gates.py
 --- a/watcher/gates.py	2026-10-15 10:00:46.528926632 -0500
-+++ b/watcher/gates.py	2026-10-15 12:21:16.224926632 -0500
++++ b/watcher/gates.py	2026-10-15 12:51:14.792926632 -0500
 @@ -108,6 +108,7 @@
          "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
          "stop_px": _strict(strat.get("stopPx")),
@@ -212,20 +284,51 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw
          "desk_ticket_side": (ticket or {}).get("side"), "desk_ticket_underlier": (ticket or {}).get("underlier"),
          "rr1": _strict(strat.get("rr1Raw")) if _strict(strat.get("rr1Raw")) is not None else _strict(strat.get("rr1")),
          "sweep": strat.get("sweep") if isinstance(strat.get("sweep"), bool) else None,
-@@ -769,6 +770,9 @@
-         if _m < 1 and nct > 1:
-             nct = max(cfg.min_contracts, int(nct * _m)); why += f"; time-of-day size x{_m} -> {nct}ct"
-             if nct * lim * 100 < cfg.min_debit: nct = None; why += f" < ${cfg.min_debit:.0f} floor"
-+    from . import fastchain as _fcv
-+    _nv, _vw = _fcv.velocity_size(nct, snap, cfg)
-+    if _vw: why = f"{_nv}ct after {_vw}; was " + why; nct = _nv     # leading "<n>ct" is what the fire path reads
-     add("sizing", nct is not None, why)
-     if nct is None:
-         if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")
+@@ -506,7 +507,7 @@
+     from . import weekly as _wk          # weekly lock: 1ct / $250 once the week is locked
+     return _wk.caps(week, min(cfg.max_contracts, mc), min(cfg.max_debit, md))
+ 
+-def size_contracts(ask, wanted, cfg, band="A+", cut=False, week=None, equity=None, t1_mult=None, near_miss=False, shadow=None):
++def size_contracts(ask, wanted, cfg, band="A+", cut=False, week=None, equity=None, t1_mult=None, near_miss=False, shadow=None, vel_snap=None):
+     """Contracts so total debit (at live ask) is within [min_debit, band cap]. None + reason on refusal.
+     cut=True (one of 1h/4h opposing) halves the band's contract and debit caps."""
+     ask = _num(ask)
+@@ -519,6 +520,11 @@
+     if shadow is not None: shadow.extend(_rows)
+     if maxc < cfg.min_contracts:
+         return None, f"band {band} has no size"
++    _vnote = ""
++    if vel_snap is not None:     # fast:velocity size cut BEFORE sizing: the $ cap and min_debit floor below apply to the cut count
++        from . import fastchain as _fcv
++        _vc, _vw = _fcv.velocity_cap(maxc, wanted, vel_snap, cfg)
++        if _vw: maxc = _vc; wanted = min(int(wanted or 1), _vc); _vnote = f"; {_vw}"
+     per = ask * 100
+     if per > maxd + 1e-9:
+         return None, f"1 contract ${per:.2f} > ${maxd:.0f} cap ({band})"
+@@ -529,8 +535,8 @@
+         while n < maxc and n * per < cfg.min_debit:
+             n += 1
+         if n * per < cfg.min_debit - 1e-9 or n * per > maxd + 1e-9:
+-            return None, f"cannot reach ${cfg.min_debit:.0f} floor within {maxc} contracts ({band})"
+-    return n, f"{n}ct x ${per:.2f} = ${n*per:.2f} ({band}: <= {maxc}ct / ${maxd:.0f})"
++            return None, f"cannot reach ${cfg.min_debit:.0f} floor within {maxc} contracts ({band}){_vnote}"
++    return n, f"{n}ct x ${per:.2f} = ${n*per:.2f} ({band}: <= {maxc}ct / ${maxd:.0f}){_vnote}"
+ 
+ def pick_strike(strikes, spot, opt_type, offset):
+     """ATM = nearest strike; OTM_1 = next strike out of the money."""
+@@ -762,7 +768,7 @@
+     if _bcut or _dcut: snap["size_cut"] = True
+     nct, why = size_contracts(q["ask"], _want, cfg, snap["band"], snap.get("size_cut", False) or _bcut or _dcut, broker.get("week"),
+                               equity=broker.get("equity") or broker.get("buying_power"), t1_mult=_t1_mult(snap, q, broker.get("contract")),
+-                              near_miss=snap.get("near_miss_fire") is True, shadow=_fxrows)
++                              near_miss=snap.get("near_miss_fire") is True, shadow=_fxrows, vel_snap=snap)
+     for _r in _fxrows: add(*_r)
+     if nct is not None and _ox.mode("todSize") == "live":
+         _m = _ox.tod_mult(et_now)
 diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_fastchain.py dw-firebug/tests/test_fastchain.py
 --- a/tests/test_fastchain.py	2026-10-13 18:29:55.940376822 -0500
-+++ b/tests/test_fastchain.py	2026-10-15 12:21:25.776926632 -0500
-@@ -12,23 +12,94 @@
++++ b/tests/test_fastchain.py	2026-10-15 12:53:26.776926632 -0500
+@@ -12,23 +12,130 @@
      s.update(kw); return s
  
  def test_rules():
@@ -293,11 +396,47 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_fastchai
 +    assert v(61, 4) == 1 and v(None, 4) == 1                # > 2x cap or unknown: minimum size
 +    assert fc.velocity_size(None, snap(), cfg) == (None, None)   # no size from the $ cap stays no size
 +
-+def test_sizing_row_carries_velocity_cut_for_fire_path():
-+    from types import SimpleNamespace as NS
-+    n, w = fc.velocity_size(4, snap(loss={"velocity": {"expMin": 40}}), NS(min_contracts=1))
-+    why = f"{n}ct after {w}; was 4ct x $150.00 = $600.00"
-+    assert int(why.split("ct")[0].split("->")[-1].strip()) == 2   # daemon fire path parses the leading count
++@pytest.fixture
++def cfg(monkeypatch):
++    for k in ("LIVE", "FIRE_ENABLED", "FIRE_ALLOW_A_MINUS", "FIRE_ALLOW_B_PLUS", "Q_MIN", "MAX_DEBIT"): monkeypatch.delenv(k, raising=False)
++    return Config()
++
++def test_velocity_cut_before_sizing_respects_cap_and_floor(cfg):
++    fast = lambda m: snap(loss={"velocity": {"expMin": m}})
++    full, _ = gates.size_contracts(1.50, 4, cfg, "A+")
++    n, why = gates.size_contracts(1.50, 4, cfg, "A+", vel_snap=fast(40))
++    assert n == max(1, full // 2) and "velocity" in why and n * 150 <= 650
++    assert int(why.split("ct")[0].split("->")[-1].strip()) == n          # daemon fire path parses the leading count
++    assert gates.size_contracts(1.50, 4, cfg, "A+", vel_snap=fast(None))[0] == 1   # unknown ETA: 1ct
++    assert gates.size_contracts(1.50, 4, cfg, "A+", vel_snap=fast(20))[0] == full   # within cap: full size
++    # cut to 1ct but 1ct is under the min_debit floor: refuse rather than fire below the floor
++    n, why = gates.size_contracts(0.20, 4, cfg, "A+", vel_snap=fast(None))
++    assert n is None and "floor" in why
++
++def _arm(st, t0):
++    st = fc.streak_next(st, snap(at=f"r{t0}"), t0); return fc.streak_next(st, snap(at=f"s{t0}"), t0 + 4000)
++
++def test_no_refire_after_stop():
++    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = fc.streak_next(st, snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
++    assert st["spent"][fc.setup_id(snap())]["why"] == "invalidated"
++    st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
++
++def test_no_refire_after_t1_touch():
++    st = fc.streak_next(_arm(None, 0), snap(at="t1", tape_prices={"ES": 7846.0}), 5000)
++    st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
++
++def test_no_refire_after_fire_then_rearm():
++    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = fc.mark_spent(st, fc.setup_id(snap()), "fired", 4000)
++    st = fc.streak_next(st, snap(at="out", **CHASE), 6000)     # chased out of the zone
++    st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
++    o = snap(entry=7852.25)                                      # another entry = another setup
++    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000)[0]
++
++def test_spent_clears_next_session():
++    st = fc.streak_next(_arm(None, 0), snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
++    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000)[0]
 +
 +CHASE = dict(tape_prices={"ES": 7847.0})   # 4.75 past entry (> 0.5 x ATR 8), stop and T1 untouched
 +
@@ -343,7 +482,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_firefix.
      sh = {**base, "side": "short", "stop_px": 30750.0, "strategy_stop": 30750.0, "first_target": 30650.0, "ticket": {"underlier": "QQQ", "side": "put", "fast_synth": True}, "desk_ticket_side": "put"}
      assert fc.geometry_row(sh)[1] is True
      assert fc.geometry_row({**sh, "first_target": 30800.0})[1] is False
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tools/fast_dryrun.py dw-firebug/tools/fast_dryrun.py
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/tools/fast_dryrun.py dw-firebug/tools/fast_dryrun.py
 --- a/tools/fast_dryrun.py	2026-10-13 16:40:46.176852046 -0500
 +++ b/tools/fast_dryrun.py	2026-10-15 12:15:01.328926632 -0500
 @@ -1,5 +1,5 @@

@@ -40,23 +40,23 @@
   "sig": "sig-9ad0a6bec0c0619f"
  },
  {
-  "t": "10-15 08:33:33 CT",
+  "t": "10-15 08:56:47 CT",
   "sym": "MNQ",
   "side": "short",
   "band": "B+",
-  "entry_card": 29771.13,
-  "fill_px": 29764.75,
-  "stop": 29799.5,
-  "t1": 29684.25,
+  "entry_card": 29681.13,
+  "fill_px": 29664.25,
+  "stop": 29750.0,
+  "t1": 29357.75,
   "outcome": "stop",
   "R": -1.0,
-  "exit": "08:39",
-  "T1_eta_min": 13.9,
-  "contracts": 3,
-  "full_size": 3,
-  "prem": 1.7,
-  "opt_pnl": -140,
-  "rearmed": 1,
-  "sig": "sig-9ad0a6bec0c0619f"
+  "exit": "09:01",
+  "T1_eta_min": 48.8,
+  "contracts": 2,
+  "full_size": 4,
+  "prem": 1.36,
+  "opt_pnl": -160,
+  "rearmed": 0,
+  "sig": "sig-ee7af24867538eaf"
  }
 ]

@@ -9,7 +9,8 @@ Live fix for the two bugs that stopped the desk firing (audit `audits/fire-fail-
 - A failing poll or a sibling card breaks the consecutive count. It does not reset the setup's age.
 - The setup is reset on invalidation (price through the stop, T1 touched, or `strategy.invalidated`) and on a side change on the same symbol.
 - `fastChain.minHoldS` is removed.
-- `fireFix.persistGrace` (shadow) is no longer called from `streak_next`. The rules key is left in place.
+- `fireFix.persistGrace` is removed (rules key and `firefix.persist_grace`); nothing called it.
+- **Spent setups (Accuracy CHANGES 10/15):** a setup id that fired, hit its stop or touched T1 is spent for the session (ET date) in both desk (`streakNext`/`markSpent`) and watcher (`streak_next`/`mark_spent`, called in `fire_live` before the order is sent). It never re-arms or re-fires; another entry is another setup.
 
 ## fast:geometry
 - A desk Floor ticket on another underlying or in the other direction is another setup. It is **ignored** and noted in the reason text instead of refusing; for example, a QQQ put against an MNQ/ES long card.
@@ -22,12 +23,11 @@ Live fix for the two bugs that stopped the desk firing (audit `audits/fire-fail-
 - If the ETA is over 60m, or unknown, the trade uses the minimum size (1 contract).
 - The cut never raises size above what the band and the $650 debit cap allow.
 - `fast:velocity` is removed from `fastChain.hard`, and the row becomes `soft:fast:velocity`.
-- In the watcher, the cut is applied to the `sizing` row, and the fire path reads the leading count.
-- The cut does not re-check the `min_debit` floor, because Keaton asked for a minimum of 1 whole contract.
+- **The cut is applied BEFORE sizing (Accuracy CHANGES 10/15):** `fastchain.velocity_cap` lowers the contract ceiling inside `gates.size_contracts`, so the band $ cap ($650) and the `min_debit` ($50) floor are enforced on the cut count (minimum 1 whole contract; refuse if 1ct is under the floor). Desk twin: `velocitySizedContracts`. The fire path reads the leading count of the `sizing` row.
 
 ## Entry re-arm (Keaton, 10/15)
 - `fastChain.entryRearm.mode` = "live".
-- When fast:entry fails because price is more than 0.5×ATR from entry, the setup is kept alive.
+- When fast:entry fails because price is more than 0.5×ATR from entry (card ATR, else the default ATR ES 4 / MNQ 20 on both desk and watcher), the setup is kept alive.
 - When price pulls back inside the zone, with the stop and T1 untouched and the band still ≥ B+, the setup becomes actionable again. At that point the 90s staleness clock and confirmPolls restart.
 
 Unchanged hard gates: band, real stop/targets, entry distance (as the actionable condition), agree, tape/feed freshness, rules hash/pin, and the daily/weekly caps. Brain stays soft.
@@ -37,8 +37,10 @@ Unchanged hard gates: band, real stop/targets, entry distance (as the actionable
 |---|---|---|---|---|---|---|---|
 | 10/14 09:03:57 | MNQ | short | 30569.25 / 30529.5 | T1+T2 (10:08) | +1.17 | 2 (4), ETA 31.8m | +$257 |
 | 10/15 08:30:21 | MNQ | short | 29771.13 / 29746.5 | T1 then BE (08:33) | +0.42 | 4 | +$87 |
-| 10/15 08:33:33 | MNQ | short | 29771.13 / 29764.75 (after the T1-touch reset) | stop (08:39) | −1.00 | 3 | −$140 |
-| **Total** | | | | | **+0.59R** | | **+$204** |
+| 10/15 08:56:47 | MNQ | short | 29681.13 / 29664.25 (new setup; the 08:30 setup is spent) | stop (09:01) | −1.00 | 2 (4), ETA 48.8m | −$160 |
+| **Total** | | | | | **+0.59R** | | **+$184** |
+
+The 08:33:33 re-fire of the 08:30 setup (−1.00R, −$140) is gone: that setup touched T1 and is spent.
 
 ## Earlier replay (`replay.py`; no-timer config, before the velocity/re-arm changes, read-only on the desk-watcher gates.log 10/13 → 10/15 12:01 CT)
 | Variant | Fires | Sum R |

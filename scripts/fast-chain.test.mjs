@@ -79,3 +79,55 @@ test("geometry: Floor ticket on another underlying/direction ignored; malformed 
   assert.equal(geo({ t2: 7850 }), true); assert.equal(fc.effectiveT2({ ...BASE, t2: 7850 }), null); assert.equal(fc.effectiveT2({ ...BASE, t2: 7840 }), 7840);
   assert.equal(geo({ stop_px: 7850 }), false); // real geometry still refuses
 });
+
+// Accuracy CHANGES 10/15: a setup that fired, hit its stop or touched T1 is spent for the session.
+const arm = (st, t0) => fc.streakNext(fc.streakNext(st, { ...BASE, at: `r${t0}` }, t0), { ...BASE, at: `s${t0}` }, t0 + 4_000);
+test("spent: no re-fire after a stop", () => {
+  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000));
+  st = fc.streakNext(st, { ...BASE, at: "stop", px: 7857 }, 5_000);
+  assert.equal(st.spent[fc.setupId(BASE)].why, "invalidated");
+  st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000)); assert.equal(st.key, null);
+});
+test("spent: no re-fire after a T1 touch", () => {
+  let st = arm(null, 0);
+  st = fc.streakNext(st, { ...BASE, at: "t1", px: 7846 }, 5_000);
+  st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000));
+});
+test("spent: no re-fire after fire then re-arm (chase out, pull back)", () => {
+  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000));
+  st = fc.markSpent(st, fc.setupId(BASE), "fired", 4_000);
+  st = fc.streakNext(st, { ...BASE, at: "out", px: 7848 }, 6_000);   // > 0.5xATR from entry, stop/T1 untouched
+  st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000));
+  // another entry on the same symbol/side is another setup and can still fire
+  const other = { ...BASE, entry: 7852.25 };
+  st = fc.streakNext(fc.streakNext(st, { ...other, at: "o1" }, 20_000), { ...other, at: "o2" }, 24_000); assert.ok(fc.persistOk(st, 24_000));
+});
+test("spent: clears on the next session", () => {
+  let st = fc.streakNext(arm(null, 0), { ...BASE, at: "stop", px: 7857 }, 5_000);
+  const next = 5_000 + 86_400_000; st = arm(st, next); assert.ok(fc.persistOk(st, next + 4_000));
+});
+test("default-ATR fallback in chased() matches the watcher", () => {
+  assert.equal(fc.chased({ ...BASE, atr: null, px: 7851.75 + 2.1 }), true);   // ES default ATR 4 -> 0.5x = 2
+  assert.equal(fc.chased({ ...BASE, atr: null, px: 7851.75 + 1.9 }), false);
+});
+test("velocity cut is applied BEFORE sizing: $ cap and min_debit still hold, minimum 1ct", () => {
+  assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, 20), 4);      // within cap: full
+  assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, 40), 2);      // over 30m: half
+  assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, null), 1);    // unknown: 1ct
+  assert.equal(fc.velocitySizedContracts(2.0, 6, 6, 650, 50, 40), 3);      // half of 6, $600 <= $650
+  assert.equal(fc.velocitySizedContracts(0.3, 4, 4, 650, 50, null), null); // 1ct = $30 < $50 floor and ceiling is 1: refuse
+  assert.equal(fc.velocitySizedContracts(7.0, 1, 4, 650, 50, 40), null);   // 1ct $700 > $650 cap
+});
+test("spent: watcher streak_next/mark_spent agree with the TS twin (stop, T1, fire+re-arm)", () => {
+  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/fastchain.py`));
+  if (!dir) return;
+  const seq = [[{ at: "a1" }, 0], [{ at: "a2" }, 4000], ["FIRE", 4000], [{ at: "o", px: 7848 }, 6000], [{ at: "b1" }, 10000], [{ at: "b2" }, 14000],
+    [{ at: "e1", entry: 7852.25 }, 20000], [{ at: "e2", entry: 7852.25 }, 24000], [{ at: "e3", entry: 7852.25, px: 7857 }, 25000], [{ at: "e4", entry: 7852.25 }, 30000], [{ at: "e5", entry: 7852.25 }, 34000]]
+    .map(([c, t]) => [c === "FIRE" ? c : { ...BASE, ...c }, t]);
+  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[];last=None\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  if s=="FIRE":\n    st=f.mark_spent(st,f.setup_id(last),"fired",t); out.append(f.persist_check(st,t)[0]); continue\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; last=s\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
+  const py_out = JSON.parse(execFileSync("python3", ["-c", py]).toString());
+  let st = null; let last = null;
+  const ts_out = seq.map(([s, t]) => { if (s === "FIRE") { st = fc.markSpent(st, fc.setupId(last), "fired", t); return fc.persistOk(st, t); } last = s; st = fc.streakNext(st, s, t); return fc.persistOk(st, t); });
+  assert.deepEqual(py_out, ts_out);
+  assert.deepEqual(ts_out, [false, true, false, false, false, false, false, true, false, false, false]);
+});

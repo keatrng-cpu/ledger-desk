@@ -33,14 +33,16 @@ def path(d,t0):
 def vel(g):
     m=re.search(r'T1 ~([\d.]+|None)m',g.get('fast:velocity',(0,0,''))[2]); return None if not m or m.group(1)=='None' else float(m.group(1))
 def run(confirm=2,max_age=90,cap=30):
-    fires=[]; by={}; last=None; day_n=collections.Counter(); busy=0
+    fires=[]; by={}; spent=set(); last=None; day_n=collections.Counter(); busy=0
     for r in RP.rows:
         d=RP.parse(r)
         if not d: continue
         g=d['g']; sid=f"{d['sym']}:{d['side']}:{d['e']}"; L=d['side']=='long'
         for k in [k for k in by if k.split(':')[0]==d['sym'] and k.split(':')[1]!=d['side']]: by.pop(k)
         if (d['s'] is not None and (d['px']<=d['s'] if L else d['px']>=d['s'])) or (d['t1'] is not None and (d['px']>=d['t1'] if L else d['px']<=d['t1'])):
+            if sid in by: spent.add((RP.ct(r['ts']).date(),sid))   # stop / T1 touched: spent for the session (Accuracy 10/15)
             by.pop(sid,None); last=None; continue
+        if (RP.ct(r['ts']).date(),sid) in spent: by.pop(sid,None); last=None; continue
         ok=all(g[n][1] for n in('band','fast:plan','fast:entry','fast:agree') if n in g) and RP.geom_fixed(d)
         cur=by.get(sid)
         if not ok:
@@ -54,7 +56,7 @@ def run(confirm=2,max_age=90,cap=30):
         other=[x[0] for x in RP.hard_fails(r) if x[0] not in('band','fast:persist','fast:plan','fast:entry','fast:agree','fast:velocity','fast:geometry')]
         day=RP.ct(r['ts']).date()
         if cur['n']>=confirm and r['ts']-cur['first']<=max_age and not other and day_n[day]<2 and r['ts']>busy and not cur.get('fired'):
-            R,why,te=RP.outcome(d,r['ts']); ev,lab=path(d,r['ts']); day_n[day]+=1; busy=te or 9e18; cur['fired']=True
+            R,why,te=RP.outcome(d,r['ts']); ev,lab=path(d,r['ts']); day_n[day]+=1; busy=te or 9e18; cur['fired']=True; spent.add((day,sid))
             k=ratio[d['sym']]; S0=d['px']*k; K=round(S0); v=IV[d['sym']]; p0=bs(S0,K,yrs(r['ts']),v,L)+COST
             n0=int(DEBIT//(p0*100)); m=vel(g)
             n=n0 if (m is not None and m<=cap) else (1 if (m is None or m>2*cap) else max(1,n0//2))
