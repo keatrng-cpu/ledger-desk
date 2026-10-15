@@ -1,0 +1,27 @@
+[Unit]
+Description=Export desk_learn_annotation voids (read-only role ledger_ops_voids) for the network-isolated ledger-charts unit
+After=network-online.target
+Before=ledger-charts.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ledger-ops/voids
+EnvironmentFile=/etc/ledger-ops/voids.env
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# no other network: deny all, then the install.sh drop-in (db-allow.conf) allows only the DB host's IPs; localhost for DNS
+IPAddressDeny=any
+IPAddressAllow=localhost
+ReadWritePaths=/var/lib/ledger-charts /var/log/ledger-ops
+MemoryMax=100M
+MemorySwapMax=0
+CPUQuota=25%
+TimeoutStartSec=120
+ExecStart=/usr/bin/env node export-learn-voids.mjs /var/lib/ledger-charts/learn-voids.json
