@@ -1,0 +1,7 @@
+[Unit]
+Description=Voids export weekdays 17:10 ET (before ledger-charts 17:20)
+[Timer]
+OnCalendar=Mon..Fri *-*-* 17:10:00 America/New_York
+Persistent=false
+[Install]
+WantedBy=timers.target

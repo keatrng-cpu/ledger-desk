@@ -1,0 +1,41 @@
+diff -ruN a/watcher/chart_hook.py b/watcher/chart_hook.py
+--- a/watcher/chart_hook.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/chart_hook.py	2026-10-15 13:41:01.948926632 -0500
+@@ -0,0 +1,23 @@
++"""After-EXIT trade chart: fire-and-forget subprocess (ledger-desk ops/charts). Never in the order path, never blocks:
++Popen returns immediately, a daemon thread reaps the child, `timeout` kills it after TC_HOOK_TIMEOUT s, and every
++error is swallowed. The child gets a minimal env (no broker credentials). Disable with TC_HOOK=0."""
++import os, shutil, subprocess, threading
++
++def spawn(signal, watcher_dir):
++    if os.environ.get("TC_HOOK", "1") == "0": return None
++    try:
++        src = os.environ.get("TC_SRC", "/workspace/ld-charts/ops/charts")
++        if not os.path.isdir(os.path.join(src, "trade_charts")): return None
++        py = os.environ.get("TC_PYTHON") or ("/usr/bin/python3" if os.path.exists("/usr/bin/python3") else shutil.which("python3"))
++        to = str(int(float(os.environ.get("TC_HOOK_TIMEOUT", "300"))))
++        cmd = ["timeout", "-k", "10", to, "nice", "-n", "10", py, "-m", "trade_charts", "exit", "--delay", os.environ.get("TC_HOOK_DELAY", "90")]
++        if signal: cmd += ["--signal", str(signal)]
++        env = {k: v for k, v in os.environ.items() if k.startswith("TC_") or k in ("PATH", "LANG", "TZ")}   # no HOME: nothing under ~ (broker creds) is reachable by default
++        env.update(PYTHONPATH=src, TC_WATCHER_DIR=watcher_dir, MPLBACKEND="Agg")
++        log = open(os.path.join(watcher_dir, "chart_hook.log"), "ab")
++        p = subprocess.Popen(cmd, cwd=src, env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True, close_fds=True)
++        log.close()
++        threading.Thread(target=p.wait, daemon=True).start()
++        return p
++    except Exception:
++        return None
+diff -ruN a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-15 13:41:01.940926632 -0500
++++ b/watcher/daemon.py	2026-10-15 13:41:01.960926632 -0500
+@@ -361,6 +361,10 @@
+             if f.get("signal") == pos.get("signal"): f["option_pnl"] = pos["option_pnl"]; f["grade_on"] = "optionPnl"
+         pos.setdefault("exit_orders", []).append((res or {}).get("id") if isinstance(res, dict) else None)
+         pos["last_manage_order"] = time.time()
++        if act == "exit":   # after the sell is sent and booked: chart + learning row, detached (never blocks / never raises)
++            try:
++                from . import chart_hook; chart_hook.spawn(pos.get("signal"), self.cfg.path(""))
++            except Exception: pass
+ 
+     # ---- watcher tab feed (no secrets: account masked, no balances) ----
+     @property

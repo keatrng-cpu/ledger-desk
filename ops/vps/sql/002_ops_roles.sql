@@ -22,3 +22,25 @@ drop policy if exists ops_ro_select on live_market_bars_1m;
 create policy ops_ro_select on live_market_bars_1m for select to ledger_ops_paper, ledger_ops_watchdog using (true);
 drop policy if exists ops_ro_select on live_market_ticks;
 create policy ops_ro_select on live_market_ticks for select to ledger_ops_watchdog using (true);
+-- ledger_ops_voids: read-only, for ledger-voids-export (scripts/export-learn-voids.mjs). SELECT on desk_learn_annotation, plus
+-- only the twin-match columns (id, day_key, symbol, side, entry) of desk_card_journal / desk_card_snap that snapNotVoided joins.
+do $$ begin
+  if not exists (select 1 from pg_roles where rolname='ledger_ops_voids') then create role ledger_ops_voids login noinherit; end if;
+end $$;
+alter role ledger_ops_voids set default_transaction_read_only = on;
+alter role ledger_ops_voids connection limit 2;
+grant usage on schema public to ledger_ops_voids;
+do $$ declare t text; begin
+  if to_regclass('public.desk_learn_annotation') is not null then
+    execute 'grant select on desk_learn_annotation to ledger_ops_voids';
+    execute 'drop policy if exists voids_ro_select on desk_learn_annotation';
+    execute 'create policy voids_ro_select on desk_learn_annotation for select to ledger_ops_voids using (true)';
+  end if;
+  foreach t in array array['desk_card_journal', 'desk_card_snap'] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('grant select (id, day_key, symbol, side, entry) on %I to ledger_ops_voids', t);
+      execute format('drop policy if exists voids_ro_select on %I', t);
+      execute format('create policy voids_ro_select on %I for select to ledger_ops_voids using (true)', t);
+    end if;
+  end loop;
+end $$;

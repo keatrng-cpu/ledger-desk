@@ -1,4 +1,4 @@
-import datetime as D, os, sys, types
+import datetime as D, json, os, sys, types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import pytest, common, watchdog, dbhist, archive
 UTC = D.timezone.utc
@@ -75,3 +75,44 @@ def test_fastpath_rth_identical():
     want = {d: tp.rth(bars, d) for d in {b["t"].date() for b in bars}}
     fastpath.install(tp)
     assert all(tp.rth(bars, d) == v for d, v in want.items())
+
+HERE = os.path.join(os.path.dirname(__file__), "..")
+def rd(n): return open(os.path.join(HERE, "systemd", n)).read()
+
+def test_charts_unit_caps_and_no_network():
+    s = rd("ledger-charts.service")
+    assert "MemoryMax=300M" in s and "PrivateNetwork=yes" in s and ".env" not in s and "flock /run/ledger-ops/batch.lock" in s
+    assert "Persistent=false" in rd("ledger-charts.timer")
+    assert "IPAddressDeny=any" in s and "\nCapabilityBoundingSet=\n" in s and "MemorySwapMax=0" in s
+    assert "OnCalendar=Mon..Fri *-*-* 17:20:00 America/New_York" in rd("ledger-charts.timer")
+    src = open(os.path.join(HERE, "charts_nightly.py")).read()
+    assert "get_range" not in src and "import databento" not in src
+
+def test_charts_archive_cost_guard(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cn", os.path.join(HERE, "charts_nightly.py")); cn = importlib.util.module_from_spec(spec); spec.loader.exec_module(cn)
+    p = tmp_path / "archive.log"
+    p.write_text('{"day": "2026-10-14", "cost_usd": 0.0}\n{"day": "2026-10-15", "cost_usd": 0.0}\n'); assert cn.archive_cost_ok(str(p))
+    p.write_text('{"day": "2026-10-15", "cost_usd": 0.01}\n'); assert not cn.archive_cost_ok(str(p))
+    p.write_text('{"day": "2026-10-15", "error": "x"}\n'); assert not cn.archive_cost_ok(str(p))
+    assert not cn.archive_cost_ok(str(tmp_path / "missing.log"))
+
+def test_voids_export_unit_role_and_install():
+    s = rd("ledger-voids-export.service"); t = rd("ledger-voids-export.timer")
+    assert "OnCalendar=Mon..Fri *-*-* 17:10:00 America/New_York" in t and "Persistent=false" in t
+    assert "MemoryMax=100M" in s and "TimeoutStartSec=120" in s and "IPAddressDeny=any" in s and "EnvironmentFile=/etc/ledger-ops/voids.env" in s
+    assert "export-learn-voids.mjs /var/lib/ledger-charts/learn-voids.json" in s and ".env\n" not in s.replace("voids.env\n", "")
+    allow = [l for l in s.splitlines() if l.startswith("IPAddressAllow=")]; assert allow == ["IPAddressAllow=localhost"]   # DB IPs only via drop-in
+    c = rd("ledger-charts.service"); assert "PrivateNetwork=yes" in c and "IPAddressDeny=any" in c          # charts stays isolated
+    inst = open(os.path.join(HERE, "install.sh")).read()
+    assert "ledger-voids-export.service ledger-voids-export.timer" in inst and "ledger-voids-export.timer" in inst.split("enable --now")[1]
+    assert "db-allow.conf" in inst and "IPAddressAllow=" in inst
+    sql = open(os.path.join(HERE, "sql", "002_ops_roles.sql")).read()
+    assert "create role ledger_ops_voids login noinherit" in sql and "alter role ledger_ops_voids set default_transaction_read_only = on" in sql
+    voids_sql = sql[sql.index("ledger_ops_voids"):]
+    assert "grant select on desk_learn_annotation to ledger_ops_voids" in voids_sql and "insert" not in voids_sql.lower() and "update" not in voids_sql.lower()
+    assert "grant select (id, day_key, symbol, side, entry)" in voids_sql
+    mk = open(os.path.join(HERE, "mkroles.py")).read(); assert '"voids": "ledger_ops_voids"' in mk
+    assert json.load(open(os.path.join(HERE, "voids", "package.json")))["dependencies"]["pg"] == "8.22.0"
+    ex = open(os.path.join(HERE, "..", "..", "scripts", "export-learn-voids.mjs")).read()
+    assert "begin transaction read only" in ex and "desk_learn_annotation" in ex and "console.log(url" not in ex

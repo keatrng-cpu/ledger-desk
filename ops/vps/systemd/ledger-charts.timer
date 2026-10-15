@@ -1,0 +1,7 @@
+[Unit]
+Description=Nightly trade charts + learning report, weekdays 17:20 ET (after archive 17:15; shares /run/ledger-ops/batch.lock with backtest)
+[Timer]
+OnCalendar=Mon..Fri *-*-* 17:20:00 America/New_York
+Persistent=false
+[Install]
+WantedBy=timers.target

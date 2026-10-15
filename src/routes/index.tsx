@@ -26,6 +26,7 @@ import {
   Percent,
   MessagesSquare,
   Building2,
+  CandlestickChart,
 } from "lucide-react";
 import { AplusOps } from "@/components/dashboard/aplus-ops";
 import { DualIndexCharts } from "@/components/dashboard/dual-index-charts";
@@ -76,6 +77,7 @@ import { PricePathBoard } from "@/components/desk/price-path-board";
 import { SetupChartPanel } from "@/components/desk/setup-chart-panel";
 import { LearnTab } from "@/components/learn/learn-tab";
 import { WatcherTab } from "@/components/watcher/watcher-tab";
+import { ChartsTab } from "@/components/charts/charts-tab";
 import { InvestPanel } from "@/components/desk/invest-panel";
 import { NewsTab } from "@/components/news/news-tab";
 import { DiscussTab } from "@/components/desk/discuss-tab";
@@ -763,7 +765,8 @@ type DeskCategory =
   | "tape"
   | "risk"
   | "lab"
-  | "watcher";
+  | "watcher"
+  | "charts";
 
 type CategoryDef = {
   id: DeskCategory;
@@ -856,6 +859,13 @@ const CATEGORIES: CategoryDef[] = [
     short: "Wch",
     hint: "Live RH options from the desk · read-only",
     icon: Crosshair,
+  },
+  {
+    id: "charts",
+    label: "Charts",
+    short: "Cht",
+    hint: "Every closed trade · SMC chart + summary · read-only",
+    icon: CandlestickChart,
   },
   {
     id: "predict",
@@ -1980,6 +1990,7 @@ function MasterplacePage() {
 
               {cat === "learn" && <LearnTab desk={desk} />}
               {cat === "watcher" && <WatcherTab />}
+              {cat === "charts" && <ChartsTab />}
               {/* The kill-rule check now lives inside the panel, beside the
                   research it checks. */}
               {cat === "invest" && <InvestPanel />}

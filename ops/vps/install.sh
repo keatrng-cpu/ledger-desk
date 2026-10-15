@@ -19,8 +19,18 @@ SRC="$(cd "$(dirname "$0")" && pwd)"; DST=/opt/ledger-ops; PY=/opt/ledger-gatewa
 id ledgerops >/dev/null 2>&1 || useradd --system --home /nonexistent --shell /usr/sbin/nologin ledgerops
 install -d -o root -g root -m 755 "$DST" "$DST/paper" "$DST/venv"   # venv = bind-mount point
 install -m 644 "$SRC"/common.py "$SRC"/watchdog.py "$SRC"/dbhist.py "$SRC"/archive.py "$SRC"/backtest.py "$DST"/
+install -m 644 "$SRC"/charts_nightly.py "$DST"/
+# voids export (node + pg, pinned): runs in ledger-voids-export.service, the only charts-side unit with network (DB host only)
+install -d -m 755 "$DST/voids"
+VX="$SRC/../scripts/export-learn-voids.mjs"; [ -f "$VX" ] || VX="$SRC/../../scripts/export-learn-voids.mjs"   # tarball or repo checkout
+[ -f "$VX" ] || { echo "missing scripts/export-learn-voids.mjs (include it in the tarball)"; exit 1; }
+install -m 644 "$VX" "$DST/voids/"
+install -m 644 "$SRC"/voids/package.json "$DST/voids/"
+command -v node >/dev/null || { echo "node missing: install nodejs (>=18) for ledger-voids-export"; exit 1; }
+( cd "$DST/voids" && npm install --omit=dev --no-audit --no-fund --ignore-scripts >/dev/null ) && echo "voids: pg installed"
+if [ -d "$SRC/../charts/trade_charts" ]; then install -d -m 755 "$DST/charts/trade_charts" && install -m 644 "$SRC"/../charts/trade_charts/*.py "$DST/charts/trade_charts/"; fi
 install -m 644 "$SRC"/paper/trend_paper.py "$SRC"/paper/vps_trend.py "$SRC"/paper/fastpath.py "$DST/paper/"
-for d in /var/lib/ledger-watchdog /var/lib/ledger-paper /var/lib/ledger-backtest /var/lib/ledger-archive /var/lib/ledger-archive/hist /var/log/ledger-ops; do
+for d in /var/lib/ledger-watchdog /var/lib/ledger-paper /var/lib/ledger-backtest /var/lib/ledger-archive /var/lib/ledger-archive/hist /var/lib/ledger-charts /var/log/ledger-ops; do
   install -d -o ledgerops -g ledgerops -m 750 "$d"; done
 install -m 644 "$SRC"/systemd/tmpfiles-ledger.conf /etc/tmpfiles.d/ledger-ops.conf && systemd-tmpfiles --create /etc/tmpfiles.d/ledger-ops.conf
 # schema (idempotent)
@@ -35,6 +45,10 @@ if ! cmp -s "$SRC"/systemd/journald-ledger.conf /etc/systemd/journald.conf.d/led
   install -m 644 "$SRC"/systemd/journald-ledger.conf /etc/systemd/journald.conf.d/ledger.conf
   echo "journald: SystemMaxUse=200M changed -> restarting systemd-journald"; systemctl restart systemd-journald
 fi
+# pin ledger-voids-export's egress to the DB host's current IPs (IPAddressDeny=any in the unit; this drop-in allows only them)
+DBHOST="$(sed -n 's/^DATABASE_URL=.*@\([^:/?]*\).*/\1/p' /etc/ledger-ops/voids.env)"
+install -d /etc/systemd/system/ledger-voids-export.service.d
+{ echo "[Service]"; getent ahosts "$DBHOST" | awk '{print $1}' | sort -u | sed 's/^/IPAddressAllow=/'; } > /etc/systemd/system/ledger-voids-export.service.d/db-allow.conf
 install -m 644 "$SRC"/systemd/logrotate-ledger /etc/logrotate.d/ledger-ops
 # swap: add 1 GB only when the host has none
 if [ -z "$(swapon --show --noheadings)" ]; then
@@ -42,11 +56,11 @@ if [ -z "$(swapon --show --noheadings)" ]; then
   fallocate -l 1G /swapfile-ledger && chmod 600 /swapfile-ledger && mkswap /swapfile-ledger && swapon /swapfile-ledger
   grep -q swapfile-ledger /etc/fstab || echo '/swapfile-ledger none swap sw 0 0' >> /etc/fstab
 else echo "swap present: $(swapon --show --noheadings | tr -s ' ')"; fi
-for u in ledger-watchdog.service ledger-watchdog.timer ledger-paper-trend.service ledger-backtest.service ledger-backtest.timer ledger-archive.service ledger-archive.timer; do
+for u in ledger-watchdog.service ledger-watchdog.timer ledger-paper-trend.service ledger-backtest.service ledger-backtest.timer ledger-archive.service ledger-archive.timer ledger-charts.service ledger-charts.timer ledger-voids-export.service ledger-voids-export.timer; do
   install -m 644 "$SRC/systemd/$u" /etc/systemd/system/; done
 systemctl daemon-reload
 if [ "${1:-}" != "--no-start" ]; then
-  systemctl enable --now ledger-watchdog.timer ledger-backtest.timer ledger-archive.timer
+  systemctl enable --now ledger-watchdog.timer ledger-backtest.timer ledger-archive.timer ledger-charts.timer ledger-voids-export.timer
   systemctl enable ledger-paper-trend.service && systemctl reset-failed ledger-paper-trend.service 2>/dev/null; systemctl restart ledger-paper-trend.service
 fi
 systemctl --no-pager list-timers 'ledger-*'

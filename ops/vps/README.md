@@ -9,6 +9,8 @@ its `.env` (0600) is read only by systemd via `EnvironmentFile=` and its venv is
 | `ledger-paper-trend.service` | backup copy of the box paper-trend lane (`paper/trend_paper.py` verbatim + `vps_trend.py` I/O shim), Restart=always | MemoryMax=200M, CPUQuota=50%, Nice=10 |
 | `ledger-archive.timer` (Mon–Fri 17:15 ET) | GLBX.MDP3 ohlcv-1m ES/NQ/MNQ (get_cost must be $0 or abort) + live bars + desk card → `/var/lib/ledger-archive/YYYY/MM/DD/`; 60d NQ history cache in `hist/`; retention 3 GB | MemoryMax=200M, CPUQuota=50%, flock |
 | `ledger-backtest.timer` (Mon–Fri 17:45 ET) | replays `trend_paper.step()` over the last 20 days of the cache → `/var/lib/ledger-backtest/latest.json` | MemoryMax=300M, CPUQuota=50%, flock |
+| `ledger-voids-export.timer` (Mon–Fri 17:10 ET) | `scripts/export-learn-voids.mjs` (node + pinned `pg`) reads `desk_learn_annotation` (+ the journal/snap twin columns) as role `ledger_ops_voids` in a READ ONLY transaction → `/var/lib/ledger-charts/learn-voids.json`. `learn` refuses to run if that export is missing, invalid or > 26h old. Egress: `IPAddressDeny=any` + an install-generated drop-in allowing only the DB host's IPs | MemoryMax=100M, 120s timeout |
+| `ledger-charts.timer` (Mon–Fri 17:20 ET) | `charts_nightly.py` → `ops/charts` trade charts + JSON sidecars for the VPS paper lane (`/var/lib/ledger-paper/events.jsonl`) and the shadow learning report → `/var/lib/ledger-charts/`. Bars from the archive day files only (used only if the last archive.log `cost_usd` is 0); `PrivateNetwork=yes`, so no Databento/paid call is possible. Renders PNGs only if the venv has matplotlib, otherwise sidecars + report only | MemoryMax=300M, CPUQuota=50%, flock |
 
 `ledger-paper-trend` is limited to 5 starts per 10 min (`StartLimitIntervalSec=600`, `StartLimitBurst=5`); after that it stays
 failed and the watchdog raises `paper_vps_down`. Recover: `systemctl reset-failed ledger-paper-trend && systemctl start ledger-paper-trend`.
@@ -33,6 +35,8 @@ raises `CostAbort` (nothing downloaded) if the cost is > $0.
 | ledger-paper-trend | `/etc/ledger-ops/paper.env` (DATABASE_URL only) | `ledger_ops_paper` | SELECT `live_market_bars_1m`; `default_transaction_read_only=on` |
 | ledger-watchdog | `/etc/ledger-ops/watchdog.env` (DATABASE_URL, CARD_URL) | `ledger_ops_watchdog` | SELECT gateway tables + ops tables; INSERT/UPDATE `ops_alerts`, `ops_heartbeats` only |
 | ledger-backtest | none | — | reads the local parquet cache only |
+| ledger-voids-export | `/etc/ledger-ops/voids.env` | `ledger_ops_voids` (login, noinherit, `default_transaction_read_only=on`, conn limit 2) | SELECT on `desk_learn_annotation`; SELECT (id, day_key, symbol, side, entry) only on `desk_card_journal` / `desk_card_snap`; SELECT-only RLS policies `voids_ro_select` on those three tables. Nothing else |
+| ledger-charts | none | — | reads archive day files + VPS paper events + the voids export; no network |
 | ledger-archive | `/opt/ledger-gateway/.env` | gateway admin URL + DATABENTO_API_KEY | needs the Databento key; DB use is one SELECT on bars |
 
 Neither least-privilege unit sees DATABENTO_API_KEY or the admin DATABASE_URL. Roles/grants: `sql/002_ops_roles.sql`; passwords are
@@ -67,7 +71,7 @@ Test alert: `touch /var/lib/ledger-watchdog/TEST_ALERT` → `test_alert` opens o
 
 ## Install
 ```
-tar czf - -C ops vps | ssh lg 'mkdir -p /root/ld-ops-src && tar xzf - -C /root/ld-ops-src && /root/ld-ops-src/vps/install.sh'
+tar czf - -C ops vps charts -C .. scripts/export-learn-voids.mjs | ssh lg 'mkdir -p /root/ld-ops-src && tar xzf - -C /root/ld-ops-src && /root/ld-ops-src/vps/install.sh'
 # box side
 cp ops/vps/box/* /workspace/ops-heartbeat/ && nohup /workspace/ops-heartbeat/run_heartbeat.sh >/dev/null 2>&1 &
 ```

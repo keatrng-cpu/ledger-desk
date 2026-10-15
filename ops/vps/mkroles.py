@@ -4,8 +4,8 @@ Re-running keeps the existing files (pass --rotate to issue new passwords)."""
 import os, secrets, sys, urllib.parse as u
 import psycopg
 from psycopg import sql
-ROLES = {"paper": "ledger_ops_paper", "watchdog": "ledger_ops_watchdog"}
-EXTRA = {"paper": "", "watchdog": "CARD_URL=https://ledgeyourtrades.netlify.app/api/desk/card\n"}
+ROLES = {"paper": "ledger_ops_paper", "watchdog": "ledger_ops_watchdog", "voids": "ledger_ops_voids"}
+EXTRA = {"paper": "", "voids": "", "watchdog": "CARD_URL=https://ledgeyourtrades.netlify.app/api/desk/card\n"}
 
 def role_url(admin_url, role, pw):
     p = u.urlparse(admin_url); user = p.username

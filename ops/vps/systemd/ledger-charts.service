@@ -1,0 +1,27 @@
+[Unit]
+Description=ledger-desk nightly trade charts + shadow learning report (archive bars only, no network, $0)
+After=ledger-archive.service ledger-backtest.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ledger-ops
+BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+# no network at all: cannot reach Databento (or anything) -> no paid data is possible from this unit
+PrivateNetwork=yes
+IPAddressDeny=any
+CapabilityBoundingSet=
+ReadOnlyPaths=/var/lib/ledger-archive /var/lib/ledger-paper
+ReadWritePaths=/var/lib/ledger-charts /var/log/ledger-ops /run/ledger-ops
+Environment=ARCHIVE_DIR=/var/lib/ledger-archive TC_OUT=/var/lib/ledger-charts TC_VPS_PAPER_EVENTS=/var/lib/ledger-paper/events.jsonl MPLBACKEND=Agg MPLCONFIGDIR=/tmp
+MemoryMax=300M
+MemorySwapMax=0
+CPUQuota=50%
+IOSchedulingClass=idle
+TimeoutStartSec=30min
+ExecStart=/usr/bin/flock /run/ledger-ops/batch.lock /opt/ledger-ops/venv/bin/python charts_nightly.py nightly
