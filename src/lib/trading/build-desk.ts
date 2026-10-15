@@ -2,7 +2,7 @@ import { planTargetText } from "@/lib/trading/card-plan";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
-import { primaryForPoll, keepOtherBook } from "./primary-hysteresis";
+import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
@@ -1667,14 +1667,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const was = payload.scan.candidates[0];
         const w = (c: unknown) => Number(Boolean((c as { watchOnly?: boolean }).watchOnly));
         payload.scan.candidates.sort((a, b) => w(a) - w(b));
-        // Review 2026-10-15 #3: hysteresis — the primary symbol flips only after the challenger out-scores it by
-        // PRIMARY_HYSTERESIS.margin for .polls consecutive polls (stable sort keeps each symbol's own order).
-        {
+        // Review 2026-10-15 #3: hysteresis (shared rules primaryHysteresis). live: the primary symbol flips only after the
+        // challenger out-scores it by margin for `polls` consecutive real polls (stable sort keeps each symbol's order).
+        // shadow (default): order and books exactly as main; the pick is only logged on wire.primaryHysteresis.
+        const phLive = primaryHysteresisLive();
+        let phLog: Record<string, unknown> | null = null;
+        if (PRIMARY_HYSTERESIS.mode !== "off") {
           const scores: Record<string, number | null> = {};
           for (const c of payload.scan.candidates) if (!w(c) && scores[c.symbol] == null) scores[c.symbol] = c.qualityScore ?? c.confluence;
-          const hp = primaryForPoll(new Date(nowCtxPlan).toLocaleDateString("en-CA", { timeZone: "America/New_York" }), scores);
-          (payload as { primaryHysteresis?: unknown }).primaryHysteresis = hp;
-          if (hp.symbol) payload.scan.candidates.sort((a, b) => w(a) - w(b) || Number(b.symbol === hp.symbol) - Number(a.symbol === hp.symbol));
+          const pollKey = `${lb.fetchedAtMs ?? ""}|${rb.fetchedAtMs ?? ""}|${mL.bars.at(-1)?.t ?? ""}|${mR.bars.at(-1)?.t ?? ""}`;
+          const hp = primaryForPoll(new Date(nowCtxPlan).toLocaleDateString("en-CA", { timeZone: "America/New_York" }), pollKey, scores);
+          const mainLead = payload.scan.candidates.find((c) => !w(c))?.symbol ?? null;
+          phLog = { mode: PRIMARY_HYSTERESIS.mode, ...hp, mainPrimary: mainLead, wouldDiffer: hp.symbol != null && hp.symbol !== mainLead };
+          (payload as { primaryHysteresis?: unknown }).primaryHysteresis = phLog;
+          if (phLive && hp.symbol) payload.scan.candidates.sort((a, b) => w(a) - w(b) || Number(b.symbol === hp.symbol) - Number(a.symbol === hp.symbol));
         }
         const lead = payload.scan.candidates.find((c) => !w(c));
         if (lead && lead !== was) {
@@ -1684,7 +1690,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           smcMaster = gradeSmcMaster({ ...smcInput, scan: scan1 as typeof payload.scan });
           // Review 2026-10-15 #3 (08:33:36 CT MNQ case): a primary flip must not rewrite the OTHER book. Same build,
           // same bars, so its structure is unchanged: keep its own book (entry/stop/T1, status) exactly as graded.
-          smcMaster = keepOtherBook(before, smcMaster, lead.symbol);
+          // live only; shadow logs whether it would have restored a book and leaves smcMaster as main grades it.
+          const kept = keepOtherBook(before, smcMaster, lead.symbol);
+          if (phLog) phLog.keepOtherBook = { wouldRestore: kept.left !== smcMaster.left || kept.right !== smcMaster.right, applied: phLive };
+          if (phLive) smcMaster = kept;
           smcMaster.oneBook = smcMaster.left.symbol === lead.symbol ? smcMaster.left : smcMaster.right;
           attachPlansToCards(payload.scan.candidates.filter((c) => !keep.get(c)), smcMaster, {});
           // the new book and any plan attached just now go through the same sanity check

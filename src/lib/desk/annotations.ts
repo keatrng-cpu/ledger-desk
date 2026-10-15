@@ -18,6 +18,14 @@ export async function ensureAnnotations(sql: Sql) { if (ready) return; await sql
 export const notExcluded = (src: AnnSrc, alias: string) =>
   `not exists (select 1 from desk_learn_annotation a where a.src = '${src}' and a.row_id = ${alias}.id and a.exclude_from_learning)`;
 
+/** desk_card_snap reader (calibration / learning): excludes a snap that is voided itself OR whose journal twin is voided.
+ * The void script annotates desk_card_journal rows; the matching snap (same day, symbol, side, entry to the cent —
+ * journal id is day:symbol:side:entry, snap id is day:symbol:side:setup) carries the same bad outcome. */
+export const snapNotVoided = (alias: string) =>
+  `${notExcluded("desk_card_snap", alias)} and not exists (select 1 from desk_learn_annotation a join desk_card_journal jj on a.row_id = jj.id
+    where a.src = 'desk_card_journal' and a.exclude_from_learning and jj.day_key = ${alias}.day_key and jj.symbol = ${alias}.symbol
+    and jj.side = ${alias}.side and ${alias}.entry is not null and round(jj.entry::numeric, 2) = round(${alias}.entry::numeric, 2))`;
+
 export function excludedIds(anns: Pick<Annotation, "src" | "row_id" | "exclude_from_learning">[], src: AnnSrc): Set<string> {
   return new Set(anns.filter((a) => a.src === src && a.exclude_from_learning).map((a) => a.row_id));
 }

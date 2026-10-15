@@ -27,3 +27,25 @@ test("build-desk wires both", async () => {
   const src = (await import("node:fs")).readFileSync("src/lib/trading/build-desk.ts", "utf8");
   assert.match(src, /primaryForPoll\(/); assert.match(src, /keepOtherBook\(before, smcMaster, lead\.symbol\)/);
 });
+test("rules: primaryHysteresis lives in shared/desk-rules.json, shadow by default", async () => {
+  const R = JSON.parse((await import("node:fs")).readFileSync("shared/desk-rules.json", "utf8")).primaryHysteresis;
+  assert.equal(R.mode, "shadow"); assert.equal(h.PRIMARY_HYSTERESIS.margin, R.margin); assert.equal(h.PRIMARY_HYSTERESIS.polls, R.polls);
+  assert.equal(h.primaryHysteresisLive(), false);
+  const src = (await import("node:fs")).readFileSync("src/lib/trading/primary-hysteresis.ts", "utf8");
+  assert.doesNotMatch(src, /margin: 0\.03, polls: 3 \}/);
+});
+test("streak ticks per real poll, not per build", () => {
+  h.__resetPrimaryMemo();
+  const d = "2026-10-15";
+  assert.equal(h.primaryForPoll(d, "p0", { MNQ: 0.70, ES: 0.60 }).symbol, "MNQ");
+  for (let i = 0; i < 5; i++) assert.equal(h.primaryForPoll(d, "p1", { MNQ: 0.70, ES: 0.74 }).symbol, "MNQ");   // 5 rebuilds, 1 poll
+  assert.equal(h.primaryForPoll(d, "p1", { MNQ: 0.70, ES: 0.74 }).streak, 1);
+  assert.equal(h.primaryForPoll(d, "p2", { MNQ: 0.70, ES: 0.74 }).streak, 2);
+  const r = h.primaryForPoll(d, "p3", { MNQ: 0.70, ES: 0.74 }); assert.equal(r.symbol, "ES"); assert.equal(r.flipped, true);
+  h.__resetPrimaryMemo();
+});
+test("shadow: build-desk only re-sorts / keeps the other book when live", async () => {
+  const src = (await import("node:fs")).readFileSync("src/lib/trading/build-desk.ts", "utf8");
+  assert.match(src, /if \(phLive && hp\.symbol\) payload\.scan\.candidates\.sort/);
+  assert.match(src, /if \(phLive\) smcMaster = kept;/);
+});

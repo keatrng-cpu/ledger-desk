@@ -19,8 +19,8 @@ import RULES from "../../../shared/desk-rules.json";
 import { isHoldout, checkpoints, statsReport } from "@/lib/desk/learning-stats";
 import type { Sql } from "@/lib/db";
 import type { OhlcBar } from "@/lib/market/types";
-import { etDayKey } from "./card-journal";
-import { ensureAnnotations, notExcluded } from "./annotations";
+import { etDayKey, DDL as JOURNAL_DDL } from "./card-journal";
+import { ensureAnnotations, snapNotVoided } from "./annotations";
 
 export const SNAP_MIN_Q = 0.65;
 export const LEARN_MIN_N = 30;
@@ -188,6 +188,7 @@ let ready = false;
 export async function ensureLearning(sql: Sql) {
   if (ready) return;
   for (const d of DDL) await sql.query(d);
+  await sql.query(JOURNAL_DDL);   // snapNotVoided joins the journal
   await ensureAnnotations(sql);
   ready = true;
 }
@@ -257,7 +258,7 @@ export async function appliedCalibration(sql: Sql) {
 }
 
 async function allGraded(sql: Sql) {
-  const rows = await sql.query<SnapRow & { status: string; grade: unknown }>(`select * from desk_card_snap s where status in ('win','loss','timeout','right','wrong','flat') and ${notExcluded("desk_card_snap", "s")}`);
+  const rows = await sql.query<SnapRow & { status: string; grade: unknown }>(`select * from desk_card_snap s where status in ('win','loss','timeout','right','wrong','flat') and ${snapNotVoided("s")}`);
   return rows.map((r) => { const g = j<Grade>(r.grade, { kind: "dir", status: "flat", moves: {} }); return { id: r.id, c: rowToSnap(r), g, openedMs: Number(r.opened_ms) }; })
     .filter(({ g }) => isWin(g) || isLoss(g));
 }
@@ -330,7 +331,7 @@ export async function learningReport(sql: Sql, nowMs: number, baseline: Record<s
   const bands = bandEdgeMoves(rows.map(({ c, g }) => ({ band: c.band ?? "?", win: isWin(g), r: g.kind === "plan" ? g.r : null })), { ...baseline, ...applied.bandEdges }, baseline);
   const modes: Record<string, number> = {};
   for (const { c, g } of rows) { const m = failureMode(c, g); if (m) modes[m] = (modes[m] ?? 0) + 1; }
-  const counts = await sql.query<{ status: string; n: string | number }>(`select status, count(*) as n from desk_card_snap s where ${notExcluded("desk_card_snap", "s")} group by status`);
+  const counts = await sql.query<{ status: string; n: string | number }>(`select status, count(*) as n from desk_card_snap s where ${snapNotVoided("s")} group by status`);
   const recent = await sql.query(`select id, band, q, q_raw, status, grade, failure_mode, hows, missed, source from desk_card_snap where opened_ms > $1 order by opened_ms desc limit 40`, [nowMs - 7 * 86_400_000]);
   const missed = await sql.query(`select id, missed from desk_card_snap where missed is not null order by opened_ms desc limit 20`);
   return {

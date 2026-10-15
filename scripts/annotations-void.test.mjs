@@ -45,6 +45,17 @@ test("in-memory filter + every SQL learner reader carries the predicate", () => 
   const rows = [{ id: "a" }, { id: "b" }];
   assert.deepEqual(ann.excludeVoided(rows, [{ src: "desk_card_snap", row_id: "a", exclude_from_learning: true }], "desk_card_snap"), [{ id: "b" }]);
   const L = readFileSync("src/lib/desk/learning.ts", "utf8");
-  assert.match(L, /from desk_card_snap s where status in \([^)]*\) and \$\{notExcluded\("desk_card_snap", "s"\)\}/);
+  assert.match(L, /from desk_card_snap s where status in \([^)]*\) and \$\{snapNotVoided\("s"\)\}/);
   assert.match(readFileSync("src/lib/desk/card-journal.ts", "utf8"), /notExcluded\("desk_card_journal", "j"\)/);
+});
+test("a voided journal row also drops its desk_card_snap twin from calibration", async () => {
+  const sql = await mkSql(); await seed(sql);
+  const L = await import("../src/lib/desk/learning.ts");
+  await L.ensureLearning(sql);
+  const snap = (id, entry, status) => sql.query(`insert into desk_card_snap (id, day_key, symbol, side, setup, q, opened_ms, entry, status) values ($1,'2026-10-15','ES','long','ob',0.7,1,$2,$3)`, [id, entry, status]);
+  await snap("s-gap", 6700, "loss"); await snap("s-other", 6705.5, "win");
+  const q = `select id from desk_card_snap s where ${ann.snapNotVoided("s")} order by id`;
+  assert.deepEqual((await sql.query(q)).map((r) => r.id), ["s-gap", "s-other"]);
+  await voidScript.run(sql, { apply: true });
+  assert.deepEqual((await sql.query(q)).map((r) => r.id), ["s-other"]);
 });

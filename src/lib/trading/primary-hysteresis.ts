@@ -2,7 +2,15 @@
  * Review 2026-10-15 #3: primary-card churn ES <-> MNQ. The primary only flips when the other symbol's score
  * beats the incumbent by MARGIN for N consecutive polls. Pure core + one process-level memo for the live desk.
  */
-export const PRIMARY_HYSTERESIS = { margin: 0.03, polls: 3 } as const;
+import RULES from "../../../shared/desk-rules.json";
+
+/** shared/desk-rules.json primaryHysteresis (watcher mirror byte-identical). mode shadow = desk acts as main, logs only. */
+export const PRIMARY_HYSTERESIS: { mode: "live" | "shadow" | "off"; margin: number; polls: number } = {
+  mode: ((RULES as { primaryHysteresis?: { mode?: string } }).primaryHysteresis?.mode ?? "shadow") as "live" | "shadow" | "off",
+  margin: Number((RULES as { primaryHysteresis?: { margin?: number } }).primaryHysteresis?.margin ?? 0.03),
+  polls: Number((RULES as { primaryHysteresis?: { polls?: number } }).primaryHysteresis?.polls ?? 3),
+};
+export const primaryHysteresisLive = (cfg: { mode: string } = PRIMARY_HYSTERESIS) => String(cfg.mode) === "live";
 
 export type PrimaryState = { symbol: string | null; challenger: string | null; streak: number };
 export const emptyPrimary = (): PrimaryState => ({ symbol: null, challenger: null, streak: 0 });
@@ -26,14 +34,19 @@ export function stickyPrimary(
 
 let memo: PrimaryState = emptyPrimary();
 let memoDay = "";
-/** Live desk: one memo per process, reset each ET day. */
-export function primaryForPoll(day: string, scores: Record<string, number | null | undefined>) {
-  if (day !== memoDay) { memo = emptyPrimary(); memoDay = day; }
-  const r = stickyPrimary(memo, scores);
+let memoPoll: string | null = null;
+let memoLast: (PrimaryState & { flipped: boolean; why: string }) | null = null;
+/** Live desk: one memo per process, reset each ET day. The streak ticks once per REAL poll: `pollKey` names the
+ * upstream data the build ran on (fetch stamps); a rebuild of the same poll returns the same answer, no tick. */
+export function primaryForPoll(day: string, pollKey: string | null, scores: Record<string, number | null | undefined>, cfg: { margin: number; polls: number } = PRIMARY_HYSTERESIS) {
+  if (day !== memoDay) { memo = emptyPrimary(); memoDay = day; memoPoll = null; memoLast = null; }
+  if (pollKey != null && pollKey === memoPoll && memoLast) return { ...memoLast, samePoll: true };
+  const r = stickyPrimary(memo, scores, cfg);
   memo = { symbol: r.symbol, challenger: r.challenger, streak: r.streak };
-  return r;
+  memoPoll = pollKey; memoLast = r;
+  return { ...r, samePoll: false };
 }
-export const __resetPrimaryMemo = () => { memo = emptyPrimary(); memoDay = ""; };
+export const __resetPrimaryMemo = () => { memo = emptyPrimary(); memoDay = ""; memoPoll = null; memoLast = null; };
 
 /** After a lead re-grade, the non-lead symbol's book is restored from the pre-flip grade (its own plan stands). */
 export function keepOtherBook<M extends { left: { symbol: string }; right: { symbol: string } }>(before: M, after: M, leadSymbol: string): M {
