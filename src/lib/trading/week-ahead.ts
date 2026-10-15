@@ -345,7 +345,7 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
     "Prior week (Oct 5–9) tape already in the seed: NQ week high Tue 31,616.50 / low Thu 30,792.50; ES Tue 7,897.50 / Mon 7,760.25. Soft NFP and soft UMich already printed. Do not invent CWH/CWL.",
   po3: "Mon holiday Globex is fake. Tue post-holiday range-build. Wed CPI manipulates. Thu PPI/retail distributes. Fri import prices is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep 54.9. Minutes Oct 7: most see another hike by year-end, no date. CPI Sep printed Wed: +0.6% m/m / +3.7% y/y, core +0.3% / +2.6% (BLS USDL-26-1574) vs ~0.6%/3.6% and core ~0.2%/2.5%. Hot core. Oct 28 hike odds jumped after CPI: FedWatch ~25% +25 (Cointelegraph 24.9% vs 17.7% week ago; spiked ~49% then settled ~25–34%). Thu PPI + Retail Sales + claims 8:30 still ahead. Fri import prices. No NFP this week.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep 54.9. Minutes Oct 7: most see another hike by year-end, no date. CPI Sep printed Wed: +0.6% m/m / +3.7% y/y, core +0.3% / +2.6% (BLS USDL-26-1574) vs ~0.6%/3.6% and core ~0.2%/2.5%. Hot core. Oct 28 hike odds jumped after CPI: FedWatch ~25% +25 (Cointelegraph 24.9% vs 17.7% week ago; Cointelegraph: spiked to 53.7% intraday, then settled ~25–34%). Thu PPI + Retail Sales + claims 8:30 still ahead. Fri import prices. No NFP this week.",
   asymmetry:
     "A+ into CPI. Flatten before 13:45 Wed if holding. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -420,7 +420,7 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
         { timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS USDL-26-1574. +0.6% m/m / +3.7% y/y vs ~0.6%/3.6%; core +0.3% / +2.6% vs ~0.2%/2.5%. Gasoline +9.1% half the headline. Hot core." },
         { timeEt: "14:00", name: "Beige Book", impact: "medium", note: "Fed official 14:00 ET. Not the blackout. Flatten before 13:45 if holding." },
       ],
-      likelyTape: "CPI hot core. NQ session ~30,078–30,891.50 closed ~30,183, took PWL 30,792.50, no PWH take (week high still Mon ~31,289). ES still inside prior box. Hot-print fade, not a new HTF trend. Hike odds ~25% after.",
+      likelyTape: "CPI hot core. NQ session ~30,078–30,891.50 closed ~30,186 (16:00 ET), took PWL 30,792.50, no PWH take (week high still Mon ~31,289). ES still inside prior box. Hot-print fade, not a new HTF trend. Hike odds ~25% after.",
       trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase the fail under PWL. Flatten before Beige Book if open. Do not carry into Thu.",
       skipIf: "No MSS + IFVG. Already booked the CPI move. Anything open at 13:45.",
       pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims 8:30 blackout.",
