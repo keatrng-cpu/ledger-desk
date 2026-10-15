@@ -49,11 +49,25 @@ test("persist: invalidation and side change reset the setup", () => {
 test("persist: watcher streak_next agrees with the TS twin on a poll sequence", () => {
   const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/fastchain.py`));
   if (!dir) return;
-  const seq = [[{ at: "a1" }, 0], [SIB, 4000], [{ at: "a3" }, 8000], [{ at: "a3" }, 9000], [{ at: "a4" }, 12000], [{ at: "a5", band: "B" }, 16000], [{ at: "a6" }, 20000], [{ at: "a7" }, 95000]].map(([c, t]) => [{ ...BASE, ...c }, t]);
+  const seq = [[{ at: "a1" }, 0], [SIB, 4000], [{ at: "a3" }, 8000], [{ at: "a3" }, 9000], [{ at: "a4" }, 12000], [{ at: "a5", band: "B" }, 16000], [{ at: "a6" }, 20000], [{ at: "a7" }, 95000], [{ at: "c1", px: 7847 }, 96000], [{ at: "p1" }, 100000], [{ at: "p2" }, 104000]].map(([c, t]) => [{ ...BASE, ...c }, t]);
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[]\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
   const py_out = JSON.parse(execFileSync("python3", ["-c", py]).toString());
   let st = null; const ts_out = seq.map(([s, t]) => { st = fc.streakNext(st, s, t); return fc.persistOk(st, t); });
   assert.deepEqual(py_out, ts_out); assert.ok(ts_out.includes(true));
+});
+test("velocity: soft row + size cut (half over the cap, minimum over 2x or unknown)", () => {
+  for (const expMin of [31, null]) { const r = Object.fromEntries(fc.fastSetupRows({ ...BASE, expMin })); assert.equal(r["fast:velocity"], undefined); assert.equal(r["soft:fast:velocity"], true); }
+  assert.ok(!RULES.fastChain.hard.includes("fast:velocity"));
+  assert.equal(fc.velocitySize(4, 30), 4); assert.equal(fc.velocitySize(4, 31), 2); assert.equal(fc.velocitySize(3, 45), 1);
+  assert.equal(fc.velocitySize(4, 61), 1); assert.equal(fc.velocitySize(4, null), 1); assert.equal(fc.velocitySize(null, 10), null);
+});
+test("entry re-arm: chase keeps the setup; pullback restarts the 90 s clock and confirmPolls", () => {
+  let st = fc.streakNext(null, { ...BASE, at: "a1" }, 0);
+  st = fc.streakNext(st, { ...BASE, at: "c1", px: 7847 }, 4_000); assert.equal(st.firstMs, 0); assert.ok(st.outOfZone);
+  st = fc.streakNext(st, { ...BASE, at: "p1" }, 125_000); assert.equal(st.firstMs, 125_000); assert.ok(!fc.persistOk(st, 125_000));
+  st = fc.streakNext(st, { ...BASE, at: "p2" }, 129_000); assert.ok(fc.persistOk(st, 129_000));
+  const b = fc.streakNext(fc.streakNext(fc.streakNext(null, { ...BASE, at: "a1" }, 0), { ...BASE, at: "c1", px: 7847 }, 4_000), { ...BASE, at: "p1", band: "B" }, 8_000);
+  assert.ok(!fc.persistOk(b, 8_000));
 });
 test("geometry: Floor ticket on another underlying/direction ignored; malformed T2 = no T2", () => {
   const geo = (c) => Object.fromEntries(fc.fastSetupRows({ ...BASE, ...c }))["fast:geometry"];

@@ -32,7 +32,9 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const L = side === "long";
   const ord = (side === "long" || side === "short") && e != null && st != null && t1 != null && (L ? st < e && e < t1 : st > e && e > t1);
   r.push(["fast:geometry", Boolean(ord)]);
-  r.push(["fast:velocity", s.expMin != null && s.expMin <= FC.maxMinutesToT1]);
+  // fire-bugs-live 10/15 (Keaton): velocity is a size cut (velocitySize), never a block.
+  if (FC.velocity.mode === "size") r.push(["soft:fast:velocity", true]);
+  else r.push(["fast:velocity", s.expMin != null && s.expMin <= FC.maxMinutesToT1]);
   return r;
 }
 
@@ -58,14 +60,25 @@ export function invalidated(s: FastSnap): boolean {
   if (t1 != null && (side === "long" ? px >= t1 : px <= t1)) return true;
   return false;
 }
+/** fast:entry failed because price is more than entryAtr x ATR from entry (twin of watcher fastchain._chased). */
+export const chased = (s: FastSnap) => s.px != null && s.entry != null && !!s.atr && Math.abs(s.px - s.entry) > FC.entryAtr * s.atr;
+/** Velocity size cut (twin of watcher fastchain.velocity_size): ETA > cap -> x cutMult; > minSizeBeyondCapX x cap or unknown -> minimum. */
+export function velocitySize(n: number | null, expMin: number | null | undefined, minContracts = 1): number | null {
+  if (n == null || FC.velocity.mode !== "size") return n;
+  const cap = FC.maxMinutesToT1; const lo = Math.max(1, minContracts);
+  if (expMin == null || expMin > FC.velocity.minSizeBeyondCapX * cap) return Math.min(n, lo);
+  if (expMin > cap) return Math.min(n, Math.max(lo, Math.floor(n * FC.velocity.cutMult)));
+  return n;
+}
 export const setupId = (s: FastSnap) => `${s.symbol}:${s.side}:${s.entry ?? null}`;
-export interface SetupConfirm { firstMs: number; polls: number; lastAt: string | null }
+export interface SetupConfirm { firstMs: number; polls: number; lastAt: string | null; outOfZone?: boolean; rearmed?: number }
 export interface FastStreak { key: string | null; firstMs: number | null; polls: number; lastAt: string | null; byId: Record<string, SetupConfirm>; lastId: string | null }
 /**
  * fast:persist (twin of watcher fastchain.streak_next; fire-bugs-live 10/15, Keaton): no hold timer. Fires the first time the
  * setup is fully actionable once the SAME setup id (symbol:side:entry) passed confirmPolls consecutive real polls, and only
  * within maxActionableAgeS of first becoming actionable (older, never fired = stale). Resets on invalidation (through the
  * stop / T1 touched / strategy.invalidated) or a side change on the symbol. A re-read of the same card is not a new poll.
+ * Entry re-arm: price > entryAtr x ATR from entry keeps the setup alive; back inside the zone restarts the clock + polls.
  */
 export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string | null; strategy_invalidated?: boolean | null }, nowMs: number): FastStreak {
   const sid = setupId(s); const at = s.at ?? null;
@@ -81,9 +94,17 @@ export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string 
     const cur = by[sid];
     if (cur && at != null && at === cur.lastAt && lastId === sid) { /* same card re-read */ }
     else if (fastSetupRows(s).every(([, ok]) => ok)) {
-      const c = cur ?? { firstMs: nowMs, polls: 0, lastAt: null };
-      by[sid] = { firstMs: c.firstMs, polls: lastId === sid ? c.polls + 1 : 1, lastAt: at }; lastId = sid;
-    } else { if (cur) by[sid] = { ...cur, polls: 0, lastAt: at }; lastId = null; }
+      if (cur?.outOfZone) { // entry re-arm: back inside the zone -> fresh clock + polls
+        by[sid] = { firstMs: nowMs, polls: 1, lastAt: at, rearmed: (cur.rearmed ?? 0) + 1 };
+      } else {
+        const c = cur ?? { firstMs: nowMs, polls: 0, lastAt: null };
+        by[sid] = { ...c, polls: lastId === sid ? c.polls + 1 : 1, lastAt: at };
+      }
+      lastId = sid;
+    } else {
+      if (cur) by[sid] = { ...cur, polls: 0, lastAt: at, ...(FC.entryRearm.mode === "live" && chased(s) ? { outOfZone: true } : {}) };
+      lastId = null;
+    }
   }
   const cur = by[sid];
   return cur ? { key: sid, ...cur, byId: by, lastId } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId };
