@@ -4,7 +4,8 @@ import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
-import { setQSource } from "./q-source";
+import { setQSource, qWrite } from "./q-source";
+import { applyDayNudge } from "./day-nudge";
 import { computeQV2, keySwept, sessionSplit, trendDay } from "./q-v2";
 import * as setups from "@/lib/smc/setups";
 import * as dayc from "@/lib/smc/day-context";
@@ -1255,7 +1256,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const fight = smtFightsContinuation(mtfContext, c.symbol, c.side as "long" | "short");
         if (fight) {
           const before = c.pathBand;
-          setQSource("cap:SMT fight"); c.pathBand = capBand(c.pathBand, "B") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "B") as never, "cap:SMT fight");
           c.actionable = false;
           c.reasons.push(`${fight.tf} ${fight.kind} SMT: ${c.symbol} failed the ${fight.kind === "bearish" ? "HH" : "LL"} ${fight.leader} made — ${c.side} capped at B (was ${before})`);
         }
@@ -1271,7 +1272,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
         }
         if (rev.against === c.side && rev.rearmed) {
-          setQSource("cap:LTF re-arm"); c.pathBand = capBand(c.pathBand, "A-") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "A-") as never, "cap:LTF re-arm");
           c.reasons.push(`Re-armed after the LTF kill — capped at A-: ${rev.rearmed.why}`);
         } else if (rev.against === c.side) {
           if (rev.killCleared) {
@@ -1279,7 +1280,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             (c as { ltfKillCleared?: boolean }).ltfKillCleared = true;
             c.reasons.push(`shadow:killCleared (no effect, mode ${KILL_CLEAR.mode ?? "shadow"}): ${rev.killCleared.why}`);
           }
-          setQSource("cap:LTF reversal"); c.pathBand = capBand(c.pathBand, "C") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "cap:LTF reversal");
           c.actionable = false;
           c.vetoes = [...(c.vetoes ?? []), `LTF reversal: ${rev.why.join("; ")}`];
           c.reasons.push(`LTF reversal against ${c.side} — capped at C: ${rev.why.join("; ")}`);
@@ -1290,7 +1291,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           const al = book?.align[c.side as "long" | "short"]?.score ?? 0;
           const boost = TUNABLES.killBoost;
           (c as { killBoosted?: boolean }).killBoosted = true;
-          setQSource("ltf:killBoost"); c.confluence = +Math.min(0.99, c.confluence + boost).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + boost).toFixed(4)) as never, "ltf:killBoost");
           c.reasons.push(`LTF kill on the other side favours ${c.side} (+${boost}, align ${al}): ${rev.why[0]}`);
         }
       }
@@ -1305,7 +1306,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (!rs || killed) continue;
         c.setupRegime = "reversal";
         if (rs.ltfBreaks >= LTF_BREAKS_FOR_REVERSAL) {
-          setQSource("reversal:nudge"); c.confluence = +Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + REVERSAL_NUDGE).toFixed(4)) as never, "reversal:nudge");
         }
         if (rs.htfRelease) {
           c.htfOk = true;
@@ -1332,16 +1333,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (b5.length < 10 || atr == null) { (c as { setups?: string[] }).setups = tags; continue; }
         const levels = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price }));
         const ts = setups.turtleSoup(b5, levels);
-        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); setQSource("setup:turtleSoup"); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (ts && ts.side === side && setups.fits("turtleSoup", regime)) { tags.push(`turtle soup at ${ts.name} ${ts.level}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:turtleSoup"); }
         const br = setups.bosRetest(b5, atr, side);
-        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); setQSource("setup:bosRetest"); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (br && setups.fits("bosRetest", regime)) { tags.push(`BOS retest held ${br.level}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:bosRetest"); }
         const sp = setups.sponsoredHold(mtfArrays(c.symbol, minute, []), minute, side);
-        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); setQSource("setup:sponsoredHold"); c.confluence = +Math.min(0.99, c.confluence + 0.02).toFixed(4); }
+        if (sp && setups.fits("sponsoredHold", regime)) { tags.push(`sponsored ${sp.tf} gap held on retest ${sp.lo}–${sp.hi}`); qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + 0.02).toFixed(4)) as never, "setup:sponsoredHold"); }
         const legs = setups.legCount(b5, side);
         (c as { legs?: number }).legs = legs;
         if (regime === "trend" && legs >= 3) {
           tags.push(`leg ${legs} — continuation decays`);
-          setQSource("setup:legDecay"); c.confluence = +Math.max(0, c.confluence - 0.03).toFixed(4);
+          qWrite(c as never, "confluence" as never, (+Math.max(0, c.confluence - 0.03).toFixed(4)) as never, "setup:legDecay");
           if (c.pathBand && c.pathBand !== "skip") c.pathBand = capBand(c.pathBand as never, "A-") as never;
         }
         (c as { setups?: string[] }).setups = tags;
@@ -1423,7 +1424,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const qs = dayc.qSpread(c.strategyBoard as never);
         if (qs && qs.agree >= 3) nudge(0.01, `${qs.agree}/${qs.n} strategies within 0.05 of the best`);
         const total = Math.max(-0.06, Math.min(0.06, n));
-        if (total) setQSource("dayContext"); c.confluence = +Math.max(0, Math.min(0.99, c.confluence + total)).toFixed(4);
+        applyDayNudge(c, total);
         (c as { dayCtx?: unknown }).dayCtx = {
           nudge: +total.toFixed(3), why, dailyBias: d.bias?.bias ?? null, pd: d.pd, sessionSeq: d.seq, pair,
           openingRange: d.or ? { high: d.or.high, low: d.or.low, read: d.or.read, sd: d.or.sd } : null,
@@ -1460,7 +1461,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (ds) {
           const nudge = +(DISP_NUDGE * (ds.score - 0.5) * 2).toFixed(4);
           if (nudge !== 0) {
-            setQSource("dispStrength"); c.confluence = +Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4);
+            qWrite(c as never, "confluence" as never, (+Math.min(0.99, Math.max(0, c.confluence + nudge)).toFixed(4)) as never, "dispStrength");
             c.reasons.push(`Displacement strength ${ds.score} (${ds.bodyAtr}×ATR5${ds.leftFvg ? ", left an FVG" : ""}) ${nudge > 0 ? "+" : ""}${nudge}`);
           }
         }
@@ -1607,7 +1608,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const add = Math.min(0.02, 0.06 - dc.nudge);
         if (!(add > 0)) continue;
         const wasQBand = c.pathBand === bandFromQ(c.confluence);
-        setQSource("dayContext:lateOB"); c.confluence = +Math.min(0.99, c.confluence + add).toFixed(4);
+        qWrite(c as never, "confluence" as never, (+Math.min(0.99, c.confluence + add).toFixed(4)) as never, "dayContext:lateOB");
         if (wasQBand && c.pathBand !== "skip") c.pathBand = bandFromQ(c.confluence) as never;
         dc.obFvg = true; dc.nudge = +(dc.nudge + add).toFixed(3); dc.why.push(`+${add.toFixed(2)} ${ob.kind} overlaps the entry gap (late plan)`);
         c.reasons.push(`OB/FVG overlap on the late plan: +${add.toFixed(2)}`);
@@ -1817,7 +1818,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { liveMut = true; c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
         const v = lossGuards.velocityRead(m, entry, pl.t1);
         out.velocity = v;
-        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; setQSource("loss:velocity"); c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
+        if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; qWrite(c as never, "confluence" as never, (+Math.max(0, c.confluence - v.penalty).toFixed(4)) as never, "loss:velocity"); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
         if (liveMut) sealBand(c as never);
         // 1) 1h AND 4h both against the side
         const hb = htfBiasOf(mtfContext, c.symbol);

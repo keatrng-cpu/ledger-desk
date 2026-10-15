@@ -138,7 +138,8 @@ export interface DeskWire {
     /** The scanner said skip (exported as C). */
     scannerSkip: boolean;
     ltfKilled: boolean;
-    /** qv2-1015 SHADOW score (shared/q-v2.json): never gates or fires; brain, Floor and the watcher log it beside q. */
+    /** qv2-1015 SHADOW score (shared/q-v2.json): never gates or fires. Carried only: the watcher and the brain/Floor seat
+     *  receive it but do not log or display it yet. Its volPct and option inputs are null on the desk, so those terms are dead (0). */
     qV2: { q: number; band: string; deltas: { source: string; delta: number; note?: string }[]; vetoed: boolean } | null;
     /** Fix A: the side's kill evidence is invalidated on closed bars (kill.clear); the watcher ltf_kill reads it with kill.clear.mode. */
     ltfKillCleared: boolean;

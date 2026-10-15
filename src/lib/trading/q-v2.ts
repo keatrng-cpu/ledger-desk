@@ -3,7 +3,7 @@
  * changes the live card (confluence / pathBand / actionable / rules hash). Every delta carries its source.
  *
  * Order (data-ranked, report §a):
- *   1 base       scanner fit re-weighted (smt/pd/OB/FVG-tap 0, iFVG 8→3, HTF half), chase NOT applied
+ *   1 base       anchored walk-forward formula (q0 + slope·pts/denom; smt/pd/OB/FVG-tap 0, iFVG 3, HTF half), chase NOT applied
  *   2 keySweep   ON/PD high-low swept ≤60 min ago: +0.06 08:30–10:00 CT, linear to 0 at 11:00
  *   3 regime     trend day +0.02, high/mid volatility −0.01 (walk-forward fit, train only)
  *   4 caps       live band caps/penalties except R3 chase, SMT cap and seal clamps; kills stay vetoes
@@ -17,14 +17,6 @@ import type { OhlcBar } from "@/lib/market/types";
 export type QDelta = { source: string; delta: number; note?: string };
 export type QV2 = { q: number; band: string; deltas: QDelta[]; mode: string; version: number; vetoed: boolean };
 
-const W = CFG.weights as Record<string, number>;
-const STRUCT = ["structure", "mss", "displacement", "cisd", "mid_bias", "htf2_bias", "daily_bias", "weekly_pd", "pd", "opening_bias", "ifvg", "smt", "order_block", "fvg_tap", "sweep_significant"];
-const LIVE_STRUCT_W: Record<string, number> = { structure: 8, mss: 4, displacement: 4, cisd: 4, mid_bias: 8, htf2_bias: 4, daily_bias: 3, weekly_pd: 4, pd: 3, opening_bias: 4 };
-const ratio = (set: Set<string>, w: Record<string, number>, keys: string[]) => {
-  let p = 0, m = 0;
-  for (const k of keys) { const v = w[k] ?? 0; m += v; if (set.has(k)) p += v; }
-  return m > 0 ? p / m : 0;
-};
 const clampF = (x: number) => Math.max(-CFG.factorCap, Math.min(CFG.factorCap, x));
 const r4 = (x: number) => +x.toFixed(4);
 
@@ -87,13 +79,15 @@ export const DROPPED_SOURCES = /chase|R3|SMT|seal|shadow:timing|MTF align/i;
 export function computeQV2(i: QV2Input): QV2 {
   const deltas: QDelta[] = [];
   const set = new Set(i.components);
-  let q = i.qScan;
-  // 1 base: swap the live structure ratio for the v2 one (0.40 × structureQ in the fit), halve the HTF bonus.
-  const sLive = ratio(set, LIVE_STRUCT_W, Object.keys(LIVE_STRUCT_W));
-  const sV2 = ratio(set, W, STRUCT);
-  const dBase = clampF(0.4 * (sV2 - sLive) + (i.htfOk ? CFG.htfBonus - 0.025 : 0));
-  deltas.push({ source: "base:reweight", delta: r4(dBase), note: `structure ${sLive.toFixed(3)}→${sV2.toFixed(3)}` });
-  q += dBase;
+  // 1 base (anchored): the walk-forward formula itself, NOT qScan + delta. qScan carries the live layers
+  //   (template modelQ, plan raises) that the fit never saw and pushed q_v2 to the 0.99 clamp on every card.
+  const A = CFG.anchor;
+  let pts = 0;
+  for (const [k, w] of Object.entries(A.pts)) if (set.has(k)) pts += w as number;
+  if (i.htfOk) pts += A.htfPts;
+  const kz = ctMinute(i.nowMs) < A.killzoneBeforeMin ? A.killzoneBonus : 0;
+  let q = A.q0 + (A.slope * pts) / A.denom + (i.htfOk ? CFG.htfBonus : 0) + kz;
+  deltas.push({ source: "base:anchored", delta: r4(q), note: `pts ${pts}/${A.denom}${i.htfOk ? " +htf" : ""}${kz ? " +killzone" : ""} (scanner q ${i.qScan} not used)` });
   // 2 key sweep × time
   const ramp = keySweepRamp(ctMinute(i.nowMs));
   const dKey = i.keySwept ? clampF(CFG.keySweep.boost * ramp) : 0;

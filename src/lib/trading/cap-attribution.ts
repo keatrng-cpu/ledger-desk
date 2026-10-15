@@ -33,7 +33,8 @@ export function trackCard<T extends Card>(c: T): T {
       enumerable: true, configurable: true,
       get: () => v,
       set: (n) => {
-        if (n === v) return;
+        // A no-op write still consumes the label, so it can never leak onto the next real write.
+        if (n === v) { takeQSource(); return; }
         const bandBefore = bandOf(c);
         const old = v; v = n;
         const down = field === "confluence" ? Number(n) < Number(old) : rank(n) < rank(old);
