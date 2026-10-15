@@ -1,0 +1,23 @@
+[Unit]
+Description=ledger-desk nightly data archive (GLBX 1m ES/NQ/MNQ $0 + desk card) -> /var/lib/ledger-archive
+After=network-online.target
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ledger-ops
+# gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
+BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
+EnvironmentFile=/opt/ledger-gateway/.env
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/ledger-archive /var/log/ledger-ops /run/ledger-ops
+Environment=ARCHIVE_DIR=/var/lib/ledger-archive ARCHIVE_MAX_GB=3
+MemoryMax=200M
+CPUQuota=50%
+IOSchedulingClass=idle
+TimeoutStartSec=1h
+ExecStart=/usr/bin/flock /run/ledger-ops/batch.lock /opt/ledger-ops/venv/bin/python archive.py

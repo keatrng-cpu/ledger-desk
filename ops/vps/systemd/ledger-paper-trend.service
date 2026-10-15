@@ -1,0 +1,27 @@
+[Unit]
+Description=ledger-desk PAPER trend lane, VPS backup copy (no broker, logs only)
+After=network-online.target
+# at most 5 starts per 10 min, then the unit stays failed (watchdog raises paper_vps_down) instead of looping forever
+StartLimitIntervalSec=600
+StartLimitBurst=5
+[Service]
+WorkingDirectory=/opt/ledger-ops
+# gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
+BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
+EnvironmentFile=/etc/ledger-ops/paper.env
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/ledger-paper
+Environment=PAPER_DIR=/var/lib/ledger-paper HIST_DIR=/var/lib/ledger-archive/hist PYTHONUNBUFFERED=1
+ExecStart=/opt/ledger-ops/venv/bin/python paper/vps_trend.py
+Restart=always
+RestartSec=10
+MemoryMax=200M
+CPUQuota=50%
+[Install]
+WantedBy=multi-user.target
