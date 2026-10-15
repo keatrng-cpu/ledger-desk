@@ -23,7 +23,7 @@ Scope: desk/process/canon decisions. Trading rule numbers live in `src/lib/aplus
 | **CBDR clock** for NQ/ES — which timestamp is locked | OPEN LOCK | Keaton | plan §5 Q1; SMC deep dive §9.19 / §13 (`a278500`) | No `CBDR` in repo code/docs (search of `main` @ `008cbec`). Plan WS-D1: "Lock CBDR clock before coding." |
 | **Flout** — what it means on this desk | OPEN LOCK | Keaton | plan §5 Q2; SMC deep dive §9.20 | Term not found on `main` @ `008cbec` |
 | **`sponsored` rename** to avoid ICT collision | OPEN LOCK | Keaton (Trading Stand defines) | plan §5 Q3; SMC deep dive §9.2 | Used in `src/lib/trading/engine-weights.ts`, `src/lib/aplus/confluence.ts`, `src/lib/trading/scanner.ts`, `src/lib/trading/smc-master.ts`, `src/lib/trading/score-drivers.ts`, others |
-| Judas release vs hard-block | OPEN — pending WS-J1 | Trading Stand → DECISION keep/kill | plan §5 Q5 | `src/lib/trading/judas-window.ts` |
+| Judas release vs hard-block | DECIDED — Keaton 2026-10-13, confirmed 2026-10-15: trade 9:30–4:00 ET, Judas window included; JUDAS_BLOCKS=false; alarm warns only. | Trading Stand → DECISION keep/kill | plan §5 Q5 | `src/lib/trading/judas-window.ts` |
 | NOW/DECISIONS location | PROPOSED (see 2026-10-06) | Keaton (acceptance) · Dual Desk pick | plan §5 Q8 | — |
 
 Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server runner vs PATH) are tracked in `ai/NOW.md` → Open questions.
