@@ -1,0 +1,22 @@
+[Unit]
+Description=ledger-desk nightly paper-trend backtest (GLBX NQ 1m cache, $0)
+After=ledger-archive.service
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ledger-ops
+# gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
+BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
+User=ledgerops
+Group=ledgerops
+Nice=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/ledger-backtest /var/log/ledger-ops /run/ledger-ops
+Environment=HIST_DIR=/var/lib/ledger-archive/hist BT_DIR=/var/lib/ledger-backtest BT_DAYS=20
+MemoryMax=300M
+CPUQuota=50%
+IOSchedulingClass=idle
+TimeoutStartSec=1h
+ExecStart=/usr/bin/flock /run/ledger-ops/batch.lock /opt/ledger-ops/venv/bin/python backtest.py

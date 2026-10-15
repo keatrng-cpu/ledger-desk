@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly paper-trend backtest, weekdays 17:45 ET (after the archive)
+[Timer]
+OnCalendar=Mon..Fri *-*-* 17:45:00 America/New_York
+# false: a missed run (VPS down at 17:15 ET) is skipped, not replayed at boot next to the gateway restart
+Persistent=false
+[Install]
+WantedBy=timers.target
