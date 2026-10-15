@@ -5,6 +5,8 @@
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
+import { IFVG_FLIP, flipTargets, ifvgFlipOf, readFlipped, scannerPools, type WireArray } from "@/lib/smc/ifvg-flip";
+import { mtfArrays } from "@/lib/smc/mtf-arrays";
 import RULES_ALL from "../../../shared/desk-rules.json";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
@@ -63,6 +65,7 @@ import {
 } from "./strategy-grade";
 import { sessionLive } from "@/lib/trading/sessions";
 import { applyTapeTrust, tapeTrust } from "@/lib/market/tape-trust";
+import { demoteGrade, readPriorityKill } from "./read-priority";
 
 export type SetupSide = "long" | "short";
 
@@ -1510,6 +1513,31 @@ export function scoreCandidates(
       c.invalidation = `Stop ${arm.stop.toFixed(2)} — one tick past the ${arm.tf} sweep wick ${arm.sweep.wick}`;
     }
   }
+  // iFVG FLIP (fastChain.ifvgFlip, live lesson 10/15 13:05 CT): a fresh 5m/15m inversion of the OTHER side's FVG
+  // generates/upgrades THIS side's card (bull FVG closed through -> short; mirrored), entry at the iFVG CE retest.
+  for (const c of candidates) {
+    const isL = c.symbol === left.symbol;
+    const mn = (isL ? leftMinute : rightMinute) ?? [];
+    const sess = mn.length ? sessionPools(mn, armNow, 60_000) : sessionPools(isL ? closedL : closedR, armNow, 900_000);
+    const { targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
+    const arr = mtfArrays(c.symbol, isL ? leftMinute : rightMinute, isL ? closedL : closedR) as unknown as WireArray[];
+    if (readFlipped(arr, c.side)) (c as { readFlippedAgainst?: boolean }).readFlippedAgainst = true;   // read-priority: this side's 5m gaps are failing on 1m
+    // 10/15 13:03 CT: feed the scanner's full pool list (EQH/EQL, swings, opposite FVGs) - session pools alone left the flip short with no T1.
+    const flipT = flipTargets(targets, scannerPools({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, nowMs: armNow, arrays: arr }));
+    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets: flipT, nowMs: armNow, arrays: arr });
+    (c as { ifvgFlip?: unknown }).ifvgFlip = f;
+    if (!f) continue;
+    c.reasons.push(`iFVG flip (${IFVG_FLIP.mode}): ${f.why}; entry ${f.entry} (edge ${f.entryEdge}), stop ${f.stop}${f.t1 ? `, T1 ${f.t1.name} ${f.t1.price} (${f.rr1}R)` : ", no real pool >= 1R ahead"}`);
+    if (IFVG_FLIP.mode !== "live") continue;
+    const add = ["ifvg", ...(f.dispAtr >= IFVG_FLIP.dispBodyAtr ? ["displacement"] : [])].filter((k) => !c.components.includes(k as ComponentKey));
+    if (add.length) c.components = [...c.components, ...(add as ComponentKey[])];
+    if (!c.ltfArmed && f.t1) {
+      (c as { ifvgFlipped?: boolean }).ifvgFlipped = true;
+      if (c.entryPx == null || !Number.isFinite(c.entryPx)) c.entryPx = f.entry;
+      c.entryZone = `${f.tf} iFVG ${f.gap.lo}–${f.gap.hi} CE ${f.entry}`;
+      c.invalidation = `Stop ${f.stop.toFixed(2)} — beyond the ${f.tf} iFVG`;
+    }
+  }
   const pathCandidates = candidates.map((c) => applyProfitPathToCandidate(c, { etMin }));
   if (!live) {
     for (const c of pathCandidates) {
@@ -1693,8 +1721,15 @@ export function scoreCandidates(
     if (!c.ltfArmed) continue;
     const before = c.pathBand;
     c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    demoteGrade(c);
     if (before !== c.pathBand) c.reasons.push(`LTF-armed card capped ${before} → ${c.pathBand} (ltfArm.capBand)`);
+  }
+
+  // Keaton 13:26 CT read-priority: 2+ same-side 5m FVGs closed through on 1m -> this side's card is killed to C the same poll
+  // (the opposite side was armed above by ifvgFlipOf). Mirrored.
+  for (const c of pathCandidates) {
+    if (!(candidates[pathCandidates.indexOf(c)] as { readFlippedAgainst?: boolean }).readFlippedAgainst) continue;
+    readPriorityKill(c);   // tracked + qWrite "cap:readPriority"; A+/A/A- grade -> B
   }
 
   for (const c of pathCandidates) stampPathTitle(c);

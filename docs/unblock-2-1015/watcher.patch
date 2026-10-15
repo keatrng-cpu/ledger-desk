@@ -1,0 +1,704 @@
+diff --git a/tests/test_entry_distance_wide.py b/tests/test_entry_distance_wide.py
+index febc469..3945a0c 100644
+--- a/tests/test_entry_distance_wide.py
++++ b/tests/test_entry_distance_wide.py
+@@ -170,6 +170,6 @@ def test_one_htf_opposing_is_size_cut_not_block(cfg):
+     s = agree_card(bias={"bias4h": "bull"})
+     g = gates.evaluate_fire(s, cfg, NOW, {}, None, CAL)
+     h = [x for x in g if x[0] == "htf_bias"][0]
+-    assert h[1] is True and "size cut" in h[2] and s["size_cut"] is True
++    assert h[1] is True and "size cut" in h[2] and s["size_cut"] is False   # post-mortem 13:02: the cut is replaced by qPenalty.htf
+     full, _ = gates.size_contracts(0.30, 10, cfg, "A"); cut, _ = gates.size_contracts(0.30, 10, cfg, "A", cut=True)
+     assert full is None or cut is None or cut <= full
+diff --git a/tests/test_fastchain.py b/tests/test_fastchain.py
+index 0e87ed4..3dbe0aa 100644
+--- a/tests/test_fastchain.py
++++ b/tests/test_fastchain.py
+@@ -8,7 +8,7 @@ ET = gates.ET
+ def snap(**kw):
+     s = {"ok": True, "at": "a1", "band": "B+", "q": 0.63, "symbol": "ES", "side": "short", "entry": 7851.75, "stop_px": 7856.25,
+          "first_target": 7846.3, "tape_prices": {"ES": 7852.0}, "atr": 8.0, "brain_word": "WAIT", "brain_symbol": "ES", "brain_side": "short",
+-         "htf_bias": [("1h", "bull"), ("4h", "bear")], "loss": {"velocity": {"expMin": 20.6}}}
++         "htf_bias": [("1h", "bear"), ("4h", "bear")], "loss": {"velocity": {"expMin": 20.6}}, "et_min": 600}
+     s.update(kw); return s
+ 
+ def test_rules():
+@@ -28,7 +28,8 @@ SIB = dict(at="sib", entry=7851.25, tape_prices={"ES": 7856.0})   # sibling card
+ 
+ def test_fires_on_second_consecutive_poll_no_timer():
+     st = fc.streak_next(None, snap(at="a1"), 0); assert _persist(st, 0) is False          # 1 poll: anti-flicker
+-    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is True      # 2 consecutive polls, 4 s: fires
++    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is False     # 10/15 PM: B+ needs the 20 s hold
++    st = fc.streak_next(st, snap(at="a2b"), 20_000); assert _persist(st, 20_000) is True   # 2+ polls, 20 s from the first card: fires
+ 
+ def test_same_card_reread_is_not_a_new_poll():
+     st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a1"), 1_000)
+@@ -38,8 +39,9 @@ def test_sibling_or_failing_poll_breaks_consecutive_but_not_the_setup():
+     st = fc.streak_next(None, snap(at="a1"), 0)
+     st = fc.streak_next(st, snap(**SIB), 4_000)                                           # sibling poll in between
+     st = fc.streak_next(st, snap(at="a3"), 8_000); assert st["polls"] == 1 and st["first_ms"] == 0 and _persist(st, 8_000) is False
+-    st = fc.streak_next(st, snap(at="a4"), 12_000); assert _persist(st, 12_000) is True
+-    st = fc.streak_next(st, snap(at="a5", band="B"), 16_000); assert st["polls"] == 0 and st["first_ms"] == 0   # failing poll
++    st = fc.streak_next(st, snap(at="a4"), 20_000); assert _persist(st, 20_000) is True
++    st = fc.streak_next(st, snap(at="a5", band="C", q=0.45), 16_000)   # unblock-2: one B poll after B+ polls is smoothed (2 of 3), so fail on band C + q far below
++    st = fc.streak_next(st, snap(at="a6", band="C", q=0.40), 20_000); assert st["polls"] == 0 and st["first_ms"] == 0   # failing poll
+ 
+ def test_stale_after_90s_never_fired():
+     st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a2", band="B"), 50_000)
+@@ -99,11 +101,13 @@ def test_velocity_cut_halves_debit_cap_before_checks(cfg):
+     n, why = gates.size_contracts(0.40, 4, cfg, "A+", vel_snap=fast(None))           # cut to 1ct $40 < $50 floor: refuse
+     assert n is None and "floor" in why
+ 
++EV = {"band": "A-", "sweep": True}   # A-+ with a fresh sweep: fires on the next poll (10/15 PM persist fix)
++
+ def _arm(st, t0):
+     st = fc.streak_next(st, snap(at=f"r{t0}"), t0); return fc.streak_next(st, snap(at=f"s{t0}"), t0 + 4000)
+ 
+ def test_no_refire_after_stop():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.streak_next(st, snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+     assert st["spent"][fc.setup_id(snap())]["why"] == "invalidated"
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+@@ -113,16 +117,16 @@ def test_no_refire_after_t1_touch():
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+ 
+ def test_no_refire_after_fire_then_rearm():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.mark_spent(st, fc.setup_id(snap()), "fired", 4000)
+     st = fc.streak_next(st, snap(at="out", **CHASE), 6000)     # chased out of the zone
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+     o = snap(entry=7852.25)                                      # another entry = another setup
+-    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000)[0]
++    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000, EV)[0]
+ 
+ def test_spent_clears_next_session():
+     st = fc.streak_next(_arm(None, 0), snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+-    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000)[0]
++    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000, EV)[0]
+ 
+ CHASE = dict(tape_prices={"ES": 7847.0})   # 4.75 past entry (> 0.5 x ATR 8), stop and T1 untouched
+ 
+@@ -131,7 +135,7 @@ def test_entry_rearm_after_pullback_restarts_clock_and_polls():
+     st = fc.streak_next(st, snap(at="c1", **CHASE), 4_000); assert st["first_ms"] == 0 and st.get("out_of_zone")   # kept alive
+     st = fc.streak_next(st, snap(at="c2", **CHASE), 120_000)                                # ran for 2 min
+     st = fc.streak_next(st, snap(at="p1"), 125_000); assert st["first_ms"] == 125_000 and st["polls"] == 1 and _persist(st, 125_000) is False
+-    st = fc.streak_next(st, snap(at="p2"), 129_000); assert _persist(st, 129_000) is True    # re-armed: fires
++    st = fc.streak_next(st, snap(at="p2"), 145_000); assert _persist(st, 145_000) is True    # re-armed: fires
+     assert fc.streak_next(st, snap(at="p3"), 215_001)["first_ms"] == 125_000 and _persist(fc.streak_next(st, snap(at="p3"), 215_001), 215_001) is False
+ 
+ def test_entry_rearm_needs_band_and_untouched_levels():
+@@ -173,3 +177,158 @@ def test_spread_fallback_fits_cap():
+     sp = spread_pick(cands, 150)
+     assert sp and sp["quote"]["ask"] * 100 <= 150 and sp["contract"]["spread_short"]["strike"] < sp["contract"]["strike"]
+     assert spread_pick(cands, 10) is None
++
++
++# ---- unblock-2 10/15 (Keaton 12:36 CT) ----
++def test_unblock2_rules():
++    R = fc.RULES
++    assert R["bandEdges"] == {"A+": 0.75, "A": 0.68, "A-": 0.65, "B+": 0.6, "B": 0.5}     # edges never lowered
++    assert "entries_day" not in fc.FC["hard"] and "refireGuard" not in fc.FC and fc.FC["dailyEntryCap"]["mode"] == "off"
++    assert fc.FC["gradeSmoothing"]["polls"] == 3 and fc.FC["gradeSmoothing"]["minOf"] == 2
++    assert fc.FC["htfReversal"]["sizeMult"] == 0.5 and R["weekly"]["lossLock"] == -300 and R["fireFix"]["dayLoss"]["usd"] == 150
++
++def test_grade_smoothing_2_of_3_and_edge_rising():
++    st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a2"), 4_000)
++    s3 = snap(at="a3", band="B", q=0.59); st = fc.streak_next(st, s3, 8_000)
++    assert dict((n, ok) for n, ok, _ in fc.setup_rows(s3))["band"] is True                 # 2 of last 3 >= B+
++    assert fc.promote_smoothed(s3) and s3["band"] == "B+" and s3["band_raw"] == "B"
++    # edge + rising: B, B, then q 0.5999 rising -> counts; q 0.5999 falling -> does not
++    st = fc.streak_next(None, snap(at="b1", band="B", q=0.55), 0); st = fc.streak_next(st, snap(at="b2", band="B", q=0.58), 4_000)
++    s = snap(at="b3", band="B", q=0.5999); fc.streak_next(st, s, 8_000); assert fc.smoothed_band(s)[0] is True
++    st = fc.streak_next(None, snap(at="c1", band="B", q=0.55), 0); st = fc.streak_next(st, snap(at="c2", band="B", q=0.5999), 4_000)
++    s = snap(at="c3", band="B", q=0.595); fc.streak_next(st, s, 8_000); assert fc.smoothed_band(s)[0] is False
++    s = snap(at="c4", band="B", q=0.58); s["band_hist"] = [["x", 0.5, "B"], ["y", 0.57, "B"], ["c4", 0.58, "B"]]
++    assert fc.smoothed_band(s)[0] is False                                               # 0.02 under the edge: no
++    s = snap(band="A-", q=0.66); assert fc.promote_smoothed(s) is None and s["band"] == "A-"   # never promotes above B+
++
++def test_es_1015_1001_long_qualifies():
++    """ES 10/15 10:01:16-10:02:02 CT long 7757.75: q .5797, .5991, .5797, .5999, B+ .6314 .6379 .6379 .6379, B .5999 .592."""
++    seq = [("B", 0.5797), ("B", 0.5991), ("B", 0.5797), ("B", 0.5999), ("B+", 0.6314), ("B+", 0.6379), ("B+", 0.6379), ("B+", 0.6379), ("B", 0.5999), ("B", 0.592)]
++    st = None; ok = []
++    for i, (b, q) in enumerate(seq):
++        s = snap(at=f"e{i}", band=b, q=q, side="long", entry=7757.75, stop_px=7750.2, first_target=7772.75, tape_prices={"ES": 7760.0}, atr=15.1,
++                 brain_side="long", htf_bias=[("1h", "bull"), ("4h", "bull")])   # post-mortem 13:02: with 4h bear the htf q penalty (-0.05) now keeps it B (see below)
++        st = fc.streak_next(st, s, i * 5_000); ok.append(dict((n, o) for n, o, _ in fc.setup_rows(s))["band"])
++    assert ok == [False, True, False, True, True, True, True, True, True, False]   # 10:02:07 .592: 1 of 3, 0.008 under edge but falling
++    s = snap(band="B+", q=0.6379, side="long", entry=7757.75, stop_px=7750.2, first_target=7772.75, tape_prices={"ES": 7760.0}, atr=15.1,
++             brain_side="long", htf_bias=[("1h", "bull"), ("4h", "bear")])
++    assert dict((n, o) for n, o, _ in fc.setup_rows(s))["band"] is False and s["band"] == "B"   # as logged (4h bear): .6379 - .05 = B, not smoothed back
++
++@pytest.mark.skipif((fc.FC.get("qPenalty") or {}).get("htf", {}).get("mode") == "live", reason="post-mortem 13:02: htfReversal half size replaced by qPenalty.htf")
++def test_htf_both_oppose_reversal_half_size():
++    base = dict(side="long", entry=29880.5, stop_px=29827.75, first_target=29978.0, tape_prices={"MNQ": 29890.0}, atr=97.48, symbol="MNQ",
++                band="A-", q=0.6799, brain_symbol="MNQ", brain_side="long", htf_bias=[("1h", "bear"), ("4h", "bear")])
++    s = snap(**base, sweep=True, displacement=True); r = dict((n, (ok, w)) for n, ok, w in fc.setup_rows(s))
++    assert r["fast:agree"][0] is True and "LTF reversal" in r["fast:agree"][1] and s["fast_htf_half"] is True
++    class C: min_contracts = 1
++    assert fc.htf_size(4, s, C)[0] == 2 and fc.htf_size(1, s, C)[0] == 1
++    assert fc.htf_size(4, dict(s, size_cut=True), C)[0] == 4                              # caps already halved by the size cut
++    for kw in ({"sweep": False, "displacement": True}, {"sweep": True, "displacement": False}, {"sweep": None}):
++        s = snap(**base, **kw); assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["fast:agree"] is False
++    s = snap(**base, sweep=True, displacement=False, choch=True); assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["fast:agree"] is True
++    s = snap(**dict(base, band="C", q=0.4), sweep=True, displacement=True); assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["fast:agree"] is False
++    s = snap(**dict(base, brain_side="short"), sweep=True, displacement=True); assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["fast:agree"] is False   # brain opposite still blocks
++
++# ---- live lesson 10/15 13:02-13:05 CT (ES long B+ sig-85e8feddd99efe46 stopped -$36) ----
++ES1302 = dict(symbol="ES", side="long", band="B+", q=0.6499, entry=7782.63, stop_px=7775.0, first_target=7792.25, tape_prices={"ES": 7784.0}, atr=10.34,
++              brain_symbol="ES", brain_side="long", htf_bias=[("1h", "bull"), ("4h", "bear")], sweep=True, displacement=False,
++              et_min=14 * 60 + 2,
++              wire_arrays=[{"tf": "5m", "kind": "fvg", "dir": "bull", "lo": 7785.25, "hi": 7786.25, "ageBars": 2, "formedAgeBars": 2, "mitigated": False, "symbol": "ES", "through1mAgeMin": 1, "reclaimed1m": False},
++                           {"tf": "15m", "kind": "fvg", "dir": "bull", "lo": 7779.75, "hi": 7785.5, "ageBars": 0, "formedAgeBars": 0, "mitigated": False, "symbol": "ES"},
++                           {"tf": "5m", "kind": "fvg", "dir": "bull", "lo": 7780, "hi": 7783.5, "ageBars": 3, "formedAgeBars": 3, "mitigated": False, "symbol": "ES"}])
++
++def test_1302_es_long_blocked_by_ifvg_and_htf():
++    s = snap(**ES1302); r = dict((n, (ok, w)) for n, ok, w in fc.setup_rows(s))
++    assert r["fast:ifvg"][0] is False and "closed through on 1m" in r["fast:ifvg"][1]   # 13:00:59 1m close 7784.75 < 7785.25 (post-mortem F1)
++    assert r["band"][0] is False and s["band"] == "B"                                     # 0.6499 - 0.05 (4h bear) - 0.05 (B+ after 13:00 ET) -> B
++    ok = dict(ES1302, wire_arrays=[dict(a, through1mAgeMin=None) for a in ES1302["wire_arrays"]], et_min=600, q=0.70)
++    r = dict((n, ok_) for n, ok_, _ in fc.setup_rows(snap(**ok))); assert r["fast:ifvg"] is True and r["fast:agree"] is True and r["band"] is True
++
++def test_ifvg_closed_inversion_blocks_and_mirrors_short():
++    a = [{"tf": "5m", "kind": "ifvg", "dir": "bear", "lo": 7785.25, "hi": 7786.25, "ageBars": 0, "failed": False, "symbol": "ES"}]
++    assert fc.ifvg_against(a, "long", 7780.0)[0] is True and fc.ifvg_against(a, "short", 7780.0)[0] is False
++    assert fc.ifvg_against([dict(a[0], ageBars=4)], "long", 7780.0)[0] is False                      # older than maxAgeBars
++    assert fc.ifvg_against([dict(a[0], failed=True)], "long", 7780.0)[0] is False                    # failed inversion
++    assert fc.ifvg_against([dict(a[0], tf="1m")], "long", 7780.0)[0] is False                       # 5m/15m only
++    b = [{"tf": "15m", "kind": "ifvg", "dir": "bull", "lo": 7790, "hi": 7792, "ageBars": 1, "symbol": "ES"}]
++    assert fc.ifvg_against(b, "short", 7795.0)[0] is True
++    c = [{"tf": "5m", "kind": "fvg", "dir": "bear", "lo": 7790, "hi": 7792, "ageBars": 1, "formedAgeBars": 1, "symbol": "ES"}]
++    # post-mortem 13:02 F1: the live-px forming read is superseded by the closed-1m read (formingThrough false)
++    assert fc.ifvg_against(c, "short", 7793.0)[0] is False
++
++def test_first_target_prefers_plan_t1():
++    from watcher import gates
++    assert gates.first_target({"t1": 7792.25, "target": 7874.25}) == 7792.25 and gates.first_target({"target": 7874.25}) == 7874.25
++
++
++# ---- post-mortem 13:02 CT fixes (F1 1m close, read-priority, htf/pm q penalties) + Keaton 13:26 CT ----
++def _g(tf="5m", lo=7785.25, hi=7786.25, dir="bull", t=1, rec=False, formed=4):
++    return {"tf": tf, "kind": "fvg", "dir": dir, "lo": lo, "hi": hi, "ageBars": formed, "formedAgeBars": formed, "through1mAgeMin": t, "reclaimed1m": rec, "symbol": "ES"}
++
++def test_f1_1m_close_through_blocks_bplus_and_aminus_not_a():
++    a = [_g()]
++    assert fc.ifvg_against(a, "long", 7784.0, band="B+")[0] is True and fc.ifvg_against(a, "long", 7784.0, band="A-")[0] is True
++    assert fc.ifvg_against(a, "long", 7784.0, band="A")[0] is False
++    assert fc.ifvg_against([_g(t=16)], "long", 7784.0, band="B+")[0] is False        # older than 15 min
++    assert fc.ifvg_against([_g(rec=True)], "long", 7784.0, band="B+")[0] is False    # reclaimed
++    assert fc.ifvg_against([_g(formed=13)], "long", 7784.0, band="B+")[0] is False   # formed > 60 min ago (13 x 5m)
++    assert fc.ifvg_against([_g(dir="bear", lo=7790, hi=7791)], "short", 7792.0, band="B+")[0] is True   # mirrored
++
++def test_read_priority_two_5m_gaps_block_any_band_and_mirror():
++    a = [_g(), _g(lo=7780.0, hi=7783.5)]
++    assert fc.read_flipped(a, "long") and fc.ifvg_against(a, "long", 7779.0, band="A+")[0] is True
++    assert not fc.read_flipped(a, "short")
++    b = [_g(dir="bear", lo=7790, hi=7791), _g(dir="bear", lo=7794, hi=7795)]
++    assert fc.read_flipped(b, "short") and fc.ifvg_against(b, "short", 7796.0, band="A")[0] is True
++
++def test_read_priority_hit_is_the_watcher_mirror_of_the_desk_c_kill():
++    """Desk: band C kill (cap:readPriority). Watcher: fire block via fast:ifvg; read_priority_hit feeds the cap:readPriority log."""
++    a = [_g(), _g(lo=7780.0, hi=7783.5)]
++    s = {"symbol": "ES", "side": "long", "band": "A+", "tape_prices": {"ES": 7779.0}, "wire_arrays": a}
++    why = fc.read_priority_hit(s)
++    assert why and why.startswith("read flipped")
++    assert fc.ifvg_row(s)[1] is False                                   # fast:ifvg blocks the fire at any band
++    assert fc.read_priority_hit(dict(s, side="short")) is None          # only the flipped side
++    assert fc.read_priority_hit(dict(s, wire_arrays=a[:1])) is None     # one gap is not a read flip
++
++def test_htf_q_penalty_replaces_size_cut_and_needs_evidence():
++    s = snap(htf_bias=[("1h", "bull"), ("4h", "bear")], q=0.6749, band="A-", displacement=True)
++    rows = dict((n, ok) for n, ok, _ in fc.setup_rows(s))
++    assert rows["fast:agree"] is True and s["band"] == "B+"          # 0.6749 - 0.05 -> B+, displacement = evidence
++    s2 = snap(htf_bias=[("1h", "bull"), ("4h", "bear")], q=0.6749, band="A-")
++    assert dict((n, ok) for n, ok, _ in fc.setup_rows(s2))["fast:agree"] is False   # no sweep / displacement / brain TAKE
++    s3 = snap(htf_bias=[("1h", "bull"), ("4h", "bear")], q=0.6749, band="A-", brain_word="TAKE")
++    assert dict((n, ok) for n, ok, _ in fc.setup_rows(s3))["fast:agree"] is True
++
++def test_pm_bplus_q_penalty_after_1300_et():
++    s = snap(q=0.63, et_min=13 * 60 + 5)
++    assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["band"] is False and s["band"] == "B"
++    s = snap(q=0.6749, band="A-", et_min=13 * 60 + 5)                 # B+ cards only: an A- keeps its band
++    assert dict((n, ok) for n, ok, _ in fc.setup_rows(s))["band"] is True and s["band"] == "A-"
++
++def test_1315_es_short_aminus_passes_setup_rows():
++    """10/15 13:15 CT ES short A- (entry 7771.38 stop 7780 T1 7760.25), 1h bull / 4h bear, displacement, brain WAIT: fires under the new rules."""
++    s = snap(band="A-", q=0.6749, entry=7771.38, stop_px=7780.0, first_target=7760.25, tape_prices={"ES": 7766.25}, atr=10.98,
++             htf_bias=[("1h", "bull"), ("4h", "bear")], displacement=True, sweep=True, et_min=14 * 60 + 15)
++    rows = [(n, ok) for n, ok, _ in fc.setup_rows(s)]
++    assert all(ok for n, ok in rows), rows
++
++
++def test_persist_10_15_pm_first_card_short_hold():
++    """10/15 PM: clock from the first qualifying card; B+ needs 2 polls + 20 s; A-+ with fresh sweep/disp fires on poll 2."""
++    st = fc.streak_next(None, snap(at="q1"), 0); assert st["first_ms"] == 0
++    assert "Nones" not in fc.persist_check(st, 0)[1]
++    st = fc.streak_next(st, snap(at="q2"), 4000)
++    assert not fc.persist_check(st, 4000, snap())[0]                       # B+ no evidence: short hold
++    assert fc.persist_check(st, 4000, dict(snap(), band="A-", displacement=True))[0]
++    assert not fc.persist_check(st, 4000, dict(snap(), band="A-"))[0]       # A- without fresh sweep/disp: hold
++    assert fc.persist_check(st, 20000, snap())[0]
++    assert not fc.persist_check(st, 91000, dict(snap(), band="A", sweep=True))[0]   # stale
++
++def test_stand_is_q_weight_not_veto():
++    base = dict(snap(), brain_word="STAND", brain_side="long", q=0.70, band="A-")
++    rows = {n: ok for n, ok, _ in fc.setup_rows(dict(base))}
++    assert rows["fast:agree"]
++    assert fc.q_penalty(dict(base))[0] >= fc.STAND_Q
++    flip = dict(base, wire_arrays=[{"tf": "5m", "kind": "ifvg", "dir": "bull", "lo": 7850, "hi": 7851, "ageBars": 1, "failed": False}])
++    assert not {n: ok for n, ok, _ in fc.setup_rows(flip)}["fast:agree"]
+diff --git a/tests/test_gates.py b/tests/test_gates.py
+index 5283797..72e1196 100644
+--- a/tests/test_gates.py
++++ b/tests/test_gates.py
+@@ -92,7 +92,8 @@ def test_broker_gates(cfg, b, gate):
+ def test_entries_per_day(cfg):
+     s = gates.snapshot(load("card_aplus_armed.json"))
+     assert "entries_day" not in fails(gates.evaluate_fire(s, cfg, NOW, {"entries": 1}, broker(), CAL))
+-    assert "entries_day" in fails(gates.evaluate_fire(s, cfg, NOW, {"entries": 2}, broker(), CAL))
++    assert "entries_day" not in fails(gates.evaluate_fire(s, cfg, NOW, {"entries": 2}, broker(), CAL))   # unblock-2: 2-trade cap deleted
++    assert "entries_day" not in fails(gates.evaluate_fire(s, cfg, NOW, {"entries": 7}, broker(), CAL))
+ 
+ @pytest.mark.parametrize("off,ok", [(-4000, True), (-5000, True), (-6000, False), (30000, True), (30001, False)])
+ def test_quote_age(off, ok):
+@@ -302,7 +303,7 @@ def test_soft_keeps_news_card_age_tape(soft):
+     s = gates.snapshot(c)
+     assert "news" in fails(gates.evaluate_fire(s, soft, NOW, {}, broker(), [{"date": "2026-10-13", "timeEt": "10:00", "name": "X", "impact": "high"}]))
+     assert "card_age" in fails(gates.evaluate_fire(s, soft, NOW + 60_000, {}, broker(), CAL))
+-    assert "entries_day" in fails(gates.evaluate_fire(s, soft, NOW, {"entries": 2}, broker(), CAL))
++    assert "entries_day" not in fails(gates.evaluate_fire(s, soft, NOW, {"entries": 2}, broker(), CAL))   # unblock-2: cap deleted
+     c["wire"]["tape"]["fresh"] = False
+     assert "tape_fresh" in fails(gates.evaluate_fire(gates.snapshot(c), soft, NOW, {}, broker(), CAL))
+ 
+diff --git a/tests/test_loss_patterns.py b/tests/test_loss_patterns.py
+index 41b78a0..6684f0e 100644
+--- a/tests/test_loss_patterns.py
++++ b/tests/test_loss_patterns.py
+@@ -93,9 +93,10 @@ def test_shadow_htf_is_legacy_and_logged():
+     g = gates.evaluate_fire(s, Config(), 0, {}, None, [])
+     h = [x for x in g if x[0] == "htf_bias"][0]
+     legacy_block = L["htf"]["legacyBothOppose"] == "block"
+-    assert h[1] is (not legacy_block) and s["size_cut"] is (not legacy_block)
++    qp = (gates.RULES["fastChain"].get("qPenalty") or {}).get("htf", {}).get("mode") == "live"   # post-mortem 13:02: cut replaced by a q penalty
++    assert h[1] is (not legacy_block) and s["size_cut"] is (False if qp else not legacy_block)
+     one = _raw_snapshot(_card(bias1h="bull", bias4h="bear"))
+-    gates.evaluate_fire(one, Config(), 0, {}, None, []); assert one["size_cut"] is True   # legacy single-oppose cut
++    gates.evaluate_fire(one, Config(), 0, {}, None, []); assert one["size_cut"] is (False if qp else True)   # legacy single-oppose cut
+ 
+ def test_shadow_rows_never_fail():
+     s = _raw_snapshot(_card(chop=False, loss={"chop": {"chop": True, "why": "chop 2/3"}, "velocity": {"expMin": 20}}))
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 160d006..fef22d2 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -76,10 +76,20 @@ class Watcher:
+         snap["_fx_near_miss"] = (_nmf, _nmw)
+         if fastchain.live():
+             fs = fastchain.streak_next(self.state.get("fast_streak"), snap, nm); self.state["fast_streak"] = fs; snap["fast_streak"] = fs
++            _sm = fastchain.promote_smoothed(snap)                                      # unblock-2: grade smoothing (B+ edge, never lowered)
++            if _sm: self.log("band_smoothed", symbol=snap.get("symbol"), side=snap.get("side"), q=snap.get("q"), note=_sm)
++            _rp = fastchain.read_priority_hit(snap)                                     # read-priority mirror (fire block; desk: band C kill)
++            if _rp and not self.state["signals"].setdefault(key, {}).get("read_priority"):
++                self.state["signals"][key]["read_priority"] = time.time()
++                self.log("cap", source="cap:readPriority", signal=key, symbol=snap.get("symbol"), side=snap.get("side"), band=snap.get("band"), why=_rp)
+             # the fast chain trades the CARD's side on its ETF; the desk ticket (often None / model) is advisory only
+             t0 = snap.get("ticket") or {}
+             if snap.get("symbol") in ("ES", "MNQ") and snap.get("side") in gates.SIDE_TO_TYPE:
+-                d0 = t0.get("dte") if isinstance(t0.get("dte"), int) and not isinstance(t0.get("dte"), bool) else 1
++                if isinstance(t0.get("dte"), int) and not isinstance(t0.get("dte"), bool): d0 = t0.get("dte")
++                else:   # post-mortem 13:02 F10: the synth ticket takes optExec.dteByTime (0DTE before zeroDteUntilEt), not a hard-coded 1
++                    from . import optexec as _ox0
++                    try: d0 = _ox0.dte_target(self.cfg, datetime.fromtimestamp(nm / 1000, gates.ET))
++                    except Exception: d0 = 1
+                 snap["ticket"] = {**t0, "underlier": "SPY" if snap["symbol"] == "ES" else "QQQ", "side": gates.SIDE_TO_TYPE[snap["side"]],
+                                   "dte": d0, "contracts": gates.band_caps(self.cfg, snap.get("band") or "B+")[0], "fast_synth": True}
+         from . import evfire
+diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
+index a93096d..9b6e729 100644
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
+@@ -58,7 +58,8 @@
+     "chainMaxAgeS": 10,
+     "orderReviewMaxAgeS": 1,
+     "nearMissPct": 0.05,
+-    "secondEntryMinBand": "A"
++    "secondEntryMinBand": null,
++    "_secondEntryDoc": "Keaton 10/15 13:26 CT: removed (entry #2+ uses the normal B+ edge); same-setup-spent and the $ loss caps stay"
+   },
+   "dispVsRr": [
+     {
+@@ -310,6 +311,53 @@
+       "_doc": "fire-bugs-live 10/15 (Keaton): fast:entry failing because price is > entryAtr x ATR from entry keeps the setup alive; a pullback inside the zone with stop and T1 untouched and band >= minBand makes it actionable again and restarts the maxActionableAgeS clock and confirmPolls.",
+       "mode": "live"
+     },
++    "dailyEntryCap": {
++      "_doc": "unblock-2 10/15 (Keaton 12:36 CT): the 2-trade daily entry cap is deleted (entries_day removed). Re-fire after a fire, stop or T1 touch is prevented by #22 (setup spent for the session). The $150 / 15% daily loss cap (fireFix.dayLoss), the -$300 weekly lock (weekly.lossLock) and the $650 debit cap stay.",
++      "mode": "off"
++    },
++    "gradeSmoothing": {
++      "_doc": "unblock-2 10/15 (Keaton): anti-flicker for the minBand (B+) edge, never a lower edge (bandEdges unchanged). A card counts as B+ for the fire band check when it was >= B+ on at least minOf of its last polls polls (same symbol+side, real polls only), or its q is within edgeEps of the B+ edge and rising versus the previous poll. Sizes on the B+ rung. Only promotes to minBand, never to A-/A/A+.",
++      "mode": "live",
++      "polls": 3,
++      "minOf": 2,
++      "edgeEps": 0.01
++    },
++    "ifvgAgainst": {
++      "_doc": "Live lesson 10/15 13:02 CT (ES long B+ stopped -$36 while two 5m bull FVGs were inverted): HARD fast:ifvg row on desk, brain, Floor and watcher. A long is blocked while a 5m/15m bull FVG is being inverted: a closed bar within maxAgeBars closed below its bottom (wire array kind ifvg dir bear, not failed), or the live price is below the bottom of a bull FVG formed within formedMaxAgeBars (the forming bar is closing through it). Mirrored for shorts.",
++      "mode": "live",
++      "tfs": ["5m", "15m"],
++      "maxAgeBars": 3,
++      "formingThrough": false,
++      "formedMaxAgeBars": 12,
++      "_postmortem1302": "F1 supersedes the live-px formingThrough read (flickers) and the 5m-close-only read (3 min late): close1m = a CLOSED 1m bar through a same-side 5m/15m gap formed <= 60 min, within 15 min, not reclaimed -> hard on B+/A- (A/A+ pass). readPriority (Keaton 13:26 CT): 2+ same-side 5m gaps closed through on 1m -> any band blocked and the desk flips (ifvgFlipOf arms the other side the same poll).",
++      "close1m": {"mode": "live", "formedMaxMin": 60, "throughMaxMin": 15, "hardBands": ["B+", "A-"]},
++      "readPriority": {"mode": "live", "tf": "5m", "minGaps": 2}
++    },
++    "ifvgFlip": {
++      "_doc": "Live lesson 10/15 13:05 CT (no short card after the bull FVGs inverted): the inversion GENERATES/UPGRADES the other side's card in the scanner (src/lib/smc/ifvg-flip.ts): adds the ifvg component (+ displacement when the inverting body >= dispBodyAtr x ATR), entry at the iFVG CE retest, stop beyond the far edge + stopAtr x ATR(rung), T1/T2 the next real pools >= minRr. No pool -> no plan. Band from q as usual (edges unchanged).",
++      "mode": "live",
++      "tfs": ["5m", "15m"],
++      "maxAgeBars": 3,
++      "stopAtr": 0.1,
++      "minRr": 1.0,
++      "dispBodyAtr": 1.0
++    },
++    "qPenalty": {
++      "_doc": "post-mortem 13:02 (gated by docs/postmortem-fixes-1015 replay). Soft q penalties applied in the fast chain's band row: band = min(card band, band(q - sum)), edges unchanged. htf: any 1h/4h opposing -> -0.05 and requireOneOf sweep | displacement | brain TAKE (replaces the 50% size cut, a no-op at 1ct; fast:agree). pmBplus: at/after 13:00 ET -> -0.05 (was shadow fx:bplusWindow hard). Replay-negative, kept shadow (WOULD rows only): pd (premium/discount), standGap (brain STAND + Floor gap note on B+), rrFromFill (R:R from px >= 1.0), eqlStop (stop beyond the pool).",
++      "htf": {"mode": "live", "q": 0.05, "requireOneOf": ["sweep", "displacement", "brainTake"]},
++      "pmBplus": {"mode": "live", "q": 0.05, "fromEt": "13:00"},
++      "pd": {"mode": "shadow", "longAbove": 0.75, "shortBelow": 0.25, "q": 0.03, "qSweptT1": 0.06},
++      "standGap": {"mode": "shadow"},
++      "rrFromFill": {"mode": "shadow", "min": 1.0},
++      "eqlStop": {"mode": "shadow"}
++    },
++    "htfReversal": {
++      "_doc": "unblock-2 10/15 (Keaton): fast:agree when 1h and/or 4h oppose the side (live lesson 13:02 CT: a single opposing 4h is no longer a plain size cut). With a confirmed LTF reversal (strategy.sweep true AND (displacement true OR choch true)) and band >= minBand the trade is allowed at sizeMult (whole contracts, minimum 1); never on q alone; without reversal evidence it is blocked. The brain-opposite block is unchanged.",
++      "anyOppose": true,
++      "mode": "off",
++      "minBand": "B+",
++      "sizeMult": 0.5
++    },
+     "rrMin": 1.0,
+     "entryAtr": 0.5,
+     "maxMinutesToT1": 30,
+@@ -324,14 +372,13 @@
+       "fast:geometry",
+       "fast:entry",
+       "fast:agree",
++      "fast:ifvg",
+       "rules_parity",
+       "tape",
+       "tape_fresh",
+       "card_age",
+       "news",
+       "entry_cutoff",
+-      "entries_day",
+-      "second_entry_band",
+       "weekly_lock",
+       "account",
+       "no_position",
+diff --git a/watcher/fastchain.py b/watcher/fastchain.py
+index 48c182b..d8f346e 100644
+--- a/watcher/fastchain.py
++++ b/watcher/fastchain.py
+@@ -7,13 +7,55 @@ FC = RULES["fastChain"]
+ def live():
+     return FC.get("mode") == "live"
+ 
++def _qp(k): return (FC.get("qPenalty") or {}).get(k) or {}
++def _n_opp(snap):
++    want = "bull" if snap.get("side") == "long" else "bear"; hb = dict(snap.get("htf_bias") or [])
++    return sum(1 for tf in ("1h", "4h") if hb.get(tf) not in (None, want))
++def _et_min(snap):
++    if snap.get("et_min") is not None: return snap["et_min"]
++    import datetime as _d, zoneinfo as _z
++    t = _d.datetime.now(_z.ZoneInfo("America/New_York")); return t.hour * 60 + t.minute
++def q_penalty(snap):
++    """(sum, notes) post-mortem 13:02 soft q penalties - twin of fast-chain.ts qPenalty."""
++    pen = 0.0; why = []; h = _qp("htf"); pm = _qp("pmBplus")
++    if h.get("mode") == "live" and _n_opp(snap) >= 1: pen += h["q"]; why.append(f"1h/4h opposes -{h['q']}")
++    if pm.get("mode") == "live" and snap.get("band") == "B+":   # a B+ card only (an A- is not a B+); 13:15 CT ES short A- still fires
++        hh, mm = (int(x) for x in pm["fromEt"].split(":"))
++        if _et_min(snap) >= hh * 60 + mm: pen += pm["q"]; why.append(f"after {pm['fromEt']} ET -{pm['q']}")
++    if is_stand(snap): pen += STAND_Q; why.append(f"brain STAND -{STAND_Q}")
++    return round(pen, 4), why
++# 10/15 PM (Keaton): brain STAND is a q weight, not a veto; STAND + iFVG flip against the side still blocks (fast:agree).
++# Code constants (no desk-rules.json key): rulesHash unchanged. Twin of fast-chain.ts STAND_Q / isStand.
++STAND_Q = 0.03
++def is_stand(snap): return str(snap.get("brain_word") or "").upper() == "STAND"
++PERSIST_HOLD_S = 20
++def fast_evidence(snap):
++    b = snap.get("band_pre_penalty") or snap.get("band")
++    return BAND_RANK.get(b, -1) >= BAND_RANK["A-"] and (snap.get("sweep") is True or snap.get("displacement") is True)
++_EDGES = [(b, RULES["bandEdges"][b]) for b in ("A+", "A", "A-", "B+", "B")]
++def band_of_q(q): return next((b for b, e in _EDGES if q >= e - 1e-9), "C")
++def penalized_band(snap):
++    pen, why = q_penalty(snap); b = snap.get("band"); q = _num(snap.get("q"))
++    if not pen or q is None: return b, why
++    nb = band_of_q(q - pen); return (nb if BAND_RANK.get(nb, -1) < BAND_RANK.get(b, -1) else b), why
++def htf_evidence(snap):
++    req = _qp("htf").get("requireOneOf") or []
++    return any((k == "sweep" and snap.get("sweep") is True) or (k == "displacement" and snap.get("displacement") is True)
++               or (k == "brainTake" and str(snap.get("brain_word") or "").upper() == "TAKE") for k in req)
++
+ def setup_rows(snap):
+     """[(name, ok, why)] for band / plan / entry / agree / velocity (not persistence; that needs the clock)."""
+     rows = []; side = snap.get("side"); sym = snap.get("symbol")
+-    b = snap.get("band"); rb = BAND_RANK.get(b)
++    b, _pw = penalized_band(snap)
++    if b != snap.get("band"): snap["band_pre_penalty"] = snap.get("band"); snap["band"] = b; snap["q_penalty_why"] = _pw
++    rb = BAND_RANK.get(b)
+     _ok_b = rb is not None and rb >= BAND_RANK[FC["minBand"]]
+     if not _ok_b and snap.get("near_miss_fire") is True:
+         _ok_b = True; rows.append(("band", True, f"band {b} q {snap.get('q')}: NEAR-MISS FIRE (fireFix.nearMissFire live, 1ct)"))
++    elif not _ok_b and smoothing_live() and not snap.get("band_pre_penalty"):   # a q-penalised card is never smoothed back up
++        _ok_s, _ws = smoothed_band(snap)
++        if _ok_s: snap["fast_band_smoothed"] = True
++        rows.append(("band", _ok_s, f"band {b} from q {snap.get('q')} (need >= {FC['minBand']}); smoothing: {_ws}"))
+     else:
+         rows.append(("band", _ok_b, f"band {b} from q {snap.get('q')} (need >= {FC['minBand']})"))
+     e, st, t1 = _num(snap.get("entry")), _num(snap.get("stop_px")), _num(snap.get("first_target"))
+@@ -28,8 +70,22 @@ def setup_rows(snap):
+     opposite = bs == sym and bd in ("long", "short") and bd != side
+     want = "bull" if side == "long" else "bear"
+     hb = dict(snap.get("htf_bias") or [])
+-    both = len(hb) >= 2 and hb.get("1h") not in (None, want) and hb.get("4h") not in (None, want)
+-    rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' BOTH AGAINST' if both else ''}"))
++    _nopp = sum(1 for tf in ("1h", "4h") if hb.get(tf) not in (None, want))
++    # unblock-2 + live lesson 10/15 13:02 CT: any 1h/4h opposition needs a confirmed LTF reversal (never q alone)
++    both = (_nopp >= 1) if _sub("htfReversal").get("anyOppose") else (len(hb) >= 2 and _nopp == 2)
++    _rev = ""
++    if _qp("htf").get("mode") == "live":   # post-mortem 13:02: q penalty (band row) + requireOneOf, not a size cut
++        both = _nopp >= 1 and not htf_evidence(snap)
++        if _nopp >= 1: _rev = f" — htf q -{_qp('htf')['q']}; " + ("evidence ok (sweep/displacement/brain TAKE)" if not both else "no sweep / displacement / brain TAKE - block")
++    elif both and htf_reversal_live():
++        _okr, _wr = ltf_reversal(snap, _ok_b or snap.get("fast_band_smoothed") is True)
++        if _okr: both = False; snap["fast_htf_half"] = True
++        _rev = f" — {_wr}"
++    _arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    stand_veto = is_stand(snap) and ifvg_against(_arr, "short" if side == "short" else "long", px, band=None)[0]
++    if is_stand(snap): opposite = stand_veto   # STAND weighs q only; vetoes only with the iFVG flip against this side
++    rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' AGAINST' if both else ''}{_rev}"))
++    rows.append(ifvg_row(snap))
+     rows.append(geometry_row(snap))
+     vel = ((snap.get("loss") or {}).get("velocity") or {}); m = _num(vel.get("expMin"))
+     if velocity_size_mode():   # fire-bugs-live 10/15 (Keaton): velocity is a size cut, never a block
+@@ -39,6 +95,114 @@ def setup_rows(snap):
+         rows.append(("fast:velocity", m is not None and m <= FC["maxMinutesToT1"], f"T1 ~{m}m at the card's velocity (max {FC['maxMinutesToT1']}m; unknown = refuse)"))
+     return rows
+ 
++# ---- unblock-2 10/15 (Keaton 12:36 CT) ----
++def _sub(k): return FC.get(k) or {}
++def smoothing_live(): return _sub("gradeSmoothing").get("mode") == "live"
++def htf_reversal_live(): return _sub("htfReversal").get("mode") == "live"
++B_EDGE = RULES["bandEdges"]["B+"]
++
++def smoothed_band(snap):
++    """(ok, why): B+ for the fire band check when >= B+ on minOf of the last `polls` real polls (this one included),
++    or q within edgeEps of the B+ edge and rising vs the previous poll. Edges are never lowered."""
++    gs = _sub("gradeSmoothing"); h = list(snap.get("band_hist") or [])[-gs.get("polls", 3):]
++    good = sum(1 for _, _, bb in h if BAND_RANK.get(bb) is not None and BAND_RANK[bb] >= BAND_RANK[FC["minBand"]])
++    if len(h) >= gs.get("minOf", 2) and good >= gs.get("minOf", 2):
++        return True, f"{good} of last {len(h)} polls >= {FC['minBand']}"
++    q = _num(snap.get("q")); qs = [_num(x[1]) for x in h[:-1] if _num(x[1]) is not None]
++    if q is not None and qs and B_EDGE - gs.get("edgeEps", 0.01) - 1e-9 <= q < B_EDGE and q > qs[-1]:
++        return True, f"q {q} within {gs.get('edgeEps', 0.01)} of the {FC['minBand']} edge {B_EDGE} and rising (prev {qs[-1]})"
++    return False, f"{good} of last {len(h)} polls >= {FC['minBand']} (need {gs.get('minOf', 2)}); q {q} not edge+rising"
++
++def promote_smoothed(snap):
++    """Daemon hook: a card below minBand that passes gradeSmoothing is treated as minBand (B+) for this poll (gates + sizing on the B+ rung).
++    Returns the note or None. The raw band is kept in snap['band_raw']."""
++    if not (live() and smoothing_live()): return None
++    r = BAND_RANK.get(snap.get("band"))
++    if r is not None and r >= BAND_RANK[FC["minBand"]]: return None
++    ok, why = smoothed_band(snap)
++    if not ok: return None
++    snap["band_raw"] = snap.get("band"); snap["band"] = FC["minBand"]; snap["fast_band_smoothed"] = True
++    return f"band {snap['band_raw']} counted as {FC['minBand']} (gradeSmoothing: {why})"
++
++def hist_next(prev_hist, snap):
++    """Last `polls` (at, q, band) of this symbol:side; a re-read of the same card (same at) is not a new poll; a side change resets."""
++    k = f"{snap.get('symbol')}:{snap.get('side')}"; n = _sub("gradeSmoothing").get("polls", 3)
++    hist = {kk: list(v) for kk, v in (prev_hist or {}).items() if kk.split(":")[0] != str(snap.get("symbol")) or kk == k}
++    h = hist.get(k, [])
++    if not (h and h[-1][0] is not None and h[-1][0] == snap.get("at")):
++        h = (h + [[snap.get("at"), snap.get("q"), snap.get("band")]])[-n:]
++    hist[k] = h
++    return hist
++
++def ltf_reversal(snap, band_ok):
++    """Confirmed LTF reversal for the 1h+4h-both-oppose case: sweep AND (displacement OR CHoCH), band >= minBand."""
++    sw, dp, ch = snap.get("sweep") is True, snap.get("displacement") is True, snap.get("choch") is True
++    if sw and (dp or ch) and band_ok:
++        return True, f"LTF reversal (sweep + {'displacement' if dp else 'CHoCH'}, band ok): allowed at x{_sub('htfReversal').get('sizeMult', 0.5)} size"
++    return False, f"no confirmed LTF reversal (sweep={snap.get('sweep')} displacement={snap.get('displacement')} choch={snap.get('choch')} band_ok={band_ok}) — block"
++
++_TFMIN = {"5m": 5, "15m": 15}
++def through_1m(arrays, side, r=None, tf=None):
++    """Same-side 5m/15m gaps closed through on 1m (fresh, not reclaimed) - twin of ifvg-flip.ts through1mGaps."""
++    r = r or _sub("ifvgAgainst"); c = r.get("close1m") or {}
++    if c.get("mode") != "live": return []
++    mine = "bull" if side == "long" else "bear"; out = []
++    for a in arrays or []:
++        m = _TFMIN.get(a.get("tf"))
++        if m is None or (tf and a.get("tf") != tf) or a.get("kind") not in ("fvg", "sponsored") or a.get("dir") != mine: continue
++        t = a.get("through1mAgeMin"); fa = a.get("formedAgeBars") if a.get("formedAgeBars") is not None else a.get("ageBars")
++        if t is None or t > c["throughMaxMin"] or a.get("reclaimed1m") is True or fa is None or fa * m > c["formedMaxMin"]: continue
++        out.append(a)
++    return out
++def read_flipped(arrays, side, r=None):
++    r = r or _sub("ifvgAgainst"); p = r.get("readPriority") or {}
++    return p.get("mode") == "live" and len(through_1m(arrays, side, r, p.get("tf"))) >= p.get("minGaps", 2)
++
++def ifvg_against(arrays, side, px, r=None, band=None):
++    """(blocked, why) twin of src/lib/smc/ifvg-flip.ts ifvgAgainst (live lesson 10/15 13:02 CT + post-mortem F1 / read-priority)."""
++    r = r or _sub("ifvgAgainst")
++    if r.get("mode") != "live": return False, "ifvgAgainst off"
++    mine = "bull" if side == "long" else "bear"; flipped = "bear" if side == "long" else "bull"
++    if read_flipped(arrays, side, r):
++        p = r["readPriority"]; return True, f"read flipped: {p['minGaps']}+ {p['tf']} {mine} FVGs closed through on 1m - no {side} (any band)"
++    t1m = (through_1m(arrays, side, r) or [None])[0]
++    if t1m is not None and (band is None or band in r["close1m"]["hardBands"]):
++        return True, f"{t1m['tf']} {mine} FVG {t1m.get('lo')}-{t1m.get('hi')} closed through on 1m {t1m.get('through1mAgeMin')}m ago, not reclaimed - no {side}" + (f" ({band})" if band else "")
++    for a in arrays or []:
++        if a.get("tf") not in r["tfs"]: continue
++        if a.get("kind") == "ifvg" and a.get("dir") == flipped and a.get("failed") is not True and (a.get("ageBars") if a.get("ageBars") is not None else 99) <= r["maxAgeBars"]:
++            return True, f"{a['tf']} {mine} FVG {a.get('lo')}-{a.get('hi')} inverted {a.get('ageBars')} bar(s) ago (closed through) - no {side}"
++        fa = a.get("formedAgeBars") if a.get("formedAgeBars") is not None else a.get("ageBars")
++        if r.get("formingThrough") and px is not None and a.get("kind") in ("fvg", "sponsored") and a.get("dir") == mine and a.get("mitigated") is not True \
++                and fa is not None and fa <= r["formedMaxAgeBars"] and _num(a.get("lo")) is not None and ((px < a["lo"]) if side == "long" else (px > a["hi"])):
++            return True, f"{a['tf']} {mine} FVG {a.get('lo')}-{a.get('hi')} being inverted: price {px} {'below its bottom' if side == 'long' else 'above its top'} on the forming bar - no {side}"
++    return False, f"no {'/'.join(r['tfs'])} {mine} FVG being inverted"
++
++def read_priority_hit(snap):
++    """Read-priority mirror. The desk kills the flipped side's card to C (scanner readPriorityKill, qWrite "cap:readPriority");
++    the watcher mirrors it as a FIRE BLOCK, not a band write: fast:ifvg fails via ifvg_against -> read_flipped (any band).
++    Same effect (no fire on the flipped side). Returns the why when it bites, else None; the daemon logs it as cap:readPriority."""
++    sym = snap.get("symbol"); side = "short" if snap.get("side") == "short" else "long"
++    arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    r = _sub("ifvgAgainst")
++    if r.get("mode") != "live" or not read_flipped(arr, side, r): return None
++    return ifvg_against(arr, side, (snap.get("tape_prices") or {}).get(sym), r)[1]
++
++def ifvg_row(snap):
++    sym = snap.get("symbol"); px = (snap.get("tape_prices") or {}).get(sym)
++    arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    b, w = ifvg_against(arr, "short" if snap.get("side") == "short" else "long", px, band=snap.get("band_pre_penalty") or snap.get("band"))
++    return ("fast:ifvg", not b, w)
++
++def htf_size(n, snap, cfg):
++    """Half size (whole contracts, >= min) on an htfReversal pass. Never above n."""
++    if n is None or not (live() and htf_reversal_live() and snap.get("fast_htf_half") is True): return n, None
++    if snap.get("size_cut") is True: return n, "htf both oppose + LTF reversal: half size already applied by the size cut (caps halved)"
++    lo = max(1, cfg.min_contracts); n2 = min(n, max(lo, int(n * _sub("htfReversal").get("sizeMult", 0.5))))
++    return n2, f"htf both oppose + LTF reversal: x{_sub('htfReversal').get('sizeMult', 0.5)} -> {n2}ct (from {n}ct)"
++
++# Re-fire after a fire / stop / T1 touch: #22 marks the setup spent for the session (Accuracy 10/15); no separate guard.
++
+ ETF = {"ES": "SPY", "MES": "SPY", "NQ": "QQQ", "MNQ": "QQQ"}
+ 
+ def velocity_size_mode(): return (FC.get("velocity") or {}).get("mode") == "size"
+@@ -109,6 +273,7 @@ def streak_next(prev, snap, now_ms):
+     Spent (Accuracy CHANGES 10/15): a setup id that fired (mark_spent), hit its stop or touched T1 is spent for the session
+     and never re-arms or re-fires. Returns dict(key, first_ms, polls, last_at, by_id, last_id, spent)."""
+     prev = prev or {}; by = {k: dict(v) for k, v in (prev.get("by_id") or {}).items()}
++    hist = hist_next(prev.get("hist"), snap); snap["band_hist"] = hist.get(f"{snap.get('symbol')}:{snap.get('side')}", [])
+     sym, side = snap.get("symbol"), snap.get("side"); sid = setup_id(snap); at = snap.get("at")
+     for k in [k for k in by if k.split(":")[0] == str(sym) and k.split(":")[1] != str(side)]: by.pop(k)   # side change
+     last_id = prev.get("last_id"); day = session_day(now_ms); spent = {k: v for k, v in (prev.get("spent") or {}).items() if isinstance(v, dict) and v.get("day") in (day, None)}
+@@ -133,8 +298,8 @@ def streak_next(prev, snap, now_ms):
+                 if (FC.get("entryRearm") or {}).get("mode") == "live" and _chased(snap): cur["out_of_zone"] = True
+             last_id = None
+     cur = by.get(sid)
+-    if not cur: return {"key": None, "first_ms": None, "polls": 0, "last_at": at, "by_id": by, "last_id": last_id, "spent": spent}
+-    return {"key": sid, **cur, "by_id": by, "last_id": last_id, "spent": spent}
++    if not cur: return {"key": None, "first_ms": None, "polls": 0, "last_at": at, "by_id": by, "last_id": last_id, "spent": spent, "hist": hist}
++    return {"key": sid, **cur, "by_id": by, "last_id": last_id, "spent": spent, "hist": hist}
+ 
+ def session_day(now_ms):
+     """Session date (ET) for the spent set; spent setups clear on the next session."""
+@@ -149,20 +314,24 @@ def mark_spent(st, sid, why="fired", now_ms=None):
+     if st.get("last_id") == sid: st["last_id"] = None
+     return st
+ 
+-def persist_check(st, now_ms):
+-    """(ok, why) for fast:persist: confirmPolls consecutive passes and age <= maxActionableAgeS."""
++def persist_check(st, now_ms, snap=None):
++    """(ok, why) for fast:persist (10/15 PM fix, twin of fast-chain.ts persistOk): the clock starts at the first qualifying
++    card; A- or better with a fresh sweep/displacement fires on the next real poll (2 passes, no hold); otherwise
++    confirmPolls passes AND >= PERSIST_HOLD_S since the first qualifying card; never older than maxActionableAgeS."""
+     st = st or {}
+-    if st.get("first_ms") is None: return False, f"setup not actionable yet (need {confirm_polls()} consecutive polls)"
++    if st.get("first_ms") is None: return False, "no qualifying card yet (clock starts at the first card that passes every fast row)"
+     age = (now_ms - st["first_ms"]) / 1000; n = st.get("polls", 0)
+-    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first actionable {round(age, 1)}s ago (> {max_age_s()}s), never fired"
+-    return n >= confirm_polls(), f"setup {st.get('key')} passed {n} consecutive polls (need {confirm_polls()}), age {round(age, 1)}s (max {max_age_s()}s)"
++    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first qualifying card {round(age, 1)}s ago (> {max_age_s()}s), never fired"
++    if snap is not None and fast_evidence(snap):
++        return n >= 2, f"setup {st.get('key')} A-+ with fresh sweep/displacement: {n} poll(s) since first qualifying card {round(age, 1)}s ago (need 2)"
++    return n >= confirm_polls() and age >= PERSIST_HOLD_S, f"setup {st.get('key')} {n} poll(s), held {round(age, 1)}s since first qualifying card (need {confirm_polls()} and >= {PERSIST_HOLD_S}s, <= {max_age_s()}s)"
+ 
+ def apply(g, snap, now_ms):
+     """Rewrite the gate list for the fast chain: hard rows kept, the rest soft:* (ok=True), fast rows added."""
+     hard = set(FC["hard"]) | {"rules_pin", "bplus_window", "day_loss"}; out = []   # fireFix live hard rows
+     rows = setup_rows(snap)
+     st = snap.get("fast_streak") or {}
+-    ok_p, why_p = persist_check(st, now_ms)
++    ok_p, why_p = persist_check(st, now_ms, snap)
+     rows.insert(1, ("fast:persist", ok_p, why_p))
+     names = {n for n, _, _ in rows}
+     for n, ok, w in g:
+diff --git a/watcher/gates.py b/watcher/gates.py
+index 1eaf65d..e5f3f82 100644
+--- a/watcher/gates.py
++++ b/watcher/gates.py
+@@ -115,6 +115,7 @@ def snapshot(card):
+         "desk_ticket_side": (ticket or {}).get("side"), "desk_ticket_underlier": (ticket or {}).get("underlier"),
+         "rr1": _strict(strat.get("rr1Raw")) if _strict(strat.get("rr1Raw")) is not None else _strict(strat.get("rr1")),
+         "sweep": strat.get("sweep") if isinstance(strat.get("sweep"), bool) else None,
++        "choch": (strat.get("choch") if isinstance(strat.get("choch"), bool) else strat.get("mss") if isinstance(strat.get("mss"), bool) else None),
+         "loss": strat.get("loss") if isinstance(strat.get("loss"), dict) else None,
+         "guards_shadow": [x for x in ((strat.get("guards") or {}).get("shadow") or []) if isinstance(x, dict)],
+         # smcUnity (audit 2026-10-14): desk shadow reads, logged as shadow:smc:<rule>, never gate
+@@ -241,7 +242,7 @@ def first_target(strat):
+     """First futures target level: numeric wire.strategy.target / targets[0] / tp1, else a 'Target N'/'TP1 N'
+     level parsed from that text. strategy.draw names liquidity without a price, ticket.targets are option-$ text — not used."""
+     import re
+-    for k in ("target", "targets", "tp1"):
++    for k in ("t1", "target", "targets", "tp1"):   # 10/15 13:02 CT T1-jump fix: the plan's own T1 first
+         v = strat.get(k)
+         if isinstance(v, list):
+             v = v[0] if v else None
+@@ -651,6 +652,8 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     else:
+         _blk, _cut, _why = legacy_htf(snap.get("side"), snap.get("htf_bias"))
+         if _new[:2] != (_blk, _cut): add("shadow:htf", True, f"WOULD {'block' if _new[0] else 'size cut' if _new[1] else 'allow full size'}: {_new[2]} (live: {_why})")
++    if ((RULES.get("fastChain") or {}).get("qPenalty") or {}).get("htf", {}).get("mode") == "live" and _cut and not _blk:   # post-mortem 13:02: the 50% cut was a no-op at 1ct
++        _cut = False; _why += " — size cut replaced by fastChain.qPenalty.htf (q penalty + sweep/displacement/brain TAKE)"
+     snap["size_cut"] = _cut
+     add("htf_bias", not _blk, _why)
+     # LTF kill: the desk re-arms only on sweep + IFVG + displacement (capped A-); a killed side never fires
+@@ -739,8 +742,10 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     et_now = datetime.fromtimestamp(now_ms / 1000, ET)
+     add("entry_cutoff", et_now.hour * 60 + et_now.minute < _hm(cfg.last_entry_et), f"no new entries after {cfg.last_entry_et} ET")
+     n = state_day.get("entries", 0)
+-    add("entries_day", n < cfg.max_entries_day, f"{n}/{cfg.max_entries_day} entries today")
+-    if n >= 1:
++    if ((RULES.get("fastChain") or {}).get("dailyEntryCap") or {}).get("mode") == "off":   # unblock-2 10/15: cap deleted (loss caps stay)
++        add("entries_day", True, f"{n} entries today (no daily entry cap; $150/15% day loss, -$300 week, $650 debit caps stay)")
++    else: add("entries_day", n < cfg.max_entries_day, f"{n}/{cfg.max_entries_day} entries today")
++    if n >= 1 and FIRE.get("secondEntryMinBand"):   # removed 10/15 13:26 CT (Keaton): later entries use the normal B+ edge
+         add("second_entry_band", BAND_RANK.get(snap["band"], -1) >= BAND_RANK[FIRE["secondEntryMinBand"]],
+             f"entry #{n + 1} needs >= {FIRE['secondEntryMinBand']} (band {snap['band']})")
+     _pend = snap.get("late_pnl_pending") is True and RULES["lateEntry"].get("modelPricePending") is True
+@@ -793,6 +798,9 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+         if _m < 1 and nct > 1:
+             nct = max(cfg.min_contracts, int(nct * _m)); why += f"; time-of-day size x{_m} -> {nct}ct"
+             if nct * lim * 100 < cfg.min_debit: nct = None; why += f" < ${cfg.min_debit:.0f} floor"
++    from . import fastchain as _fch
++    _nh, _hw = _fch.htf_size(nct, snap, cfg)                          # unblock-2: HTF-opposed + LTF reversal -> half (no-op when the size cut already halved caps)
++    if _hw and _nh != nct: why = f"{_nh}ct after {_hw}; was " + why; nct = _nh
+     add("sizing", nct is not None, why)
+     if nct is None:
+         if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")

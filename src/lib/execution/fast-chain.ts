@@ -3,6 +3,7 @@
  * The watcher fires from it; the desk uses the same pure checks so the Floor / Watcher tab say the same thing.
  */
 import RULES from "../../../shared/desk-rules.json";
+import { ifvgAgainst, type WireArray } from "../smc/ifvg-flip";
 
 export const FC = RULES.fastChain;
 const BANDS = ["C", "B", "B+", "A-", "A", "A+"];
@@ -11,11 +12,79 @@ export interface FastSnap {
   band?: string | null; symbol?: string | null; side?: string | null; entry?: number | null; stop_px?: number | null; first_target?: number | null;
   px?: number | null; atr?: number | null; brain_symbol?: string | null; brain_side?: string | null; bias1h?: string | null; bias4h?: string | null; expMin?: number | null;
   t2?: number | null; desk_ticket_side?: string | null; desk_ticket_underlier?: string | null;
+  // unblock-2 10/15: grade smoothing + HTF reversal inputs
+  q?: number | null; sweep?: boolean | null; displacement?: boolean | null; choch?: boolean | null; bandHist?: [string | null, number | null, string | null][];
+  /** wire.arrays rows of THIS card's symbol (fast:ifvg). */
+  arrays?: WireArray[] | null;
+  /** post-mortem 13:02: brain word (TAKE/WAIT/STAND) and minutes since 00:00 ET (default: now). */
+  brain_word?: string | null; etMin?: number | null;
 }
+const GS = FC.gradeSmoothing; const HR = FC.htfReversal;
+const QP = (FC as unknown as { qPenalty: { htf: { mode: string; q: number; requireOneOf: string[] }; pmBplus: { mode: string; q: number; fromEt: string } } }).qPenalty;
+const EDGE_LIST: [string, number][] = (["A+", "A", "A-", "B+", "B"] as const).map((b) => [b, (RULES.bandEdges as Record<string, number>)[b]]);
+export const bandOfQ = (q: number) => EDGE_LIST.find(([, e]) => q >= e - 1e-9)?.[0] ?? "C";
+const nOppOf = (s: FastSnap) => { const want = s.side === "long" ? "bull" : "bear"; return [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length; };
+const etMinNow = () => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()); return +p.find((x) => x.type === "hour")!.value * 60 + +p.find((x) => x.type === "minute")!.value; };
+/** post-mortem 13:02 soft q penalties (twin of watcher fastchain.q_penalty): [sum, notes]. */
+export function qPenalty(s: FastSnap): [number, string[]] {
+  let pen = 0; const why: string[] = [];
+  if (QP.htf.mode === "live" && nOppOf(s) >= 1) { pen += QP.htf.q; why.push(`1h/4h opposes -${QP.htf.q}`); }
+  const [h, m] = QP.pmBplus.fromEt.split(":").map(Number);
+  if (QP.pmBplus.mode === "live" && s.band === "B+" && (s.etMin ?? etMinNow()) >= h! * 60 + m!) { pen += QP.pmBplus.q; why.push(`after ${QP.pmBplus.fromEt} ET -${QP.pmBplus.q}`); }
+  if (isStand(s)) { pen += STAND_Q; why.push(`brain STAND -${STAND_Q}`); }
+  return [+pen.toFixed(4), why];
+}
+/**
+ * 10/15 PM (Keaton: 4-5 correct reads did not fire): brain STAND is a q WEIGHT (-STAND_Q), not a veto. It still blocks
+ * (fast:agree) when it combines with the iFVG flip against the card's side (read-priority flip, 1m close-through or 5m/15m
+ * inversion). Code constants, no desk-rules.json key: rulesHash unchanged (c40b5555966491f3).
+ */
+export const STAND_Q = 0.03;
+export const isStand = (s: FastSnap) => String(s.brain_word ?? "").toUpperCase() === "STAND";
+/** Band after the q penalties: never above the card's band; edges unchanged. */
+export function penalizedBand(s: FastSnap): string | null | undefined {
+  const [pen] = qPenalty(s); if (!pen || s.q == null) return s.band;
+  const nb = bandOfQ(s.q - pen); return rank(nb) < rank(s.band) ? nb : s.band;
+}
+/** htf requireOneOf: sweep | displacement | brain TAKE. */
+export const htfEvidence = (s: FastSnap) => QP.htf.requireOneOf.some((k) => (k === "sweep" && s.sweep === true) || (k === "displacement" && s.displacement === true) || (k === "brainTake" && String(s.brain_word ?? "").toUpperCase() === "TAKE"));
+const B_EDGE = RULES.bandEdges["B+"];
+/** gradeSmoothing (twin of watcher fastchain.smoothed_band): >= minBand on minOf of the last `polls` polls, or q within edgeEps of the B+ edge and rising. Edges never lowered. */
+export function smoothedBand(s: FastSnap): boolean {
+  if (GS.mode !== "live") return false;
+  const h = (s.bandHist ?? []).slice(-GS.polls);
+  const good = h.filter(([, , b]) => rank(b) >= rank(FC.minBand)).length;
+  if (h.length >= GS.minOf && good >= GS.minOf) return true;
+  const qs = h.slice(0, -1).map(([, q]) => q).filter((q): q is number => q != null);
+  return s.q != null && qs.length > 0 && s.q >= B_EDGE - GS.edgeEps - 1e-9 && s.q < B_EDGE && s.q > qs[qs.length - 1];
+}
+/** Last `polls` [at, q, band] for this symbol:side (twin of hist_next): a re-read (same at) is not a new poll; a side change resets. */
+export function histNext(prev: Record<string, [string | null, number | null, string | null][]> | null | undefined, s: FastSnap & { at?: string | null }) {
+  const k = `${s.symbol}:${s.side}`; const out: Record<string, [string | null, number | null, string | null][]> = {};
+  for (const [kk, v] of Object.entries(prev ?? {})) if (kk.split(":")[0] !== String(s.symbol) || kk === k) out[kk] = [...v];
+  let h = out[k] ?? [];
+  const at = s.at ?? null;
+  if (!(h.length && h[h.length - 1][0] != null && h[h.length - 1][0] === at)) h = [...h, [at, s.q ?? null, s.band ?? null] as [string | null, number | null, string | null]].slice(-GS.polls);
+  out[k] = h; return out;
+}
+/** htfReversal: 1h+4h both oppose is allowed (at sizeMult) only with sweep AND (displacement OR CHoCH) and band >= minBand. */
+export const ltfReversal = (s: FastSnap, bandOk: boolean) => HR.mode === "live" && s.sweep === true && (s.displacement === true || s.choch === true) && bandOk;
+/** Half size on an htfReversal pass (whole contracts, >= 1, never above n). */
+export function htfSize(n: number | null, s: FastSnap, minContracts = 1): number | null {
+  if (n == null) return n;
+  const want = s.side === "long" ? "bull" : "bear";
+  const nOpp = [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length;
+  const both = HR.anyOppose ? nOpp >= 1 : s.bias1h != null && s.bias4h != null && nOpp === 2;
+  if (!both || !ltfReversal(s, rank(s.band) >= rank(HR.minBand) || smoothedBand(s))) return n;
+  return Math.min(n, Math.max(Math.max(1, minContracts), Math.floor(n * HR.sizeMult)));
+}
+// Re-fire after a stop / T1 touch: #22 marks the setup spent for the session (Accuracy 10/15); no separate guard here.
 /** [name, ok] in the watcher's order (persistence needs the clock and is checked by the watcher). */
 export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const r: [string, boolean][] = [];
-  r.push(["band", rank(s.band) >= rank(FC.minBand) && rank(s.band) >= 0]);
+  const pb = penalizedBand(s);
+  const bandOk = (rank(pb) >= rank(FC.minBand) && rank(pb) >= 0) || (pb === s.band && smoothedBand(s));   // a q-penalised card is never smoothed back up
+  r.push(["band", bandOk]);
   const { entry: e, stop_px: st, first_target: t1, side } = s;
   const sides = e != null && st != null && t1 != null && ((side === "long" && st < e && e < t1) || (side === "short" && t1 < e && e < st));
   const rr = sides ? Math.abs(t1! - e!) / Math.abs(e! - st!) : null;
@@ -24,8 +93,15 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   r.push(["fast:entry", Boolean(okE)]);
   const opposite = s.brain_symbol === s.symbol && (s.brain_side === "long" || s.brain_side === "short") && s.brain_side !== side;
   const want = side === "long" ? "bull" : "bear";
-  const both = s.bias1h != null && s.bias4h != null && s.bias1h !== want && s.bias4h !== want;
-  r.push(["fast:agree", !opposite && !both]);
+  // unblock-2 + live lesson 10/15 13:02 CT: any 1h/4h opposition needs a confirmed LTF reversal (never q alone) -> half size; else block.
+  const nOpp = [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length;
+  const against = QP.htf.mode === "live" ? nOpp >= 1 && !htfEvidence(s)
+    : (HR.anyOppose ? nOpp >= 1 : s.bias1h != null && s.bias4h != null && nOpp === 2) && !ltfReversal(s, bandOk);
+  const flipAgainst = ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px, undefined, null)[0];
+  // STAND (incl. a STAND brain leaning the other way) only weighs q; STAND + iFVG flip against this side = veto.
+  const standVeto = isStand(s) && flipAgainst;
+  r.push(["fast:agree", (isStand(s) ? !standVeto : !opposite) && !against]);
+  r.push(["fast:ifvg", !ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px, undefined, s.band ?? null)[0]]);
   // fast:geometry (twin of watcher geometry_row; Floor review 2026-10-13 19:28 ET): long stop<entry<T1 / short reversed.
   // fire-bugs-live 10/15: a T2 not beyond T1 is "no T2" (see effectiveT2), and a desk Floor ticket on another underlying or
   // the other direction is another setup, so neither refuses the card.
@@ -105,7 +181,7 @@ export function velocitySizedContracts(ask: number | null | undefined, wanted: n
 export const setupId = (s: FastSnap) => `${s.symbol}:${s.side}:${s.entry ?? null}`;
 export interface SetupConfirm { firstMs: number; polls: number; lastAt: string | null; outOfZone?: boolean; rearmed?: number }
 export interface SpentSetup { why: string; day: string | null }
-export interface FastStreak { key: string | null; firstMs: number | null; polls: number; lastAt: string | null; byId: Record<string, SetupConfirm>; lastId: string | null; spent?: Record<string, SpentSetup> }
+export interface FastStreak { key: string | null; firstMs: number | null; polls: number; lastAt: string | null; byId: Record<string, SetupConfirm>; lastId: string | null; spent?: Record<string, SpentSetup>; hist?: Record<string, [string | null, number | null, string | null][]> }
 /** Session date (ET) for the spent set (twin of watcher fastchain.session_day). */
 export const sessionDay = (ms: number) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 /** After a fire the setup id is spent for the session (twin of watcher fastchain.mark_spent). */
@@ -126,6 +202,7 @@ export function markSpent(st: FastStreak | null, sid: string, why = "fired", now
  * Entry re-arm: price > entryAtr x ATR from entry keeps the setup alive; back inside the zone restarts the clock + polls.
  */
 export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string | null; strategy_invalidated?: boolean | null }, nowMs: number): FastStreak {
+  const hist = histNext(prev?.hist, s); s = { ...s, bandHist: hist[`${s.symbol}:${s.side}`] };
   const sid = setupId(s); const at = s.at ?? null;
   const by: Record<string, SetupConfirm> = {};
   for (const [k, v] of Object.entries(prev?.byId ?? {})) {
@@ -158,10 +235,28 @@ export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string 
     }
   }
   const cur = by[sid];
-  return cur ? { key: sid, ...cur, byId: by, lastId, spent } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId, spent };
+  return cur ? { key: sid, ...cur, byId: by, lastId, spent, hist } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId, spent, hist };
 }
-/** fast:persist: confirmPolls consecutive passes and no older than maxActionableAgeS. */
-export function persistOk(st: FastStreak | null, nowMs: number): boolean {
+/**
+ * fast:persist (10/15 PM fix; live gates.log showed "held Nones over 0 cards (need >= 90s)" ~3k times: the hold clock never
+ * started). The clock starts at the FIRST qualifying card (streakNext sets firstMs the poll every fast row passes).
+ *  - A- or better with a fresh sweep or displacement: fires on the next real poll (2 consecutive passes, no hold);
+ *  - otherwise: confirmPolls consecutive passes AND a short hold of PERSIST_HOLD_S since the first qualifying card;
+ *  - either way no older than maxActionableAgeS (stale). Code constants: rulesHash unchanged.
+ */
+export const PERSIST_HOLD_S = 20;
+export const fastEvidence = (s: FastSnap | null | undefined) => !!s && rank(s.band) >= rank("A-") && (s.sweep === true || s.displacement === true);
+export function persistOk(st: FastStreak | null, nowMs: number, s?: FastSnap | null): boolean {
   if (st?.firstMs == null) return false;
-  return (nowMs - st.firstMs) / 1000 <= FC.maxActionableAgeS && st.polls >= FC.confirmPolls;
+  const age = (nowMs - st.firstMs) / 1000;
+  if (age > FC.maxActionableAgeS) return false;
+  if (fastEvidence(s)) return st.polls >= 2;
+  return st.polls >= FC.confirmPolls && age >= PERSIST_HOLD_S;
+}
+/** The fast:persist row text (never "Nones": names the first qualifying card and what is still missing). */
+export function persistWhy(st: FastStreak | null, nowMs: number, s?: FastSnap | null): string {
+  if (st?.firstMs == null) return "no qualifying card yet (clock starts at the first card that passes every fast row)";
+  const age = +((nowMs - st.firstMs) / 1000).toFixed(1);
+  return fastEvidence(s) ? `A-+ with fresh sweep/displacement: ${st.polls} poll(s) since first qualifying card ${age}s ago (need 2)`
+    : `${st.polls} poll(s), held ${age}s since first qualifying card (need ${FC.confirmPolls} and >= ${PERSIST_HOLD_S}s, <= ${FC.maxActionableAgeS}s)`;
 }

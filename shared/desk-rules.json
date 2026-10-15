@@ -58,7 +58,8 @@
     "chainMaxAgeS": 10,
     "orderReviewMaxAgeS": 1,
     "nearMissPct": 0.05,
-    "secondEntryMinBand": "A"
+    "secondEntryMinBand": null,
+    "_secondEntryDoc": "Keaton 10/15 13:26 CT: removed (entry #2+ uses the normal B+ edge); same-setup-spent and the $ loss caps stay"
   },
   "dispVsRr": [
     {
@@ -310,6 +311,53 @@
       "_doc": "fire-bugs-live 10/15 (Keaton): fast:entry failing because price is > entryAtr x ATR from entry keeps the setup alive; a pullback inside the zone with stop and T1 untouched and band >= minBand makes it actionable again and restarts the maxActionableAgeS clock and confirmPolls.",
       "mode": "live"
     },
+    "dailyEntryCap": {
+      "_doc": "unblock-2 10/15 (Keaton 12:36 CT): the 2-trade daily entry cap is deleted (entries_day removed). Re-fire after a fire, stop or T1 touch is prevented by #22 (setup spent for the session). The $150 / 15% daily loss cap (fireFix.dayLoss), the -$300 weekly lock (weekly.lossLock) and the $650 debit cap stay.",
+      "mode": "off"
+    },
+    "gradeSmoothing": {
+      "_doc": "unblock-2 10/15 (Keaton): anti-flicker for the minBand (B+) edge, never a lower edge (bandEdges unchanged). A card counts as B+ for the fire band check when it was >= B+ on at least minOf of its last polls polls (same symbol+side, real polls only), or its q is within edgeEps of the B+ edge and rising versus the previous poll. Sizes on the B+ rung. Only promotes to minBand, never to A-/A/A+.",
+      "mode": "live",
+      "polls": 3,
+      "minOf": 2,
+      "edgeEps": 0.01
+    },
+    "ifvgAgainst": {
+      "_doc": "Live lesson 10/15 13:02 CT (ES long B+ stopped -$36 while two 5m bull FVGs were inverted): HARD fast:ifvg row on desk, brain, Floor and watcher. A long is blocked while a 5m/15m bull FVG is being inverted: a closed bar within maxAgeBars closed below its bottom (wire array kind ifvg dir bear, not failed), or the live price is below the bottom of a bull FVG formed within formedMaxAgeBars (the forming bar is closing through it). Mirrored for shorts.",
+      "mode": "live",
+      "tfs": ["5m", "15m"],
+      "maxAgeBars": 3,
+      "formingThrough": false,
+      "formedMaxAgeBars": 12,
+      "_postmortem1302": "F1 supersedes the live-px formingThrough read (flickers) and the 5m-close-only read (3 min late): close1m = a CLOSED 1m bar through a same-side 5m/15m gap formed <= 60 min, within 15 min, not reclaimed -> hard on B+/A- (A/A+ pass). readPriority (Keaton 13:26 CT): 2+ same-side 5m gaps closed through on 1m -> any band blocked and the desk flips (ifvgFlipOf arms the other side the same poll).",
+      "close1m": {"mode": "live", "formedMaxMin": 60, "throughMaxMin": 15, "hardBands": ["B+", "A-"]},
+      "readPriority": {"mode": "live", "tf": "5m", "minGaps": 2}
+    },
+    "ifvgFlip": {
+      "_doc": "Live lesson 10/15 13:05 CT (no short card after the bull FVGs inverted): the inversion GENERATES/UPGRADES the other side's card in the scanner (src/lib/smc/ifvg-flip.ts): adds the ifvg component (+ displacement when the inverting body >= dispBodyAtr x ATR), entry at the iFVG CE retest, stop beyond the far edge + stopAtr x ATR(rung), T1/T2 the next real pools >= minRr. No pool -> no plan. Band from q as usual (edges unchanged).",
+      "mode": "live",
+      "tfs": ["5m", "15m"],
+      "maxAgeBars": 3,
+      "stopAtr": 0.1,
+      "minRr": 1.0,
+      "dispBodyAtr": 1.0
+    },
+    "qPenalty": {
+      "_doc": "post-mortem 13:02 (gated by docs/postmortem-fixes-1015 replay). Soft q penalties applied in the fast chain's band row: band = min(card band, band(q - sum)), edges unchanged. htf: any 1h/4h opposing -> -0.05 and requireOneOf sweep | displacement | brain TAKE (replaces the 50% size cut, a no-op at 1ct; fast:agree). pmBplus: at/after 13:00 ET -> -0.05 (was shadow fx:bplusWindow hard). Replay-negative, kept shadow (WOULD rows only): pd (premium/discount), standGap (brain STAND + Floor gap note on B+), rrFromFill (R:R from px >= 1.0), eqlStop (stop beyond the pool).",
+      "htf": {"mode": "live", "q": 0.05, "requireOneOf": ["sweep", "displacement", "brainTake"]},
+      "pmBplus": {"mode": "live", "q": 0.05, "fromEt": "13:00"},
+      "pd": {"mode": "shadow", "longAbove": 0.75, "shortBelow": 0.25, "q": 0.03, "qSweptT1": 0.06},
+      "standGap": {"mode": "shadow"},
+      "rrFromFill": {"mode": "shadow", "min": 1.0},
+      "eqlStop": {"mode": "shadow"}
+    },
+    "htfReversal": {
+      "_doc": "unblock-2 10/15 (Keaton): fast:agree when 1h and/or 4h oppose the side (live lesson 13:02 CT: a single opposing 4h is no longer a plain size cut). With a confirmed LTF reversal (strategy.sweep true AND (displacement true OR choch true)) and band >= minBand the trade is allowed at sizeMult (whole contracts, minimum 1); never on q alone; without reversal evidence it is blocked. The brain-opposite block is unchanged.",
+      "anyOppose": true,
+      "mode": "off",
+      "minBand": "B+",
+      "sizeMult": 0.5
+    },
     "rrMin": 1.0,
     "entryAtr": 0.5,
     "maxMinutesToT1": 30,
@@ -324,14 +372,13 @@
       "fast:geometry",
       "fast:entry",
       "fast:agree",
+      "fast:ifvg",
       "rules_parity",
       "tape",
       "tape_fresh",
       "card_age",
       "news",
       "entry_cutoff",
-      "entries_day",
-      "second_entry_band",
       "weekly_lock",
       "account",
       "no_position",
