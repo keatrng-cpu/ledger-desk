@@ -345,7 +345,7 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
     "Prior week (Oct 5–9) tape already in the seed: NQ week high Tue 31,616.50 / low Thu 30,792.50; ES Tue 7,897.50 / Mon 7,760.25. Soft NFP and soft UMich already printed. Do not invent CWH/CWL.",
   po3: "Mon holiday Globex is fake. Tue post-holiday range-build. Wed CPI manipulates. Thu PPI/retail distributes. Fri import prices is a medium close, not NFP.",
   macro:
-    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep 54.9. Minutes Oct 7: most see another hike by year-end, no date. Oct 28 hike odds little changed after UMich: FedWatch ~17% +25 / >80% hold (Kalshi ~15–16%). CPI Sep Wed Oct 14 8:30 (BLS). Consensus cluster ~0.6% m/m / 3.6% y/y headline; core ~0.2% / 2.5%. Beige Book 14:00. Thu PPI + Retail Sales + claims 8:30. Fri import/export prices 8:30 + IP 9:15. No official FedWatch restamp required yet.",
+    "Sep NFP already printed +29k, U 4.2%, AHE +0.1% (BLS USDL-26-1549). ISM Services Sep 54.9. Minutes Oct 7: most see another hike by year-end, no date. CPI Sep printed Wed: +0.6% m/m / +3.7% y/y, core +0.3% / +2.6% (BLS USDL-26-1574) vs ~0.6%/3.6% and core ~0.2%/2.5%. Hot core. Oct 28 hike odds jumped after CPI: FedWatch ~25% +25 (Cointelegraph 24.9% vs 17.7% week ago; spiked ~49% then settled ~25–34%). Thu PPI + Retail Sales + claims 8:30 still ahead. Fri import prices. No NFP this week.",
   asymmetry:
     "A+ into CPI. Flatten before 13:45 Wed if holding. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -414,28 +414,28 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
     {
       date: "2026-10-14",
       weekday: "Wed",
-      dailyBias: "CPI is the week's event. Do not fade the first 30 min.",
+      dailyBias: "Hot CPI. Core hot. NQ failed under PWH, took PWL. Not a new HTF trend.",
       kind: "event",
       news: [
-        { timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS official 8:30 ET. Consensus cluster ~0.6% m/m / 3.6% y/y headline; core ~0.2% / 2.5%. Hot core = October hike. Soft = squeeze." },
+        { timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS USDL-26-1574. +0.6% m/m / +3.7% y/y vs ~0.6%/3.6%; core +0.3% / +2.6% vs ~0.2%/2.5%. Gasoline +9.1% half the headline. Hot core." },
         { timeEt: "14:00", name: "Beige Book", impact: "medium", note: "Fed official 14:00 ET. Not the blackout. Flatten before 13:45 if holding." },
       ],
-      likelyTape: "CPI is the raid. Prior-week box still the reference. Do not invent a take of PWH/PWL before the print.",
-      trade: "Blackout 8:00–8:45. A+ only after 9:45 if MSS + IFVG. Do not short the first CPI spike. Flatten before Beige Book.",
-      skipIf: "No MSS + IFVG by 10:15. Already have a book. Anything open at 13:45.",
-      pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims 8:30.",
+      likelyTape: "CPI hot core. NQ session ~30,078–30,891.50 closed ~30,183, took PWL 30,792.50, no PWH take (week high still Mon ~31,289). ES still inside prior box. Hot-print fade, not a new HTF trend. Hike odds ~25% after.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase the fail under PWL. Flatten before Beige Book if open. Do not carry into Thu.",
+      skipIf: "No MSS + IFVG. Already booked the CPI move. Anything open at 13:45.",
+      pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims 8:30 blackout.",
     },
     {
       date: "2026-10-15",
       weekday: "Thu",
-      dailyBias: "Post-CPI. Selective if the range is clean.",
+      dailyBias: "Post-hot-CPI. Selective. Blackout 8:30 for PPI/retail/claims.",
       kind: "selective",
       news: [
         { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET. Prev 197k. Rarely trends the day." },
         { timeEt: "08:30", name: "PPI (Sep)", impact: "high", note: "BLS 8:30 ET. Consensus cluster ~0.5% m/m headline. Not NFP." },
         { timeEt: "08:30", name: "Retail Sales (Sep)", impact: "high", note: "Census 8:30 ET. Consensus cluster ~0.3% m/m vs Aug +1.2%. Control group is the tell." },
       ],
-      likelyTape: "Prints done relative to CPI. Still inside or reacting to Wednesday's box. Do not invent a new HTF trend from the second impulse alone.",
+      likelyTape: "CPI already hot. NQ week so far high ~31,289 (Mon) / low under 30,000 (Thu open). CWL took PWL; CWH under PWH. Second impulse is not a new HTF trend. Do not invent fills.",
       trade: "Blackout 8:15–8:45. Mechanical only if MSS + IFVG already there after 9:45. Do not carry a loser into Friday.",
       skipIf: "No MSS + IFVG. Chop, or already booked the week.",
       pathNote: "PWH/PWL seed unchanged. Next is Fri import prices 8:30.",
@@ -598,4 +598,5 @@ export function overlayWeekAhead(
   const next = nextPlan.days.find((d) => d.date > read.dateKey) ?? null;
   return { ...read, plan: nextPlan, today, next, focus: today ?? next, live: Boolean(nq.live || es.live), refreshedAt: now.toISOString() };
 }
+
 
