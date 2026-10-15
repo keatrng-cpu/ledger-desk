@@ -8,7 +8,8 @@
  *  - freezes are per ET session day (pruned on day change).
  * Pure apart from the module store; nothing here touches rulesHash (no desk-rules.json key).
  */
-import { sessionDay } from "@/lib/execution/fast-chain";
+/** ET session date (same as fast-chain sessionDay; not imported so the fire chain stays a dark twin of the watcher). */
+const sessionDay = (ms: number) => new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
 export type FreezeState = "armed" | "fired";
 export interface FrozenT1 { sid: string; t1: number; rr1: number | null; name: string | null; state: FreezeState; frozenMs: number; day: string }
