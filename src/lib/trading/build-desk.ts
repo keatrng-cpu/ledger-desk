@@ -1975,9 +1975,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: since });
         const kill = (why: string) => {
           if (c.actionable) c.actionable = false;
-          c.pathBand = capBand(c.pathBand, "C") as never;
-          sealBand(c as never);
-          c.pathBand = capBand(c.pathBand, "C") as never;
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
+          setQSource("dead:card seal"); sealBand(c as never); setQSource(null);
+          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
           c.reasons.push(why);
         };
         if (inv.invalid) {
@@ -2016,6 +2016,14 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       }
       // A dead lead must not keep the brain's book alive: invalidated, stale, played out (C-capped) or price-unknown → brain STAND (desk/brain/Floor unity).
       const isDead = (c: unknown) => { const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; priceUnknown?: boolean }; return Boolean(x.invalidated || x.staleTape || x.playedOut || x.priceUnknown); };
+      // qv2-1015 × #19: q_v2 is computed before this seal, so a card killed here (invalidated / played out / stale
+      // tape → live band C) must not keep a live-looking shadow grade. Shadow only; live fields untouched.
+      for (const c of payload.scan.candidates) {
+        const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; q_v2?: { band: string; vetoed: boolean; deltas: { source: string; delta: number; note?: string }[] } | null };
+        if (x.q_v2 && (x.invalidated || x.staleTape || x.playedOut)) {
+          x.q_v2 = { ...x.q_v2, band: "C", vetoed: true, deltas: [...x.q_v2.deltas, { source: "veto:dead card", delta: 0, note: x.invalidated ? "invalidated" : x.playedOut ? "played out" : "stale tape" }] };
+        }
+      }
       for (const bk of [smcMaster.left, smcMaster.right]) {
         const dead = payload.scan.candidates.find((c) => c.symbol === bk?.symbol && c.side === bk?.side && isDead(c));
         if (bk && dead && bk.word !== "STAND") { bk.word = "STAND"; bk.missing = dead.reasons[dead.reasons.length - 1] ?? "card dead"; }

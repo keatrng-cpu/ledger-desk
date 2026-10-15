@@ -85,3 +85,8 @@ test("q_v2 anchored: no saturation, independent of scanner q, spans the bands", 
     bands.add(v.computeQV2({ side: "long", qScan: 0.9, components: comps, htfOk, keySwept: ks, trendDay: false, nowMs: at(9, 0) }).band);
   assert.ok(bands.size >= 4, [...bands].join(","));
 });
+test("#19 dead cards (invalidated/played out/stale) veto q_v2 after the deep-audit seal", async () => {
+  const src = (await import("node:fs")).readFileSync("src/lib/trading/build-desk.ts", "utf8");
+  const qv2 = src.indexOf("qv2-1015: SHADOW q beside live q"), seal = src.indexOf("DEEP AUDIT 2026-10-15 seal"), veto = src.indexOf("veto:dead card");
+  assert.ok(qv2 > 0 && seal > qv2 && veto > seal, "q_v2 veto must run after the #19 dead-card seal");
+});
