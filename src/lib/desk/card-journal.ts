@@ -7,6 +7,7 @@ import DESK_RULES from "../../../shared/desk-rules.json";
  * what each band earned and whether n is big enough to act on.
  */
 import type { Sql } from "@/lib/db";
+import { ensureAnnotations, notExcluded } from "./annotations";
 
 export const JOURNAL_BANDS = ["A+", "A", "A-"] as const;
 export const RECAL_MIN_N = 30;
@@ -23,7 +24,7 @@ export interface JournalCard {
   context: Record<string, unknown>;
 }
 
-const DDL = `create table if not exists desk_card_journal (
+export const DDL = `create table if not exists desk_card_journal (
   id text primary key, day_key text not null, symbol text not null, side text not null, band text not null,
   q double precision not null, entry double precision not null, stop double precision not null, target double precision not null,
   rr double precision, opened_ms bigint not null, filled boolean not null default false, status text not null default 'open',
@@ -32,6 +33,7 @@ let ready = false;
 async function ensure(sql: Sql) {
   if (ready) return;
   await sql.query(DDL);
+  await ensureAnnotations(sql);
   ready = true;
 }
 
@@ -149,7 +151,7 @@ export async function journalReport(sql: Sql, nowMs: number, days = 7) {
   await ensure(sql);
   const from = etDayKey(nowMs - days * 86400e3);
   const rows = await sql.query<{ band: string; status: string; r: number | null; day_key: string; review: string | null; symbol: string; side: string }>(
-    `select band, status, r, day_key, review, symbol, side from desk_card_journal where day_key >= $1 order by opened_ms desc`,
+    `select band, status, r, day_key, review, symbol, side from desk_card_journal j where day_key >= $1 and ${notExcluded("desk_card_journal", "j")} order by opened_ms desc`,
     [from],
   );
   const today = etDayKey(nowMs);

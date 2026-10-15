@@ -1,0 +1,176 @@
+diff -ruN -x __pycache__ -x '*.log' -x '*.out' -x data -x .venv -x ticks -x '*.json' -x run.pid -x .pytest_cache /tmp/dwpristine/tests/test_review_1015.py dw-batch/tests/test_review_1015.py
+--- /tmp/dwpristine/tests/test_review_1015.py	1969-12-31 18:00:00.000000000 -0600
++++ dw-batch/tests/test_review_1015.py	2026-10-15 09:17:08.016926632 -0500
+@@ -0,0 +1,54 @@
++"""Review 2026-10-15 item 1: RH read timeouts + health light recovery (no network, no login)."""
++import time, threading
++from watcher import broker, daemon
++from tests.test_daemon import mk
++
++class FakeSess:
++    def __init__(self): self.calls = []
++    def request(self, method, url, **kw): self.calls.append(kw.get("timeout")); return kw
++
++def test_every_rh_read_gets_timeout():
++    s = broker.install_timeouts(FakeSess())
++    s.request("GET", "u"); s.request("GET", "u", timeout=None); s.request("GET", "u", timeout=3)
++    assert s.calls == [(10.0, 10.0), (10.0, 10.0), 3]
++    broker.install_timeouts(s); s.request("GET", "u"); assert s.calls[-1] == (10.0, 10.0)  # idempotent, no double wrap
++
++def test_robin_stocks_global_session_patched():
++    from robin_stocks.robinhood import globals as g
++    b = broker.Broker(type("C", (), {"account": "x"})(), print); b._timeouts()
++    assert g.SESSION._ld_timeouts == (10.0, 10.0)
++
++def test_hung_health_goes_red_then_recovers(tmp_path, monkeypatch):
++    w = mk(tmp_path, monkeypatch, "card_live_watch.json")
++    ev = threading.Event()
++    w._health_thread = threading.Thread(target=ev.wait, daemon=True); w._health_thread.start()
++    w._health_started = time.time() - 120
++    calls = []
++    monkeypatch.setattr(w, "broker_health", lambda *a, **k: calls.append(1) or w.state.__setitem__("broker_health", {"ok": True}))
++    assert w.broker_health_bg() is True
++    w._health_thread.join(2); ev.set()
++    assert calls and w.state["broker_health"]["ok"] is True
++
++def test_not_hung_yet_does_not_restart(tmp_path, monkeypatch):
++    w = mk(tmp_path, monkeypatch, "card_live_watch.json")
++    ev = threading.Event(); w._health_thread = threading.Thread(target=ev.wait, daemon=True); w._health_thread.start()
++    w._health_started = time.time()
++    assert w.broker_health_bg() is False; ev.set()
++
++def test_red_light_retries_in_60s(tmp_path, monkeypatch):
++    from datetime import datetime
++    from watcher import gates
++    w = mk(tmp_path, monkeypatch, "card_live_watch.json")
++    class B: ready = True
++    def health(self): return {"account": w.cfg.account, "open_option_positions": 0, "working_orders": 0}
++    w.broker = B(); B.health = health
++    et = datetime(2026, 10, 15, 10, 0, tzinfo=gates.ET)
++    w.state["broker_health"] = {"ok": False}; w.state["broker_health_at"] = 1000
++    assert w.broker_health(now=1061, et=et)["ok"] is True
++    assert w.broker_health(now=1100, et=et) is None   # green again: back to 5-min cadence
++
++def test_void_annotation_excludes_row():
++    from watcher import annotations as A
++    rows = [{"id": "gap0", "r": -1}, {"id": "ok", "r": 2}, {"id": "inline", "void_reason": "gap"}]
++    ann = [{"src": "desk_card_journal", "row_id": "gap0", "annotation": "void", "void_reason": "gap-settled", "exclude_from_learning": True}]
++    assert [r["id"] for r in A.exclude_voided(rows, ann, "desk_card_journal")] == ["ok"]
+diff -ruN -x __pycache__ -x '*.log' -x '*.out' -x data -x .venv -x ticks -x '*.json' -x run.pid -x .pytest_cache /tmp/dwpristine/watcher/annotations.py dw-batch/watcher/annotations.py
+--- /tmp/dwpristine/watcher/annotations.py	1969-12-31 18:00:00.000000000 -0600
++++ dw-batch/watcher/annotations.py	2026-10-15 09:17:08.016926632 -0500
+@@ -0,0 +1,12 @@
++"""Review 2026-10-15 #5: append-only void annotations (mirror of ledger-desk src/lib/desk/annotations.ts).
++Any watcher reader that learns or calibrates from outcome rows must pass them through exclude_voided()."""
++
++def excluded_ids(annotations, src=None):
++    return {a["row_id"] for a in annotations or [] if a.get("exclude_from_learning") and (src is None or a.get("src") == src)}
++
++def is_excluded(row, ids=frozenset()):
++    return bool(row.get("exclude_from_learning") or row.get("void_reason") or row.get("annotation") == "void" or row.get("id") in ids)
++
++def exclude_voided(rows, annotations=(), src=None):
++    ids = excluded_ids(annotations, src)
++    return [r for r in rows if not is_excluded(r, ids)]
+diff -ruN -x __pycache__ -x '*.log' -x '*.out' -x data -x .venv -x ticks -x '*.json' -x run.pid -x .pytest_cache /tmp/dwpristine/watcher/broker.py dw-batch/watcher/broker.py
+--- /tmp/dwpristine/watcher/broker.py	2026-10-14 12:16:09.000000000 -0500
++++ dw-batch/watcher/broker.py	2026-10-15 09:07:45.812926632 -0500
+@@ -32,10 +32,34 @@
+             return {"contract": {**L["contract"], "spread_short": S["contract"]}, "quote": q}
+     return None
+ 
++RH_CONNECT_TIMEOUT_S = 10.0
++RH_READ_TIMEOUT_S = 10.0
++
++def install_timeouts(session, connect=RH_CONNECT_TIMEOUT_S, read=RH_READ_TIMEOUT_S):
++    """Review 2026-10-15 #1: robin_stocks calls SESSION.get(url) with timeout=None, so one stalled RH read hung the
++    broker_health thread forever. Wrap session.request so every call without an explicit timeout gets (connect, read).
++    Idempotent; never touches credentials or the session pickle."""
++    if session is None or getattr(session, "_ld_timeouts", None) == (connect, read): return session
++    orig = getattr(session, "_ld_orig_request", None) or session.request
++    def request(method, url, **kw):
++        if kw.get("timeout") is None: kw["timeout"] = (connect, read)
++        return orig(method, url, **kw)
++    session._ld_orig_request = orig
++    session.request = request
++    session._ld_timeouts = (connect, read)
++    return session
++
+ class Broker:
+     def __init__(self, cfg, log):
+         self.cfg, self.log, self.rs, self.ready = cfg, log, None, False
+ 
++    def _timeouts(self):
++        try:
++            from robin_stocks.robinhood import globals as g
++            install_timeouts(g.SESSION)
++        except Exception:
++            pass
++
+     def _guard(self):
+         if os.path.exists(self.cfg.path("STOP")):
+             raise BrokerRefused("STOP file present — no orders")
+@@ -51,6 +75,7 @@
+         if not (u and p):
+             raise BrokerRefused("RH_USERNAME / RH_PASSWORD not set")
+         import robin_stocks.robinhood as rs
++        self._timeouts()
+         mfa = None
+         if os.environ.get("RH_MFA_SECRET"):
+             import pyotp
+@@ -72,6 +97,7 @@
+             raise BrokerRefused("no ready RH session (health never logs in)")
+         if self.cfg.account != AGENTIC_ACCOUNT or self.cfg.account in FORBIDDEN_ACCOUNTS:
+             raise BrokerRefused("account is not Agentic 995386158")
++        self._timeouts()
+         rs, acct = self.rs, AGENTIC_ACCOUNT
+         prof = rs.profiles.load_account_profile(account_number=acct) or {}
+         if str(prof.get("account_number")) != AGENTIC_ACCOUNT:
+@@ -84,6 +110,7 @@
+ 
+     def view(self, ticket, now_ms, max_debit=None):
+         cap = self.cfg.max_debit if max_debit is None else max_debit
++        self._timeouts()
+         rs, acct = self.rs, AGENTIC_ACCOUNT
+         prof = rs.profiles.load_account_profile(account_number=acct) or {}
+         positions = rs.options.get_open_option_positions(account_number=acct) or []
+diff -ruN -x __pycache__ -x '*.log' -x '*.out' -x data -x .venv -x ticks -x '*.json' -x run.pid -x .pytest_cache /tmp/dwpristine/watcher/daemon.py dw-batch/watcher/daemon.py
+--- /tmp/dwpristine/watcher/daemon.py	2026-10-14 12:16:09.000000000 -0500
++++ dw-batch/watcher/daemon.py	2026-10-15 09:07:45.812926632 -0500
+@@ -169,11 +169,15 @@
+         return mode
+ 
+     BROKER_HEALTH_S = 300
++    BROKER_HEALTH_RETRY_S = 60
++    HEALTH_HUNG_S = 60     # > connect+read timeouts (10s+10s) x the 3 reads health() makes
+ 
+     def broker_health(self, now=None, et=None):
+         """Read-only health every 5 min in market hours, only when the session is already ready (never logs in, never orders)."""
+         now = now or time.time(); et = et or datetime.now(gates.ET)
+-        if now - self.state.get("broker_health_at", 0) < self.BROKER_HEALTH_S: return None
++        prev = self.state.get("broker_health") or {}
++        period = self.BROKER_HEALTH_S if prev.get("ok", True) else self.BROKER_HEALTH_RETRY_S   # red light retries in 60s
++        if now - self.state.get("broker_health_at", 0) < period: return None
+         if et.weekday() >= 5 or not (9 * 60 + 30 <= et.hour * 60 + et.minute < 16 * 60): return None
+         if not (self.broker and self.broker.ready): return None
+         self.state["broker_health_at"] = now
+@@ -191,10 +195,18 @@
+         slow/hung RH call can never block step(). At most one in flight; a hung one just skips later checks."""
+         import threading
+         t = getattr(self, "_health_thread", None)
+-        if t is not None and t.is_alive(): return False
++        if t is not None and t.is_alive():
++            # Review 2026-10-15 #1: a hung check must not pin the light forever. Past HEALTH_HUNG_S mark it red
++            # (stale) and start a fresh check; the abandoned daemon thread dies on its own read timeout.
++            started = getattr(self, "_health_started", 0) or 0
++            if time.time() - started < self.HEALTH_HUNG_S: return False
++            self.state["broker_health"] = {"ok": False, "at": time.time(), "error": "health check hung; restarted", "stale": True}
++            self.state["broker_health_at"] = 0
++            self.log("broker_health_hung", seconds=round(time.time() - started))
+         def run():
+             try: self.broker_health()
+             except Exception as e: self.log("broker_health_error", error=str(e)[:160])
++        self._health_started = time.time()
+         self._health_thread = threading.Thread(target=run, name="broker_health", daemon=True)
+         self._health_thread.start()
+         return True

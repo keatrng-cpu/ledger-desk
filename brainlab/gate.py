@@ -3,7 +3,7 @@
 Numbers are the desk's, not new ones. scripts/verify-lab-constants.mjs fails if any of them drifts from its TypeScript source:
   spread 0.15 and the 2 cent marketable limit — src/lib/room/exec/limits.ts
   quote age 15 s                              — src/lib/room/exec/limits.ts
-  debit $150 to $550, 1 to 4 contracts        — src/lib/execution/rh-autofire-gates.ts
+  debit $50 to $650 (shared/desk-rules.json fireFix.envelope), 1 to 4 contracts        — src/lib/execution/rh-autofire-gates.ts
   DTE 0 or 1, B+ is exactly one contract      — src/lib/execution/rh-autofire-gates.ts
   a last-print |z| of 2 or more is the desk's own measurement cut, applied to the tape
 
@@ -22,8 +22,12 @@ from scipy import stats
 
 MAX_SPREAD_FRAC = 0.15
 ENTRY_SLIP_USD = 0.02
-MIN_DEBIT = 150.0
-MAX_DEBIT = 550.0
+import json as _json
+from pathlib import Path as _Path
+# Review 2026-10-15 #8: ONE envelope with the TS desk (RH_MIN/MAX_DEBIT_TOTAL read the same file). Was 150/550 here.
+_ENV = _json.loads((_Path(__file__).resolve().parent.parent / "shared" / "desk-rules.json").read_text())["fireFix"]["envelope"]
+MIN_DEBIT = float(_ENV["minDebit"])
+MAX_DEBIT = float(_ENV["maxDebit"])
 MIN_QTY = 1
 MAX_QTY = 4
 BPLUS_QTY = 1
