@@ -361,11 +361,18 @@ export function extensionMtfRead(book: BookMtf | null | undefined, side: Side, s
 /* F10 — Floor DTE by time                                                */
 /* ------------------------------------------------------------------ */
 
-export function floorDteRead(etHour: number, etMinute: number, ticketDte: number | null): { mode: Mode; want: number; ticketDte: number | null; mismatch: boolean } {
+export function floorDteRead(etHour: number, etMinute: number, ticketDte: number | null): { mode: Mode; want: number; ticketDte: number | null; mismatch: boolean; lateBlocked: boolean } {
   const o = (RULES as { optExec?: { dteByTime?: { zeroDteUntilEt?: string; afterDte?: number } } }).optExec?.dteByTime ?? {};
   const [h, m] = String(o.zeroDteUntilEt ?? "14:30").split(":").map(Number);
-  const want = etHour * 60 + etMinute < (h! * 60 + m!) ? 0 : (o.afterDte ?? 1);
-  return { mode: smcMode("floorDte"), want, ticketDte, mismatch: ticketDte != null && ticketDte !== want };
+  // Owner rule 2026-10-15: optExec.intradayTicket (live) pins intraday tickets at 0DTE ATM all session; 1DTE+ is
+  // swing-only. From lateBlockEt the intraday ticket is BLOCKED (lateBlocked) — want stays 0, never rolled to 1.
+  const it = (RULES as { optExec?: { intradayTicket?: { mode?: string; dte?: number; lateBlockEt?: string } } }).optExec?.intradayTicket;
+  const live = it?.mode === "live";
+  const [lh, lm] = String(it?.lateBlockEt ?? "15:25").split(":").map(Number);
+  const nowMin = etHour * 60 + etMinute;
+  const want = live ? (it!.dte ?? 0) : nowMin < (h! * 60 + m!) ? 0 : (o.afterDte ?? 1);
+  const lateBlocked = live && want === 0 && nowMin >= lh! * 60 + lm!;
+  return { mode: smcMode("floorDte"), want, ticketDte, mismatch: ticketDte != null && ticketDte !== want, lateBlocked };
 }
 
 /* ------------------------------------------------------------------ */

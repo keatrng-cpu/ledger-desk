@@ -5,6 +5,8 @@
  *   near   — not reached yet, or past it by ≤ timing.nearAtr × ATR15 (= the watcher entry_distance 0.5×ATR)
  *   late   — past by ≤ timing.lateAtr × ATR15
  *   missed — past by more, or T1 already traded
+ *   invalidated — deep-audit #1: price at/through the stop (adverse side). A negative distance used to read
+ *                 "near" no matter how far — a long 6.6×ATR under its stop was "near" (10/14 14:33, paper -4.1R).
  * Every rung 1m–4h is read (standing rule: no single-timeframe rule): `byTf` is the distance in that
  * rung's own ATR, and `stateMtf` is the state from the MEDIAN of those distances scaled to the 15m
  * horizon (ATR_tf × √(15/tfMin)); `state` = that combined read (ATR15 fallback). `distAtr` stays ATR15 so it
@@ -18,7 +20,7 @@ import type { OhlcBar } from "@/lib/market/types";
 import { rollingAtr } from "@/lib/trading/detectors";
 import { resampleMs } from "@/lib/trading/tf-ladder";
 
-export type EntryStateKind = "at" | "near" | "late" | "missed";
+export type EntryStateKind = "at" | "near" | "late" | "missed" | "invalidated";
 const T = (RULES as { timing?: { atAtr?: number; nearAtr?: number; lateAtr?: number; rungs?: string[] } }).timing ?? {};
 const AT = T.atAtr ?? 0.1, NEAR = T.nearAtr ?? 0.5, LATE = T.lateAtr ?? 1.0;
 const TF_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
@@ -50,6 +52,8 @@ export function entryStateOf(o: {
   rows?: PoiRow[];
   /** 1m bars since the card's entry first printed — T1 traded in them = missed. */
   sinceEntry?: OhlcBar[] | null;
+  /** The plan's stop. Price at/through it = invalidated (deep-audit #1). */
+  stop?: number | null;
 }): EntryState | null {
   const { side, price, entry, atr15 } = o;
   if (price == null || entry == null || !(atr15! > 0)) return null;
@@ -74,7 +78,8 @@ export function entryStateOf(o: {
   const med = scaled.length ? scaled[Math.floor(scaled.length / 2)]! : null;
   // All timeframes combined: the state is read from the 1m–4h median (ATR15 only when no rung has an ATR).
   const stateMtf = med == null ? null : classify(med, inZone, t1Hit);
-  const state = stateMtf ?? classify(d, inZone, t1Hit);
+  const throughStop = o.stop != null && (long ? price <= o.stop : price >= o.stop);
+  const state: EntryStateKind = throughStop ? "invalidated" : (stateMtf ?? classify(d, inZone, t1Hit));
   let reentry: EntryState["reentry"] = null;
   if (state === "late" || state === "missed") {
     const want = long ? "bull" : "bear";
@@ -90,7 +95,7 @@ export function entryStateOf(o: {
     cands.sort((x, y) => Math.abs(price - x.px) - Math.abs(price - y.px));
     reentry = cands[0] ?? null;
   }
-  const word = state === "at" ? "at entry" : state === "near" ? (d < 0 ? "waiting for entry" : "near entry") : state === "late" ? "late, waiting for retest" : "missed, waiting for retest";
-  const label = `${o.band ?? "—"}, ${word}${reentry ? ` @ ${reentry.px} (${reentry.why})` : state === "late" || state === "missed" ? " (no real POI yet)" : ""}`;
+  const word = state === "invalidated" ? `invalidated, price through the stop ${o.stop}` : state === "at" ? "at entry" : state === "near" ? (d < 0 ? "waiting for entry" : "near entry") : state === "late" ? "late, waiting for retest" : "missed, waiting for retest";
+  const label = `${o.band ?? "—"}, ${word}${reentry ? ` @ ${reentry.px} (${reentry.why})` :  state === "late" || state === "missed" ? " (no real POI yet)" : ""}`;
   return { state, distAtr: +d.toFixed(2), byTf, stateMtf, reentry, label };
 }

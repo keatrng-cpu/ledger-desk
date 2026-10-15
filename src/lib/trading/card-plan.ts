@@ -418,6 +418,21 @@ export function cardPlanFrom(plan: TradePlan, extras?: CardPlanExtras): CardPlan
  * Caught by `scripts/verify-smc-master.mjs`'s real-engine block, which read
  * `1` off "T1 EQH x3 11804.50" on live four-year tape. Keep the price first.
  */
+/**
+ * deep-audit-1015 (live long card: T1 30174, T2 29878.75): T2 must lie BEYOND T1 in the trade direction
+ * (long: t2 > t1, short: t2 < t1). A T2 at/behind T1 is dropped (t2/rr2/runnerPool → null), never shown.
+ * Pure, mutates and returns the plan; true when a T2 was dropped.
+ */
+export function orderTargets(p: { side?: "long" | "short" | null; t1: number | null; t2: number | null; rr2?: number | null; runnerPool?: unknown } | null | undefined): boolean {
+  if (!p || p.t1 == null || p.t2 == null || (p.side !== "long" && p.side !== "short")) return false;
+  const beyond = p.side === "long" ? p.t2 > p.t1 : p.t2 < p.t1;
+  if (beyond) return false;
+  p.t2 = null;
+  if ("rr2" in p) p.rr2 = null;
+  if ("runnerPool" in p) p.runnerPool = null;
+  return true;
+}
+
 export function planTargetText(p: CardPlan): string[] {
   const out: string[] = [];
   const pct = (x: number | null | undefined) =>
@@ -429,7 +444,8 @@ export function planTargetText(p: CardPlan): string[] {
       }${pct(p.drawPool?.reachProbability)}`,
     );
   }
-  if (p.t2 != null) {
+  const t2Beyond = p.t2 != null && (p.t1 == null || (p.side === "short" ? p.t2 < p.t1 : p.side === "long" ? p.t2 > p.t1 : true));
+  if (p.t2 != null && t2Beyond) {
     out.push(
       `${p.t2.toFixed(2)} · T2 ${p.runnerPool?.name ?? "external"}${
         p.rr2 != null ? ` · ${p.rr2.toFixed(2)}R` : ""

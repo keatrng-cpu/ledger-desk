@@ -1,0 +1,198 @@
+{
+ "polls": 4101,
+ "alert_eligible_old": 62,
+ "alert_eligible_new": 15,
+ "alerts_added": 0,
+ "polls_killed": {
+  "invalidated": 197,
+  "played_out": 160,
+  "stale": 222
+ },
+ "removed_examples": [
+  [
+   "2026-10-14T19:33:37.920Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30215,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:33:46.548Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30213.5,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:33:51.447Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30212,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:33:55.970Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30215.75,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:34:00.565Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30217,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:34:10.635Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30214.5,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:34:22.132Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30217.25,
+   "invalidated"
+  ],
+  [
+   "2026-10-14T19:34:27.103Z",
+   "MNQ",
+   "long",
+   "A-",
+   30641.75,
+   30537.75,
+   30792,
+   30216,
+   "invalidated"
+  ]
+ ],
+ "paper": [
+  {
+   "card_known": false,
+   "id": "ES-L-20261013-1912",
+   "pnl$": 623.5,
+   "R": 0.34,
+   "expired": null,
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": true,
+   "pnl_if_booked_MNQ": null
+  },
+  {
+   "card_known": false,
+   "id": "ES-L-20261013-1924",
+   "pnl$": -2050.0,
+   "R": -1.02,
+   "expired": "pending > 3h (alerted 10-13 20:24 ET)",
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": false,
+   "pnl_if_booked_MNQ": null
+  },
+  {
+   "card_known": false,
+   "id": "ES-L-20261014-073116",
+   "pnl$": 720.0,
+   "R": 0.36,
+   "expired": null,
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": true,
+   "pnl_if_booked_MNQ": null
+  },
+  {
+   "card_known": false,
+   "id": "MNQ-S-20261014-044008",
+   "pnl$": 7462.5,
+   "R": 3.77,
+   "expired": null,
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": true,
+   "pnl_if_booked_MNQ": null
+  },
+  {
+   "card_known": false,
+   "id": "MNQ-S-20261014-074544",
+   "pnl$": -2470.0,
+   "R": -1.16,
+   "expired": null,
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": true,
+   "pnl_if_booked_MNQ": null
+  },
+  {
+   "card_known": true,
+   "id": "MNQ-L-20261014-143343",
+   "pnl$": -8540.0,
+   "R": -4.11,
+   "expired": null,
+   "dead_at_touch": "desk would kill: invalidated",
+   "refused": null,
+   "kept": false,
+   "pnl_if_booked_MNQ": -7686.0
+  },
+  {
+   "card_known": false,
+   "id": "MNQ-L-20261014-151148",
+   "pnl$": -1850.0,
+   "R": -1.15,
+   "expired": null,
+   "dead_at_touch": null,
+   "refused": null,
+   "kept": true,
+   "pnl_if_booked_MNQ": -2220.0
+  }
+ ],
+ "paper_old_pnl": -6104.0,
+ "paper_new_pnl": 4486.0,
+ "removed_trades": [
+  [
+   "ES-L-20261013-1924",
+   -2050.0
+  ],
+  [
+   "MNQ-L-20261014-143343",
+   -8540.0
+  ]
+ ],
+ "added_trades": [],
+ "caveats": [
+  "pending expiry 3h was chosen AFTER seeing this data (post-hoc fit); the ES-1924 removal depends on it",
+  "6 of 7 fills had no card within 120 s, so 'no winners lost' is untested for them",
+  "cards.log grows; pass a unix ts cut to reproduce the commit-time numbers"
+ ]
+}

@@ -1,0 +1,547 @@
+diff --git a/tests/test_deep_audit_hygiene.py b/tests/test_deep_audit_hygiene.py
+new file mode 100644
+index 0000000..4068fc9
+--- /dev/null
++++ b/tests/test_deep_audit_hygiene.py
+@@ -0,0 +1,63 @@
++"""Deep audit 2026-10-15 #12 / #18 watcher hygiene."""
++import json
++from watcher import hygiene, status, gates
++from watcher.ticks import Agg
++from watcher.config import Config
++
++def test_scrub_drops_nested_forbidden_keys():
++    d = []
++    out = hygiene.scrub({"a": 1, "x": [{"access_token": "t", "ok": 1}], "Equity": 5, "mfa_code": 1}, d)
++    assert out == {"a": 1, "x": [{"ok": 1}]} and sorted(d) == ["Equity", "access_token", "mfa_code"]
++
++def test_account_number_still_refused_if_unmaskable(tmp_path, monkeypatch):
++    monkeypatch.setenv("WATCHER_DIR", str(tmp_path)); cfg = Config()
++    status.write(cfg, {"gates": [{"why": "acct 995386158"}]})
++    assert "995386158" not in open(tmp_path / "status.json").read()
++
++def test_near_miss_same_card_alerts_once_in_30min():   # 10/14 12:35/12:40/12:45 same B 0.5999 card
++    sn = {}; fp = ["B", "ES", "long", 0.5999]
++    assert hygiene.alert_once(sn, "near_miss", fp, 1000)
++    assert not hygiene.alert_once(sn, "near_miss", fp, 1300)
++    assert not hygiene.alert_once(sn, "near_miss", fp, 1600)
++    assert hygiene.alert_once(sn, "near_miss", ["B", "ES", "long", 0.5899], 1700)   # card changed
++    assert hygiene.alert_once(sn, "near_miss", ["B", "ES", "long", 0.5899], 1700 + hygiene.ALERT_DEDUPE_S)
++
++def test_bplus_caution_logs_flips_only():   # 681 rows on 10/13
++    sn = {}; n = sum(hygiene.flipped(sn, "bplus_caution", ok) for ok in [False] * 50 + [True] + [True] * 20 + [False])
++    assert n == 3
++
++def test_spike_log_filter():
++    assert not hygiene.spike_worth_logging({"tag": "breakout", "atExtreme": False})
++    assert hygiene.spike_worth_logging({"tag": "failed", "atExtreme": False})
++    assert hygiene.spike_worth_logging({"tag": "breakout", "atExtreme": True})
++
++def test_at_extreme_can_be_true_without_session_args():   # was False 426/426
++    a = Agg(keep_s=900)
++    for t in range(0, 100): a.add("ES", 100.0 + (t % 3) * 0.25, t)       # quiet range 100–100.5
++    W = __import__("watcher.ticks", fromlist=["F"]).F["spikeWindowS"]
++    for i, t in enumerate(range(100, 100 + W)): a.add("ES", 100.5 + (i + 1) * 2.0, t)   # push to a new high
++    for t in range(100 + W, 100 + 2 * W + 1): a.add("ES", 100.5 + W * 2.0, t)
++    sp = a.detect("ES", 4.0, 100 + 2 * W)
++    assert sp is not None and sp["atExtreme"] is True
++
++def _snap(**kw):
++    s = {"tape_fresh": True, "invalidated": False, "stale_tape": False, "entry_state": {"state": "near"}}; s.update(kw); return s
++def test_alert_withheld_on_stale_or_dead_card():   # #12: 10/14 09:24–10:25 lag 600 s; #2/#13 dead cards
++    assert hygiene.alert_allowed(_snap())[0]
++    assert not hygiene.alert_allowed(_snap(tape_fresh=False))[0]
++    assert not hygiene.alert_allowed(_snap(invalidated=True))[0]
++    assert hygiene.alert_allowed(_snap(entry_state={"state": "missed"}))[0]        # missed alone is not suppressed
++    assert not hygiene.alert_allowed(_snap(played_out=True))[0]                    # played out (T1 traded) is
++    assert not hygiene.alert_allowed(_snap(entry_state={"state": "invalidated"}))[0]
++    assert not hygiene.alert_allowed(_snap(stale_tape=True))[0]
++
++def test_snapshot_reads_dead_card_flags():
++    card = {"ok": True, "wire": {"strategy": {"symbol": "MNQ", "side": "long", "band": "A-", "q": 0.68, "invalidated": True, "staleTape": True,
++                                              "entryState": {"state": "invalidated"}}, "tape": {"fresh": True}}}
++    s = gates.snapshot(card)
++    assert s["invalidated"] and s["stale_tape"] and s["entry_state"]["state"] == "invalidated"
++
++def test_compact_gates_keeps_hard_and_would_rows():
++    g = [("band", False, "x"), ("shadow:a", True, "ok"), ("soft:b", True, "WOULD block: y"), ("shadow:c", False, "z"), ("entry", True, "e")]
++    kept, quiet = hygiene.compact_gates(g)
++    assert quiet == 1 and [k[0] for k in kept] == ["band", "soft:b", "shadow:c", "entry"]
+diff --git a/tests/test_gates_log_parity.py b/tests/test_gates_log_parity.py
+index 0b0591c..727a4f3 100644
+--- a/tests/test_gates_log_parity.py
++++ b/tests/test_gates_log_parity.py
+@@ -50,7 +50,11 @@ def test_cards_log_replays_to_gates_log():
+             old = snap["rules_hash"]
+             sub = lambda v: json.loads(json.dumps(v).replace(old, gates.RULES_HASH))
+             snap, dayst, exp = sub(snap), sub(dayst), sub(exp)
+-        got = [[n, ok, w] for n, ok, w in gates.evaluate_fire(snap, _cfg(c["cfg"]), c["now_ms"], dayst, None, cal)]
++        rows = gates.evaluate_fire(snap, _cfg(c["cfg"]), c["now_ms"], dayst, None, cal)
++        if "quiet" in g:   # deep-audit #7: the daemon logs always-true shadow/soft rows as a counter
++            from watcher.hygiene import compact_gates
++            rows, _q = compact_gates(rows)
++        got = [[n, ok, w] for n, ok, w in rows]
+         # shadow:* rows are advisory (always ok) and some live ones (e.g. shadow:fx:persistGrace) depend on state not saved
+         # in cards.log, so compare only the non-shadow rows.
+         noshadow = lambda rows: [r for r in rows if not str(r[0]).startswith("shadow:")]
+diff --git a/tests/test_intraday_ticket.py b/tests/test_intraday_ticket.py
+new file mode 100644
+index 0000000..1ebb5df
+--- /dev/null
++++ b/tests/test_intraday_ticket.py
+@@ -0,0 +1,80 @@
++"""Owner rule (Keaton 2026-10-15): intraday tickets are 0DTE ATM singles (1 OTM fallback), never a spread;
++1DTE+ only for swing tickets (path unchanged). Late (0DTE impractical) = BLOCK, never a silent roll to 1DTE."""
++from datetime import datetime
++from watcher import optexec, gates
++from watcher.config import Config
++
++et = lambda h, m: datetime(2026, 10, 15, h, m, tzinfo=gates.ET)
++
++def test_rule_live_0dte_atm_otm1_no_spread():
++    it = optexec.intraday()
++    assert it and it["dte"] == 0 and it["strike"] == "ATM" and it["fallback"] == "OTM_1" and it["debitSpread"] is False
++
++def test_dte_target_is_0_through_the_session():
++    cfg = Config()
++    for h, m in ((8, 30), (9, 52), (13, 0), (14, 45)):
++        assert optexec.dte_target(cfg, et(h, m)) == 0
++
++def test_late_day_blocks_never_rolls():
++    cfg = Config()
++    for h, m in ((15, 25), (15, 31), (15, 50)):
++        assert optexec.intraday_late_blocked(cfg, et(h, m)) is True
++        assert optexec.dte_target(cfg, et(h, m)) is None   # None = block, not 1
++    assert optexec.intraday_late_blocked(cfg, et(10, 0)) is False
++
++def test_ticket_classification_swing_keeps_its_dte():
++    assert optexec.is_intraday_ticket({"dte": 0}) is True
++    assert optexec.is_intraday_ticket({"dte": 1}) is False
++    assert optexec.is_intraday_ticket({"dte": 5}) is False
++    assert optexec.is_intraday_ticket({"dte": 0, "horizon": "swing"}) is False
++    # swing path still uses dteByTime (unchanged): never None
++    assert optexec.dte_target(Config(), et(15, 40), intraday_ticket=False) is not None
++
++def test_picker_source_atm_then_otm1_no_delta_no_spread_when_intraday():
++    src = open(optexec.__file__.replace("optexec.py", "broker.py")).read()
++    assert "_it = optexec.is_intraday_ticket(ticket)" in src
++    assert "if _it: pick = optexec.pick_intraday(cands, cap)" in src and "if not _it and _fc_live() and FC.get(\"spreadFallback\")" in src
++    assert "exp = optexec.pick_expiry(exps, today, ticket, self.cfg" in src and "if exp is None: return []" in src
++
++
++# ---- expiry picker (Accuracy PR #19 #1): intraday = today's expiry exactly; swing = nearest >= 1 day; Friday/holiday pinned
++from datetime import date
++FRI = date(2026, 10, 16)   # Friday
++fri = lambda h, m: datetime(2026, 10, 16, h, m, tzinfo=gates.ET)
++DAILY = ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-23"]
++
++def test_expiry_friday_intraday_is_today_swing_is_monday():
++    c = Config()
++    assert optexec.pick_expiry(DAILY, FRI, {"dte": 0}, c, fri(10, 0)) == "2026-10-16"
++    assert optexec.pick_expiry(DAILY, FRI, {"dte": 1}, c, fri(10, 0)) == "2026-10-19"   # never today's 0DTE (was the |0-1| tie bug)
++    assert optexec.pick_expiry(DAILY, FRI, {"dte": 5}, c, fri(10, 0)) == "2026-10-21"
++    assert optexec.pick_expiry(DAILY, FRI, {"dte": 0}, c, fri(15, 31)) is None          # late Friday: block, not Monday
++    assert optexec.pick_expiry(DAILY, FRI, {"dte": 1}, c, fri(15, 31)) == "2026-10-19"   # swing unaffected late
++
++def test_expiry_holiday():
++    c = Config()
++    # Thanksgiving 2026-11-26 (no listing): Wed intraday = Wed 0DTE; Wed 1DTE swing skips to Fri 11-27
++    wed = date(2026, 11, 25); w = datetime(2026, 11, 25, 10, 0, tzinfo=gates.ET)
++    exps = ["2026-11-25", "2026-11-27", "2026-11-30"]
++    assert optexec.pick_expiry(exps, wed, {"dte": 0}, c, w) == "2026-11-25"
++    assert optexec.pick_expiry(exps, wed, {"dte": 1}, c, w) == "2026-11-27"
++    # a holiday-like day with no expiry today: intraday blocks (never rolls to tomorrow)
++    assert optexec.pick_expiry(["2026-11-27"], date(2026, 11, 26), {"dte": 0}, c, datetime(2026, 11, 26, 10, 0, tzinfo=gates.ET)) is None
++
++# ---- intraday picker respects intradayTicket.deltaBand 0.45-0.55 (Accuracy #d)
++def _c(off, ask, delta): return {"contract": {"offset": off}, "quote": {"ask": ask, "delta": delta}}
++
++def test_pick_intraday_band_then_otm1():
++    atm, otm, itm = _c("ATM", 2.44, 0.51), _c("OTM_1", 1.90, 0.42), _c("ITM_1", 3.10, 0.60)
++    assert optexec.pick_intraday([atm, otm, itm], 650) is atm
++    assert optexec.pick_intraday([_c("ATM", 7.0, 0.51), otm], 650)["contract"]["offset"] == "OTM_1"   # cap needs 1 OTM
++    assert optexec.pick_intraday([_c("ATM", 2.0, 0.62), _c("ITM_1", 2.2, 0.53), otm], 650)["contract"]["offset"] == "ITM_1"  # in-band strike nearest 0.5
++    assert optexec.pick_intraday([itm], 650) is None   # out of band, no ATM/OTM_1 -> nothing
++
++# ---- sizing at real 0DTE prices: QQQ 0DTE ATM ~$2.44 -> 2 contracts under $650 on A+/A, 1 on A-/B+
++def test_size_0dte_atm_two_under_650():
++    c = Config()
++    assert gates.size_contracts(2.44, 4, c, "A+")[0] == 2
++    assert gates.size_contracts(2.44, 2, c, "A")[0] == 2
++    assert gates.size_contracts(2.44, 2, c, "A-")[0] == 1
++    assert gates.size_contracts(2.44, 1, c, "A+")[0] == 1   # watcher never exceeds the desk's wanted count
+diff --git a/tests/test_optexec.py b/tests/test_optexec.py
+index ef9b7f0..68c8242 100644
+--- a/tests/test_optexec.py
++++ b/tests/test_optexec.py
+@@ -22,7 +22,8 @@ def test_walk_limit():
+ 
+ def test_dte_by_time():
+     c = Config()
+-    assert ox.mode("dteByTime") == "shadow" and ox.dte_target(c, t(10, 0)) == 0 and ox.dte_target(c, t(14, 31)) == 1 and ox.dte_target(c, t(15, 26)) >= 1
++    # owner rule 2026-10-15: intradayTicket (live) = 0DTE; late = None (block); swing keeps dteByTime (shadow)
++    assert ox.mode("dteByTime") == "shadow" and ox.dte_target(c, t(10, 0)) == 0 and ox.dte_target(c, t(14, 31)) == 0 and ox.dte_target(c, t(15, 26)) is None and ox.dte_target(c, t(15, 26), intraday_ticket=False) >= 1
+ 
+ def test_tod_size():
+     assert ox.tod_mult(t(10, 0)) == 1.0 and ox.tod_mult(t(14, 5)) == 0.5
+diff --git a/tests/test_status.py b/tests/test_status.py
+index a8655a8..bf9a87d 100644
+--- a/tests/test_status.py
++++ b/tests/test_status.py
+@@ -17,8 +17,10 @@ def test_write_refuses_leak(tmp_path, monkeypatch):
+     monkeypatch.setenv("WATCHER_DIR", str(tmp_path)); cfg = Config()
+     status.write(cfg, {"gates": [{"why": "account 995386158"}]})       # gate text is masked, not dropped
+     assert "995386158" not in open(tmp_path / "status.json").read() and "••••6158" in open(tmp_path / "status.json").read()
+-    try: status.write(cfg, {"token": "x"}); assert False
+-    except ValueError: pass
++    # deep-audit #18: a forbidden KEY is dropped and the file is still written (was: whole file refused, tab went stale)
++    status.write(cfg, {"token": "x", "card": {"band": "A"}})
++    body = json.loads(open(tmp_path / "status.json").read())
++    assert "token" not in body and body["card"] == {"band": "A"} and body["scrubbed_keys"] == ["token"]
+ 
+ def test_chase_reprice_once_then_abandon():
+     sig = {}
+@@ -36,5 +38,6 @@ def test_near_miss_and_snapshot():
+ def test_gate_named_buying_power_is_not_a_leak(tmp_path, monkeypatch):
+     monkeypatch.setenv("WATCHER_DIR", str(tmp_path)); cfg = Config()
+     status.write(cfg, {"gates": [{"name": "buying_power", "ok": None, "why": "unverified"}]})
+-    try: status.write(cfg, {"buying_power": 1000}); assert False
+-    except ValueError: pass
++    status.write(cfg, {"broker": {"buying_power": 1000, "ok": True}})
++    body = open(tmp_path / "status.json").read()
++    assert "1000" not in body and '"ok": true' in body
+diff --git a/watcher/broker.py b/watcher/broker.py
+index badf3f8..5224af3 100644
+--- a/watcher/broker.py
++++ b/watcher/broker.py
+@@ -49,6 +49,12 @@ def install_timeouts(session, connect=RH_CONNECT_TIMEOUT_S, read=RH_READ_TIMEOUT
+     session._ld_timeouts = (connect, read)
+     return session
+ 
++def _dt_now_et():
++    from datetime import datetime as _d3
++    from .gates import ET as _E3
++    return _d3.now(_E3)
++
++
+ class Broker:
+     def __init__(self, cfg, log):
+         self.cfg, self.log, self.rs, self.ready = cfg, log, None, False
+@@ -134,16 +140,19 @@ class Broker:
+             except Exception: pass
+         legacy = [x for x in cands if x["contract"]["offset"] in ("ATM", "OTM_1")]
+         fit = [x for x in cands if (x["quote"] or {}).get("ask") and x["quote"]["ask"] * 100 <= cap]
+-        pick = optexec.pick_by_delta(fit) if optexec.mode("delta") == "live" else None   # fix 2+3: delta 0.55-0.65, spread <= 5%, most liquid
++        _it = optexec.is_intraday_ticket(ticket)   # owner rule 2026-10-15: intraday = 0DTE ATM single first (then 1 OTM if the cap needs it); no spreads. Swing path unchanged.
++        if _it and not cands: v["intraday_block"] = "0DTE impractical this late — intraday blocked, not rolled to 1DTE" if optexec.intraday_late_blocked(self.cfg, _dt_now_et()) else "no 0DTE ATM/1 OTM contract"
++        if _it: pick = optexec.pick_intraday(cands, cap)   # ATM in intradayTicket.deltaBand 0.45-0.55, else 1 OTM; desk prices the same band
++        else: pick = optexec.pick_by_delta(fit) if optexec.mode("delta") == "live" else None   # fix 2+3 (swing): delta 0.55-0.65, spread <= 5%, most liquid
+         if pick is None:   # legacy: ATM first; if its ask can't fit 1 contract under the cap, 1 OTM. Never further out.
+             for x in legacy:
+                 pick = x
+                 if (x["quote"] or {}).get("ask") and x["quote"]["ask"] * 100 <= cap: break
+         from .fastchain import FC, live as _fc_live
+-        if _fc_live() and FC.get("spreadFallback") and not (pick and (pick["quote"] or {}).get("ask") and pick["quote"]["ask"] * 100 <= cap):
++        if not _it and _fc_live() and FC.get("spreadFallback") and not (pick and (pick["quote"] or {}).get("ask") and pick["quote"]["ask"] * 100 <= cap):
+             sp = spread_pick(cands, cap)
+             if sp: pick = sp
+-        if pick: v["contract"], v["quote"], v["pick_why"] = pick["contract"], pick["quote"], ("delta band" if pick in fit and optexec.mode("delta") == "live" and pick is optexec.pick_by_delta(fit) else "legacy ATM/OTM_1")
++        if pick: v["contract"], v["quote"], v["pick_why"] = pick["contract"], pick["quote"], ("intraday 0DTE " + str(pick["contract"].get("offset")) if _it else "delta band" if pick in fit and optexec.mode("delta") == "live" and pick is optexec.pick_by_delta(fit) else "legacy ATM/OTM_1")
+         v["candidates"] = len(cands)
+         _fits = lambda p: bool(p and (p["quote"] or {}).get("ask") and p["quote"]["ask"] * 100 <= cap)
+         if not _fits(pick) and not ticket.get("_fx_step"):
+@@ -182,8 +191,8 @@ class Broker:
+         if not exps:
+             return []
+         from . import optexec
+-        if optexec.mode("dteByTime") == "live": dte = optexec.dte_target(self.cfg, _dt.now(_ET))   # fix 5
+-        exp = min(exps, key=lambda e: abs((date.fromisoformat(e) - today).days - dte))
++        exp = optexec.pick_expiry(exps, today, ticket, self.cfg, _dt.now(_ET))   # intraday: today exactly (late = block); swing: nearest >= 1 day
++        if exp is None: return []
+         spot = float(rs.stocks.get_latest_price(sym)[0])
+         opts = rs.options.find_tradable_options(sym, exp, optionType=side) or []   # instruments only (fast); quote fetched for the pick
+         by_strike = {float(o["strike_price"]): o for o in opts if o.get("tradability") == "tradable"}
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index c9f9920..93b2c15 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -93,7 +93,12 @@ class Watcher:
+                      effective_band=snap["band"], symbol=snap.get("symbol"), side=snap.get("side"), streak=bs["n"])
+             self.state["band_truth_last"] = list(sig)
+         # alert tier
+-        if gates.band_alert(snap["band"]):
++        from . import hygiene
++        _al_ok, _al_why = hygiene.alert_allowed(snap)
++        if gates.band_alert(snap["band"]) and not _al_ok:
++            sq = self.state["signals"].setdefault(key, {})
++            if hygiene.flipped(sq, "alert_withheld", _al_why): self.log("alert_withheld", signal=key, why=_al_why)
++        if gates.band_alert(snap["band"]) and _al_ok:
+             last = self.state["signals"].get(key, {}).get("alerted", 0)
+             if time.time() - last > self.cfg.alert_cooldown_s:
+                 t = snap["ticket"] or {}
+@@ -118,7 +123,7 @@ class Watcher:
+         nmiss = gates.near_miss(snap, px0, atr0)
+         if nmiss:
+             sn = self.state["signals"].setdefault(key, {})
+-            if time.time() - sn.get("near_miss", 0) > self.cfg.alert_cooldown_s:
++            if time.time() - sn.get("near_miss", 0) > self.cfg.alert_cooldown_s and hygiene.alert_once(sn, "near_miss", [snap.get("band"), snap.get("symbol"), snap.get("side"), snap.get("q")], time.time()):
+                 self.alert(f"NEAR MISS {snap.get('band')} {snap.get('symbol')} {snap.get('side')}: " + "; ".join(nmiss), signal=key); sn["near_miss"] = time.time()
+         ed = [(ok, w) for n, ok, w in pre if n == "entry_distance"]
+         if ed:
+@@ -129,7 +134,7 @@ class Watcher:
+         bc = [(ok, w) for n, ok, w in pre if n == "bplus_caution"]
+         if bc:
+             sbc = self.state["signals"].setdefault(key, {})
+-            if sbc.get("bplus_caution") != [bc[0][0], bc[0][1]]:
++            if hygiene.flipped(sbc, "bplus_caution", bc[0][0]):   # deep-audit #18: ok flips only (detail carries live numbers)
+                 self.log("bplus_caution", signal=key, ok=bc[0][0], detail=bc[0][1]); sbc["bplus_caution"] = [bc[0][0], bc[0][1]]
+         ga = [(ok, w) for n, ok, w in pre if n == "grok_agree"]
+         if ga:
+@@ -405,7 +410,10 @@ class Watcher:
+                 if last and prev and prev[-1] is not last: ticks.record(self.cfg, sym, last)
+                 atr = snap.get("atr") if snap.get("symbol") == sym and snap.get("atr") else gates.DEFAULT_ATR.get(sym)
+                 sp = self.agg.detect(sym, atr, int(now))
+-                if sp: self.log("spike_shadow", **sp)
++                if sp:
++                    from . import hygiene
++                    if hygiene.spike_worth_logging(sp): self.log("spike_shadow", **sp)
++                    else: self.state.setdefault("spike_quiet", {}).update({sym: (self.state.get("spike_quiet") or {}).get(sym, 0) + 1})
+             self._kz_shadow(snap, now)
+             self._kz_arm_shadow(now)
+             if now - getattr(self, "_fast_posted", 0) >= 5:
+@@ -433,8 +441,10 @@ class Watcher:
+             self.log("kz_shadow_error", error=str(e))
+ 
+     def _gate_log(self, key, snap, g, dayst, broker=False):
++        from . import hygiene
++        kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
+         rec = {"ts": time.time(), "signal": key, "band": snap.get("band"), "q": snap.get("q"), "q_raw": snap.get("q_raw"), "rules_hash": gates.RULES_HASH, "broker": broker,
+-               "gates": [[n, ok, w] for n, ok, w in g]}
++               "gates": [[n, ok, w] for n, ok, w in kept], "quiet": quiet}
+         # raw card for the gates.log parity replay (only when the card changed)
+         raw = getattr(self, "_last_card", None)
+         if raw is not None and raw.get("at") != getattr(self, "_logged_at", None):
+diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
+index 10f6787..8e5e0a1 100644
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
+@@ -197,6 +197,17 @@
+       "stepFracOfHalfSpread": 0.25,
+       "maxSteps": 4
+     },
++    "intradayTicket": {
++      "mode": "live",
++      "dte": 0,
++      "strike": "ATM",
++      "fallback": "OTM_1",
++      "deltaBand": [0.45, 0.55],
++      "debitSpread": false,
++      "lateBlockEt": "15:25",
++      "swingOnlyDte1Plus": true,
++      "_why": "Owner rule (Keaton 2026-10-15): intraday option tickets (path, killzone/continuation) are 0DTE ATM singles on QQQ/SPY, 1 OTM only when the cap needs it, never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans keep their own DTE). From lateBlockEt (= session.zeroDteCutoffEt; RH blocks new 0DTE opens 15:30 ET) intraday is BLOCKED, never silently rolled to 1DTE. Supersedes the edge-research-1015 1DTE pick. Wins over dteByTime."
++    },
+     "dteByTime": {
+       "mode": "shadow",
+       "zeroDteUntilEt": "14:30",
+diff --git a/watcher/gates.py b/watcher/gates.py
+index 04dd79f..af831f0 100644
+--- a/watcher/gates.py
++++ b/watcher/gates.py
+@@ -104,6 +104,9 @@ def snapshot(card):
+         "card_rr": _strict(strat.get("rrRaw")) if _strict(strat.get("rrRaw")) is not None else _strict(strat.get("rr")),
+         "rr_flag": strat.get("rrFlag") is True,
+         "ltf_killed": strat.get("ltfKilled") is True,
++        # deep-audit #1/#12/#13: the desk's own dead-card flags (alerts are withheld on them; hygiene.alert_allowed)
++        "invalidated": strat.get("invalidated") is True, "stale_tape": strat.get("staleTape") is True, "played_out": strat.get("playedOut") is True,
++        "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
+         "ltf_kill_cleared": strat.get("ltfKillCleared") is True,
+         "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
+         "stop_px": _strict(strat.get("stopPx")),
+@@ -594,7 +597,7 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     add("card_age", age is not None and -5 <= age <= 30, f"card age {age}s")
+     dte = t.get("dte") if t else None
+     from . import optexec as _oxd        # fix 5: the watcher picks the DTE by time of day (the desk ticket's dte is advisory)
+-    if _oxd.mode("dteByTime") == "live" and isinstance(dte, int) and not isinstance(dte, bool) and 0 <= dte <= cfg.dte_max: dte = _oxd.dte_target(cfg, datetime.fromtimestamp(now_ms / 1000, ET))
++    if _oxd.mode("dteByTime") == "live" and isinstance(dte, int) and not isinstance(dte, bool) and 0 <= dte <= cfg.dte_max: dte = _oxd.dte_target(cfg, datetime.fromtimestamp(now_ms / 1000, ET), intraday_ticket=(dte == 0))
+     _mind = min_dte_now(cfg, datetime.fromtimestamp(now_ms / 1000, ET))
+     add("dte", isinstance(dte, int) and not isinstance(dte, bool) and _mind <= dte <= cfg.dte_max, f"dte {dte} (allow {_mind}-{cfg.dte_max}{'; 0DTE closed from ' + SESSION['zeroDteCutoffEt'] + ' ET' if _mind > cfg.dte_min else ''})")
+     w = snap["brain_word"]
+diff --git a/watcher/hygiene.py b/watcher/hygiene.py
+new file mode 100644
+index 0000000..622b2b9
+--- /dev/null
++++ b/watcher/hygiene.py
+@@ -0,0 +1,64 @@
++"""Deep audit 2026-10-15 #18 / #12 — watcher hygiene, pure helpers (no I/O).
++
++- scrub(): status.json used to be REFUSED whole when any forbidden key appeared (194x "would leak a secret, not written"
++  on 10/13-14, so the Watcher tab went stale). Now forbidden keys are dropped recursively and the account masked; the
++  refusal stays as the last line of defence for anything the scrub could not remove.
++- alert_once(): NEAR-MISS for the same B 0.5999 card repeated every 300 s cooldown (12:35/12:40/12:45). An alert now
++  re-sends only when its fingerprint (band/symbol/side/q) changes, or after ALERT_DEDUPE_S (30 min).
++- flipped(): bplus_caution logged 681 rows on 10/13 because the detail text carried live numbers; log on ok flips only.
++- spike_worth_logging(): 110 spike_shadow rows/day were noise; log failed spikes and spikes at a session extreme only.
++- alert_allowed(): no DESK alert while the tape is stale (#12) or the card is invalidated / played out.
++"""
++import re
++
++FORBIDDEN = re.compile(r"^(password|token|access_token|refresh_token|mfa[a-z_]*|secret|buying_power|cash|equity|balance|portfolio_value)$", re.I)
++ALERT_DEDUPE_S = 1800
++
++def scrub(obj, dropped=None):
++    """Return a copy with forbidden KEYS removed at any depth (values under them never leave the box)."""
++    dropped = [] if dropped is None else dropped
++    if isinstance(obj, dict):
++        out = {}
++        for k, v in obj.items():
++            if isinstance(k, str) and FORBIDDEN.match(k): dropped.append(k); continue
++            out[k] = scrub(v, dropped)
++        return out
++    if isinstance(obj, (list, tuple)): return [scrub(v, dropped) for v in obj]
++    return obj
++
++def alert_once(sig_state, kind, fingerprint, now_s, window_s=ALERT_DEDUPE_S):
++    """True = send. Records the send. Same fingerprint inside window_s = suppressed."""
++    rec = sig_state.get(kind + "_fp")
++    if rec and rec[0] == fingerprint and now_s - rec[1] < window_s: return False
++    sig_state[kind + "_fp"] = [fingerprint, now_s]
++    return True
++
++def flipped(sig_state, kind, ok):
++    if sig_state.get(kind + "_ok") == ok and (kind + "_ok") in sig_state: return False
++    sig_state[kind + "_ok"] = ok
++    return True
++
++def spike_worth_logging(sp):
++    return bool(sp) and (sp.get("tag") == "failed" or sp.get("atExtreme") is True)
++
++def alert_allowed(snap):
++    """(ok, why). Stale tape or a dead card never alerts."""
++    if snap.get("tape_fresh") is not True: return False, "tape stale — grade withheld"
++    if snap.get("invalidated"): return False, "card invalidated (stop printed)"
++    if snap.get("stale_tape"): return False, "desk flagged STALE TAPE"
++    if snap.get("played_out"): return False, "card played out (T1 traded)"
++    es = snap.get("entry_state")
++    # Accuracy PR #19: "missed" alone (price ran from an unfilled entry) can still come back — it is NOT suppressed.
++    if isinstance(es, dict) and es.get("state") == "invalidated": return False, "entry state invalidated"
++    return True, None
++
++
++def compact_gates(g):
++    """#7: ~90 shadow:/soft: gates were True on 100% of 4,602 rows and made up most of gates.log. A shadow/soft row
++    that passed and says no WOULD-block is counted, not logged. Hard gates and any would-block row are always kept,
++    so the parity replay (hard gates only) is unchanged."""
++    kept, quiet = [], 0
++    for n, ok, w in g:
++        if ok is True and str(n).startswith(("shadow:", "soft:")) and "WOULD" not in str(w).upper(): quiet += 1; continue
++        kept.append((n, ok, w))
++    return kept, quiet
+diff --git a/watcher/optexec.py b/watcher/optexec.py
+index edc9373..e424b68 100644
+--- a/watcher/optexec.py
++++ b/watcher/optexec.py
+@@ -38,12 +38,69 @@ def walk_limit(bid, ask, step):
+     s = max(0, min(int(step), lw["maxSteps"]))
+     return round(min(ask, mid + s * lw["stepFracOfHalfSpread"] * half), 2)
+ 
+-def dte_target(cfg, et_dt):
+-    """Fix 5: 0DTE in the morning, afterDte from zeroDteUntilEt; never 0DTE from session.zeroDteCutoffEt (15:25)."""
++def intraday():
++    """Owner rule 2026-10-15: optExec.intradayTicket — 0DTE ATM single (1 OTM fallback), no spreads. None when not live."""
++    it = OX.get("intradayTicket") or {}
++    return it if it.get("mode") == "live" else None
++
++def is_intraday_ticket(ticket):
++    """An intraday ticket = the intradayTicket DTE (0) and not swing-classified. Swing (1DTE+) keeps the old path."""
++    it = intraday()
++    if not it or (ticket or {}).get("horizon") == "swing": return False
++    try: return int((ticket or {}).get("dte", 0)) == int(it.get("dte", 0))
++    except (TypeError, ValueError): return False
++
++def intraday_late_blocked(cfg, et_dt):
++    """0DTE impractical: from lateBlockEt (or whenever min_dte_now already forbids 0DTE) intraday is BLOCKED, never rolled to 1DTE."""
++    it = intraday()
++    if not it or int(it.get("dte", 0)) != 0: return False
++    hm = et_dt.hour * 60 + et_dt.minute
++    return hm >= _hm(it.get("lateBlockEt") or RULES["session"]["zeroDteCutoffEt"]) or min_dte_now(cfg, et_dt) > 0
++
++def dte_target(cfg, et_dt, intraday_ticket=True):
++    """Fix 5: 0DTE in the morning, afterDte from zeroDteUntilEt; never 0DTE from session.zeroDteCutoffEt (15:25).
++    Owner rule 2026-10-15: an intraday ticket wants 0DTE all session and gets None (BLOCK) once late — never a silent 1DTE roll."""
++    it = intraday()
++    if it and intraday_ticket:
++        return None if intraday_late_blocked(cfg, et_dt) else int(it.get("dte", 0))
+     d = OX["dteByTime"]; hm = et_dt.hour * 60 + et_dt.minute
+     want = 0 if hm < _hm(d["zeroDteUntilEt"]) else d["afterDte"]
+     return max(want, min_dte_now(cfg, et_dt))
+ 
++def pick_expiry(exps, today, ticket, cfg, et_dt):
++    """Owner rule 2026-10-15 (Accuracy PR #19 #1): one expiry rule, desk and watcher agree.
++    Intraday ticket -> TODAY's expiry exactly (QQQ/SPY list a daily); none or late -> None (block, never roll).
++    Swing ticket (1DTE+) -> nearest expiry with days >= 1 (and >= min_dte_now) to the ticket's dte (dteByTime when live);
++    a Friday 1DTE swing picks Monday, never today's 0DTE. Expiries past cfg.dte_max are ignored on both paths."""
++    from datetime import date as _d
++    days = {e: (_d.fromisoformat(e) - today).days for e in exps}
++    if is_intraday_ticket(ticket):
++        if dte_target(cfg, et_dt) is None: return None
++        return next((e for e in sorted(exps) if days[e] == 0), None)
++    lo = max(1, min_dte_now(cfg, et_dt))
++    ok = sorted(e for e in exps if lo <= days[e] <= cfg.dte_max)
++    if not ok: return None
++    want = int(ticket.get("dte", 1))
++    if mode("dteByTime") == "live": want = max(1, dte_target(cfg, et_dt, intraday_ticket=False))
++    return min(ok, key=lambda e: (abs(days[e] - max(1, want)), days[e]))
++
++def pick_intraday(cands, cap):
++    """Owner rule 2026-10-15 + Accuracy #d: intraday single = ATM inside intradayTicket.deltaBand (0.45-0.55) that fits the
++    cap (the in-band strike nearest |delta| 0.5); else 1 OTM if it fits the cap; else the ATM (the cap gate refuses it).
++    A strike with no live delta counts as in-band only when it is the ATM. Never further out, never a spread."""
++    it = intraday() or {}
++    lo, hi = (it.get("deltaBand") or [0.45, 0.55])[:2]
++    fits = lambda x: bool((x.get("quote") or {}).get("ask") and x["quote"]["ask"] * 100 <= cap)
++    def inband(x):
++        d = _num((x.get("quote") or {}).get("delta"))
++        return (lo <= abs(d) <= hi) if d is not None else x["contract"].get("offset") == "ATM"
++    band = [x for x in cands if inband(x) and fits(x)]
++    if band:
++        return min(band, key=lambda x: (abs(abs(_num((x.get("quote") or {}).get("delta")) or 0.5) - 0.5), x["contract"].get("offset") != "ATM"))
++    otm = next((x for x in cands if x["contract"].get("offset") == "OTM_1" and fits(x)), None)
++    if otm: return otm
++    return next((x for x in cands if x["contract"].get("offset") == "ATM"), None)
++
+ def tod_mult(et_dt):
+     """Fix 14: AM killzone full size, late PM cut."""
+     t = OX["todSize"]; hm = et_dt.hour * 60 + et_dt.minute
+diff --git a/watcher/status.py b/watcher/status.py
+index 8d37a0a..8480c35 100644
+--- a/watcher/status.py
++++ b/watcher/status.py
+@@ -69,6 +69,10 @@ import re as _re
+ FORBIDDEN_KEY = _re.compile(r'"(password|token|access_token|refresh_token|mfa[a-z_]*|secret|buying_power|cash|equity|balance|portfolio_value)"\s*:', _re.I)
+ 
+ def write(cfg, st):
++    from . import hygiene
++    dropped = []
++    st = hygiene.scrub(st, dropped)   # deep-audit #18: drop forbidden keys instead of refusing the whole file
++    if dropped: st["scrubbed_keys"] = sorted(set(dropped))
+     body = json.dumps(st, default=str)
+     acct = str(cfg.account or "")
+     if acct: body = body.replace(acct, gates.mask_account(acct))   # e.g. the account gate's "account 99…" text
+diff --git a/watcher/ticks.py b/watcher/ticks.py
+index b7475d2..af5a274 100644
+--- a/watcher/ticks.py
++++ b/watcher/ticks.py
+@@ -47,6 +47,13 @@ class Agg:
+         tag = "failed" if retr >= F["failedRetrace"] else "breakout"
+         key = (sym, win[0]["t"] // W)
+         if self._last_spike.get(sym) and win[0]["t"] - self._last_spike[sym] < W: return None
++        # deep-audit #18: atExtreme was False 426/426 — the daemon never passed session hi/lo. Default to this
++        # buffer's own extremes BEFORE the spike window (keep_s of 1s bars), so a push to a new high/low reads true.
++        if session_hi is None or session_lo is None:
++            prior = [b for b in d if b["t"] < win[0]["t"]]
++            if prior:
++                if session_hi is None: session_hi = max(b["h"] for b in prior)
++                if session_lo is None: session_lo = min(b["l"] for b in prior)
+         self._last_spike[sym] = win[0]["t"]
+         at_extreme = (direction == "up" and session_hi is not None and ext >= session_hi) or (direction == "down" and session_lo is not None and ext <= session_lo)
+         # fast kill / arm read (shadow): a rejected spike into the highs kills the long / arms the short, and vice versa

@@ -1,0 +1,194 @@
+diff --git a/paper.py b/paper.py
+index 7ac4f99..7192beb 100644
+--- a/paper.py
++++ b/paper.py
+@@ -107,9 +107,11 @@ def _open(card):
+     px=card.get('px'); atr=card.get('atr') or ATR.get(PARENT.get(sym,sym))
+     if px is None or not atr: why.append('stale-entry guard: no live px/ATR')
+     elif abs(float(px)-e)>ENTRY_ATR*float(atr): why.append(f'stale-entry guard: |px {px} - entry {e}| > {ENTRY_ATR}xATR {atr}')
+-    riskd=round(equity(s)*RISK,2); dist=abs(e-st); n=0; use=sym
+-    full=PARENT.get(sym,sym)
+-    for cand in [full, MICRO[full]]:
++    riskd=round(equity(s)*RISK,2); dist=abs(e-st); n=0
++    # deep-audit #19: book the CARD's contract (an MNQ card is MNQ, never 1 NQ = 10x the risk the card sized).
++    # A full-size card may step DOWN to its micro when one full contract is over the risk cap; never up.
++    use=sym
++    for cand in ([sym, MICRO[sym]] if sym in MICRO else [sym]):
+         n=math.floor(riskd/(dist*PV[cand]))
+         if n>=1: use=cand; break
+     if n<1: why.append(f'1 contract risk {dist*PV[use]:.2f} > {riskd}')
+@@ -117,7 +119,7 @@ def _open(card):
+     if why:
+         s['skips'].append({'id':tid,'card':card,'why':why,'at':now()}); save(s); print('SKIP',why); return
+     t=dict(id=tid,alerted=card.get('alerted',now()),symbol=use,side=side,band=card['band'],q=card.get('q'),entry=e,stop=st,
+-           t1=t1,t2=t2,rr=round(rr,2),contracts=n,remaining=n,cur_stop=st,trimmed=False,status='pending',
++           t1=t1,t2=t2,rr=round(rr,2),contracts=n,remaining=n,contract=use,card_symbol=sym,cur_stop=st,trimmed=False,status='pending',
+            **{'risk$':round(n*dist*PV[use],2)},risk_cap=riskd,atr=atr,rules_hash=(card.get('chain') or {}).get('rules_sha'),card_rules_hash=(card.get('chain') or {}).get('card_rules_hash'),chain_at_entry=card.get('chain'),structure=card.get('structure'),plan_key=card.get('plan_key'),commission=0.0,realized=0.0,events=[],hi=None,lo=None)
+     s['open'].append(t); save(s); print(json.dumps(t,indent=1))
+ def fill(t,px,qty,why):
+@@ -253,10 +255,15 @@ def _env():
+         for l in open(f):
+             if '=' in l and not l.startswith('#'): k,v=l.strip().split('=',1); e[k]=v
+     return {**e,**{k:v for k,v in os.environ.items() if k.startswith('PAPER_JOURNAL_')}}
++def outbox_backlog():
++    sent=set(open(SENT).read().split()) if os.path.exists(SENT) else set()
++    return sum(1 for l in (open(OUTBOX) if os.path.exists(OUTBOX) else []) if l.strip() and json.loads(l).get('id') not in sent)
+ def flush():
+     """POST queued outbox rows to the desk's paper-only table. Idempotent (server: on conflict do nothing; local: sent list)."""
+     e=_env(); url,tok=e.get('PAPER_JOURNAL_URL'),e.get('PAPER_JOURNAL_TOKEN')
+-    if not (url and tok): print('flush: PAPER_JOURNAL_URL/TOKEN not set; rows stay queued'); return 0
++    if not (url and tok):
++        # deep-audit #18: say how far behind the outbox is (it never flushed on 10/13-15), once, not silently per row
++        print(f'flush: PAPER_JOURNAL_URL/TOKEN not set; {outbox_backlog()} rows queued, unsent'); return 0
+     sent=set(open(SENT).read().split()) if os.path.exists(SENT) else set(); n=0
+     for l in (open(OUTBOX) if os.path.exists(OUTBOX) else []):
+         r=json.loads(l)
+@@ -267,12 +274,53 @@ def flush():
+ def finish(s,t):
+     t['status']='closed'; t['closed_at']=now(); t['pnl$']=round(t['realized']-t['commission'],2); t['unreal']=0
+     t['result_R']=round(t['pnl$']/(abs(t['entry']-t['stop'])*PV[t['symbol']]*t['contracts']),2); t['lesson']=lesson(t)
++    # deep-audit #19: one schema — the qty/pnl/r names readers use, alongside the legacy ones
++    t['qty']=t['contracts']; t['pnl']=t['pnl$']; t['r']=t['result_R']; t.setdefault('contract',t['symbol'])
+     s['cash']+=t['pnl$']; s['closed'].append(t); log_csv(t); journal(t)
+-def advance(s,q,c=None):
++# deep-audit #3: pending orders live only as long as the card that made them.
++FLAT_ET=(15,50); ROLL_ET=18; MIN_BAND='B+'; PENDING_MAX_S=3*3600   # a card older than one killzone block is not the card any more
++_BR=['A+','A','A-','B+','B','C']
++def _et(when=None):
++    from zoneinfo import ZoneInfo
++    z=ZoneInfo('America/New_York')
++    if when is None: return dt.datetime.now(z)
++    return dt.datetime.fromisoformat(when).astimezone(z)
++def session_key(x):
++    """CME session date: 18:00 ET rolls to the next session."""
++    return (x+dt.timedelta(days=1)).date() if x.hour>=ROLL_ET else x.date()
++def pending_expired(t,now_et=None):
++    """Pending entry dies at the 15:50 ET flat of its own session, or once the session it was alerted in has ended."""
++    n=now_et or _et()
++    try: a=_et(t['alerted'])
++    except Exception: return 'no alerted time'
++    if session_key(n)!=session_key(a): return f'session ended (alerted {a:%m-%d %H:%M} ET)'
++    if (n-a).total_seconds()>PENDING_MAX_S: return f'pending > {PENDING_MAX_S//3600}h (alerted {a:%m-%d %H:%M} ET)'
++    if (n.hour,n.minute)>=FLAT_ET and n.hour<ROLL_ET and not ((a.hour,a.minute)>=FLAT_ET and a.hour<ROLL_ET): return '15:50 ET flat'
++    return None
++def card_alive(t,c):
++    """At touch: the CURRENT card must be the same symbol/side/plan and graded B+ or better."""
++    if not c or not c.get('ok'): return 'no current card'
++    if base(str(c.get('symbol') or '').upper())!=base(t['symbol'].upper()) or c.get('side')!=t['side']: return f"card is now {c.get('symbol')} {c.get('side')}"
++    b=c.get('band'); 
++    if b not in _BR or _BR.index(b)>_BR.index(MIN_BAND): return f'card band {b} below {MIN_BAND}'
++    pk=f"{c.get('signal')}|{c.get('entry')}|{c.get('stop')}|{c.get('t1')}|{c.get('t2')}"
++    if t.get('plan_key') and pk!=t['plan_key']: return 'plan changed'
++    return None
++def touched(t,px):
++    sg=1 if t['side']=='long' else -1; return (px-levels(t)['entry'])*sg<=0
++def cancel(t,px,what,why):
++    t['status']='cancelled'; t['remaining']=0; t['events'].append({'at':now(),'what':what,'px':px,'qty':0,'why':why})
++def advance(s,q,c=None,now_et=None):
+     still=[]
+     for t in s['open']:
+         px=q.get(t['symbol'])
++        if t['status']=='pending':
++            ex=pending_expired(t,now_et)
++            if ex: cancel(t,px,'expired',ex); s.setdefault('cancelled',[]).append(t); continue
+         if px is None: still.append(t); continue
++        if t['status']=='pending' and touched(t,px):
++            dead=card_alive(t,c)
++            if dead: cancel(t,px,'cancelled dead card at touch',dead); s.setdefault('cancelled',[]).append(t); continue
+         n0=len(t['events']); step(t,px); brackets(t)
+         for e in t['events'][n0:]: e['chain']=brief(c)
+         if t['status']=='open':
+diff --git a/tests/test_paper_deepfix.py b/tests/test_paper_deepfix.py
+new file mode 100644
+index 0000000..c3020d5
+--- /dev/null
++++ b/tests/test_paper_deepfix.py
+@@ -0,0 +1,88 @@
++"""Deep audit 2026-10-15 paper fixes (#1, #3, #18, #19). Runs on a temp ledger; never touches the live one."""
++import json, os, sys, datetime as dt
++from zoneinfo import ZoneInfo
++import pytest
++sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
++import paper as P
++ET = ZoneInfo("America/New_York")
++
++@pytest.fixture(autouse=True)
++def tmp_ledger(tmp_path, monkeypatch):
++    for k, v in dict(L=tmp_path / "ledger.json", C=tmp_path / "trades.csv", JD=tmp_path / "journal", LEVELS=tmp_path / "levels.json",
++                     REJ=tmp_path / "rej.jsonl", OUTBOX=tmp_path / "journal" / "outbox.jsonl", SENT=tmp_path / "journal" / "sent.txt").items():
++        monkeypatch.setattr(P, k, str(v))
++    monkeypatch.delenv("PAPER_JOURNAL_URL", raising=False); monkeypatch.delenv("PAPER_JOURNAL_TOKEN", raising=False)
++    yield
++
++def et(y, mo, d, h, mi): return dt.datetime(y, mo, d, h, mi, tzinfo=ET)
++def pend(**kw):
++    t = dict(id="X", alerted=et(2026, 10, 14, 9, 34).isoformat(), symbol="ES", side="short", band="A-", q=0.67, entry=7816.5, stop=7826.5,
++             t1=7796.5, t2=None, rr=2, contracts=2, remaining=2, cur_stop=7826.5, trimmed=False, status="pending", risk_cap=2000, atr=4.21,
++             commission=0.0, realized=0.0, events=[], plan_key="sig|7816.5|7826.5|7796.5|None")
++    t.update(kw); return t
++CARD = {"ok": True, "symbol": "ES", "side": "short", "band": "A-", "signal": "sig", "entry": 7816.5, "stop": 7826.5, "t1": 7796.5, "t2": None}
++
++# ---- #3 expiry -------------------------------------------------------------
++def test_pending_from_yesterday_expires():   # 10/14 ES-S 7816.5 / NQ-S 30249.5 still pending on 10/15
++    assert P.pending_expired(pend(), et(2026, 10, 15, 8, 30))
++def test_pending_expires_at_1550_flat():
++    t = pend(alerted=et(2026, 10, 15, 13, 34).isoformat())
++    assert P.pending_expired(t, et(2026, 10, 15, 15, 49)) is None
++    assert P.pending_expired(t, et(2026, 10, 15, 15, 50)) == "15:50 ET flat"
++def test_evening_alert_does_not_fill_12h_later():   # ES-L-20261013-1924: alerted 20:24 ET, filled 08:30 ET next day, -1.03R
++    t = pend(alerted=et(2026, 10, 13, 20, 24).isoformat())
++    assert P.pending_expired(t, et(2026, 10, 13, 22, 0)) is None
++    assert "pending > 3h" in P.pending_expired(t, et(2026, 10, 14, 8, 30))
++def test_pending_inside_3h_same_session_lives():   # MNQ-S-044008 alerted 05:40 ET, filled 08:27 ET (+3.77R)
++    t = pend(alerted=et(2026, 10, 14, 5, 40).isoformat())
++    assert P.pending_expired(t, et(2026, 10, 14, 8, 27)) is None
++def test_advance_cancels_expired():
++    s = {"open": [pend()], "closed": [], "cash": 1e5}
++    P.advance(s, {"ES": 7816.0}, CARD, now_et=et(2026, 10, 15, 9, 0))
++    assert s["open"] == [] and s["cancelled"][0]["status"] == "cancelled" and s["cancelled"][0]["events"][-1]["what"] == "expired"
++
++# ---- #3 the card must still be alive at touch -----------------------------
++@pytest.mark.parametrize("card,why", [
++    ({**CARD, "band": "C"}, "below B+"), ({**CARD, "band": "B"}, "below B+"), ({**CARD, "side": "long"}, "card is now"),
++    ({**CARD, "stop": 7830.0}, "plan changed"), ({"ok": False}, "no current card"), (None, "no current card")])
++def test_touch_requires_live_card(card, why):
++    now = et(2026, 10, 14, 10, 0)
++    s = {"open": [pend()], "closed": [], "cash": 1e5}
++    P.advance(s, {"ES": 7817.0}, card, now_et=now)
++    assert s["open"] == [] and why in s["cancelled"][0]["events"][-1]["why"]
++def test_touch_with_live_bplus_card_fills():
++    s = {"open": [pend()], "closed": [], "cash": 1e5}
++    P.advance(s, {"ES": 7817.0}, {**CARD, "band": "B+"}, now_et=et(2026, 10, 14, 10, 0))
++    assert s["open"][0]["status"] == "open"
++def test_no_touch_keeps_pending_even_if_card_changed():
++    s = {"open": [pend()], "closed": [], "cash": 1e5}
++    P.advance(s, {"ES": 7810.0}, {**CARD, "band": "C"}, now_et=et(2026, 10, 14, 10, 0))
++    assert s["open"][0]["status"] == "pending"
++
++# ---- #1 refuse a fill through the stop -------------------------------------
++def test_fill_through_stop_refused():   # 10/14 14:33 MNQ long entry 30641.75 stop 30537.75, price 30217 → was -4.1R
++    t = pend(symbol="MNQ", side="long", entry=30641.75, stop=30537.75, cur_stop=30537.75, t1=30800, risk_cap=2080, atr=30.0)
++    P.step(t, 30217.0)
++    assert t["status"] == "cancelled" and t["realized"] == 0
++
++# ---- #19 MNQ stays MNQ -------------------------------------------------------
++def card(sym, e, st, t1):
++    return {"id": f"{sym}-L", "symbol": sym, "side": "long", "band": "A-", "q": 0.68, "entry": e, "stop": st, "t1": t1, "t2": None, "px": e, "atr": 30.0, "alerted": P.now()}
++def test_mnq_card_books_mnq():
++    P._open(card("MNQ", 30641.75, 30537.75, 30900))
++    t = P.load()["open"][0]
++    assert t["symbol"] == "MNQ" and t["contract"] == "MNQ" and t["card_symbol"] == "MNQ"
++    assert t["risk$"] <= 2000 and t["contracts"] == 9   # 2% of 100k / (104pt × $2)
++def test_full_size_card_may_step_down_to_micro():
++    P._open(card("NQ", 30641.75, 30537.75, 30900))      # 1 NQ = $2,080 > $2,000 → MNQ
++    assert P.load()["open"][0]["symbol"] == "MNQ"
++def test_closed_schema_has_qty_pnl_r():
++    s = P.load(); t = pend(status="open", remaining=0, contracts=1, realized=500.0, commission=2.5, events=[{"what": "T1 full exit", "at": "x", "px": 1, "qty": 1}], **{"risk$": 500})
++    P.finish(s, t)
++    assert t["qty"] == 1 and t["pnl"] == t["pnl$"] == 497.5 and t["r"] == t["result_R"] and t["contract"] == "ES"
++
++# ---- #18 outbox backlog is reported ----------------------------------------
++def test_flush_reports_backlog(capsys):
++    os.makedirs(P.JD, exist_ok=True)
++    open(P.OUTBOX, "w").write(json.dumps({"id": "a", "source": "paper-futures"}) + "\n" + json.dumps({"id": "b", "source": "paper-futures"}) + "\n")
++    assert P.flush() == 0 and "2 rows queued" in capsys.readouterr().out

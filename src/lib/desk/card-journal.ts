@@ -7,6 +7,7 @@ import DESK_RULES from "../../../shared/desk-rules.json";
  * what each band earned and whether n is big enough to act on.
  */
 import type { Sql } from "@/lib/db";
+import { journalSetupId } from "@/lib/smc/deep-audit";
 import { ensureAnnotations, notExcluded } from "./annotations";
 
 export const JOURNAL_BANDS = ["A+", "A", "A-"] as const;
@@ -52,7 +53,9 @@ export async function journalCards(sql: Sql, cards: JournalCard[], nowMs: number
   for (const c of cards) {
     if (!c.band || !(JOURNAL_BANDS as readonly string[]).includes(c.band)) continue;
     if (c.entry == null || c.stopPx == null || c.target == null) continue;
-    const id = `${day}:${c.symbol}:${c.side}:${c.entry.toFixed(2)}`;
+    // deep-audit #4: one row per setup idea (symbol + side + structural anchor + day), not per redrawn entry —
+    // 10/15 one ES-long idea redrawn 08:28–08:39 made 6 "-1R" rows and would have tripped the governor.
+    const id = journalSetupId(day, c);
     await sql.query(
       `insert into desk_card_journal (id, day_key, symbol, side, band, q, entry, stop, target, rr, opened_ms, context)
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb) on conflict (id) do nothing`,

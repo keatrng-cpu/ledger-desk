@@ -1,3 +1,4 @@
+import DESK_RULES_OX from "../../../shared/desk-rules.json";
 import { bandFromQ } from "@/lib/smc/discipline";
 import { ticketManageLines } from "@/lib/execution/opt-exec";
 /**
@@ -58,6 +59,25 @@ import { monthContractLine } from "./month-contract";
 
 export type RhHorizon = "day" | "swing";
 export type RhVerdict = "ARMED" | "WATCH" | "STAND";
+/**
+ * Owner rule (Keaton 2026-10-15): intraday tickets (path, killzone/continuation) are 0DTE ATM singles on QQQ/SPY,
+ * 1 OTM fallback when the cap needs it, never a spread. 1DTE+ only for swing-classified cards (SMT lead, event,
+ * swing spans keep their own DTE). From lateBlockEt the intraday lanes BLOCK — they never silently roll to 1DTE.
+ * Read from shared rules optExec.intradayTicket (the watcher contract picker reads the same block).
+ */
+export const INTRADAY = (() => {
+  const o = (DESK_RULES_OX as { optExec?: { intradayTicket?: { mode?: string; dte?: number; deltaBand?: number[]; debitSpread?: boolean; lateBlockEt?: string } } }).optExec?.intradayTicket ?? {};
+  const live = o.mode === "live";
+  const [lh, lm] = String(o.lateBlockEt ?? "15:25").split(":").map(Number);
+  return { live, dte: o.dte ?? 0, deltaLo: o.deltaBand?.[0] ?? 0.45, deltaHi: o.deltaBand?.[1] ?? 0.55, debitSpread: live ? o.debitSpread !== false : true, lateBlockMin: (lh ?? 15) * 60 + (lm ?? 25) };
+})();
+
+/** True when a 0DTE intraday ticket is impractical (ET clock at/after lateBlockEt): block, never roll to 1DTE. */
+export function intradayLateBlocked(etHour: number, etMinute: number): boolean {
+  return INTRADAY.live && INTRADAY.dte === 0 && etHour * 60 + etMinute >= INTRADAY.lateBlockMin;
+}
+export const INTRADAY_LATE_BLOCK = "0DTE impractical this late (after the intraday cutoff ET) — intraday blocked, not rolled to 1DTE";
+
 export type RhProduct = "single" | "debit_spread";
 
 export type RhStrategyId =
@@ -425,7 +445,7 @@ function roundStrike(spot: number): number {
 }
 
 function maxContracts(dte: number): number {
-  if (dte <= 0) return 1;
+  if (dte <= 0) return INTRADAY.live ? 2 : 1; // owner rule 2026-10-15: 0DTE ATM is THE intraday ticket — ~$244 QQQ fits 2 under $650
   if (dte <= 2) return 2;
   return 2;
 }
@@ -1195,6 +1215,8 @@ function sizeProduct(
   // Returning null here means STAND — which is the honest answer when the
   // sleeve cannot buy a structure that survives its own fees.
   const spreadShare = spread > 0 ? roundTripCost("debit_spread") / spread : 1;
+  // edge-research-1015: no debit spreads (-0.22R 0DTE / -0.36R 1DTE vs the naked single). No single fits = STAND.
+  if (!INTRADAY.debitSpread) return null;
   const nSpread = Math.min(nMax, contractsWithinRisk(spread, effCap, riskBudget));
   if (spread <= effCap && spreadShare <= MAX_SPREAD_SHARE && nSpread >= 1) {
     const n = nSpread;
@@ -1642,6 +1664,8 @@ function pathContinuation(
 
   if (!clock.isWeekday) blocks.push("Weekend");
   if (day?.kind === "holiday") blocks.push("Cash holiday");
+  const lateBlocked = intradayLateBlocked(clock.etHour, clock.etMinute);
+  if (lateBlocked) blocks.push(INTRADAY_LATE_BLOCK);
   const eventOn =
     desk.news?.verdict === "blackout" ||
     desk.news?.verdict === "caution" ||
@@ -1709,14 +1733,14 @@ function pathContinuation(
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   let ticket =
-    c && verdict !== "STAND"
+    c && verdict !== "STAND" && !lateBlocked
       ? toTicket(
           underlier,
           side,
           spot,
-          1,
-          0.35,
-          0.45,
+          INTRADAY.live ? INTRADAY.dte : 1, // rule off → the pre-rule path lane (1DTE Δ0.35–0.45)
+          INTRADAY.live ? INTRADAY.deltaLo : 0.35,
+          INTRADAY.live ? INTRADAY.deltaHi : 0.45,
           IV[underlier],
           cap,
           sleeve,
@@ -1781,7 +1805,7 @@ function pathContinuation(
     horizon: "day",
     whyHighProb:
       `Same A+/A/A− PATH as Trade Now. 1–2 DTE so 0DTE pin does not own you. Size from the invalidation, then cap the ticket at $${cap} — the 15% brake is the backstop, not the plan.`,
-    verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
+    verdict: lateBlocked || verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score: c?.confluence ?? 0,
     reasons,
     blocks,
@@ -1808,6 +1832,8 @@ function judasIfvg0dte(
 
   if (!clock.isWeekday) blocks.push("Weekend");
   if (day?.kind === "holiday") blocks.push("Cash holiday");
+  const lateBlocked = intradayLateBlocked(clock.etHour, clock.etMinute);
+  if (lateBlocked) blocks.push(INTRADAY_LATE_BLOCK);
   if (isJudasWindow(clock.etHour, clock.etMinute)) reasons.push("Judas open — full size. The chart still calls it.");
   if (clock.killzone !== "ny_am") reasons.push(`Outside NY AM (${clock.killzoneLabel}) — size stays 1.`);
   if (clock.etHour < 9 || (clock.etHour === 9 && clock.etMinute < 45)) reasons.push("Judas window — full size.");
@@ -1844,14 +1870,14 @@ function judasIfvg0dte(
   const underlier = c ? underlierOf(c.symbol) : "QQQ";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
   const ticket =
-    c && verdict !== "STAND"
+    c && verdict !== "STAND" && !lateBlocked
       ? toTicket(
           underlier,
           side,
           spot,
-          0,
-          0.35,
-          0.5,
+          INTRADAY.live ? INTRADAY.dte : 0, // rule off → the pre-rule Judas lane (0DTE Δ0.35–0.5)
+          INTRADAY.live ? INTRADAY.deltaLo : 0.35,
+          INTRADAY.live ? INTRADAY.deltaHi : 0.5,
           IV[underlier],
           cap,
           sleeve,
@@ -1871,7 +1897,7 @@ function judasIfvg0dte(
     horizon: "day",
     whyHighProb:
       `A+ after 9:45 with raid + MSS/IFVG only. Ticket ceiling $${cap}; the loss budget is 15% of what you actually pay.`,
-    verdict: verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
+    verdict: lateBlocked || verdict === "STAND" ? "STAND" : ticket ? verdict : "WATCH",
     score: liveBand ? c?.confluence ?? 0 : 0,
     reasons,
     blocks,
@@ -2000,7 +2026,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
           underlier,
           side,
           spot,
-          5,
+          5, // swing-classified (horizon "swing", 2–5 sessions): keeps its own DTE — owner rule 2026-10-15
           0.3,
           0.4,
           IV[underlier],

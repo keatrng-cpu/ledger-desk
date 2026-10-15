@@ -1,3 +1,5 @@
+import { stopText, ticketMatchesCard, dteFitsPlan, tapeStale } from "@/lib/smc/deep-audit";
+import { floorDteRead } from "@/lib/smc/smc-unity";
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
 import { RULES_HASH } from "@/lib/desk/rules-hash";
 import { buildDeskSeq, type DeskSeqWire } from "@/lib/smc/seq/wire";
@@ -175,6 +177,13 @@ export interface DeskWire {
     t2: number | null;
     /** The plan's stop as a number (the text stays on `stop`). Null without a plan. */
     stopPx: number | null;
+    /** deep-audit #4: structural anchor (raid/sweep price) — the journal's setup id. */
+    anchor?: number | null;
+    /** deep-audit #1/#13: price printed through the stop — the card is dead. */
+    invalidated?: boolean;
+    /** deep-audit #12: quote lag > 30 s — band C, not actionable. */
+    staleTape?: boolean;
+    playedOut?: boolean;
     /** R7 chop on this book (15m overlap / range). */
     chop: boolean;
     qRaw: number | null;
@@ -214,6 +223,10 @@ export interface DeskWire {
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
     handTo?: "watcher" | null;
     blocks: string[];
+    /** deep-audit #5/#6: ticket vs card checks. */
+    ticketCheck?: TicketFlags;
+    /** deep-audit #5: Floor's SMT ticket when it is on the other book/side — shown separately, never handed. */
+    otherBookTicket?: { underlier: string; side: string; dte: number; label: string } | null;
     ticket: {
       underlier: string;
       side: string;
@@ -247,7 +260,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const book = desk.smcMaster.oneBook;
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
   const verdict = shown?.verdict ?? "STAND";
-  const handed = armed?.verdict === "ARMED" && Boolean(armed.ticket);
+  // deep-audit #5/#6: a contradicting / wrong-DTE / unpriced ticket is never handed (checked once `top` is known).
+  let handed = armed?.verdict === "ARMED" && Boolean(armed.ticket);
   // AUDIT F7: the card's strategy IS the brain's book when the brain has one
   // on the board, so scanner, brain and Floor describe the same trade.
   const bookCand = desk.smcMaster.oneBook?.side
@@ -261,7 +275,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const best = desk.scan.candidates.find((c) => !isWatch(c)) ?? null;
   const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
-  const tapeFresh = desk.quotes.left.lagSec < 30 && desk.quotes.right.lagSec < 30;
+  const tapeFresh = !tapeStale([desk.quotes.left.lagSec, desk.quotes.right.lagSec]); // one boundary with build-desk (stale only when lag > STALE_TAPE_SEC)
+  const tk = ticketCheck(shown?.ticket ?? null, top ? { symbol: top.symbol, side: top.side as "long" | "short" } : null, desk.clock.etHour, desk.clock.etMinute,
+    shown?.ticket ? desk.optionMarks?.find((m) => m.underlier === shown.ticket!.underlier && m.side === shown.ticket!.side)?.ask ?? null : null);
+  if (!tk.handable || !tapeFresh) handed = false;
   const phase = handed ? "hand" : "look";
   const sb = desk.shock?.active || desk.shock?.tail ? desk.shock.bias : null;
   const arrRows = [
@@ -316,7 +333,12 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           qRaw: top.qRaw ?? null,
           bias1h: htfBiasOf(desk.mtfContext, top.symbol)?.bias1h ?? null,
           bias4h: htfBiasOf(desk.mtfContext, top.symbol)?.bias4h ?? null,
-          stop: top.invalidation || null,
+          // deep-audit #14: the text is rendered from the number the watcher uses
+          stop: top.plan?.stop != null ? stopText(top.plan.stop, top.invalidation) : top.invalidation || null,
+          anchor: (top.plan as { raid?: { price: number } | null } | null | undefined)?.raid?.price ?? top.plan?.sweep ?? null,
+          invalidated: (top as { invalidated?: boolean }).invalidated === true,
+          staleTape: !tapeFresh,
+          playedOut: (top as { playedOut?: boolean }).playedOut === true,
           draw: top.draw?.name ?? null,
           displacement: Boolean(top.displacement?.bodyQualified || top.displacement?.qualifiedBy) || (top.dispStrength != null && top.dispStrength.bodyAtr >= 1 && top.dispStrength.leftFvg),
           displacementStrength: top.dispStrength?.score ?? null,
@@ -397,8 +419,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
-      blocks: (shown?.blocks ?? []).slice(0, 4),
-      ticket: shown?.ticket
+      blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
+      ticketCheck: tk.flags,
+      otherBookTicket: tk.contradicts && shown?.ticket ? { underlier: shown.ticket.underlier, side: shown.ticket.side, dte: shown.ticket.dteTarget, label: "Floor SMT other-book ticket — NOT the card's trade" } : null,
+      ticket: shown?.ticket && !tk.contradicts
         ? {
             underlier: shown.ticket.underlier,
             side: shown.ticket.side,
@@ -494,8 +518,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       id: shown?.id ?? null,
       verdict,
       band: shown?.pathBand ?? null,
-      blocks: (shown?.blocks ?? []).slice(0, 4),
-      ticket: shown?.ticket
+      blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
+      ticket: shown?.ticket && !tk.contradicts
         ? {
             underlier: shown.ticket.underlier,
             side: shown.ticket.side,
@@ -574,4 +598,34 @@ export function masterInputOf(
     topDraw: wire.draws?.[0] ? { name: wire.draws[0].name, price: wire.draws[0].price } : null,
     governor,
   };
+}
+
+export interface TicketFlags { sideOk: boolean; dteOk: boolean; dteWant: number; liveAskMissing: boolean; contractsZero: boolean; why: string[] }
+/**
+ * deep-audit #5/#6 (pure): the hand-off ticket must be the card's trade — underlier/side from the card
+ * (MNQ/NQ→QQQ, ES→SPY; long→call) — and its DTE must be the intraday ticket DTE (optExec.intradayTicket: 0DTE;
+ * 1DTE+ is swing-only). From lateBlockEt an intraday ticket is blocked (0DTE impractical), never rolled. 0 contracts blocks the hand; a missing live ask is flagged only.
+ */
+export function ticketCheck(
+  t: { underlier: string; side: string; dteTarget: number; contracts?: number } | null,
+  card: { symbol: string; side: "long" | "short" } | null,
+  etHour: number, etMinute: number, liveAsk: number | null,
+): { handable: boolean; contradicts: boolean; blocks: string[]; flags: TicketFlags | undefined } {
+  if (!t) return { handable: true, contradicts: false, blocks: [], flags: undefined };
+  if (!card) return { handable: false, contradicts: false, blocks: ["no card to match the ticket to"], flags: undefined };
+  const m = ticketMatchesCard({ underlier: t.underlier, right: t.side }, card.symbol, card.side);
+  const fd = floorDteRead(etHour, etMinute, t.dteTarget);
+  const want = fd.want;
+  // Owner rule 2026-10-15: the intraday ticket is 0DTE ATM (1 OTM fallback); 1DTE+ intraday fails (swing-only).
+  const dteOk = dteFitsPlan(t.dteTarget, "intraday") && t.dteTarget === want && !fd.lateBlocked;
+  const liveAskMissing = !(liveAsk != null && liveAsk > 0);
+  const contractsZero = t.contracts != null && !(t.contracts > 0);
+  const why: string[] = [];
+  if (!m.ok) why.push(m.why!);
+  if (fd.lateBlocked) why.push("0DTE impractical this late (after the intraday cutoff ET) — intraday blocked, not rolled to 1DTE");
+  else if (!dteOk) why.push(`ticket ${t.dteTarget} DTE does not fit the intraday plan (want ${want} DTE; 1DTE+ is swing-only)`);
+  if (contractsZero) why.push("ticket has 0 contracts");
+  // A missing live ask is FLAGGED, not blocked: the watcher prices ARMED tickets on the RH chain (handTo "watcher").
+  const flagsWhy = liveAskMissing ? [...why, "no live ask — model price only (watcher must price on the chain)"] : why;
+  return { handable: why.length === 0, contradicts: !m.ok, blocks: why, flags: { sideOk: m.ok, dteOk, dteWant: want, liveAskMissing, contractsZero, why: flagsWhy } };
 }
