@@ -44,6 +44,10 @@ export interface ArrayRow {
   failed?: boolean;
   /** F7: when the iFVG inverted (ms) — the kill anchors here, not lastT − age. */
   invertedT?: number | null;
+  /** post-mortem 13:02 F1: minutes since the first CLOSED 1m bar closed through this (un-inverted) 5m/15m gap's far side; null = none. */
+  through1mAgeMin?: number | null;
+  /** a later closed 1m bar closed back beyond the gap's near side (the through was reclaimed). */
+  reclaimed1m?: boolean;
 }
 
 /** smcUnity.ifvgFail live = a failed iFVG reads as mitigated everywhere (kills, counts, wire). */
@@ -113,7 +117,20 @@ export function mtfArrays(symbol: string, minute: OhlcBar[] | null | undefined, 
     const r = rung(symbol, bars15, tf);
     out.push(...rowsFor(tf, r.bars, r.gaps));
   }
+  if (minute?.length) for (const a of out) if ((a.tf === "5m" || a.tf === "15m") && a.kind !== "ifvg") Object.assign(a, through1m(minute, a));
   return out;
+}
+
+/** post-mortem 13:02 F1: first closed 1m close through a 5m/15m gap after it formed (bull: close < lo; bear: close > hi), and whether a later close reclaimed it. */
+export function through1m(minute: OhlcBar[], a: Pick<ArrayRow, "tf" | "dir" | "lo" | "hi" | "createdT">, nowMs = Date.now()): { through1mAgeMin: number | null; reclaimed1m: boolean } {
+  const end = a.createdT + MIN[a.tf] * 60_000;
+  const closed = minute.filter((b) => b.t >= end && b.t + 60_000 <= nowMs);
+  const bull = a.dir === "bull";
+  const i = closed.findIndex((b) => (bull ? b.c < a.lo : b.c > a.hi));
+  if (i < 0) return { through1mAgeMin: null, reclaimed1m: false };
+  const lastEnd = closed[closed.length - 1]!.t + 60_000;
+  const rec = closed.slice(i + 1).some((b) => (bull ? b.c > a.hi : b.c < a.lo));
+  return { through1mAgeMin: Math.round((lastEnd - (closed[i]!.t + 60_000)) / 60_000), reclaimed1m: rec };
 }
 
 /** The wire list: live (unmitigated) first, then newest, capped. */

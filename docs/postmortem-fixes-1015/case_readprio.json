@@ -1,0 +1,158 @@
+[
+ {
+  "ct": "13:00:30",
+  "px": 7786.25,
+  "longBlocked": false,
+  "why": "no 5m/15m bull FVG being inverted",
+  "readFlipped": false,
+  "short": null
+ },
+ {
+  "ct": "13:01:05",
+  "px": 7784.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7785.25-7786.25 closed through on 1m 0m ago, not reclaimed - no long (B+)",
+  "readFlipped": false,
+  "short": null
+ },
+ {
+  "ct": "13:02:03",
+  "px": 7782.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7785.25-7786.25 closed through on 1m 1m ago, not reclaimed - no long (B+)",
+  "readFlipped": false,
+  "short": null
+ },
+ {
+  "ct": "13:03:05",
+  "px": 7779.25,
+  "longBlocked": true,
+  "why": "read flipped: 2+ 5m bull FVGs closed through on 1m - no long (any band)",
+  "readFlipped": true,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087385000,
+    "ageBars": 0
+   },
+   "entry": 7781.75,
+   "stop": 7786.76,
+   "t1": null,
+   "rr1": null,
+   "why": "read flipped: 2 5m bull FVGs closed through on 1m - short at the gap CE retest, stop beyond 7786.25"
+  }
+ },
+ {
+  "ct": "13:04:05",
+  "px": 7776.75,
+  "longBlocked": true,
+  "why": "read flipped: 2+ 5m bull FVGs closed through on 1m - no long (any band)",
+  "readFlipped": true,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087445000,
+    "ageBars": 0
+   },
+   "entry": 7781.75,
+   "stop": 7786.76,
+   "t1": null,
+   "rr1": null,
+   "why": "read flipped: 2 5m bull FVGs closed through on 1m - short at the gap CE retest, stop beyond 7786.25"
+  }
+ },
+ {
+  "ct": "13:05:05",
+  "px": 7775,
+  "longBlocked": true,
+  "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (closed through) - no long",
+  "readFlipped": false,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.75,
+   "stop": 7783.98,
+   "t1": null,
+   "rr1": null,
+   "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
+  }
+ },
+ {
+  "ct": "13:06:05",
+  "px": 7776.5,
+  "longBlocked": true,
+  "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (closed through) - no long",
+  "readFlipped": false,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.75,
+   "stop": 7783.98,
+   "t1": null,
+   "rr1": null,
+   "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
+  }
+ },
+ {
+  "ct": "13:08:05",
+  "px": 7776.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (closed through) - no long",
+  "readFlipped": false,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.75,
+   "stop": 7783.98,
+   "t1": null,
+   "rr1": null,
+   "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
+  }
+ },
+ {
+  "ct": "13:10:05",
+  "px": 7774.25,
+  "longBlocked": true,
+  "why": "5m bull FVG 7780-7783.5 inverted 1 bar(s) ago (closed through) - no long",
+  "readFlipped": false,
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7780,
+    "hi": 7783.5,
+    "ce": 7781.75,
+    "invertedT": 1792087200000,
+    "ageBars": 1
+   },
+   "entry": 7781.75,
+   "stop": 7783.98,
+   "t1": null,
+   "rr1": null,
+   "why": "5m bull FVG 7780-7783.5 inverted 1 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
+  }
+ }
+]

@@ -408,7 +408,8 @@ export function sanePlan(
   const rr1 = rr(p.t1), rr2 = real(p.t2) ? rr(p.t2) : null;
   // 13:01 CT ES case: a T1 under 1R must never be the DISPLAYED target. Promote a real T2 that clears
   // RR_MIN to T1 (no new level is created); otherwise it's a watch row.
-  if ((rr1 == null || rr1 < RR_MIN) && rr2 != null && rr2 >= RR_MIN) {
+  // post-mortem 13:02 (F2): never promote a T2 above RR_DISPLAY_MAX (the 7874.25 / 12R card) - that is a watch row, not a target.
+  if ((rr1 == null || rr1 < RR_MIN) && rr2 != null && rr2 >= RR_MIN && rr2 <= RR_DISPLAY_MAX) {
     return { ok: true, why: `T1 ${p.t1} was ${rr1}R (< ${RR_MIN}) — promoted T2 ${p.t2} (${rr2}R) to T1`, widened, flagged: rr2 > RR_DISPLAY_MAX, stop, riskPts,
       rr1: rr2, rr2: null, rrShown: Math.min(rr2, RR_DISPLAY_MAX), promoted: true, t1: p.t2, t2: null };
   }

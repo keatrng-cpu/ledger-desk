@@ -6,8 +6,14 @@ import { register } from "tsx/esm/api";
 register();
 const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", import.meta.url)));
 const fc = await import("../src/lib/execution/fast-chain.ts");
-const BASE = { band: "B+", symbol: "ES", side: "short", entry: 7851.75, stop_px: 7856.25, first_target: 7846.3, px: 7852, atr: 8, brain_symbol: "ES", brain_side: "short", bias1h: "bear", bias4h: "bear", expMin: 20.6 };
+const BASE = { band: "B+", symbol: "ES", side: "short", entry: 7851.75, stop_px: 7856.25, first_target: 7846.3, px: 7852, atr: 8, brain_symbol: "ES", brain_side: "short", bias1h: "bear", bias4h: "bear", expMin: 20.6, etMin: 600 };
 const CASES = [{}, { band: "B" }, { band: "A+" }, { stop_px: 7840 }, { first_target: 7849 }, { px: 7860 }, { brain_side: "long" }, { bias1h: "bull", bias4h: "bull" }, { expMin: 31 }, { expMin: null }, { side: "long", stop_px: 7840, first_target: 7870 }, { side: "long", stop_px: 7856.25, first_target: 7846.3 }, { t2: 7850 }, { t2: 7840 }, { desk_ticket_side: "call" }, { desk_ticket_side: "put", desk_ticket_underlier: "QQQ" }, { desk_ticket_side: "put", desk_ticket_underlier: "SPY" },
+  // post-mortem 13:02 + Keaton 13:26 CT: q penalties (htf / B+ after 13:00 ET), htf evidence, 1m-close-through, read-priority, 13:15 ES short A-
+  { q: 0.63, bias1h: "bull" }, { q: 0.63, bias1h: "bull", displacement: true }, { q: 0.70, bias1h: "bull", brain_word: "TAKE" }, { q: 0.63, etMin: 785 }, { band: "A-", q: 0.6749, etMin: 785 },
+  { side: "long", stop_px: 7840, first_target: 7870, arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7853, hi: 7854, ageBars: 2, formedAgeBars: 2, through1mAgeMin: 1, reclaimed1m: false }] },
+  { side: "long", band: "A", stop_px: 7840, first_target: 7870, arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7853, hi: 7854, ageBars: 2, formedAgeBars: 2, through1mAgeMin: 1, reclaimed1m: false }] },
+  { side: "long", band: "A+", stop_px: 7840, first_target: 7870, arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7853, hi: 7854, ageBars: 2, formedAgeBars: 2, through1mAgeMin: 1 }, { tf: "5m", kind: "fvg", dir: "bull", lo: 7855, hi: 7856, ageBars: 3, formedAgeBars: 3, through1mAgeMin: 2 }] },
+  { band: "A-", q: 0.6749, entry: 7771.38, stop_px: 7780, first_target: 7760.25, px: 7766.25, atr: 10.98, bias1h: "bull", bias4h: "bear", displacement: true, sweep: true, etMin: 855, brain_word: "WAIT" },
   // unblock-2 10/15: HTF both oppose with / without LTF reversal; grade smoothing (2 of 3; edge + rising; edge + falling)
   { side: "long", stop_px: 7840, first_target: 7870, bias1h: "bear", bias4h: "bear", sweep: true, displacement: true },
   { side: "long", stop_px: 7840, first_target: 7870, bias1h: "bear", bias4h: "bear", sweep: true, choch: true },
@@ -31,7 +37,7 @@ test("watcher (Python) fastchain.setup_rows matches the TS chain on the same cas
   const dir = dirs.find((d) => existsSync(`${d}/watcher/fastchain.py`));
   if (!dir) return;
   const snaps = CASES.map((c) => ({ ...BASE, ...c }));
-  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nout=[]\nfor s in json.loads(${JSON.stringify(JSON.stringify(snaps))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[])\n  out.append([[n,ok] for n,ok,_ in f.setup_rows(s)])\nprint(json.dumps({"rows":out,"rules":f.FC}))`;
+  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nout=[]\nfor s in json.loads(${JSON.stringify(JSON.stringify(snaps))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[]); s["et_min"]=s.pop("etMin",None)\n  out.append([[n,ok] for n,ok,_ in f.setup_rows(s)])\nprint(json.dumps({"rows":out,"rules":f.FC}))`;
   const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());
   assert.deepEqual(r.rules, RULES.fastChain);
   snaps.forEach((s, i) => assert.deepEqual(r.rows[i], fc.fastSetupRows(s).map(([n, ok]) => [n, ok]), JSON.stringify(CASES[i])));
@@ -62,7 +68,7 @@ test("persist: watcher streak_next agrees with the TS twin on a poll sequence", 
   const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/fastchain.py`));
   if (!dir) return;
   const seq = [[{ at: "a1" }, 0], [SIB, 4000], [{ at: "a3" }, 8000], [{ at: "a3" }, 9000], [{ at: "a4" }, 12000], [{ at: "a5", band: "B" }, 16000], [{ at: "a6" }, 20000], [{ at: "a7" }, 95000], [{ at: "c1", px: 7847 }, 96000], [{ at: "p1" }, 100000], [{ at: "p2" }, 104000]].map(([c, t]) => [{ ...BASE, ...c }, t]);
-  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[]\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[])\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
+  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[]\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[]); s["et_min"]=s.pop("etMin",None)\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
   const py_out = JSON.parse(execFileSync("python3", ["-c", py]).toString());
   let st = null; const ts_out = seq.map(([s, t]) => { st = fc.streakNext(st, s, t); return fc.persistOk(st, t); });
   assert.deepEqual(py_out, ts_out); assert.ok(ts_out.includes(true));
@@ -155,15 +161,17 @@ test("unblock-2 10/15: 2-trade cap gone (re-fire handled by #22 spent-for-sessio
   assert.ok(!RULES.fastChain.hard.includes("entries_day")); assert.equal(RULES.fastChain.refireGuard, undefined);
   assert.equal(RULES.weekly.lossLock, -300); assert.equal(RULES.fireFix.dayLoss.usd, 150); assert.equal(RULES.fireFix.envelope.maxDebit, 650);
   const h = { ...BASE, side: "long", stop_px: 7840, first_target: 7870, bias1h: "bear", bias4h: "bear", sweep: true, displacement: true };
-  assert.equal(fc.htfSize(4, h), 2); assert.equal(fc.htfSize(1, h), 1); assert.equal(fc.htfSize(4, { ...h, sweep: false }), 4);
+  // post-mortem 13:02: htfReversal half size replaced by fastChain.qPenalty.htf (htfReversal mode off -> htfSize is a no-op)
+  assert.equal(RULES.fastChain.htfReversal.mode, "off"); assert.equal(fc.htfSize(4, h), 4);
   assert.equal(fc.smoothedBand({ band: "A-", q: 0.66, bandHist: [] }), false);
 });
 
 test("live lesson 10/15 13:02-13:05 CT: ES long blocked (5m bull FVG being inverted + 4h against without displacement); the inversion arms a short", async () => {
   const L = { ...BASE, symbol: "ES", side: "long", band: "B+", q: 0.6499, entry: 7782.63, stop_px: 7775, first_target: 7792.25, px: 7784, atr: 10.34, brain_side: "long", bias1h: "bull", bias4h: "bear", sweep: true, displacement: false,
-    arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7785.25, hi: 7786.25, ageBars: 2, formedAgeBars: 2 }, { tf: "15m", kind: "fvg", dir: "bull", lo: 7779.75, hi: 7785.5, ageBars: 0, formedAgeBars: 0 }] };
+    arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7785.25, hi: 7786.25, ageBars: 2, formedAgeBars: 2, through1mAgeMin: 1, reclaimed1m: false }, { tf: "15m", kind: "fvg", dir: "bull", lo: 7779.75, hi: 7785.5, ageBars: 0, formedAgeBars: 0 }] };
   const r = Object.fromEntries(fc.fastSetupRows(L));
-  assert.equal(r["fast:ifvg"], false); assert.equal(r["fast:agree"], false);
+  // post-mortem 13:02: the 1m close 7784.75 (13:00:59) through 7785.25 blocks the B+ long; sweep is now htf evidence (agree passes), the -0.05 q keeps it B
+  assert.equal(r["fast:ifvg"], false); assert.equal(r.band, false);
   const f = await import("../src/lib/smc/ifvg-flip.ts");
   // synthetic 1m tape: a 5m bull FVG forms, then a 5m bar closes below its bottom -> bearish iFVG arms the short
   const t0 = Date.UTC(2026, 9, 15, 17, 0); const bars = []; let p = 7780;
@@ -182,4 +190,23 @@ test("live lesson 10/15 13:02-13:05 CT: ES long blocked (5m bull FVG being inver
   assert.equal(short.t1.name, "PDL"); assert.ok(short.rr1 >= 1);
   assert.equal(f.ifvgFlipOf({ symbol: "TEST:flip", side: "long", minute: bars, closed15: [], targets: [{ name: "PDH", price: p + 90 }], nowMs: now }), null);
   assert.equal(f.ifvgFlipOf({ symbol: "TEST:flip2", side: "short", minute: bars, closed15: [], targets: [], nowMs: now })?.t1 ?? null, null);   // no pool -> no T1, no plan
+});
+
+test("post-mortem 13:02 / 13:26 CT: 10/15 13:15 CT ES short A- passes every setup row; 13:02 long blocked by the 1m-close read", () => {
+  const short = { ...BASE, band: "A-", q: 0.6749, entry: 7771.38, stop_px: 7780, first_target: 7760.25, px: 7766.25, atr: 10.98, bias1h: "bull", bias4h: "bear", displacement: true, sweep: true, etMin: 855, brain_word: "WAIT" };
+  assert.ok(fc.fastSetupRows(short).every(([, ok]) => ok), JSON.stringify(fc.fastSetupRows(short)));
+  const long = { ...BASE, side: "long", band: "B+", q: 0.6499, entry: 7782.63, stop_px: 7775, first_target: 7792.25, px: 7784, atr: 10.34, brain_side: "long", bias1h: "bull", bias4h: "bear", sweep: true, etMin: 842,
+    arrays: [{ tf: "5m", kind: "fvg", dir: "bull", lo: 7785.25, hi: 7786.25, ageBars: 2, formedAgeBars: 2, through1mAgeMin: 1, reclaimed1m: false }] };
+  const r = Object.fromEntries(fc.fastSetupRows(long));
+  assert.equal(r["fast:ifvg"], false); assert.equal(r.band, false);
+});
+
+test("post-mortem 13:02 F1: through1m reads the first closed 1m close through a 5m gap and a reclaim", async () => {
+  const m = await import("../src/lib/smc/mtf-arrays.ts");
+  const t0 = Date.UTC(2026, 9, 15, 18, 0); const bar = (i, c) => ({ t: t0 + i * 60_000, o: c, h: c + 0.5, l: c - 0.5, c, v: 1 });
+  const g = { tf: "5m", dir: "bull", lo: 7785.25, hi: 7786.25, createdT: t0 - 10 * 60_000 };
+  const r = m.through1m([bar(0, 7786), bar(1, 7784.75), bar(2, 7782.75)], g, t0 + 3 * 60_000);
+  assert.deepEqual(r, { through1mAgeMin: 1, reclaimed1m: false });
+  assert.equal(m.through1m([bar(0, 7784.75), bar(1, 7787)], g, t0 + 2 * 60_000).reclaimed1m, true);
+  assert.equal(m.through1m([bar(0, 7786)], g, t0 + 60_000).through1mAgeMin, null);
 });

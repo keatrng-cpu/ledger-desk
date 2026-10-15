@@ -5,7 +5,8 @@
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
-import { IFVG_FLIP, ifvgFlipOf } from "@/lib/smc/ifvg-flip";
+import { IFVG_FLIP, ifvgFlipOf, readFlipped, type WireArray } from "@/lib/smc/ifvg-flip";
+import { mtfArrays } from "@/lib/smc/mtf-arrays";
 import RULES_ALL from "../../../shared/desk-rules.json";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
@@ -1518,7 +1519,9 @@ export function scoreCandidates(
     const mn = (isL ? leftMinute : rightMinute) ?? [];
     const sess = mn.length ? sessionPools(mn, armNow, 60_000) : sessionPools(isL ? closedL : closedR, armNow, 900_000);
     const { targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
-    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets, nowMs: armNow });
+    const arr = mtfArrays(c.symbol, isL ? leftMinute : rightMinute, isL ? closedL : closedR) as unknown as WireArray[];
+    if (readFlipped(arr, c.side)) (c as { readFlippedAgainst?: boolean }).readFlippedAgainst = true;   // read-priority: this side's 5m gaps are failing on 1m
+    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets, nowMs: armNow, arrays: arr });
     (c as { ifvgFlip?: unknown }).ifvgFlip = f;
     if (!f) continue;
     c.reasons.push(`iFVG flip (${IFVG_FLIP.mode}): ${f.why}; entry ${f.entry} (edge ${f.entryEdge}), stop ${f.stop}${f.t1 ? `, T1 ${f.t1.name} ${f.t1.price} (${f.rr1}R)` : ", no real pool >= 1R ahead"}`);
@@ -1717,6 +1720,15 @@ export function scoreCandidates(
     c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
     if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
     if (before !== c.pathBand) c.reasons.push(`LTF-armed card capped ${before} → ${c.pathBand} (ltfArm.capBand)`);
+  }
+
+  // Keaton 13:26 CT read-priority: 2+ same-side 5m FVGs closed through on 1m -> this side's card is killed to C the same poll
+  // (the opposite side was armed above by ifvgFlipOf). Mirrored.
+  for (const c of pathCandidates) {
+    if (!(candidates[pathCandidates.indexOf(c)] as { readFlippedAgainst?: boolean }).readFlippedAgainst) continue;
+    const before = c.pathBand; c.pathBand = "C"; c.actionable = false;
+    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    c.reasons.push(`read flipped: 2+ 5m ${c.side === "long" ? "bull" : "bear"} FVGs closed through on 1m — ${before} → C (readPriority)`);
   }
 
   for (const c of pathCandidates) stampPathTitle(c);

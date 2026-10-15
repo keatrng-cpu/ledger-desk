@@ -16,8 +16,30 @@ export interface FastSnap {
   q?: number | null; sweep?: boolean | null; displacement?: boolean | null; choch?: boolean | null; bandHist?: [string | null, number | null, string | null][];
   /** wire.arrays rows of THIS card's symbol (fast:ifvg). */
   arrays?: WireArray[] | null;
+  /** post-mortem 13:02: brain word (TAKE/WAIT/STAND) and minutes since 00:00 ET (default: now). */
+  brain_word?: string | null; etMin?: number | null;
 }
 const GS = FC.gradeSmoothing; const HR = FC.htfReversal;
+const QP = (FC as unknown as { qPenalty: { htf: { mode: string; q: number; requireOneOf: string[] }; pmBplus: { mode: string; q: number; fromEt: string } } }).qPenalty;
+const EDGE_LIST: [string, number][] = (["A+", "A", "A-", "B+", "B"] as const).map((b) => [b, (RULES.bandEdges as Record<string, number>)[b]]);
+export const bandOfQ = (q: number) => EDGE_LIST.find(([, e]) => q >= e - 1e-9)?.[0] ?? "C";
+const nOppOf = (s: FastSnap) => { const want = s.side === "long" ? "bull" : "bear"; return [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length; };
+const etMinNow = () => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()); return +p.find((x) => x.type === "hour")!.value * 60 + +p.find((x) => x.type === "minute")!.value; };
+/** post-mortem 13:02 soft q penalties (twin of watcher fastchain.q_penalty): [sum, notes]. */
+export function qPenalty(s: FastSnap): [number, string[]] {
+  let pen = 0; const why: string[] = [];
+  if (QP.htf.mode === "live" && nOppOf(s) >= 1) { pen += QP.htf.q; why.push(`1h/4h opposes -${QP.htf.q}`); }
+  const [h, m] = QP.pmBplus.fromEt.split(":").map(Number);
+  if (QP.pmBplus.mode === "live" && s.band === "B+" && (s.etMin ?? etMinNow()) >= h! * 60 + m!) { pen += QP.pmBplus.q; why.push(`after ${QP.pmBplus.fromEt} ET -${QP.pmBplus.q}`); }
+  return [+pen.toFixed(4), why];
+}
+/** Band after the q penalties: never above the card's band; edges unchanged. */
+export function penalizedBand(s: FastSnap): string | null | undefined {
+  const [pen] = qPenalty(s); if (!pen || s.q == null) return s.band;
+  const nb = bandOfQ(s.q - pen); return rank(nb) < rank(s.band) ? nb : s.band;
+}
+/** htf requireOneOf: sweep | displacement | brain TAKE. */
+export const htfEvidence = (s: FastSnap) => QP.htf.requireOneOf.some((k) => (k === "sweep" && s.sweep === true) || (k === "displacement" && s.displacement === true) || (k === "brainTake" && String(s.brain_word ?? "").toUpperCase() === "TAKE"));
 const B_EDGE = RULES.bandEdges["B+"];
 /** gradeSmoothing (twin of watcher fastchain.smoothed_band): >= minBand on minOf of the last `polls` polls, or q within edgeEps of the B+ edge and rising. Edges never lowered. */
 export function smoothedBand(s: FastSnap): boolean {
@@ -52,7 +74,8 @@ export function htfSize(n: number | null, s: FastSnap, minContracts = 1): number
 /** [name, ok] in the watcher's order (persistence needs the clock and is checked by the watcher). */
 export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const r: [string, boolean][] = [];
-  const bandOk = (rank(s.band) >= rank(FC.minBand) && rank(s.band) >= 0) || smoothedBand(s);
+  const pb = penalizedBand(s);
+  const bandOk = (rank(pb) >= rank(FC.minBand) && rank(pb) >= 0) || (pb === s.band && smoothedBand(s));   // a q-penalised card is never smoothed back up
   r.push(["band", bandOk]);
   const { entry: e, stop_px: st, first_target: t1, side } = s;
   const sides = e != null && st != null && t1 != null && ((side === "long" && st < e && e < t1) || (side === "short" && t1 < e && e < st));
@@ -64,9 +87,10 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const want = side === "long" ? "bull" : "bear";
   // unblock-2 + live lesson 10/15 13:02 CT: any 1h/4h opposition needs a confirmed LTF reversal (never q alone) -> half size; else block.
   const nOpp = [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length;
-  const against = (HR.anyOppose ? nOpp >= 1 : s.bias1h != null && s.bias4h != null && nOpp === 2) && !ltfReversal(s, bandOk);
+  const against = QP.htf.mode === "live" ? nOpp >= 1 && !htfEvidence(s)
+    : (HR.anyOppose ? nOpp >= 1 : s.bias1h != null && s.bias4h != null && nOpp === 2) && !ltfReversal(s, bandOk);
   r.push(["fast:agree", !opposite && !against]);
-  r.push(["fast:ifvg", !ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px)[0]]);
+  r.push(["fast:ifvg", !ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px, undefined, s.band ?? null)[0]]);
   // fast:geometry (twin of watcher geometry_row; Floor review 2026-10-13 19:28 ET): long stop<entry<T1 / short reversed.
   // fire-bugs-live 10/15: a T2 not beyond T1 is "no T2" (see effectiveT2), and a desk Floor ticket on another underlying or
   // the other direction is another setup, so neither refuses the card.
