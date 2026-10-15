@@ -967,6 +967,39 @@
       "_doc": "Keaton: session gate refusals (out of 08:30-11:00 / 13:30-16:00 ET, shock exception 2.0xATR & 1.5xvol unchanged). Continuation run all day on Yahoo 19 sessions x2: lunch refusals 15 trades 40% win -0.083R -576 USD/wk; HTF-aligned & >=4 rungs 7 trades -0.246R; others 8 trades +0.059R -146 USD/wk. No bucket positive after costs: no exception proposed; live thresholds unchanged."
     }
   },
+  "evFire": {
+    "_doc": "EV fire path (Keaton 2026-10-15; audits fire-logic-1015, grade-audit-1015, ev-fire-1015). OFF by default; every sub-flag is off|shadow|live. shadow = desk and watcher compute and log only (wire.strategy.ev, shadow:ev:* rows, paper brackets in shadow_ev.jsonl); q, band, size and fire do not change. live = ev:fire may fire when every hard gate passes (news, entry_cutoff, fast:plan, fast:geometry, fast:entry, fast:agree, stop not crossed, tape, account, caps); band, fast:persist and fast:velocity are replaced by the per symbol:side EV hold. EV_R = p*min(RR,rrCap) - (1-p) - max(costFloorR, costR); p = calibrated P(T1) (refuse when the table is untrained or its hash differs). Size: band >= fullMinBand -> fullUsd, else probeUsd. Band edges and safety caps unchanged. Walk-forward 2026-10-15: no (threshold, qFloor) cell was positive in both halves; do not set live without a passing shadow run.",
+    "mode": "off",
+    "threshold": 0.15,
+    "qFloor": 0.45,
+    "rrCap": 4,
+    "costFloorR": 0.1,
+    "holdS": 20,
+    "fullUsd": 650,
+    "probeUsd": 325,
+    "fullMinBand": "B+",
+    "calibration": {
+      "tableHash": "fc9eda688b5d6d23",
+      "prior": 10,
+      "windowDays": 40,
+      "bucket": 0.05,
+      "minSamples": 200
+    },
+    "ltfSoft": {
+      "mode": "off",
+      "cap": "B",
+      "liftDisp": 0.6,
+      "_doc": "ltfKilled: C cap becomes a B cap; lifted fully when displacementStrength on the card's side >= liftDisp."
+    },
+    "qRawOnce": {
+      "mode": "off",
+      "_doc": "qRaw0 is recorded once, before R3 chase and before any sealBand; live = sealBand never overwrites qRaw (qRaw = qRaw0)."
+    },
+    "dropCrossedStop": {
+      "mode": "off",
+      "_doc": "A plan whose stop has already traded is dropped (watch row, never fires). Item 2 (chase stops cutting q) is the existing timing.mode flag; flip it together with evFire."
+    }
+  },
   "primaryHysteresis": {
     "_doc": "Review 2026-10-15 #3: ES/MNQ primary-card hysteresis. The challenger takes primary only after out-scoring the incumbent by margin for polls consecutive REAL polls (the same upstream fetch rebuilt is the same poll and does not tick); on a lead re-grade keepOtherBook restores the non-lead book. shadow = desk primary, candidate order and both books exactly as main; the hysteresis pick and what keepOtherBook would change are only logged on wire.primaryHysteresis. live = acts.",
     "mode": "shadow",

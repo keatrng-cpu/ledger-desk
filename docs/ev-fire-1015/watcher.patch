@@ -1,0 +1,427 @@
+diff --git a/tests/test_evfire.py b/tests/test_evfire.py
+new file mode 100644
+index 0000000..5ce8bb9
+--- /dev/null
++++ b/tests/test_evfire.py
+@@ -0,0 +1,58 @@
++"""evFire (OFF by default): EV math, calibration refuse, hold survives flips, crossed stop, fast:entry text, sizing."""
++import copy, json
++from watcher import evfire as ev, fastchain, gates
++
++T = ev.TABLE
++SNAP = {"symbol": "MNQ", "side": "short", "band": "B", "q": 0.47, "entry": 29771.13, "stop_px": 29798.31, "first_target": 29703.25,
++        "tape_prices": {"MNQ": 29760.0}, "htf_bias": [("1h", "bear"), ("4h", "bear")],
++        "smc_unity_rows": [{"rule": "continuation", "would": "short: structure holds on 6 rungs (1m,2m,3m,4m,5m,15m)"}]}
++
++def test_off_by_default_and_shadow_rows_never_block():
++    assert gates.RULES["evFire"]["mode"] == "off" and ev.mode() == "off" and ev.rows(SNAP, [], 0) == ([], False, None)
++    for k in ("ltfSoft", "qRawOnce", "dropCrossedStop"): assert gates.RULES["evFire"][k]["mode"] == "off"
++
++def test_ev_math_and_rr_cap():
++    assert ev.ev_r(0.5, 2.0) == round(0.5 * 2 - 0.5 - 0.10, 6)
++    assert ev.ev_r(0.3, 34.0) == ev.ev_r(0.3, 4.0)          # RR capped at 4 for scoring
++    assert ev.ev_r(0.5, 2.0, cost_r=0.05) == ev.ev_r(0.5, 2.0)  # cost floor 0.10
++    assert ev.ev_r(0.5, 2.0, cost_r=0.30) == round(1.0 - 0.5 - 0.30, 6)
++
++def test_calibration_refuses_untrained_or_wrong_hash():
++    assert T and T["trained"] and ev.table_hash(T) == T["hash"] == gates.RULES["evFire"]["calibration"]["tableHash"]
++    assert ev.p_of(0.6, 6, True) is not None
++    bad = copy.deepcopy(T); bad["trained"] = False; assert ev.p_of(0.6, 6, True, table=bad) is None
++    bad = copy.deepcopy(T); bad["cells"] = {}; assert ev.p_of(0.6, 6, True, table=bad) is None   # stored hash no longer matches
++    assert ev.p_of(0.6, 6, True, pin="deadbeef") is None
++
++def test_size_probe_and_full():
++    assert ev.size_usd("B") == 325 and ev.size_usd("C") == 325 and ev.size_usd("B+") == 650 and ev.size_usd("A+") == 650
++
++def test_hold_survives_card_flip_and_resets_on_crossed_stop():
++    h = ev.hold_next({}, SNAP, True, 1000)
++    es = {**SNAP, "symbol": "ES", "side": "long", "entry": 6700, "stop_px": 6690, "first_target": 6720, "tape_prices": {"ES": 6701}}
++    h = ev.hold_next(h, es, False, 5000)                     # primary card flips to ES: the MNQ:short hold stays
++    assert h["MNQ:short"] == 1000
++    h = ev.hold_next(h, SNAP, True, 22000); assert h["MNQ:short"] == 1000
++    crossed = {**SNAP, "tape_prices": {"MNQ": 29800.0}}
++    assert "MNQ:short" not in ev.hold_next(h, crossed, True, 23000)
++    opp = {**SNAP, "side": "long", "entry": 29700, "stop_px": 29680, "first_target": 29760}
++    assert "MNQ:short" not in ev.hold_next(h, opp, True, 24000)   # opposite-side EV pass resets
++
++def test_rows_shadow_and_hard_gates(monkeypatch):
++    monkeypatch.setitem(ev.EVF, "mode", "shadow")
++    s = {**SNAP, "ev_holds": {"MNQ:short": 0}}
++    r = ev.read(s); rows, would, _ = ev.rows(s, [("news", True, "")], 30000)
++    assert rows[0][0] == "shadow:ev:fire" and rows[0][1] is True and would == r["would"]
++    rows, would, _ = ev.rows(s, [("fast:entry", False, "")], 30000); assert not would and "fast:entry" in rows[0][2]
++    rows, would, _ = ev.rows({**s, "ev_holds": {"MNQ:short": 25000}}, [], 30000); assert not would   # 5 s < 20 s hold
++    rows, would, _ = ev.rows({**s, "brain_symbol": "MNQ", "brain_side": "long"}, [], 30000); assert not would and "brain_ev_veto" in rows[0][2]
++
++def test_fast_entry_prints_real_limit():
++    s = {**SNAP, "atr": 54.36, "tape_prices": {"MNQ": 29731.13}}
++    row = [r for r in fastchain.setup_rows(s) if r[0] == "fast:entry"][0]
++    assert not row[1] and "= 40.0 <= 27.18 (0.5xATR 54.36)" in row[2]
++
++def test_desk_parity_cases():
++    """Same numbers as src/lib/desk/ev-fire.ts evCard (scripts/ev-fire.test.mjs feeds these exact cases)."""
++    for q, rungs, ok in ((0.47, 6, True), (0.6499, 0, False), (0.52, 5, True), (0.90, 9, True)):
++        p = ev.p_of(q, rungs, ok); assert p is not None and 0 < p < 1
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 5c6be38..160d006 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -82,6 +82,10 @@ class Watcher:
+                 d0 = t0.get("dte") if isinstance(t0.get("dte"), int) and not isinstance(t0.get("dte"), bool) else 1
+                 snap["ticket"] = {**t0, "underlier": "SPY" if snap["symbol"] == "ES" else "QQQ", "side": gates.SIDE_TO_TYPE[snap["side"]],
+                                   "dte": d0, "contracts": gates.band_caps(self.cfg, snap.get("band") or "B+")[0], "fast_synth": True}
++        from . import evfire
++        if evfire.on():                     # evFire per symbol:side hold (survives card flips); OFF by default
++            _er = evfire.read(snap); hs = evfire.hold_next(self.state.get("ev_holds"), snap, _er["would"], nm)
++            self.state["ev_holds"] = hs; snap["ev_holds"] = hs
+         # brain WAIT timer (60 s, then grok_agree decides)
+         bw = self.state.setdefault("brain_wait", {})
+         if snap.get("brain_word") == "WAIT": bw.setdefault(key, nm); snap["brain_wait_s"] = (nm - bw[key]) / 1000
+@@ -118,6 +122,12 @@ class Watcher:
+         if firefix.live("soleBlocker"):
+             self.state["sole_blocker"] = {"signal": key, "band": snap.get("band"), "q": snap.get("q"), "q_raw": snap.get("q_raw"), "line": firefix.sole_blocker(pre), "at": nm}
+         self._gate_log(key, snap, pre, dayst)
++        _evw = snap.get("_ev_would")
++        if _evw and _evw[0] and evfire.mode() == "shadow" and not self.state["signals"].get(key, {}).get("ev_paper"):
++            try:
++                evfire.paper(self.cfg.path("shadow_ev.jsonl"), snap, _evw[1], nm); self.state["signals"].setdefault(key, {})["ev_paper"] = nm
++            except Exception as e:  # shadow must never break the step
++                self.log("ev_shadow_error", error=str(e))
+         px0 = (snap.get("tape_prices") or {}).get(snap.get("symbol"))
+         atr0 = snap.get("atr") if snap.get("atr") and snap.get("atr") > 0 else gates.DEFAULT_ATR.get(snap.get("symbol"))
+         nmiss = gates.near_miss(snap, px0, atr0)
+diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
+index ad937f7..a93096d 100644
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
+@@ -967,6 +967,39 @@
+       "_doc": "Keaton: session gate refusals (out of 08:30-11:00 / 13:30-16:00 ET, shock exception 2.0xATR & 1.5xvol unchanged). Continuation run all day on Yahoo 19 sessions x2: lunch refusals 15 trades 40% win -0.083R -576 USD/wk; HTF-aligned & >=4 rungs 7 trades -0.246R; others 8 trades +0.059R -146 USD/wk. No bucket positive after costs: no exception proposed; live thresholds unchanged."
+     }
+   },
++  "evFire": {
++    "_doc": "EV fire path (Keaton 2026-10-15; audits fire-logic-1015, grade-audit-1015, ev-fire-1015). OFF by default; every sub-flag is off|shadow|live. shadow = desk and watcher compute and log only (wire.strategy.ev, shadow:ev:* rows, paper brackets in shadow_ev.jsonl); q, band, size and fire do not change. live = ev:fire may fire when every hard gate passes (news, entry_cutoff, fast:plan, fast:geometry, fast:entry, fast:agree, stop not crossed, tape, account, caps); band, fast:persist and fast:velocity are replaced by the per symbol:side EV hold. EV_R = p*min(RR,rrCap) - (1-p) - max(costFloorR, costR); p = calibrated P(T1) (refuse when the table is untrained or its hash differs). Size: band >= fullMinBand -> fullUsd, else probeUsd. Band edges and safety caps unchanged. Walk-forward 2026-10-15: no (threshold, qFloor) cell was positive in both halves; do not set live without a passing shadow run.",
++    "mode": "off",
++    "threshold": 0.15,
++    "qFloor": 0.45,
++    "rrCap": 4,
++    "costFloorR": 0.1,
++    "holdS": 20,
++    "fullUsd": 650,
++    "probeUsd": 325,
++    "fullMinBand": "B+",
++    "calibration": {
++      "tableHash": "fc9eda688b5d6d23",
++      "prior": 10,
++      "windowDays": 40,
++      "bucket": 0.05,
++      "minSamples": 200
++    },
++    "ltfSoft": {
++      "mode": "off",
++      "cap": "B",
++      "liftDisp": 0.6,
++      "_doc": "ltfKilled: C cap becomes a B cap; lifted fully when displacementStrength on the card's side >= liftDisp."
++    },
++    "qRawOnce": {
++      "mode": "off",
++      "_doc": "qRaw0 is recorded once, before R3 chase and before any sealBand; live = sealBand never overwrites qRaw (qRaw = qRaw0)."
++    },
++    "dropCrossedStop": {
++      "mode": "off",
++      "_doc": "A plan whose stop has already traded is dropped (watch row, never fires). Item 2 (chase stops cutting q) is the existing timing.mode flag; flip it together with evFire."
++    }
++  },
+   "primaryHysteresis": {
+     "_doc": "Review 2026-10-15 #3: ES/MNQ primary-card hysteresis. The challenger takes primary only after out-scoring the incumbent by margin for polls consecutive REAL polls (the same upstream fetch rebuilt is the same poll and does not tick); on a lead re-grade keepOtherBook restores the non-lead book. shadow = desk primary, candidate order and both books exactly as main; the hysteresis pick and what keepOtherBook would change are only logged on wire.primaryHysteresis. live = acts.",
+     "mode": "shadow",
+diff --git a/watcher/ev-calibration.json b/watcher/ev-calibration.json
+new file mode 100644
+index 0000000..6499465
+--- /dev/null
++++ b/watcher/ev-calibration.json
+@@ -0,0 +1,127 @@
++{
++ "version": 1,
++ "asOf": "2026-10-15",
++ "days": [
++  "2026-09-17",
++  "2026-10-14",
++  20
++ ],
++ "n": 1589,
++ "global": 0.2857,
++ "prior": 10,
++ "bucket": 0.05,
++ "trained": true,
++ "cells": {
++  "10|0|0": {
++   "n": 31,
++   "hits": 6,
++   "p": 0.216
++  },
++  "10|0|1": {
++   "n": 20,
++   "hits": 8,
++   "p": 0.3619
++  },
++  "10|1|0": {
++   "n": 13,
++   "hits": 7,
++   "p": 0.4286
++  },
++  "10|1|1": {
++   "n": 5,
++   "hits": 4,
++   "p": 0.4571
++  },
++  "11|0|0": {
++   "n": 197,
++   "hits": 27,
++   "p": 0.1442
++  },
++  "11|0|1": {
++   "n": 95,
++   "hits": 9,
++   "p": 0.1129
++  },
++  "11|1|0": {
++   "n": 40,
++   "hits": 24,
++   "p": 0.5371
++  },
++  "11|1|1": {
++   "n": 22,
++   "hits": 14,
++   "p": 0.5268
++  },
++  "12|0|0": {
++   "n": 102,
++   "hits": 15,
++   "p": 0.1594
++  },
++  "12|0|1": {
++   "n": 73,
++   "hits": 9,
++   "p": 0.1429
++  },
++  "12|1|0": {
++   "n": 23,
++   "hits": 11,
++   "p": 0.4199
++  },
++  "12|1|1": {
++   "n": 40,
++   "hits": 20,
++   "p": 0.4571
++  },
++  "13|0|0": {
++   "n": 57,
++   "hits": 16,
++   "p": 0.2814
++  },
++  "13|0|1": {
++   "n": 31,
++   "hits": 11,
++   "p": 0.338
++  },
++  "13|1|0": {
++   "n": 19,
++   "hits": 14,
++   "p": 0.5813
++  },
++  "13|1|1": {
++   "n": 6,
++   "hits": 6,
++   "p": 0.5536
++  },
++  "14|1|0": {
++   "n": 1,
++   "hits": 1,
++   "p": 0.3506
++  },
++  "15|1|0": {
++   "n": 1,
++   "hits": 1,
++   "p": 0.3506
++  },
++  "9|0|0": {
++   "n": 379,
++   "hits": 105,
++   "p": 0.2773
++  },
++  "9|0|1": {
++   "n": 288,
++   "hits": 69,
++   "p": 0.2411
++  },
++  "9|1|0": {
++   "n": 76,
++   "hits": 38,
++   "p": 0.4751
++  },
++  "9|1|1": {
++   "n": 70,
++   "hits": 39,
++   "p": 0.5232
++  }
++ },
++ "hash": "fc9eda688b5d6d23"
++}
+diff --git a/watcher/evfire.py b/watcher/evfire.py
+new file mode 100644
+index 0000000..4c4e927
+--- /dev/null
++++ b/watcher/evfire.py
+@@ -0,0 +1,113 @@
++"""EV fire path (shared rules evFire; TS twin src/lib/desk/ev-fire.ts; parity in tests/test_evfire.py and the desk's
++scripts/ev-fire.test.mjs). OFF by default. shadow = rows + paper brackets only (shadow_ev.jsonl); never an order.
++EV_R = p*min(RR, rrCap) - (1-p) - max(costFloorR, costR), p = calibrated P(T1) from ev-calibration.json."""
++import json, os, re, hashlib
++from .gates import RULES, BAND_RANK, _num
++
++EVF = RULES["evFire"]
++_CAL_PATH = os.path.join(os.path.dirname(__file__), "ev-calibration.json")
++
++def mode(): return EVF.get("mode", "off")
++def on(m=None): return (m if m is not None else mode()) in ("shadow", "live")
++
++def table_hash(t):
++    b = {k: v for k, v in t.items() if k != "hash"}
++    return hashlib.sha256(json.dumps(b, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()[:16]
++
++def load_table(path=_CAL_PATH):
++    try:
++        with open(path) as f: return json.load(f)
++    except (OSError, ValueError): return None
++
++TABLE = load_table()
++
++def cal_key(q, rungs, htf_ok, bucket):
++    import math
++    return f"{min(math.floor(q / bucket + 1e-9), math.floor(0.75 / bucket))}|{1 if rungs >= 5 else 0}|{1 if htf_ok else 0}"
++
++def p_of(q, rungs, htf_ok, table=None, pin=None):
++    """Calibrated P(T1); None = refuse (missing/untrained table, stored hash wrong, or not the pinned hash)."""
++    t = TABLE if table is None else table; pin = EVF["calibration"].get("tableHash") if pin is None else pin
++    if not t or not t.get("trained") or not pin or t.get("hash") != pin or table_hash(t) != pin: return None
++    c = t["cells"].get(cal_key(q, rungs, htf_ok, t["bucket"]))
++    return c["p"] if c else t["global"]
++
++def ev_r(p, rr, cost_r=None):
++    return round(p * min(rr, EVF["rrCap"]) - (1 - p) - max(EVF["costFloorR"], cost_r or 0), 6)
++
++def size_usd(band):
++    return EVF["fullUsd"] if BAND_RANK.get(band, -99) >= BAND_RANK[EVF["fullMinBand"]] else EVF["probeUsd"]
++
++def stop_crossed(side, px, stop):
++    if px is None or stop is None: return False
++    return px <= stop if side == "long" else px >= stop if side == "short" else False
++
++def rungs_of(snap):
++    for r in snap.get("smc_unity_rows") or []:
++        if r.get("rule") == "continuation":
++            m = re.search(r"holds on (\d+) rungs", str(r.get("would") or ""))
++            if m: return int(m.group(1))
++    return 0
++
++def htf_ok(snap):
++    want = "bull" if snap.get("side") == "long" else "bear"
++    return all(b in (None, want) for _, b in (snap.get("htf_bias") or []))
++
++def read(snap):
++    """dict(p, rr, ev, would, size, why) for the snapshot's card (same math as the desk's evCard)."""
++    side = snap.get("side"); e, st, t1 = _num(snap.get("entry")), _num(snap.get("stop_px")), _num(snap.get("first_target"))
++    q = snap.get("q") or 0; size = size_usd(snap.get("band"))
++    ok = None not in (e, st, t1) and ((side == "long" and st < e < t1) or (side == "short" and t1 < e < st))
++    if not ok: return dict(p=None, rr=None, ev=None, would=False, size=size, why="plan levels invalid")
++    rr = abs(t1 - e) / abs(e - st); p = p_of(q, rungs_of(snap), htf_ok(snap))
++    if p is None: return dict(p=None, rr=rr, ev=None, would=False, size=size, why="calibration untrained or hash mismatch — refuse")
++    ev = ev_r(p, rr)
++    would = q >= EVF["qFloor"] and ev >= EVF["threshold"]
++    return dict(p=p, rr=rr, ev=ev, would=would, size=size,
++                why=f"EV {ev:.3f}R p {p} RR {rr:.2f} (cap {EVF['rrCap']}) q {q} (need EV >= {EVF['threshold']}, q >= {EVF['qFloor']}); size ${size}")
++
++def hold_next(holds, snap, ev_ok, now_ms):
++    """Per symbol:side EV hold (>= holdS). Survives primary-card flips (other keys are left untouched);
++    reset only by a crossed stop on this key, an opposite-side EV pass on the same symbol, or EV failing on this key."""
++    holds = dict(holds or {}); sym, side = snap.get("symbol"), snap.get("side")
++    if sym is None or side not in ("long", "short"): return holds
++    key = f"{sym}:{side}"; other = f"{sym}:{'short' if side == 'long' else 'long'}"
++    px = (snap.get("tape_prices") or {}).get(sym)
++    if stop_crossed(side, px, _num(snap.get("stop_px"))): holds.pop(key, None); return holds
++    if ev_ok:
++        holds.pop(other, None)
++        holds.setdefault(key, now_ms)
++    else:
++        holds.pop(key, None)
++    return holds
++
++REPLACES = ("band", "fast:persist", "fast:velocity", "second_entry_band", "band_truth")
++HARD_EV = ("news", "entry_cutoff", "fast:plan", "fast:geometry", "fast:entry", "fast:agree", "tape", "tape_fresh", "card_age",
++           "entries_day", "weekly_lock", "account", "no_position", "no_working_order", "live_quote", "sizing", "buying_power",
++           "exec_account", "rules_parity", "late_pnl_live", "entry_distance", "day_loss", "opt:spread")
++
++def rows(snap, g, now_ms):
++    """Shadow (or live) ev rows given the evaluated gate list g. Returns (rows, would_fire, read)."""
++    if not on(): return [], False, None
++    r = read(snap); out = []
++    px = (snap.get("tape_prices") or {}).get(snap.get("symbol"))
++    crossed = stop_crossed(snap.get("side"), px, _num(snap.get("stop_px")))
++    since = (snap.get("ev_holds") or {}).get(f"{snap.get('symbol')}:{snap.get('side')}")
++    held = None if since is None else (now_ms - since) / 1000
++    fails = sorted({n for n, ok, _ in g if n in HARD_EV and ok is False})
++    bv = snap.get("brain_symbol") == snap.get("symbol") and snap.get("brain_side") in ("long", "short") and snap.get("brain_side") != snap.get("side")
++    would = bool(r["would"] and not crossed and not fails and not bv and held is not None and held >= EVF["holdS"])
++    why = (f"WOULD fire ${r['size']} " if would else "no fire: ") + r["why"] + f"; hold {None if held is None else round(held, 1)}s (need >= {EVF['holdS']}s)" \
++          + (f"; hard fails {fails}" if fails else "") + ("; stop already crossed" if crossed else "") + ("; brain_ev_veto (brain on the opposite side)" if bv else "")
++    name = "ev:fire" if mode() == "live" else "shadow:ev:fire"
++    out.append((name, would if mode() == "live" else True, why))
++    return out, would, r
++
++def paper(path, snap, r, now_ms):
++    """Shadow paper bracket (no order code path)."""
++    rec = {"ts": now_ms / 1000, "symbol": snap.get("symbol"), "side": snap.get("side"), "band": snap.get("band"), "q": snap.get("q"),
++           "entry": snap.get("entry"), "stop": snap.get("stop_px"), "t1": snap.get("first_target"),
++           "px": (snap.get("tape_prices") or {}).get(snap.get("symbol")), "p": r["p"], "rr": r["rr"], "ev": r["ev"], "size_usd": r["size"],
++           "cal_hash": (TABLE or {}).get("hash"), "mode": mode()}
++    with open(path, "a") as f: f.write(json.dumps(rec) + "\n")
++    return rec
+diff --git a/watcher/fastchain.py b/watcher/fastchain.py
+index 2071fca..48c182b 100644
+--- a/watcher/fastchain.py
++++ b/watcher/fastchain.py
+@@ -22,7 +22,8 @@ def setup_rows(snap):
+     rows.append(("fast:plan", bool(sides and rr >= FC["rrMin"]), f"entry {e} stop {st} T1 {t1} side {side}" + (f" R:R {rr:.2f} (min {FC['rrMin']})" if rr else " — sides/levels invalid")))
+     px = (snap.get("tape_prices") or {}).get(sym); atr = snap.get("atr") if snap.get("atr") and snap.get("atr") > 0 else DEFAULT_ATR.get(sym)
+     ok_e = px is not None and e is not None and atr and abs(px - e) <= FC["entryAtr"] * atr and (st is None or (px < st if side == "short" else px > st))
+-    rows.append(("fast:entry", bool(ok_e), f"|px {px} - entry {e}| <= {FC['entryAtr']}xATR {atr}"))
++    lim = FC["entryAtr"] * atr if atr else None   # fire-logic-1015 fix 1: print the real limit, not the ATR
++    rows.append(("fast:entry", bool(ok_e), f"|px {px} - entry {e}| = {None if px is None or e is None else round(abs(px - e), 2)} <= {None if lim is None else round(lim, 2)} ({FC['entryAtr']}xATR {atr})"))
+     bs, bd = snap.get("brain_symbol"), snap.get("brain_side")
+     opposite = bs == sym and bd in ("long", "short") and bd != side
+     want = "bull" if side == "long" else "bear"
+diff --git a/watcher/gates.py b/watcher/gates.py
+index d81f7fa..1eaf65d 100644
+--- a/watcher/gates.py
++++ b/watcher/gates.py
+@@ -560,7 +560,19 @@ def pick_strike(strikes, spot, opt_type, offset):
+ def evaluate_fire(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     g = _evaluate_fire_core(snap, cfg, now_ms, state_day, broker, calendar)
+     from . import fastchain as _fc        # FAST-SETUPS-ONLY chain (shared rules fastChain)
+-    return _fc.apply(g, snap, now_ms) if _fc.live() else g
++    g = _fc.apply(g, snap, now_ms) if _fc.live() else g
++    from . import evfire as _ev           # evFire (OFF by default; shadow = rows only)
++    if not _ev.on(): return g
++    ev_rows, would, r = _ev.rows(snap, g, now_ms)
++    snap["_ev_would"] = (would, r)
++    if _ev.mode() == "live":
++        ev_rows = [(n, True, w) for n, _, w in ev_rows]     # informational unless it fires
++        if would:
++            g = [(f"soft:{n}", True, f"ev:fire replaces: {w}") if n in _ev.REPLACES and ok is not True else (n, ok, w) for n, ok, w in g]
++            t = snap.get("ticket") or {}; d, c = _num(t.get("debit")), t.get("contracts")
++            cost = None if d is None or not isinstance(c, int) else d * 100 * c
++            ev_rows.append(("ev:size", cost is not None and cost <= r["size"], f"ticket ${cost} <= EV cap ${r['size']} ({'full' if r['size'] == _ev.EVF['fullUsd'] else 'half probe'})"))
++    return g + ev_rows
+ 
+ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     """Return list of (gate, ok, reason). ok=None means unverified (no broker session).

@@ -1,0 +1,61 @@
+{
+ "08:30": {
+  "time": "08:30:16",
+  "band": "B+",
+  "q": 0.6499,
+  "side": "short",
+  "entry": 29771.13,
+  "stop": 29798.31,
+  "t1": 29703.25,
+  "rr": 2.5,
+  "p": 0.143,
+  "evR": -0.6,
+  "hard_fails": [],
+  "all_fails": [
+   "fast:persist"
+  ],
+  "entry_txt": "|px 29751.25 - entry 29771.13| <= 0.5xATR 54.36"
+ },
+ "08:40": {
+  "time": "08:40:02",
+  "band": "A-",
+  "q": 0.6699,
+  "side": "short",
+  "entry": 29999.75,
+  "stop": 30039.0,
+  "t1": 29869.125,
+  "rr": 3.33,
+  "p": 0.554,
+  "evR": 1.296,
+  "hard_fails": [
+   "fast:entry"
+  ],
+  "all_fails": [
+   "fast:persist",
+   "fast:entry"
+  ],
+  "entry_txt": "|px 29819.25 - entry 29999.75| <= 0.5xATR 56.73"
+ },
+ "08:55": {
+  "time": "08:55:00",
+  "band": "C",
+  "q": 0.4999,
+  "side": "short",
+  "entry": 29717.75,
+  "stop": 29760.5,
+  "t1": 29357.75,
+  "rr": 8.42,
+  "p": 0.241,
+  "evR": 0.106,
+  "hard_fails": [
+   "fast:entry"
+  ],
+  "all_fails": [
+   "band",
+   "fast:persist",
+   "fast:entry",
+   "fast:velocity"
+  ],
+  "entry_txt": "|px 29640.0 - entry 29717.75| <= 0.5xATR 60.02"
+ }
+}
