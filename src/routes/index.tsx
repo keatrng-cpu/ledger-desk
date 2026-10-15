@@ -862,8 +862,8 @@ const CATEGORIES: CategoryDef[] = [
   },
   {
     id: "charts",
-    label: "Charts",
-    short: "Cht",
+    label: "Review",
+    short: "Rev",
     hint: "Every closed trade · SMC chart + summary · read-only",
     icon: CandlestickChart,
   },
