@@ -1,7 +1,7 @@
 // 10/15 post-mortem items 1+2: read-priority flip gets T1 from the scanner's full pool list; desk T1 freeze.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { register } from "tsx/esm/api";
 register();
 const F = await import("../src/lib/smc/ifvg-flip.ts");
@@ -18,8 +18,8 @@ const flipAt = (bars, now, side) => {
   return { f: F.ifvgFlipOf({ symbol: "ES:rp", side, minute: upto, closed15: [], targets, nowMs: now, arrays: arr }), arr, px: upto.at(-1).c, sessOnly: F.ifvgFlipOf({ symbol: "ES:rp", side, minute: upto, closed15: [], targets: sess, nowMs: now, arrays: arr }) };
 };
 
-test("10/15 13:03 CT ES read-priority short: entry 7781.75 stop 7786.76, T1 = the 7775.25 EQL (>= 1R), fireable", { skip: !existsSync("/tmp/es1m_1015.json") }, () => {
-  const bars = JSON.parse(readFileSync("/tmp/es1m_1015.json", "utf8"));
+test("10/15 13:03 CT ES read-priority short: entry 7781.75 stop 7786.76, T1 = the 7775.25 EQL (>= 1R), fireable", () => {
+  const bars = JSON.parse(readFileSync(new URL("./fixtures/es1m_1015.json", import.meta.url), "utf8"));   // ES 1m 08:30-13:14 CT (audits/postmortem-1302 ES_1m.pkl: Databento GLBX + Supabase tail)
   const now = Date.UTC(2026, 9, 15, 18, 3, 5);
   const { f, arr, px, sessOnly } = flipAt(bars, now, "short");
   assert.equal(sessOnly.t1, null);                       // the bug: session pools only -> no T1

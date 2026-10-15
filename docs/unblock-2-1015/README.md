@@ -93,3 +93,8 @@ LIVE changes Keaton approved at 12:36 CT on 10/15. They apply to the desk (`src/
 ## Rebased onto #22 d2053f43 (spent fix) — 13:20 CT
 rulesHash cfe75bee47cc5982. Replay 10/13–10/15: unblock-2 5 fires, +0.04R, +$9 ladder (+$63 #22 method; 09:45 long open, marked +0.45R);
 #22 + spent fix 3 fires, +0.59R, +$48. 08:33 re-entry blocked (setup spent). Watcher patch regenerated vs the new #22 watcher base.
+
+## Read-priority: desk vs watcher (Accuracy CHANGES)
+- Desk: scanner `readPriorityKill` (src/lib/trading/read-priority.ts) kills the flipped side to C on a tracked card via `qWrite(c, "pathBand", "C", "cap:readPriority")`, so capReasons attributes it; a killed A+/A/A- grade reads B (`demoteGrade`, also used by the ltfArm cap).
+- Watcher: mirrored as a FIRE BLOCK, not a band write: `fast:ifvg` fails via `fastchain.ifvg_against` -> `read_flipped` (readPriority live, minGaps 2, any band). Same effect: no fire on the flipped side. `fastchain.read_priority_hit` feeds a once-per-signal `cap` log row with `source: "cap:readPriority"`.
+- Fixture: scripts/fixtures/es1m_1015.json (ES 1m 08:30-13:14 CT from audits/postmortem-1302/ES_1m.pkl); the 13:03 CT test in scripts/flip-targets-1015.test.mjs is no longer skipped.

@@ -1,12 +1,12 @@
 // 10/15 13:00-13:10 CT ES read-priority case on the post-mortem's 1m bars (Databento GLBX 08:30-13:00 + Supabase tail; $0).
 // Prints per poll minute: the long's fast:ifvg (B+), whether the read flipped, and the short the desk generates in the same poll.
-// Run: node docs/postmortem-fixes-1015/case_readprio.mjs   (needs /tmp/es1m_1015.json from the post-mortem pickle)
+// Run: node docs/postmortem-fixes-1015/case_readprio.mjs   (fixture: scripts/fixtures/es1m_1015.json)
 import { register } from "tsx/esm/api"; register();
 import { readFileSync, writeFileSync } from "node:fs";
 const F = await import("../../src/lib/smc/ifvg-flip.ts");
 const M = await import("../../src/lib/smc/mtf-arrays.ts");
 const A = await import("../../src/lib/smc/ltf-arm.ts");
-const bars = JSON.parse(readFileSync("/tmp/es1m_1015.json", "utf8"));
+const bars = JSON.parse(readFileSync(new URL("../../scripts/fixtures/es1m_1015.json", import.meta.url), "utf8"));
 const ct = (ms) => new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour12: false });
 const out = [];
 for (const [m, s] of [[0, 30], [1, 5], [2, 3], [3, 5], [4, 5], [5, 5], [6, 5], [8, 5], [10, 5]]) {

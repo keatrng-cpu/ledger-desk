@@ -65,6 +65,7 @@ import {
 } from "./strategy-grade";
 import { sessionLive } from "@/lib/trading/sessions";
 import { applyTapeTrust, tapeTrust } from "@/lib/market/tape-trust";
+import { demoteGrade, readPriorityKill } from "./read-priority";
 
 export type SetupSide = "long" | "short";
 
@@ -1720,7 +1721,7 @@ export function scoreCandidates(
     if (!c.ltfArmed) continue;
     const before = c.pathBand;
     c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
+    demoteGrade(c);
     if (before !== c.pathBand) c.reasons.push(`LTF-armed card capped ${before} → ${c.pathBand} (ltfArm.capBand)`);
   }
 
@@ -1728,9 +1729,7 @@ export function scoreCandidates(
   // (the opposite side was armed above by ifvgFlipOf). Mirrored.
   for (const c of pathCandidates) {
     if (!(candidates[pathCandidates.indexOf(c)] as { readFlippedAgainst?: boolean }).readFlippedAgainst) continue;
-    const before = c.pathBand; c.pathBand = "C"; c.actionable = false;
-    if (c.grade === "A+" || c.grade === "A-") c.grade = "B";
-    c.reasons.push(`read flipped: 2+ 5m ${c.side === "long" ? "bull" : "bear"} FVGs closed through on 1m — ${before} → C (readPriority)`);
+    readPriorityKill(c);   // tracked + qWrite "cap:readPriority"; A+/A/A- grade -> B
   }
 
   for (const c of pathCandidates) stampPathTitle(c);

@@ -11,7 +11,7 @@ index febc469..3945a0c 100644
      full, _ = gates.size_contracts(0.30, 10, cfg, "A"); cut, _ = gates.size_contracts(0.30, 10, cfg, "A", cut=True)
      assert full is None or cut is None or cut <= full
 diff --git a/tests/test_fastchain.py b/tests/test_fastchain.py
-index 0e87ed4..657c3af 100644
+index 0e87ed4..3dbe0aa 100644
 --- a/tests/test_fastchain.py
 +++ b/tests/test_fastchain.py
 @@ -8,7 +8,7 @@ ET = gates.ET
@@ -89,7 +89,7 @@ index 0e87ed4..657c3af 100644
      assert fc.streak_next(st, snap(at="p3"), 215_001)["first_ms"] == 125_000 and _persist(fc.streak_next(st, snap(at="p3"), 215_001), 215_001) is False
  
  def test_entry_rearm_needs_band_and_untouched_levels():
-@@ -173,3 +177,148 @@ def test_spread_fallback_fits_cap():
+@@ -173,3 +177,158 @@ def test_spread_fallback_fits_cap():
      sp = spread_pick(cands, 150)
      assert sp and sp["quote"]["ask"] * 100 <= 150 and sp["contract"]["spread_short"]["strike"] < sp["contract"]["strike"]
      assert spread_pick(cands, 10) is None
@@ -197,6 +197,16 @@ index 0e87ed4..657c3af 100644
 +    b = [_g(dir="bear", lo=7790, hi=7791), _g(dir="bear", lo=7794, hi=7795)]
 +    assert fc.read_flipped(b, "short") and fc.ifvg_against(b, "short", 7796.0, band="A")[0] is True
 +
++def test_read_priority_hit_is_the_watcher_mirror_of_the_desk_c_kill():
++    """Desk: band C kill (cap:readPriority). Watcher: fire block via fast:ifvg; read_priority_hit feeds the cap:readPriority log."""
++    a = [_g(), _g(lo=7780.0, hi=7783.5)]
++    s = {"symbol": "ES", "side": "long", "band": "A+", "tape_prices": {"ES": 7779.0}, "wire_arrays": a}
++    why = fc.read_priority_hit(s)
++    assert why and why.startswith("read flipped")
++    assert fc.ifvg_row(s)[1] is False                                   # fast:ifvg blocks the fire at any band
++    assert fc.read_priority_hit(dict(s, side="short")) is None          # only the flipped side
++    assert fc.read_priority_hit(dict(s, wire_arrays=a[:1])) is None     # one gap is not a read flip
++
 +def test_htf_q_penalty_replaces_size_cut_and_needs_evidence():
 +    s = snap(htf_bias=[("1h", "bull"), ("4h", "bear")], q=0.6749, band="A-", displacement=True)
 +    rows = dict((n, ok) for n, ok, _ in fc.setup_rows(s))
@@ -279,15 +289,19 @@ index 41b78a0..6684f0e 100644
  def test_shadow_rows_never_fail():
      s = _raw_snapshot(_card(chop=False, loss={"chop": {"chop": True, "why": "chop 2/3"}, "velocity": {"expMin": 20}}))
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index 160d006..1223d05 100644
+index 160d006..fef22d2 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
-@@ -76,10 +76,16 @@ class Watcher:
+@@ -76,10 +76,20 @@ class Watcher:
          snap["_fx_near_miss"] = (_nmf, _nmw)
          if fastchain.live():
              fs = fastchain.streak_next(self.state.get("fast_streak"), snap, nm); self.state["fast_streak"] = fs; snap["fast_streak"] = fs
 +            _sm = fastchain.promote_smoothed(snap)                                      # unblock-2: grade smoothing (B+ edge, never lowered)
 +            if _sm: self.log("band_smoothed", symbol=snap.get("symbol"), side=snap.get("side"), q=snap.get("q"), note=_sm)
++            _rp = fastchain.read_priority_hit(snap)                                     # read-priority mirror (fire block; desk: band C kill)
++            if _rp and not self.state["signals"].setdefault(key, {}).get("read_priority"):
++                self.state["signals"][key]["read_priority"] = time.time()
++                self.log("cap", source="cap:readPriority", signal=key, symbol=snap.get("symbol"), side=snap.get("side"), band=snap.get("band"), why=_rp)
              # the fast chain trades the CARD's side on its ETF; the desk ticket (often None / model) is advisory only
              t0 = snap.get("ticket") or {}
              if snap.get("symbol") in ("ES", "MNQ") and snap.get("side") in gates.SIDE_TO_TYPE:
@@ -385,7 +399,7 @@ index a93096d..9b6e729 100644
        "account",
        "no_position",
 diff --git a/watcher/fastchain.py b/watcher/fastchain.py
-index 48c182b..8539000 100644
+index 48c182b..d8f346e 100644
 --- a/watcher/fastchain.py
 +++ b/watcher/fastchain.py
 @@ -7,13 +7,55 @@ FC = RULES["fastChain"]
@@ -470,7 +484,7 @@ index 48c182b..8539000 100644
      rows.append(geometry_row(snap))
      vel = ((snap.get("loss") or {}).get("velocity") or {}); m = _num(vel.get("expMin"))
      if velocity_size_mode():   # fire-bugs-live 10/15 (Keaton): velocity is a size cut, never a block
-@@ -39,6 +95,104 @@ def setup_rows(snap):
+@@ -39,6 +95,114 @@ def setup_rows(snap):
          rows.append(("fast:velocity", m is not None and m <= FC["maxMinutesToT1"], f"T1 ~{m}m at the card's velocity (max {FC['maxMinutesToT1']}m; unknown = refuse)"))
      return rows
  
@@ -557,6 +571,16 @@ index 48c182b..8539000 100644
 +            return True, f"{a['tf']} {mine} FVG {a.get('lo')}-{a.get('hi')} being inverted: price {px} {'below its bottom' if side == 'long' else 'above its top'} on the forming bar - no {side}"
 +    return False, f"no {'/'.join(r['tfs'])} {mine} FVG being inverted"
 +
++def read_priority_hit(snap):
++    """Read-priority mirror. The desk kills the flipped side's card to C (scanner readPriorityKill, qWrite "cap:readPriority");
++    the watcher mirrors it as a FIRE BLOCK, not a band write: fast:ifvg fails via ifvg_against -> read_flipped (any band).
++    Same effect (no fire on the flipped side). Returns the why when it bites, else None; the daemon logs it as cap:readPriority."""
++    sym = snap.get("symbol"); side = "short" if snap.get("side") == "short" else "long"
++    arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    r = _sub("ifvgAgainst")
++    if r.get("mode") != "live" or not read_flipped(arr, side, r): return None
++    return ifvg_against(arr, side, (snap.get("tape_prices") or {}).get(sym), r)[1]
++
 +def ifvg_row(snap):
 +    sym = snap.get("symbol"); px = (snap.get("tape_prices") or {}).get(sym)
 +    arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
@@ -575,7 +599,7 @@ index 48c182b..8539000 100644
  ETF = {"ES": "SPY", "MES": "SPY", "NQ": "QQQ", "MNQ": "QQQ"}
  
  def velocity_size_mode(): return (FC.get("velocity") or {}).get("mode") == "size"
-@@ -109,6 +263,7 @@ def streak_next(prev, snap, now_ms):
+@@ -109,6 +273,7 @@ def streak_next(prev, snap, now_ms):
      Spent (Accuracy CHANGES 10/15): a setup id that fired (mark_spent), hit its stop or touched T1 is spent for the session
      and never re-arms or re-fires. Returns dict(key, first_ms, polls, last_at, by_id, last_id, spent)."""
      prev = prev or {}; by = {k: dict(v) for k, v in (prev.get("by_id") or {}).items()}
@@ -583,7 +607,7 @@ index 48c182b..8539000 100644
      sym, side = snap.get("symbol"), snap.get("side"); sid = setup_id(snap); at = snap.get("at")
      for k in [k for k in by if k.split(":")[0] == str(sym) and k.split(":")[1] != str(side)]: by.pop(k)   # side change
      last_id = prev.get("last_id"); day = session_day(now_ms); spent = {k: v for k, v in (prev.get("spent") or {}).items() if isinstance(v, dict) and v.get("day") in (day, None)}
-@@ -133,8 +288,8 @@ def streak_next(prev, snap, now_ms):
+@@ -133,8 +298,8 @@ def streak_next(prev, snap, now_ms):
                  if (FC.get("entryRearm") or {}).get("mode") == "live" and _chased(snap): cur["out_of_zone"] = True
              last_id = None
      cur = by.get(sid)
@@ -594,7 +618,7 @@ index 48c182b..8539000 100644
  
  def session_day(now_ms):
      """Session date (ET) for the spent set; spent setups clear on the next session."""
-@@ -149,20 +304,24 @@ def mark_spent(st, sid, why="fired", now_ms=None):
+@@ -149,20 +314,24 @@ def mark_spent(st, sid, why="fired", now_ms=None):
      if st.get("last_id") == sid: st["last_id"] = None
      return st
  
