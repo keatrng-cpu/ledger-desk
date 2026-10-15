@@ -1,7 +1,8 @@
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_entry_distance_wide.py ub/tests/test_entry_distance_wide.py
---- a/tests/test_entry_distance_wide.py	2026-10-13 16:40:46.176852046 -0500
-+++ b/tests/test_entry_distance_wide.py	2026-10-15 13:49:15.792926632 -0500
-@@ -170,6 +170,6 @@
+diff --git a/tests/test_entry_distance_wide.py b/tests/test_entry_distance_wide.py
+index febc469..3945a0c 100644
+--- a/tests/test_entry_distance_wide.py
++++ b/tests/test_entry_distance_wide.py
+@@ -170,6 +170,6 @@ def test_one_htf_opposing_is_size_cut_not_block(cfg):
      s = agree_card(bias={"bias4h": "bull"})
      g = gates.evaluate_fire(s, cfg, NOW, {}, None, CAL)
      h = [x for x in g if x[0] == "htf_bias"][0]
@@ -9,10 +10,11 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_e
 +    assert h[1] is True and "size cut" in h[2] and s["size_cut"] is False   # post-mortem 13:02: the cut is replaced by qPenalty.htf
      full, _ = gates.size_contracts(0.30, 10, cfg, "A"); cut, _ = gates.size_contracts(0.30, 10, cfg, "A", cut=True)
      assert full is None or cut is None or cut <= full
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_fastchain.py ub/tests/test_fastchain.py
---- a/tests/test_fastchain.py	2026-10-15 13:17:38.436926632 -0500
-+++ b/tests/test_fastchain.py	2026-10-15 13:50:49.716926632 -0500
-@@ -8,7 +8,7 @@
+diff --git a/tests/test_fastchain.py b/tests/test_fastchain.py
+index 0e87ed4..657c3af 100644
+--- a/tests/test_fastchain.py
++++ b/tests/test_fastchain.py
+@@ -8,7 +8,7 @@ ET = gates.ET
  def snap(**kw):
      s = {"ok": True, "at": "a1", "band": "B+", "q": 0.63, "symbol": "ES", "side": "short", "entry": 7851.75, "stop_px": 7856.25,
           "first_target": 7846.3, "tape_prices": {"ES": 7852.0}, "atr": 8.0, "brain_word": "WAIT", "brain_symbol": "ES", "brain_side": "short",
@@ -21,17 +23,73 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_f
      s.update(kw); return s
  
  def test_rules():
-@@ -39,7 +39,8 @@
+@@ -28,7 +28,8 @@ SIB = dict(at="sib", entry=7851.25, tape_prices={"ES": 7856.0})   # sibling card
+ 
+ def test_fires_on_second_consecutive_poll_no_timer():
+     st = fc.streak_next(None, snap(at="a1"), 0); assert _persist(st, 0) is False          # 1 poll: anti-flicker
+-    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is True      # 2 consecutive polls, 4 s: fires
++    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is False     # 10/15 PM: B+ needs the 20 s hold
++    st = fc.streak_next(st, snap(at="a2b"), 20_000); assert _persist(st, 20_000) is True   # 2+ polls, 20 s from the first card: fires
+ 
+ def test_same_card_reread_is_not_a_new_poll():
+     st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a1"), 1_000)
+@@ -38,8 +39,9 @@ def test_sibling_or_failing_poll_breaks_consecutive_but_not_the_setup():
+     st = fc.streak_next(None, snap(at="a1"), 0)
      st = fc.streak_next(st, snap(**SIB), 4_000)                                           # sibling poll in between
      st = fc.streak_next(st, snap(at="a3"), 8_000); assert st["polls"] == 1 and st["first_ms"] == 0 and _persist(st, 8_000) is False
-     st = fc.streak_next(st, snap(at="a4"), 12_000); assert _persist(st, 12_000) is True
+-    st = fc.streak_next(st, snap(at="a4"), 12_000); assert _persist(st, 12_000) is True
 -    st = fc.streak_next(st, snap(at="a5", band="B"), 16_000); assert st["polls"] == 0 and st["first_ms"] == 0   # failing poll
++    st = fc.streak_next(st, snap(at="a4"), 20_000); assert _persist(st, 20_000) is True
 +    st = fc.streak_next(st, snap(at="a5", band="C", q=0.45), 16_000)   # unblock-2: one B poll after B+ polls is smoothed (2 of 3), so fail on band C + q far below
 +    st = fc.streak_next(st, snap(at="a6", band="C", q=0.40), 20_000); assert st["polls"] == 0 and st["first_ms"] == 0   # failing poll
  
  def test_stale_after_90s_never_fired():
      st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a2", band="B"), 50_000)
-@@ -159,3 +160,128 @@
+@@ -99,11 +101,13 @@ def test_velocity_cut_halves_debit_cap_before_checks(cfg):
+     n, why = gates.size_contracts(0.40, 4, cfg, "A+", vel_snap=fast(None))           # cut to 1ct $40 < $50 floor: refuse
+     assert n is None and "floor" in why
+ 
++EV = {"band": "A-", "sweep": True}   # A-+ with a fresh sweep: fires on the next poll (10/15 PM persist fix)
++
+ def _arm(st, t0):
+     st = fc.streak_next(st, snap(at=f"r{t0}"), t0); return fc.streak_next(st, snap(at=f"s{t0}"), t0 + 4000)
+ 
+ def test_no_refire_after_stop():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.streak_next(st, snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+     assert st["spent"][fc.setup_id(snap())]["why"] == "invalidated"
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+@@ -113,16 +117,16 @@ def test_no_refire_after_t1_touch():
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+ 
+ def test_no_refire_after_fire_then_rearm():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.mark_spent(st, fc.setup_id(snap()), "fired", 4000)
+     st = fc.streak_next(st, snap(at="out", **CHASE), 6000)     # chased out of the zone
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+     o = snap(entry=7852.25)                                      # another entry = another setup
+-    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000)[0]
++    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000, EV)[0]
+ 
+ def test_spent_clears_next_session():
+     st = fc.streak_next(_arm(None, 0), snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+-    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000)[0]
++    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000, EV)[0]
+ 
+ CHASE = dict(tape_prices={"ES": 7847.0})   # 4.75 past entry (> 0.5 x ATR 8), stop and T1 untouched
+ 
+@@ -131,7 +135,7 @@ def test_entry_rearm_after_pullback_restarts_clock_and_polls():
+     st = fc.streak_next(st, snap(at="c1", **CHASE), 4_000); assert st["first_ms"] == 0 and st.get("out_of_zone")   # kept alive
+     st = fc.streak_next(st, snap(at="c2", **CHASE), 120_000)                                # ran for 2 min
+     st = fc.streak_next(st, snap(at="p1"), 125_000); assert st["first_ms"] == 125_000 and st["polls"] == 1 and _persist(st, 125_000) is False
+-    st = fc.streak_next(st, snap(at="p2"), 129_000); assert _persist(st, 129_000) is True    # re-armed: fires
++    st = fc.streak_next(st, snap(at="p2"), 145_000); assert _persist(st, 145_000) is True    # re-armed: fires
+     assert fc.streak_next(st, snap(at="p3"), 215_001)["first_ms"] == 125_000 and _persist(fc.streak_next(st, snap(at="p3"), 215_001), 215_001) is False
+ 
+ def test_entry_rearm_needs_band_and_untouched_levels():
+@@ -173,3 +177,148 @@ def test_spread_fallback_fits_cap():
      sp = spread_pick(cands, 150)
      assert sp and sp["quote"]["ask"] * 100 <= 150 and sp["contract"]["spread_short"]["strike"] < sp["contract"]["strike"]
      assert spread_pick(cands, 10) is None
@@ -160,10 +218,31 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_f
 +             htf_bias=[("1h", "bull"), ("4h", "bear")], displacement=True, sweep=True, et_min=14 * 60 + 15)
 +    rows = [(n, ok) for n, ok, _ in fc.setup_rows(s)]
 +    assert all(ok for n, ok in rows), rows
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_gates.py ub/tests/test_gates.py
---- a/tests/test_gates.py	2026-10-13 16:40:46.176852046 -0500
-+++ b/tests/test_gates.py	2026-10-15 13:17:38.448926632 -0500
-@@ -92,7 +92,8 @@
++
++
++def test_persist_10_15_pm_first_card_short_hold():
++    """10/15 PM: clock from the first qualifying card; B+ needs 2 polls + 20 s; A-+ with fresh sweep/disp fires on poll 2."""
++    st = fc.streak_next(None, snap(at="q1"), 0); assert st["first_ms"] == 0
++    assert "Nones" not in fc.persist_check(st, 0)[1]
++    st = fc.streak_next(st, snap(at="q2"), 4000)
++    assert not fc.persist_check(st, 4000, snap())[0]                       # B+ no evidence: short hold
++    assert fc.persist_check(st, 4000, dict(snap(), band="A-", displacement=True))[0]
++    assert not fc.persist_check(st, 4000, dict(snap(), band="A-"))[0]       # A- without fresh sweep/disp: hold
++    assert fc.persist_check(st, 20000, snap())[0]
++    assert not fc.persist_check(st, 91000, dict(snap(), band="A", sweep=True))[0]   # stale
++
++def test_stand_is_q_weight_not_veto():
++    base = dict(snap(), brain_word="STAND", brain_side="long", q=0.70, band="A-")
++    rows = {n: ok for n, ok, _ in fc.setup_rows(dict(base))}
++    assert rows["fast:agree"]
++    assert fc.q_penalty(dict(base))[0] >= fc.STAND_Q
++    flip = dict(base, wire_arrays=[{"tf": "5m", "kind": "ifvg", "dir": "bull", "lo": 7850, "hi": 7851, "ageBars": 1, "failed": False}])
++    assert not {n: ok for n, ok, _ in fc.setup_rows(flip)}["fast:agree"]
+diff --git a/tests/test_gates.py b/tests/test_gates.py
+index 5283797..72e1196 100644
+--- a/tests/test_gates.py
++++ b/tests/test_gates.py
+@@ -92,7 +92,8 @@ def test_broker_gates(cfg, b, gate):
  def test_entries_per_day(cfg):
      s = gates.snapshot(load("card_aplus_armed.json"))
      assert "entries_day" not in fails(gates.evaluate_fire(s, cfg, NOW, {"entries": 1}, broker(), CAL))
@@ -173,7 +252,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_g
  
  @pytest.mark.parametrize("off,ok", [(-4000, True), (-5000, True), (-6000, False), (30000, True), (30001, False)])
  def test_quote_age(off, ok):
-@@ -302,7 +303,7 @@
+@@ -302,7 +303,7 @@ def test_soft_keeps_news_card_age_tape(soft):
      s = gates.snapshot(c)
      assert "news" in fails(gates.evaluate_fire(s, soft, NOW, {}, broker(), [{"date": "2026-10-13", "timeEt": "10:00", "name": "X", "impact": "high"}]))
      assert "card_age" in fails(gates.evaluate_fire(s, soft, NOW + 60_000, {}, broker(), CAL))
@@ -182,10 +261,11 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_g
      c["wire"]["tape"]["fresh"] = False
      assert "tape_fresh" in fails(gates.evaluate_fire(gates.snapshot(c), soft, NOW, {}, broker(), CAL))
  
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_loss_patterns.py ub/tests/test_loss_patterns.py
---- a/tests/test_loss_patterns.py	2026-10-13 19:52:48.932376822 -0500
-+++ b/tests/test_loss_patterns.py	2026-10-15 13:49:56.964926632 -0500
-@@ -93,9 +93,10 @@
+diff --git a/tests/test_loss_patterns.py b/tests/test_loss_patterns.py
+index 41b78a0..6684f0e 100644
+--- a/tests/test_loss_patterns.py
++++ b/tests/test_loss_patterns.py
+@@ -93,9 +93,10 @@ def test_shadow_htf_is_legacy_and_logged():
      g = gates.evaluate_fire(s, Config(), 0, {}, None, [])
      h = [x for x in g if x[0] == "htf_bias"][0]
      legacy_block = L["htf"]["legacyBothOppose"] == "block"
@@ -198,10 +278,11 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/tests/test_l
  
  def test_shadow_rows_never_fail():
      s = _raw_snapshot(_card(chop=False, loss={"chop": {"chop": True, "why": "chop 2/3"}, "velocity": {"expMin": 20}}))
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/daemon.py ub/watcher/daemon.py
---- a/watcher/daemon.py	2026-10-15 13:17:38.436926632 -0500
-+++ b/watcher/daemon.py	2026-10-15 13:51:27.340926632 -0500
-@@ -76,10 +76,16 @@
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 160d006..1223d05 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -76,10 +76,16 @@ class Watcher:
          snap["_fx_near_miss"] = (_nmf, _nmw)
          if fastchain.live():
              fs = fastchain.streak_next(self.state.get("fast_streak"), snap, nm); self.state["fast_streak"] = fs; snap["fast_streak"] = fs
@@ -218,10 +299,11 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/daem
 +                    except Exception: d0 = 1
                  snap["ticket"] = {**t0, "underlier": "SPY" if snap["symbol"] == "ES" else "QQQ", "side": gates.SIDE_TO_TYPE[snap["side"]],
                                    "dte": d0, "contracts": gates.band_caps(self.cfg, snap.get("band") or "B+")[0], "fast_synth": True}
-         # brain WAIT timer (60 s, then grok_agree decides)
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/desk-rules.json ub/watcher/desk-rules.json
---- a/watcher/desk-rules.json	2026-10-15 13:17:38.436926632 -0500
-+++ b/watcher/desk-rules.json	2026-10-15 14:00:07.288926632 -0500
+         from . import evfire
+diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
+index a93096d..9b6e729 100644
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
 @@ -58,7 +58,8 @@
      "chainMaxAgeS": 10,
      "orderReviewMaxAgeS": 1,
@@ -232,7 +314,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/desk
    },
    "dispVsRr": [
      {
-@@ -299,6 +300,53 @@
+@@ -310,6 +311,53 @@
        "_doc": "fire-bugs-live 10/15 (Keaton): fast:entry failing because price is > entryAtr x ATR from entry keeps the setup alive; a pullback inside the zone with stop and T1 untouched and band >= minBand makes it actionable again and restarts the maxActionableAgeS clock and confirmPolls.",
        "mode": "live"
      },
@@ -286,7 +368,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/desk
      "rrMin": 1.0,
      "entryAtr": 0.5,
      "maxMinutesToT1": 30,
-@@ -313,14 +361,13 @@
+@@ -324,14 +372,13 @@
        "fast:geometry",
        "fast:entry",
        "fast:agree",
@@ -302,10 +384,11 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/desk
        "weekly_lock",
        "account",
        "no_position",
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fastchain.py ub/watcher/fastchain.py
---- a/watcher/fastchain.py	2026-10-15 13:17:38.436926632 -0500
-+++ b/watcher/fastchain.py	2026-10-15 13:51:05.536926632 -0500
-@@ -7,13 +7,46 @@
+diff --git a/watcher/fastchain.py b/watcher/fastchain.py
+index 48c182b..8539000 100644
+--- a/watcher/fastchain.py
++++ b/watcher/fastchain.py
+@@ -7,13 +7,55 @@ FC = RULES["fastChain"]
  def live():
      return FC.get("mode") == "live"
  
@@ -324,7 +407,16 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
 +    if pm.get("mode") == "live" and snap.get("band") == "B+":   # a B+ card only (an A- is not a B+); 13:15 CT ES short A- still fires
 +        hh, mm = (int(x) for x in pm["fromEt"].split(":"))
 +        if _et_min(snap) >= hh * 60 + mm: pen += pm["q"]; why.append(f"after {pm['fromEt']} ET -{pm['q']}")
++    if is_stand(snap): pen += STAND_Q; why.append(f"brain STAND -{STAND_Q}")
 +    return round(pen, 4), why
++# 10/15 PM (Keaton): brain STAND is a q weight, not a veto; STAND + iFVG flip against the side still blocks (fast:agree).
++# Code constants (no desk-rules.json key): rulesHash unchanged. Twin of fast-chain.ts STAND_Q / isStand.
++STAND_Q = 0.03
++def is_stand(snap): return str(snap.get("brain_word") or "").upper() == "STAND"
++PERSIST_HOLD_S = 20
++def fast_evidence(snap):
++    b = snap.get("band_pre_penalty") or snap.get("band")
++    return BAND_RANK.get(b, -1) >= BAND_RANK["A-"] and (snap.get("sweep") is True or snap.get("displacement") is True)
 +_EDGES = [(b, RULES["bandEdges"][b]) for b in ("A+", "A", "A-", "B+", "B")]
 +def band_of_q(q): return next((b for b, e in _EDGES if q >= e - 1e-9), "C")
 +def penalized_band(snap):
@@ -353,7 +445,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
      else:
          rows.append(("band", _ok_b, f"band {b} from q {snap.get('q')} (need >= {FC['minBand']})"))
      e, st, t1 = _num(snap.get("entry")), _num(snap.get("stop_px")), _num(snap.get("first_target"))
-@@ -27,8 +60,19 @@
+@@ -28,8 +70,22 @@ def setup_rows(snap):
      opposite = bs == sym and bd in ("long", "short") and bd != side
      want = "bull" if side == "long" else "bear"
      hb = dict(snap.get("htf_bias") or [])
@@ -370,12 +462,15 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
 +        _okr, _wr = ltf_reversal(snap, _ok_b or snap.get("fast_band_smoothed") is True)
 +        if _okr: both = False; snap["fast_htf_half"] = True
 +        _rev = f" — {_wr}"
++    _arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    stand_veto = is_stand(snap) and ifvg_against(_arr, "short" if side == "short" else "long", px, band=None)[0]
++    if is_stand(snap): opposite = stand_veto   # STAND weighs q only; vetoes only with the iFVG flip against this side
 +    rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' AGAINST' if both else ''}{_rev}"))
 +    rows.append(ifvg_row(snap))
      rows.append(geometry_row(snap))
      vel = ((snap.get("loss") or {}).get("velocity") or {}); m = _num(vel.get("expMin"))
      if velocity_size_mode():   # fire-bugs-live 10/15 (Keaton): velocity is a size cut, never a block
-@@ -38,6 +82,104 @@
+@@ -39,6 +95,104 @@ def setup_rows(snap):
          rows.append(("fast:velocity", m is not None and m <= FC["maxMinutesToT1"], f"T1 ~{m}m at the card's velocity (max {FC['maxMinutesToT1']}m; unknown = refuse)"))
      return rows
  
@@ -480,7 +575,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
  ETF = {"ES": "SPY", "MES": "SPY", "NQ": "QQQ", "MNQ": "QQQ"}
  
  def velocity_size_mode(): return (FC.get("velocity") or {}).get("mode") == "size"
-@@ -100,6 +242,7 @@
+@@ -109,6 +263,7 @@ def streak_next(prev, snap, now_ms):
      Spent (Accuracy CHANGES 10/15): a setup id that fired (mark_spent), hit its stop or touched T1 is spent for the session
      and never re-arms or re-fires. Returns dict(key, first_ms, polls, last_at, by_id, last_id, spent)."""
      prev = prev or {}; by = {k: dict(v) for k, v in (prev.get("by_id") or {}).items()}
@@ -488,7 +583,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
      sym, side = snap.get("symbol"), snap.get("side"); sid = setup_id(snap); at = snap.get("at")
      for k in [k for k in by if k.split(":")[0] == str(sym) and k.split(":")[1] != str(side)]: by.pop(k)   # side change
      last_id = prev.get("last_id"); day = session_day(now_ms); spent = {k: v for k, v in (prev.get("spent") or {}).items() if isinstance(v, dict) and v.get("day") in (day, None)}
-@@ -124,8 +267,8 @@
+@@ -133,8 +288,8 @@ def streak_next(prev, snap, now_ms):
                  if (FC.get("entryRearm") or {}).get("mode") == "live" and _chased(snap): cur["out_of_zone"] = True
              last_id = None
      cur = by.get(sid)
@@ -499,10 +594,42 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/fast
  
  def session_day(now_ms):
      """Session date (ET) for the spent set; spent setups clear on the next session."""
-diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/gates.py ub/watcher/gates.py
---- a/watcher/gates.py	2026-10-15 13:17:38.436926632 -0500
-+++ b/watcher/gates.py	2026-10-15 13:49:05.836926632 -0500
-@@ -112,6 +112,7 @@
+@@ -149,20 +304,24 @@ def mark_spent(st, sid, why="fired", now_ms=None):
+     if st.get("last_id") == sid: st["last_id"] = None
+     return st
+ 
+-def persist_check(st, now_ms):
+-    """(ok, why) for fast:persist: confirmPolls consecutive passes and age <= maxActionableAgeS."""
++def persist_check(st, now_ms, snap=None):
++    """(ok, why) for fast:persist (10/15 PM fix, twin of fast-chain.ts persistOk): the clock starts at the first qualifying
++    card; A- or better with a fresh sweep/displacement fires on the next real poll (2 passes, no hold); otherwise
++    confirmPolls passes AND >= PERSIST_HOLD_S since the first qualifying card; never older than maxActionableAgeS."""
+     st = st or {}
+-    if st.get("first_ms") is None: return False, f"setup not actionable yet (need {confirm_polls()} consecutive polls)"
++    if st.get("first_ms") is None: return False, "no qualifying card yet (clock starts at the first card that passes every fast row)"
+     age = (now_ms - st["first_ms"]) / 1000; n = st.get("polls", 0)
+-    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first actionable {round(age, 1)}s ago (> {max_age_s()}s), never fired"
+-    return n >= confirm_polls(), f"setup {st.get('key')} passed {n} consecutive polls (need {confirm_polls()}), age {round(age, 1)}s (max {max_age_s()}s)"
++    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first qualifying card {round(age, 1)}s ago (> {max_age_s()}s), never fired"
++    if snap is not None and fast_evidence(snap):
++        return n >= 2, f"setup {st.get('key')} A-+ with fresh sweep/displacement: {n} poll(s) since first qualifying card {round(age, 1)}s ago (need 2)"
++    return n >= confirm_polls() and age >= PERSIST_HOLD_S, f"setup {st.get('key')} {n} poll(s), held {round(age, 1)}s since first qualifying card (need {confirm_polls()} and >= {PERSIST_HOLD_S}s, <= {max_age_s()}s)"
+ 
+ def apply(g, snap, now_ms):
+     """Rewrite the gate list for the fast chain: hard rows kept, the rest soft:* (ok=True), fast rows added."""
+     hard = set(FC["hard"]) | {"rules_pin", "bplus_window", "day_loss"}; out = []   # fireFix live hard rows
+     rows = setup_rows(snap)
+     st = snap.get("fast_streak") or {}
+-    ok_p, why_p = persist_check(st, now_ms)
++    ok_p, why_p = persist_check(st, now_ms, snap)
+     rows.insert(1, ("fast:persist", ok_p, why_p))
+     names = {n for n, _, _ in rows}
+     for n, ok, w in g:
+diff --git a/watcher/gates.py b/watcher/gates.py
+index 1eaf65d..e5f3f82 100644
+--- a/watcher/gates.py
++++ b/watcher/gates.py
+@@ -115,6 +115,7 @@ def snapshot(card):
          "desk_ticket_side": (ticket or {}).get("side"), "desk_ticket_underlier": (ticket or {}).get("underlier"),
          "rr1": _strict(strat.get("rr1Raw")) if _strict(strat.get("rr1Raw")) is not None else _strict(strat.get("rr1")),
          "sweep": strat.get("sweep") if isinstance(strat.get("sweep"), bool) else None,
@@ -510,7 +637,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/gate
          "loss": strat.get("loss") if isinstance(strat.get("loss"), dict) else None,
          "guards_shadow": [x for x in ((strat.get("guards") or {}).get("shadow") or []) if isinstance(x, dict)],
          # smcUnity (audit 2026-10-14): desk shadow reads, logged as shadow:smc:<rule>, never gate
-@@ -238,7 +239,7 @@
+@@ -241,7 +242,7 @@ def first_target(strat):
      """First futures target level: numeric wire.strategy.target / targets[0] / tp1, else a 'Target N'/'TP1 N'
      level parsed from that text. strategy.draw names liquidity without a price, ticket.targets are option-$ text — not used."""
      import re
@@ -519,7 +646,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/gate
          v = strat.get(k)
          if isinstance(v, list):
              v = v[0] if v else None
-@@ -633,6 +634,8 @@
+@@ -651,6 +652,8 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      else:
          _blk, _cut, _why = legacy_htf(snap.get("side"), snap.get("htf_bias"))
          if _new[:2] != (_blk, _cut): add("shadow:htf", True, f"WOULD {'block' if _new[0] else 'size cut' if _new[1] else 'allow full size'}: {_new[2]} (live: {_why})")
@@ -528,7 +655,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/gate
      snap["size_cut"] = _cut
      add("htf_bias", not _blk, _why)
      # LTF kill: the desk re-arms only on sweep + IFVG + displacement (capped A-); a killed side never fires
-@@ -721,8 +724,10 @@
+@@ -739,8 +742,10 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      et_now = datetime.fromtimestamp(now_ms / 1000, ET)
      add("entry_cutoff", et_now.hour * 60 + et_now.minute < _hm(cfg.last_entry_et), f"no new entries after {cfg.last_entry_et} ET")
      n = state_day.get("entries", 0)
@@ -541,7 +668,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x '*.orig' -x fixtures nb_base/watcher/gate
          add("second_entry_band", BAND_RANK.get(snap["band"], -1) >= BAND_RANK[FIRE["secondEntryMinBand"]],
              f"entry #{n + 1} needs >= {FIRE['secondEntryMinBand']} (band {snap['band']})")
      _pend = snap.get("late_pnl_pending") is True and RULES["lateEntry"].get("modelPricePending") is True
-@@ -775,6 +780,9 @@
+@@ -793,6 +798,9 @@ def _evaluate_fire_core(snap, cfg, now_ms, state_day, broker=None, calendar=()):
          if _m < 1 and nct > 1:
              nct = max(cfg.min_contracts, int(nct * _m)); why += f"; time-of-day size x{_m} -> {nct}ct"
              if nct * lim * 100 < cfg.min_debit: nct = None; why += f" < ${cfg.min_debit:.0f} floor"
