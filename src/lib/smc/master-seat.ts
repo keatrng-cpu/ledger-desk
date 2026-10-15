@@ -25,6 +25,8 @@ export interface MasterInput {
     qV2?: { q: number; band: string; vetoed: boolean } | null;
     reversal: string | null;
   } | null;
+  /** Rule 1 shadow tickets (read-only; the brain/Floor seat shows and logs them, never decides on them). */
+  rule1?: import("@/lib/trading/rule1").Rule1Ticket[];
   brainWord: string | null;
   brainBook: { symbol: string; side: string | null } | null;
   floorVerdict: string;

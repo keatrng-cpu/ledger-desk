@@ -1,0 +1,103 @@
+diff --git a/tests/test_rule1_shadow.py b/tests/test_rule1_shadow.py
+new file mode 100644
+index 0000000..18e7c23
+--- /dev/null
++++ b/tests/test_rule1_shadow.py
+@@ -0,0 +1,23 @@
++import json
++from watcher import rule1_shadow
++
++TK = {"mode": "shadow", "symbol": "MNQ", "side": "long", "at": 1, "swept": "ONL", "bonus": True, "entry": 30758.0, "stop": 30590.72,
++      "target": 31259.83, "runner": 30906.0, "option": {"underlier": "QQQ", "right": "call", "strike": 753, "delta": 0.6, "contracts": 3, "premium": 1.98, "dte": 0}}
++
++
++def test_logs_would_fire_once_and_never_orders(tmp_path):
++    seen = set()
++    rows = rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, seen, 5)
++    assert len(rows) == 1 and rows[0]["broker"] is False and rows[0]["orders"] == 0 and rows[0]["delta_ok"]
++    assert rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, seen, 6) == []
++    assert len(open(tmp_path / "rule1_shadow.jsonl").read().splitlines()) == 1
++
++
++def test_ignores_non_shadow_and_missing(tmp_path):
++    assert rule1_shadow.log(str(tmp_path), {"rule1": [dict(TK, mode="live")]}, set()) == []
++    assert rule1_shadow.log(str(tmp_path), {}, set()) == []
++
++
++def test_module_has_no_broker_import():
++    src = open(rule1_shadow.__file__).read()
++    assert "broker" not in src.split('"""')[2].replace('"broker": False', "")
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 5c6be38..28b3b5d 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -66,6 +66,7 @@ class Watcher:
+             self.log("desk_unavailable", body=str(card)[:300]); return mode
+         key = gates.signal_key(snap, et_date)
+         nm = now_ms(); snap["_now_ms"] = nm
++        self._rule1_shadow(card, nm)
+         self._fast(snap)
+         prev = self.state.get("band_streak")
+         bs = gates.band_streak_next(prev, snap); self.state["band_streak"] = bs; snap["band_streak"] = bs["n"]
+@@ -447,6 +448,16 @@ class Watcher:
+         except Exception as e:
+             self.log("kz_shadow_error", error=str(e))
+ 
++    def _rule1_shadow(self, card, now):
++        """Rule 1 (ledger-desk shared/rule1.json): log what would have fired. Shadow only: no broker, no order, no gate."""
++        try:
++            from . import rule1_shadow
++            seen = self.__dict__.setdefault("_r1_seen", set())
++            for r in rule1_shadow.log(self.cfg.path(""), card, seen, now):
++                self.log("rule1_would_fire", **{k: r[k] for k in ("symbol", "side", "entry", "stop", "target", "strike", "contracts")})
++        except Exception as e:
++            self.log("rule1_shadow_error", error=str(e))
++
+     def _gate_log(self, key, snap, g, dayst, broker=False):
+         from . import hygiene
+         kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
+diff --git a/watcher/rule1_shadow.py b/watcher/rule1_shadow.py
+new file mode 100644
+index 0000000..c0e0ccf
+--- /dev/null
++++ b/watcher/rule1_shadow.py
+@@ -0,0 +1,39 @@
++"""Rule 1 SHADOW logger for desk-watcher (ledger-desk shared/rule1.json, audits/entry-target-1015).
++
++Reads the desk feed's `rule1` tickets and appends what the watcher WOULD have fired to rule1_shadow.jsonl
++(contracts, strike at delta 0.5-0.7, entry/stop/target). It never imports the broker, never places or stages an
++order, and does not touch gates, firing or the rules hash. One row per (day, symbol, side, at).
++"""
++import json, os, time
++
++FILE = "rule1_shadow.jsonl"
++
++
++def rows_from_feed(card, seen, now_ms=None):
++    out = []
++    for tk in (card or {}).get("rule1") or []:
++        if not isinstance(tk, dict) or tk.get("mode") != "shadow":
++            continue
++        k = (tk.get("symbol"), tk.get("side"), tk.get("at"))
++        if k in seen:
++            continue
++        seen.add(k)
++        o = tk.get("option") or {}
++        d = o.get("delta")
++        out.append({
++            "ts": now_ms or int(time.time() * 1000), "kind": "rule1_would_fire", "broker": False, "orders": 0,
++            "symbol": tk.get("symbol"), "side": tk.get("side"), "at": tk.get("at"), "swept": tk.get("swept"), "bonus": tk.get("bonus"),
++            "entry": tk.get("entry"), "stop": tk.get("stop"), "target": tk.get("target"), "runner": tk.get("runner"),
++            "underlier": o.get("underlier"), "right": o.get("right"), "strike": o.get("strike"), "delta": d,
++            "delta_ok": d is not None and 0.5 <= d <= 0.7, "contracts": o.get("contracts"), "premium": o.get("premium"), "dte": o.get("dte"),
++        })
++    return out
++
++
++def log(path_dir, card, seen, now_ms=None):
++    rows = rows_from_feed(card, seen, now_ms)
++    if rows:
++        with open(os.path.join(path_dir, FILE), "a") as f:
++            for r in rows:
++                f.write(json.dumps(r) + "\n")
++    return rows

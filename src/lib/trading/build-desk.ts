@@ -4,6 +4,7 @@ import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
+import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -122,6 +123,8 @@ const LOSS_RULES = RULES_ALL.loss;
 
 export interface DeskPayload {
   ok: true;
+  /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
+  rule1?: import("./rule1").Rule1Ticket[];
   fetchedAt: string;
   clock: SessionClock;
   left: SymbolSeries;
@@ -1132,8 +1135,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       liveSource,
     );
 
+    // Rule 1 shadow (audits/entry-target-1015): read-only on bars; a failure never breaks the desk.
+    const rule1: Rule1Ticket[] = [];
+    for (const [sym, m1] of [[data.left, minuteL], [data.right, minuteR]] as const) {
+      try {
+        const und = /NQ/.test(String(sym)) ? qqqSpot : spySpot;
+        const tk = rule1Ticket(String(sym), m1 as never, Date.now(), typeof und === "number" ? und : null);
+        if (tk) rule1.push(tk);
+      } catch { /* shadow */ }
+    }
     const payload = {
       ok: true as const,
+      rule1,
       fetchedAt: new Date().toISOString(),
       clock,
       left,

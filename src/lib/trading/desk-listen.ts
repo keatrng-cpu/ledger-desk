@@ -121,6 +121,8 @@ export interface DeskWire {
   deskSeq?: DeskSeqWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
+  /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
+  rule1: import("./rule1").Rule1Ticket[];
   strategy: {
     symbol: string;
     side: string;
@@ -329,6 +331,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       left: { symbol: desk.quotes.left.symbol, price: desk.quotes.left.price, source: desk.quotes.left.source, lagSec: desk.quotes.left.lagSec },
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
     },
+    rule1: (desk as { rule1?: import("./rule1").Rule1Ticket[] }).rule1 ?? [],
     strategy: top
       ? {
           symbol: top.symbol,
@@ -621,6 +624,7 @@ export function masterInputOf(
           reversal: s.regime === "reversal" ? "reversal setup (HTF released / LTF breaks)" : null,
         }
       : null,
+    rule1: wire.rule1 ?? [],
     brainWord: wire.brain.word,
     brainBook: wire.brain.book ?? null,
     floorVerdict: wire.floor.verdict,
