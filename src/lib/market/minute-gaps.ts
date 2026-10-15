@@ -24,6 +24,10 @@ export interface MinuteGap {
   missing: number;
   /** Hole at the live end: last bar → now (gateway stalled). toMs is the current minute, not a bar. */
   trailing?: boolean;
+  /** Set by classifyGap: true = materially affects LTF structure → gapped, fail closed. */
+  blocking?: boolean;
+  /** Why it blocks (or "minor-overnight"). */
+  why?: string;
 }
 
 /** CME equity index futures tick. */
@@ -134,3 +138,50 @@ export function fillMinuteSeries(primary: OhlcBar[], fill: OhlcBar[], keep: numb
   const gaps = findMinuteGaps(merged, GAP_MIN_MISSING, nowMs);
   return { bars: merged, gaps, gatewayGaps, filled: usable.length > 0 && gatewayGaps.length > gaps.length };
 }
+
+// ── Which residual holes block (preview-16, 2026-10-15) ──────────────────
+// A 4-minute thin-overnight hole (01:14–01:19 CT, Yahoo lacks it too) blocked
+// every card all day. Only holes that materially touch LTF structure block.
+
+/**
+ * Active LTF lookback (minutes). The desk reads GATEWAY_BARS_LIMIT = 240 live
+ * 1m rows (build-desk.ts); the 1m–5m arrays and their kills/POIs are read off
+ * that live tail. A hole ending inside the last 240 minutes blocks.
+ */
+export const ACTIVE_LOOKBACK_MIN = 240;
+/** A hole this large blocks wherever it is. */
+export const LARGE_GAP_MIN = 15;
+/**
+ * ET windows (minutes after midnight, [start, end)) where ANY hole blocks: NY premarket and RTH (the live
+ * session the 1m–5m arrays and PMH/PML are built on). London 02:00–05:00 ET is deliberately NOT here:
+ * preview-16's blocker hole (06:14–06:19Z = 02:14–02:19 ET, 4 min, Yahoo lacks it too) sits inside London,
+ * and it must not block. A London hole blocks via LARGE_GAP_MIN (≥ 15 min) or the active lookback.
+ */
+export const KEY_WINDOWS_ET: { name: string; from: number; to: number }[] = [
+  { name: "NY premarket 07:00–09:30 ET", from: 420, to: 570 },
+  { name: "RTH 09:30–16:00 ET", from: 570, to: 960 },
+];
+
+const hmFmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+function etMinuteOfDay(ms: number): number {
+  const p = hmFmt.formatToParts(new Date(ms));
+  return Number(p.find((x) => x.type === "hour")?.value ?? 0) * 60 + Number(p.find((x) => x.type === "minute")?.value ?? 0);
+}
+
+/** Classify one hole at `nowMs`. Trailing (live end) always blocks. */
+export function classifyGap(g: MinuteGap, nowMs: number): MinuteGap {
+  if (g.trailing) return { ...g, blocking: true, why: "live-end stall" };
+  if (g.missing >= LARGE_GAP_MIN) return { ...g, blocking: true, why: `large (${g.missing}m >= ${LARGE_GAP_MIN})` };
+  if (g.toMs > nowMs - ACTIVE_LOOKBACK_MIN * MIN) return { ...g, blocking: true, why: `inside active ${ACTIVE_LOOKBACK_MIN}m lookback` };
+  // Missing minutes are < LARGE_GAP_MIN here, so walking them is cheap.
+  for (let t = floorMinute(g.fromMs) + MIN; t < g.toMs; t += MIN) {
+    if (!globexOpenAt(t)) continue;
+    const m = etMinuteOfDay(t);
+    const w = KEY_WINDOWS_ET.find((k) => m >= k.from && m < k.to);
+    if (w) return { ...g, blocking: true, why: `overlaps ${w.name}` };
+  }
+  return { ...g, blocking: false, why: "minor-overnight" };
+}
+
+export const classifyGaps = (gaps: MinuteGap[], nowMs: number): MinuteGap[] => gaps.map((g) => classifyGap(g, nowMs));
+export const blockingGaps = (gaps: MinuteGap[], nowMs: number): MinuteGap[] => classifyGaps(gaps, nowMs).filter((g) => g.blocking);

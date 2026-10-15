@@ -180,3 +180,39 @@ test("AMD read surfaces gapped (desk flag, or a >5 min Globex hole) instead of b
   const clean = amd.amdRead("ES", map, mg.fillMinuteSeries(gw, yahoo, 2000).bars, now);
   assert.notEqual(clean.gapped, true);
 });
+
+// ── preview-16 blocker: which residual holes block ───────────────────────
+const Z = (hh, mm) => Date.UTC(2026, 9, 15, hh, mm);
+test("today's 4-minute 06:14–06:19Z (01:14 CT) thin-overnight hole does NOT block at 09:15 CT", () => {
+  const bars = [bar(Z(6, 13), 1, 1), bar(Z(6, 14), 1, 1), bar(Z(6, 19), 1, 1), bar(Z(6, 20), 1, 1)];
+  const gaps = mg.findMinuteGaps(bars);
+  assert.equal(gaps.length, 1);
+  assert.equal(gaps[0].missing, 4);
+  const c = mg.classifyGap(gaps[0], Z(14, 15)); // 09:15 CT
+  assert.equal(c.blocking, false);
+  assert.equal(c.why, "minor-overnight");
+  assert.deepEqual(mg.blockingGaps(gaps, Z(14, 15)), []);
+});
+
+test("a 4-minute hole 10 minutes ago blocks (inside the active lookback)", () => {
+  const now = Z(14, 15);
+  const g = { fromMs: Z(14, 0), toMs: Z(14, 5), missing: 4 };
+  const c = mg.classifyGap(g, now);
+  assert.equal(c.blocking, true);
+  assert.match(c.why, /active 240m lookback/);
+});
+
+test("large holes block: today's 00:10–09:12 ET (unfilled), a ≥15m overnight hole, and premarket/RTH overlap", () => {
+  const { gw } = esCase();
+  const [g] = mg.findMinuteGaps(gw);
+  assert.equal(mg.classifyGap(g, Z(14, 15)).blocking, true);
+  const night = mg.classifyGap({ fromMs: Z(5, 0), toMs: Z(5, 16), missing: 15 }, Z(14, 15)); // 01:00 ET, 15m
+  assert.equal(night.blocking, true);
+  assert.match(night.why, /large/);
+  // 4-min hole at 07:30 ET (premarket), checked late in the day (outside the 240m lookback).
+  const pre = mg.classifyGap({ fromMs: Z(11, 30), toMs: Z(11, 35), missing: 4 }, Z(19, 45));
+  assert.equal(pre.blocking, true);
+  assert.match(pre.why, /premarket/);
+  // Trailing live-end hole always blocks.
+  assert.equal(mg.classifyGap({ fromMs: Z(3, 0), toMs: Z(3, 4), missing: 3, trailing: true }, Z(14, 15)).blocking, true);
+});

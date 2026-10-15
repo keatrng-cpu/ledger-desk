@@ -17,7 +17,7 @@
  * A state does not decay while price runs toward the target: "late" is a transition (missed), never a
  * falling score. Shadow: wire.deskSeq.amd + shadow:seq:amd rows; never moves q/band/fire.
  */
-import { findMinuteGaps } from "@/lib/market/minute-gaps";
+import { blockingGaps, findMinuteGaps } from "@/lib/market/minute-gaps";
 /** #22: a gap of more than 5 Globex minutes in the closed 1m series refuses the AMD read. */
 const AMD_GAP_MIN_MISSING = 6;
 import type { OhlcBar } from "@/lib/market/types";
@@ -94,7 +94,7 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
   const out: AmdRead = { mode, symbol, inWindow, phase: nowEt < P.startEt() ? "accumulation" : "unknown", setups: [], live: null };
   if (opts.gapped) return { ...out, gapped: true, gapReason: "1m feed gapped (desk wire.feed) — AMD withheld" };
   // #22: a map built over a multi-hour hole passes the length checks below. Any Globex gap > 5 min refuses.
-  const holes = findMinuteGaps(closed, AMD_GAP_MIN_MISSING);
+  const holes = blockingGaps(findMinuteGaps(closed, AMD_GAP_MIN_MISSING), nowMs);
   if (holes.length) {
     const h = holes[holes.length - 1]!;
     return { ...out, gapped: true, gapReason: `1m hole ${new Date(h.fromMs).toISOString().slice(11, 16)}–${new Date(h.toMs).toISOString().slice(11, 16)}Z (${h.missing}m) — AMD withheld` };

@@ -13,7 +13,7 @@ import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
 import { createServerFn } from "@tanstack/react-start";
 import { rollingAtr } from "./detectors";
-import { fillMinuteSeries, findMinuteGaps, type MinuteGap } from "@/lib/market/minute-gaps";
+import { classifyGaps, fillMinuteSeries, findMinuteGaps, type MinuteGap } from "@/lib/market/minute-gaps";
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
 import { entryStateOf } from "@/lib/smc/entry-state";
 import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
@@ -243,12 +243,13 @@ const GATEWAY_BARS_BUDGET_MS = 1_500;
 const GATEWAY_BARS_LIMIT = 240;
 
 export interface MinuteFeed {
+  /** True only when a BLOCKING hole exists (inside the active LTF lookback, large, in London/premarket/RTH, or live-end). */
   gapped: boolean;
-  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean }[];
+  gaps: { symbol: string; fromMs: number; toMs: number; fromIso: string; toIso: string; missing: number; trailing?: boolean; blocking: boolean; why: string }[];
 }
-export function minuteFeedOf(rows: { symbol: string; gaps: MinuteGap[] }[]): MinuteFeed {
-  const gaps = rows.flatMap((r) => r.gaps.map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing, ...(g.trailing ? { trailing: true } : {}) })));
-  return { gapped: gaps.length > 0, gaps };
+export function minuteFeedOf(rows: { symbol: string; gaps: MinuteGap[] }[], nowMs = Date.now()): MinuteFeed {
+  const gaps = rows.flatMap((r) => classifyGaps(r.gaps, nowMs).map((g) => ({ symbol: r.symbol, fromMs: g.fromMs, toMs: g.toMs, fromIso: new Date(g.fromMs).toISOString(), toIso: new Date(g.toMs).toISOString(), missing: g.missing, ...(g.trailing ? { trailing: true } : {}), blocking: g.blocking === true, why: g.why ?? "" })));
+  return { gapped: gaps.some((g) => g.blocking), gaps };
 }
 
 /** Cached values are handed to code that patches them in place — never share. */
@@ -616,8 +617,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       { symbol: data.right, gaps: mR.gaps },
     ]);
     const [dailyL, dailyR] = [dL.bars, dR.bars];
-    const minuteL = mL.gaps.length ? [] : mL.bars;
-    const minuteR = mR.gaps.length ? [] : mR.bars;
+    const blocks = (sym: string) => minuteFeed.gaps.some((g) => g.symbol === sym && g.blocking);
+    const minuteL = blocks(data.left) ? [] : mL.bars;
+    const minuteR = blocks(data.right) ? [] : mR.bars;
     const lqR = quote(data.left, left, lb.status, lqIn, lb.fetchedAtMs);
     const rqR = quote(data.right, right, rb.status, rqIn, rb.fetchedAtMs);
     const lq = lqR.quote;
@@ -990,7 +992,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
 
     if (minuteFeed.gapped) {
       for (const c of scan.candidates) c.actionable = false;
-      const g = minuteFeed.gaps.map((x) => `${x.symbol} ${x.fromIso.slice(11, 16)}–${x.toIso.slice(11, 16)}Z (${x.missing}m)`).join(", ");
+      const g = minuteFeed.gaps.filter((x) => x.blocking).map((x) => `${x.symbol} ${x.fromIso.slice(11, 16)}–${x.toIso.slice(11, 16)}Z (${x.missing}m)`).join(", ");
       scan.blocked.push(`Data quality: 1m feed gapped (${g}) — LTF arrays/levels withheld, execution blocked`);
     }
 
