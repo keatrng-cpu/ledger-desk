@@ -399,13 +399,14 @@ export async function fetchYahooBars(
   symbol: IndexSymbol,
   range: YahooRange,
   interval: YahooInterval,
+  maxBars: number = MAX_BARS,
 ): Promise<SymbolSeries | null> {
   const meta = YAHOO_MAP[symbol];
   const json = await yahooChart(meta.yahoo, range, interval);
   if (!json) return null;
   let bars = parseYahooChart(json);
   if (bars.length < 10) return null;
-  if (bars.length > MAX_BARS) bars = bars.slice(bars.length - MAX_BARS);
+  if (bars.length > maxBars) bars = bars.slice(bars.length - maxBars);
 
   const first = bars[0]!;
   const last = bars[bars.length - 1]!;

@@ -8,6 +8,7 @@
  * minute".
  */
 
+import { ladderText } from "@/lib/smc/seq/ladder";
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evidenceHeadlines } from "@/lib/trading/evidence";
 import { readEntry } from "@/lib/trading/entry-trigger";
@@ -168,6 +169,7 @@ function tapeBook(desk: DeskPayload, u: Underlier, ring: TapeSample[], nowMs: nu
     draw: prim ? { name: prim.name, price: prim.price } : null,
     rangeUsedPct: Number.isFinite(b.draw.sessionRangeUsedPct) ? b.draw.sessionRangeUsedPct : null,
     volRatio: vol > 0 ? vol : null,
+    ladder: b.ladder ? ladderText(b.ladder).slice(0, 40) : null,
   };
 }
 

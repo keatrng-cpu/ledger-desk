@@ -102,6 +102,8 @@ export interface LevelRef {
 
 export interface TapeBook {
   u: Underlier;
+  /** Two-sided ladder as text (bull + bear entries/stops/targets with odds, flip line). Display context only — never a gate. */
+  ladder?: string[] | null;
   /** The futures symbol the desk reads for this ETF. */
   sym: string;
   /** What the room calls it. */

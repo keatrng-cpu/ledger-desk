@@ -77,6 +77,8 @@ export function booksOf(desk: DeskPayload) {
     bias: nqLeft ? desk.bias.left : desk.bias.right,
     draw: nqLeft ? desk.draws.left : desk.draws.right,
     smc: nqLeft ? desk.smcMaster.left : desk.smcMaster.right,
+    /** Two-sided ladder — display context only (never a gate). */
+    ladder: desk.twoSided?.books?.[nqLeft ? desk.left.symbol : desk.right.symbol] ?? null,
   };
   const es = {
     minute: (nqLeft ? desk.mtf?.right?.minute : desk.mtf?.left?.minute) ?? [],
@@ -85,6 +87,7 @@ export function booksOf(desk: DeskPayload) {
     bias: nqLeft ? desk.bias.right : desk.bias.left,
     draw: nqLeft ? desk.draws.right : desk.draws.left,
     smc: nqLeft ? desk.smcMaster.right : desk.smcMaster.left,
+    ladder: desk.twoSided?.books?.[nqLeft ? desk.right.symbol : desk.left.symbol] ?? null,
   };
   return { QQQ: nq, SPY: es } as const;
 }
