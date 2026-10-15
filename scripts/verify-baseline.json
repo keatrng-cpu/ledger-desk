@@ -13,19 +13,9 @@
       "why": "Red before this work order. Not yet diagnosed.",
       "since": "2026-10-08"
     },
-    "repo-guards": {
-      "failing": 1,
-      "why": "Was 3 on 2026-10-09 (dark-inventory drift + Judas). Inventory settled on chore/doc-drift-known-dark: dark scan now matches dynamic import(), so rh-http/rh-ledger/rh-mcp and auth/isolation.server are wired and off KNOWN_DARK; verify.server + tape-trust also came off; floor-ik/floor-locomotion remain baselined. The remaining 1 is the Judas assertion (clean layer fail inside 09:30-09:45), which fd86b3d1 deliberately changed — guard is stale against a trader-asked change; do not weaken it here.",
-      "since": "2026-10-09"
-    },
     "research-retain": {
       "failing": 1,
       "why": "Red before this work order (8 failing on both sides of the wave-1 merge). Not yet diagnosed.",
-      "since": "2026-10-08"
-    },
-    "rh-path-fire": {
-      "failing": 3,
-      "why": "Grok lowered RH_MIN_DEBIT_TOTAL from 150 to 50 (commit 270f36b, \"lower the options debit floor to $50\") and the three checks still encode the old $150 envelope. The code matches the trader's $50-$550 band, so the TESTS are stale. Item 9 settles it. Do not rewrite a money gate's tests just to go green.",
       "since": "2026-10-08"
     },
     "room-exec": {
@@ -37,11 +27,6 @@
       "failing": 2,
       "why": "Red before this work order. Not yet diagnosed.",
       "since": "2026-10-08"
-    },
-    "session-event": {
-      "failing": 1,
-      "why": "Same cause as the repo-guards Judas entry: 'no TAKE inside Judas across 151 real Judas bars' gets 1 TAKE because fd86b3d1 deliberately changed the Judas clean-layer behaviour (trader-asked). Guard is stale against that change; do not weaken it here.",
-      "since": "2026-10-12"
     },
     "trade-plan": {
       "failing": 9,

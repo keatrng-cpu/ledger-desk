@@ -28,7 +28,7 @@
 //
 // `considerEntryAlarm` reads the real wall clock for its Judas and day-key
 // checks, so this suite read it too — and failed every day between 09:30 and
-// 09:45 ET, when the alarm correctly refuses. The pre-push hook then blocked
+// 09:45 ET, when the alarm (then) refused. The pre-push hook then blocked
 // every push for those fifteen minutes, which is how it was found.
 //
 // A test of a time-gated function that depends on WHEN it runs is not testing
@@ -236,13 +236,17 @@ const R = () => book("ES", "short", 7700);
   arm();
   ok(considerEntryAlarm(desk(l, R(), [29000, 7000])) == null, "silent when price is away");
 
-  // JUDAS. 09:30-09:45 ET takes nothing, no exception — the same rule
-  // smc-master, paper-manager and this alarm all enforce. Asserted by moving
-  // the clock, not by waiting for 09:30.
+  // JUDAS. Keaton 2026-10-13: 09:30-09:45 ET is TRADED — the window is a
+  // warning (wire.strategy.judas + board badge), never a block; JUDAS_BLOCKS =
+  // false in judas-window.ts and every gate (smc-master, paper-manager, this
+  // alarm) checks that flag. This used to assert "silent inside", which pinned
+  // the superseded hard block. Asserted by moving the clock.
   store.clear();
   arm();
   atEt(9, 35);
-  ok(considerEntryAlarm(desk(l, R(), at)) == null, "silent inside the Judas window");
+  ok(considerEntryAlarm(desk(l, R(), at)) != null, "fires inside the Judas window (warning only, JUDAS_BLOCKS=false)");
+  store.clear();
+  arm();
   atEt(9, 46);
   ok(considerEntryAlarm(desk(l, R(), at)) != null, "and fires again once Judas is over");
   atEt(10, 15);
