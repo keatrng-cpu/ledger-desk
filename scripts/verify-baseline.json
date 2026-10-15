@@ -8,11 +8,6 @@
       "why": "Red on clean origin/main before any of this work (verified by checking out origin/main in a scratch worktree). fetch-dual does not hand loadQuote the session baseline. Not yet diagnosed.",
       "since": "2026-10-08"
     },
-    "lab-constants": {
-      "failing": 1,
-      "why": "Red before this work order. Not yet diagnosed.",
-      "since": "2026-10-08"
-    },
     "paper-step": {
       "failing": 1,
       "why": "Red before this work order. Not yet diagnosed.",
@@ -20,7 +15,7 @@
     },
     "repo-guards": {
       "failing": 1,
-      "why": "Was 3 on 2026-10-09 (dark-inventory drift + Judas). Inventory settled on chore/doc-drift-known-dark: dark scan now matches dynamic import(), so rh-http/rh-ledger/rh-mcp and auth/isolation.server are wired and off KNOWN_DARK; verify.server + tape-trust also came off; floor-ik/floor-locomotion remain baselined. The remaining 1 is the Judas assertion (clean layer fail inside 09:30-09:45), which fd86b3d1 deliberately changed \u2014 guard is stale against a trader-asked change; do not weaken it here.",
+      "why": "Was 3 on 2026-10-09 (dark-inventory drift + Judas). Inventory settled on chore/doc-drift-known-dark: dark scan now matches dynamic import(), so rh-http/rh-ledger/rh-mcp and auth/isolation.server are wired and off KNOWN_DARK; verify.server + tape-trust also came off; floor-ik/floor-locomotion remain baselined. The remaining 1 is the Judas assertion (clean layer fail inside 09:30-09:45), which fd86b3d1 deliberately changed — guard is stale against a trader-asked change; do not weaken it here.",
       "since": "2026-10-09"
     },
     "research-retain": {

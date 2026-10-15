@@ -33,8 +33,14 @@ console.log("every number the lab copies is the desk's");
 same("spread cap (share of mid)", num("MAX_SPREAD_FRAC"), EXEC_LIMITS.maxSpreadFrac);
 same("marketable-limit slip ($)", num("ENTRY_SLIP_USD"), EXEC_LIMITS.entrySlipUsd);
 same("quote age (ms)", num("MAX_QUOTE_AGE_MS"), EXEC_LIMITS.maxQuoteAgeSec * 1000);
-same("debit floor ($)", num("MIN_DEBIT"), G.RH_MIN_DEBIT_TOTAL);
-same("debit cap ($)", num("MAX_DEBIT"), G.RH_MAX_DEBIT_TOTAL);
+// gate.py may read the envelope from shared/desk-rules.json (review 2026-10-15 #8) instead of a literal.
+const envNum = (name, key) => {
+  const lit = num(name); if (lit != null) return lit;
+  if (!new RegExp(`^${name}\\s*=\\s*float\\(_ENV\\["${key}"\\]\\)`, "m").test(gate)) return null;
+  return Number(JSON.parse(read("shared/desk-rules.json")).fireFix.envelope[key]);
+};
+same("debit floor ($)", envNum("MIN_DEBIT", "minDebit"), G.RH_MIN_DEBIT_TOTAL);
+same("debit cap ($)", envNum("MAX_DEBIT", "maxDebit"), G.RH_MAX_DEBIT_TOTAL);
 same("fewest contracts", num("MIN_QTY"), G.RH_MIN_CONTRACTS);
 same("most contracts", num("MAX_QTY"), G.RH_MAX_CONTRACTS);
 same("a B+ card's contracts", num("BPLUS_QTY"), G.RH_BPLUS_MAX_CONTRACTS);
