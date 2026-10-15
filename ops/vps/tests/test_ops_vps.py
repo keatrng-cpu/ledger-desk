@@ -75,3 +75,22 @@ def test_fastpath_rth_identical():
     want = {d: tp.rth(bars, d) for d in {b["t"].date() for b in bars}}
     fastpath.install(tp)
     assert all(tp.rth(bars, d) == v for d, v in want.items())
+
+HERE = os.path.join(os.path.dirname(__file__), "..")
+def rd(n): return open(os.path.join(HERE, "systemd", n)).read()
+
+def test_charts_unit_caps_and_no_network():
+    s = rd("ledger-charts.service")
+    assert "MemoryMax=300M" in s and "PrivateNetwork=yes" in s and ".env" not in s and "flock /run/ledger-ops/batch.lock" in s
+    assert "Persistent=false" in rd("ledger-charts.timer")
+    src = open(os.path.join(HERE, "charts_nightly.py")).read()
+    assert "get_range" not in src and "import databento" not in src
+
+def test_charts_archive_cost_guard(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cn", os.path.join(HERE, "charts_nightly.py")); cn = importlib.util.module_from_spec(spec); spec.loader.exec_module(cn)
+    p = tmp_path / "archive.log"
+    p.write_text('{"day": "2026-10-14", "cost_usd": 0.0}\n{"day": "2026-10-15", "cost_usd": 0.0}\n'); assert cn.archive_cost_ok(str(p))
+    p.write_text('{"day": "2026-10-15", "cost_usd": 0.01}\n'); assert not cn.archive_cost_ok(str(p))
+    p.write_text('{"day": "2026-10-15", "error": "x"}\n'); assert not cn.archive_cost_ok(str(p))
+    assert not cn.archive_cost_ok(str(tmp_path / "missing.log"))

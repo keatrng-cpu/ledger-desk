@@ -1,0 +1,7 @@
+[Unit]
+Description=Nightly trade charts + learning report, weekdays 18:05 ET (after archive 17:15 and backtest 17:45)
+[Timer]
+OnCalendar=Mon..Fri *-*-* 18:05:00 America/New_York
+Persistent=false
+[Install]
+WantedBy=timers.target

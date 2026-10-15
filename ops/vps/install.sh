@@ -19,8 +19,10 @@ SRC="$(cd "$(dirname "$0")" && pwd)"; DST=/opt/ledger-ops; PY=/opt/ledger-gatewa
 id ledgerops >/dev/null 2>&1 || useradd --system --home /nonexistent --shell /usr/sbin/nologin ledgerops
 install -d -o root -g root -m 755 "$DST" "$DST/paper" "$DST/venv"   # venv = bind-mount point
 install -m 644 "$SRC"/common.py "$SRC"/watchdog.py "$SRC"/dbhist.py "$SRC"/archive.py "$SRC"/backtest.py "$DST"/
+install -m 644 "$SRC"/charts_nightly.py "$DST"/
+if [ -d "$SRC/../charts/trade_charts" ]; then install -d -m 755 "$DST/charts/trade_charts" && install -m 644 "$SRC"/../charts/trade_charts/*.py "$DST/charts/trade_charts/"; fi
 install -m 644 "$SRC"/paper/trend_paper.py "$SRC"/paper/vps_trend.py "$SRC"/paper/fastpath.py "$DST/paper/"
-for d in /var/lib/ledger-watchdog /var/lib/ledger-paper /var/lib/ledger-backtest /var/lib/ledger-archive /var/lib/ledger-archive/hist /var/log/ledger-ops; do
+for d in /var/lib/ledger-watchdog /var/lib/ledger-paper /var/lib/ledger-backtest /var/lib/ledger-archive /var/lib/ledger-archive/hist /var/lib/ledger-charts /var/log/ledger-ops; do
   install -d -o ledgerops -g ledgerops -m 750 "$d"; done
 install -m 644 "$SRC"/systemd/tmpfiles-ledger.conf /etc/tmpfiles.d/ledger-ops.conf && systemd-tmpfiles --create /etc/tmpfiles.d/ledger-ops.conf
 # schema (idempotent)
@@ -42,11 +44,11 @@ if [ -z "$(swapon --show --noheadings)" ]; then
   fallocate -l 1G /swapfile-ledger && chmod 600 /swapfile-ledger && mkswap /swapfile-ledger && swapon /swapfile-ledger
   grep -q swapfile-ledger /etc/fstab || echo '/swapfile-ledger none swap sw 0 0' >> /etc/fstab
 else echo "swap present: $(swapon --show --noheadings | tr -s ' ')"; fi
-for u in ledger-watchdog.service ledger-watchdog.timer ledger-paper-trend.service ledger-backtest.service ledger-backtest.timer ledger-archive.service ledger-archive.timer; do
+for u in ledger-watchdog.service ledger-watchdog.timer ledger-paper-trend.service ledger-backtest.service ledger-backtest.timer ledger-archive.service ledger-archive.timer ledger-charts.service ledger-charts.timer; do
   install -m 644 "$SRC/systemd/$u" /etc/systemd/system/; done
 systemctl daemon-reload
 if [ "${1:-}" != "--no-start" ]; then
-  systemctl enable --now ledger-watchdog.timer ledger-backtest.timer ledger-archive.timer
+  systemctl enable --now ledger-watchdog.timer ledger-backtest.timer ledger-archive.timer ledger-charts.timer
   systemctl enable ledger-paper-trend.service && systemctl reset-failed ledger-paper-trend.service 2>/dev/null; systemctl restart ledger-paper-trend.service
 fi
 systemctl --no-pager list-timers 'ledger-*'
