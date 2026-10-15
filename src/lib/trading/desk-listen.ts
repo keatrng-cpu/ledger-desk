@@ -1,4 +1,6 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { gateTarget } from "@/lib/execution/fast-chain";
+import { buildMinute, choosePlan, planFvgFailed, planId, type PinPlan } from "@/lib/execution/plan-pin";
 import { RULES_HASH } from "@/lib/desk/rules-hash";
 import { buildDeskSeq, type DeskSeqWire } from "@/lib/smc/seq/wire";
 import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
@@ -188,6 +190,14 @@ export interface DeskWire {
     target: number | null;
     /** ATR(14) of the setup's (15m) series. */
     atr: number | null;
+    /** fire-unblock 10/15 (#30): pinned plan id (symbol:side:entry:stop:T1), its build minute, why it was kept/swapped. */
+    planId?: string | null;
+    planMinute?: number | null;
+    planFvgFailed?: boolean;
+    planWhy?: string;
+    planPinned?: boolean;
+    /** fire-unblock target ladder: the target the R:R/velocity/chase/EV gates use (T1 stays the first scale-out). */
+    gateTarget?: { price: number | null; which: "t1" | "t2"; rr: number | null };
   } | null;
   brain: {
     word: string | null;
@@ -236,6 +246,31 @@ export interface DeskWire {
   };
 }
 
+const PLAN_PINS = new Map<string, PinPlan>();
+/** Test hook: forget pinned plans. */
+export function resetPlanPins() { PLAN_PINS.clear(); }
+type TopLike = { symbol: string; side: string; confluence: number; entryPx?: number | null; plan?: { entry?: number | null; stop?: number | null } | null };
+function pinPlan(top: TopLike, arrays: Parameters<typeof planFvgFailed>[1], nowMs: number) {
+  const pt = primaryTarget((top as { plan?: unknown }).plan as Parameters<typeof primaryTarget>[0]);
+  const entry = top.entryPx ?? top.plan?.entry ?? null;
+  const cand: PinPlan = { symbol: top.symbol, side: top.side, entry, stop: top.plan?.stop ?? null, t1: pt.price ?? null, q: top.confluence, rr: pt.rr ?? null, minute: buildMinute(nowMs) };
+  cand.fvgFailed = planFvgFailed(cand, arrays);
+  const key = `${top.symbol}:${top.side}`;
+  const { plan, why } = choosePlan(PLAN_PINS.get(key) ?? null, cand);
+  if (plan) PLAN_PINS.set(key, plan); else PLAN_PINS.delete(key);
+  const kept = plan != null && plan !== cand;
+  return {
+    plan, why,
+    wire: {
+      planId: plan ? planId(plan) : null,
+      planMinute: cand.minute,
+      planFvgFailed: plan == null && cand.fvgFailed === true,
+      planWhy: why,
+      ...(kept ? { entry: plan!.entry, stopPx: plan!.stop, target: plan!.t1, planPinned: true } : {}),
+    },
+  };
+}
+
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const floor = evaluateOptionsDesk(desk);
   const armed = floor.best;
@@ -272,6 +307,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .sort((a, b) => Number(a.mitigated) - Number(b.mitigated) || b.createdT - a.createdT)
     .slice(0, WIRE_ARRAYS_CAP)
     .map(({ createdT: _t, ...r }) => r);
+  // fire-unblock 2026-10-15 (#30): one plan per symbol:side per build minute; failed-FVG plans dropped; hysteresis.
+  const pin = top ? pinPlan(top, arrRows, Date.now()) : null;
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
     ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
@@ -359,6 +396,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           t2: top.plan?.t2 ?? null,
           stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,
+          ...(pin ? pin.wire : {}),
+          gateTarget: (() => { const g = gateTarget({ entry: top.entryPx ?? top.plan?.entry ?? null, stop_px: top.plan?.stop ?? null, first_target: primaryTarget(top.plan).price, t2: top.plan?.t2 ?? null, side: top.side }); return { price: g.target, which: g.which, rr: g.rr }; })(),
         }
       : null,
     brain: {

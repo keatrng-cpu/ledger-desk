@@ -350,6 +350,11 @@ export interface CanonInput {
    */
   htfDisrespected?: boolean;
   /**
+   * fire-unblock 2026-10-15 (shared rules poiHalf): 1h AND 4h bias both agree with the side. A continuation entry
+   * after a with-trend displacement sits in the "wrong" half by construction, so the half is exempt (passes).
+   */
+  htfAlignedBoth?: boolean;
+  /**
    * Did this book make the divergence's extreme (smt-level.ts `led`)?
    *
    * `false` is the HOLDER: the other index swept the extreme and this one
@@ -673,8 +678,10 @@ export function scoreCanonStack(input: CanonInput): CanonStack {
       id: "pd_half",
       label: "POI in correct half",
       must: true,
-      pass: pdHalf && poi,
-      detail: !dealingZone
+      pass: (pdHalf && poi) || input.htfAlignedBoth === true,
+      detail: input.htfAlignedBoth === true && !(pdHalf && poi)
+        ? `1h + 4h both agree ${side}: half exempt (continuation after displacement)`
+        : !dealingZone
         ? "No dealing range"
         : dealingZone === "equilibrium"
           ? "EQ — lower quality, wait displacement"
