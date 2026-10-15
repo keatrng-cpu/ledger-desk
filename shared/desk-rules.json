@@ -284,10 +284,21 @@
     "lossLock": -300
   },
   "fastChain": {
-    "_doc": "FAST-SETUPS-ONLY fire chain (Keaton 2026-10-13, live from 2026-10-14). Hard: safety stops (account/position/working order/live quote/sizing/BP/tape/card age/news/entry cutoff/daily cap/weekly lock/rules parity/kill switch/flat by) + band from q >= minBand held continuously for minHoldS seconds (same symbol/side, plan valid) + plan (entry, stop, real T1 on the correct sides, R:R >= rrMin, price within entryAtr x ATR of entry) + agreement (brain not on the opposite side; 1h+4h not both against) + fast (T1 <= maxMinutesToT1 at the card's velocity). Every other gate is a soft:* row (logged, never blocks). Trim trimFrac at firstTargetR (underlying), stop to breakeven after the trim, rest to T1/T2. Debit spread when a single option does not fit the band's $ cap.",
+    "_doc": "FAST-SETUPS-ONLY fire chain (Keaton 2026-10-13, live from 2026-10-14). Hard: safety stops (account/position/working order/live quote/sizing/BP/tape/card age/news/entry cutoff/daily cap/weekly lock/rules parity/kill switch/flat by) + band from q >= minBand confirmed (fire-bugs-live 10/15, Keaton: no hold timer; fires the first time the setup is fully actionable once the same setup id (symbol:side:entry) passed confirmPolls consecutive real polls, and only within maxActionableAgeS of first becoming actionable, else stale; resets on invalidation (through the stop / T1 touched / strategy.invalidated) or a side change) + plan (entry, stop, real T1 on the correct sides, R:R >= rrMin, price within entryAtr x ATR of entry) + agreement (brain not on the opposite side; 1h+4h not both against) + fast (T1 <= maxMinutesToT1 at the card's velocity; since fire-bugs-live 10/15 a size cut per fastChain.velocity, not a block). Every other gate is a soft:* row (logged, never blocks). Trim trimFrac at firstTargetR (underlying), stop to breakeven after the trim, rest to T1/T2. Debit spread when a single option does not fit the band's $ cap.",
     "mode": "live",
     "minBand": "B+",
-    "minHoldS": 90,
+    "confirmPolls": 2,
+    "maxActionableAgeS": 90,
+    "velocity": {
+      "_doc": "fire-bugs-live 10/15 (Keaton): fast:velocity is a size cut, not a block. T1 ETA > maxMinutesToT1 -> contracts x cutMult; > minSizeBeyondCapX x maxMinutesToT1 or unknown -> minimum size (1 whole contract). The cut also multiplies the band $ debit cap by cutMult ($650 -> $325) before the $ cap and minDebit checks.",
+      "mode": "size",
+      "cutMult": 0.5,
+      "minSizeBeyondCapX": 2
+    },
+    "entryRearm": {
+      "_doc": "fire-bugs-live 10/15 (Keaton): fast:entry failing because price is > entryAtr x ATR from entry keeps the setup alive; a pullback inside the zone with stop and T1 untouched and band >= minBand makes it actionable again and restarts the maxActionableAgeS clock and confirmPolls.",
+      "mode": "live"
+    },
     "rrMin": 1.0,
     "entryAtr": 0.5,
     "maxMinutesToT1": 30,
@@ -302,7 +313,6 @@
       "fast:geometry",
       "fast:entry",
       "fast:agree",
-      "fast:velocity",
       "rules_parity",
       "tape",
       "tape_fresh",
@@ -321,7 +331,7 @@
       "opt:spread",
       "exec_account"
     ],
-    "geometryDoc": "fast:geometry (Floor review 19:28 ET 2026-10-13): long needs stop<entry<T1(<T2), short stop>entry>T1(>T2), on the plan stop AND the management stop; traded ticket type/ETF = card side/symbol; a desk Floor ticket whose call/put disagrees with the card side refuses."
+    "geometryDoc": "fast:geometry (Floor review 19:28 ET 2026-10-13): long needs stop<entry<T1(<T2), short stop>entry>T1(>T2), on the plan stop AND the management stop; traded ticket type/ETF = card side/symbol; a desk Floor ticket on another underlying or the other direction is another setup and is ignored (fire-bugs-live 10/15); a T2 not beyond T1 is treated as no T2 (manage at T1 / 2xT1), not a refusal."
   },
   "kzDisp": {
     "_doc": "Kill-zone opening-displacement detector (Keaton 2026-10-13, items 1-50). Every item starts mode=shadow: logged as shadow:kz:* ok rows, never changes band/fire/plan. Promote only when tools/kz_backtest.py shows hit/R/freq not worse on 6-12 months; see tools/kz_backtest_report.json. Twin: watcher/killzone.py, desk src/lib/desk/kz-disp.ts.",
@@ -681,11 +691,6 @@
       "maxDebit": 350,
       "minT1Mult": 1.5,
       "_doc": "A-/B+ cap rises to maxDebit when projected T1 option value >= minT1Mult x (theta to T1 + spread)."
-    },
-    "persistGrace": {
-      "mode": "shadow",
-      "maxDipCards": 1,
-      "_doc": "fast:persist hold survives one card whose q dips under minBand while price is still within entryAtr of entry."
     },
     "nearMissFire": {
       "mode": "shadow",

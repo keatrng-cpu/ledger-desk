@@ -53,3 +53,7 @@ graphify-out/.post-commit.log
 ai/.context.md
 ai/.context.md.tmp
 ops/**/__pycache__/
+
+# Python bytecode
+__pycache__/
+*.pyc

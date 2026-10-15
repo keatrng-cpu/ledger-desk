@@ -1,0 +1,84 @@
+{
+ "as_is_90s": [],
+ "live_confirm2_age90_geomfix": [
+  {
+   "t": "10-14 09:15:29",
+   "sym": "MNQ",
+   "side": "short",
+   "band": "B+",
+   "px": 30509.5,
+   "entry": 30540.5,
+   "stop": 30582.9,
+   "t1": 30457.5,
+   "R": 0.35,
+   "exit": "BE after T1",
+   "exit_t": "09:46",
+   "age_s": 4.3,
+   "sig": "sig-10fd11556981b8d8"
+  },
+  {
+   "t": "10-15 08:30:21",
+   "sym": "MNQ",
+   "side": "short",
+   "band": "B+",
+   "px": 29746.5,
+   "entry": 29771.13,
+   "stop": 29798.31,
+   "t1": 29703.25,
+   "R": 0.42,
+   "exit": "BE after T1",
+   "exit_t": "08:33",
+   "age_s": 5.2,
+   "sig": "sig-9ad0a6bec0c0619f"
+  }
+ ],
+ "live_confirm2_age90_no_geomfix": [
+  {
+   "t": "10-14 09:15:29",
+   "sym": "MNQ",
+   "side": "short",
+   "band": "B+",
+   "px": 30509.5,
+   "entry": 30540.5,
+   "stop": 30582.9,
+   "t1": 30457.5,
+   "R": 0.35,
+   "exit": "BE after T1",
+   "exit_t": "09:46",
+   "age_s": 4.3,
+   "sig": "sig-10fd11556981b8d8"
+  },
+  {
+   "t": "10-15 08:30:21",
+   "sym": "MNQ",
+   "side": "short",
+   "band": "B+",
+   "px": 29746.5,
+   "entry": 29771.13,
+   "stop": 29798.31,
+   "t1": 29703.25,
+   "R": 0.42,
+   "exit": "BE after T1",
+   "exit_t": "08:33",
+   "age_s": 5.2,
+   "sig": "sig-9ad0a6bec0c0619f"
+  }
+ ],
+ "live_confirm3_age90_geomfix": [
+  {
+   "t": "10-14 09:15:33",
+   "sym": "MNQ",
+   "side": "short",
+   "band": "B+",
+   "px": 30507.5,
+   "entry": 30540.5,
+   "stop": 30582.83,
+   "t1": 30457.5,
+   "R": 0.33,
+   "exit": "BE after T1",
+   "exit_t": "09:46",
+   "age_s": 8.4,
+   "sig": "sig-10fd11556981b8d8"
+  }
+ ]
+}
