@@ -284,18 +284,20 @@
     "lossLock": -300
   },
   "poiHalf": {
-    "_doc": "Brain 'POI in correct half' (FIRE UNBLOCK 2026-10-15): 1h AND 4h both aligned with the side = exempt (pass: no STAND, no grade cut). Otherwise soft: a brain note (never a STAND veto) that still costs the canon score. Counter-bias cards stay blocked by fast:agree / the htf guard / the HTF must.",
+    "_doc": "Brain 'POI in correct half' (FIRE UNBLOCK 2026-10-15): 1h AND 4h both aligned with the side = exempt (pass: no STAND, no grade cut). If neither frame opposes (neutral/unknown): soft, a brain note (no STAND veto) that still costs the canon score. If EITHER 1h or 4h opposes the side: the veto stays (review F5). Counter-bias cards stay blocked by fast:agree / the htf guard / the HTF must.",
     "htfAlignedExempt": true,
     "mode": "soft"
   },
   "fastChain": {
+    "_modeDoc": "fire-unblock review 2026-10-15: shadow until >= 5 RTH sessions show >= 3 fires/wk with positive net. shadow = the existing live chain fires; the fast chain (incl. persist/POI/velocity/ladder/plan-pin effects on gating) only logs shadow:fast:* rows.",
     "_doc": "FAST-SETUPS-ONLY fire chain (Keaton 2026-10-13, live from 2026-10-14). Hard: safety stops (account/position/working order/live quote/sizing/BP/tape/card age/news/entry cutoff/daily cap/weekly lock/rules parity/kill switch/flat by) + band from q >= minBand held continuously for minHoldS seconds (same symbol/side, plan valid) + plan (entry, stop, real T1 on the correct sides, R:R >= rrMin, price within entryAtr x ATR of entry) + agreement (brain not on the opposite side; 1h+4h not both against) + fast (T1 <= maxMinutesToT1 at the card's velocity). Every other gate is a soft:* row (logged, never blocks). Trim trimFrac at firstTargetR (underlying), stop to breakeven after the trim, rest to T1/T2. Debit spread when a single option does not fit the band's $ cap. FIRE UNBLOCK 2026-10-15 (strictness-1015 audit): minHoldS 90->20; the hold is keyed per symbol:side and survives card flips, regrades, plan swaps and failed rows, resetting only on a side/symbol change or invalidation (price through the stop or through T1). fast:velocity is soft (logged + one-step size cut). Plans whose FVG failed are dropped; a pinned plan is kept unless a new one is clearly better (planHysteresis).",
-    "mode": "live",
+    "mode": "shadow",
     "minBand": "B+",
     "minHoldS": 20,
-    "persistResetOn": ["side", "invalidated"],
+    "persistResetOn": ["side", "invalidated", "strategy.invalidated", "dip"],
+    "persistDip": { "_doc": "A qualifying-condition dip (band/plan/agree/geometry) is tolerated only for <= maxCards consecutive cards AND <= maxS since the last qualifying card; longer resets the hold. Replaces fireFix.persistGrace.", "maxCards": 1, "maxS": 5 },
     "velocityMode": "soft",
-    "targetLadder": { "_doc": "fire-unblock 10/15 (Keaton 09:59 CT ES long): when T1 R:R < t1RrBelow and the next ranked target beyond T1 (T2) gives R:R >= nextRrMin, R:R / velocity / entry-distance / EV gate on that target; T1 stays the first scale-out.", "t1RrBelow": 1.2, "nextRrMin": 1.5 },
+    "targetLadder": { "_doc": "fire-unblock 10/15 (Keaton 09:59 CT ES long): when T1 R:R < t1RrBelow and the next ranked target beyond T1 (T2) gives R:R >= nextRrMin, R:R / velocity / entry-distance (chase) gate on that target (only if T1 R:R >= t1RrMin; option EV stays on T1; desk-wide effect only when fastChain.mode is live); T1 stays the first scale-out.", "t1RrMin": 0.6, "t1RrBelow": 1.2, "nextRrMin": 1.5, "uses": ["rr", "velocity", "chase"], "evOn": "t1" },
     "planHysteresis": { "minQGain": 0.05, "minRrGain": 0.25, "dropFailedFvg": true },
     "rrMin": 1.0,
     "entryAtr": 0.5,

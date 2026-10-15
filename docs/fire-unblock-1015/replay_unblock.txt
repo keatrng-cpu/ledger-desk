@@ -1,5 +1,9 @@
-{'tag': '10/13 13:51:15', 'sym': 'MNQ', 'side': 'short', 't': '10/13 13:52', 'entry': 30731.25, 'stop': 30793, 't1': 30635.25, 'prem': 0.58, 'n': 5.2, 'pnl': -301, 'R': -1.2, 'exit': 'stop', 'mfeR': 0.06}
-{'tag': '10/13 13:53:13', 'sym': 'ES', 'side': 'short', 't': '10/13 13:54', 'entry': 7851.5, 'stop': 7856.25, 't1': 7846.34, 'prem': 0.69, 'n': 4.33, 'pnl': -149, 'R': -1.11, 'exit': 'stop', 'mfeR': 0.21}
-{'tag': '10/14 09:15:46', 'sym': 'MNQ', 'side': 'short', 't': '10/14 09:16', 'entry': 30525.0, 'stop': 30583.48, 't1': 30457.5, 'prem': 1.65, 'n': 1.82, 'pnl': 275, 'R': 2.18, 'exit': 'T1+T2', 'mfeR': 2.35}
-{'tag': '10/15 08:31:21', 'sym': 'MNQ', 'side': 'short', 't': '10/15 08:32', 'entry': 29694.5, 'stop': 29798.31, 't1': 29687.25, 'prem': 1.58, 'n': 1.9, 'pnl': -190, 'R': -1.0, 'exit': 'stop', 'mfeR': 0.05}
-n 4 win 1 0DTE $ -365 R -1.13
+refused at fill (R:R from fill 0.73): 10/14 09:03:53 gate=t1
+refused at fill (R:R from fill 0.73): 10/14 09:03:57 gate=t1
+refused at fill (R:R from fill 0.73): 10/14 09:59:18 gate=t1
+refused at fill (R:R from fill 0.07): 10/15 08:31:21 gate=t1
+{'tag': '10/13 13:51:15 gate=t1', 'sym': 'MNQ', 'side': 'short', 't': '10/13 13:52', 'entry': 30731.25, 'stop': 30793, 't1': 30635.25, 'prem': 0.58, 'n': 2.6, 'pnl': -151, 'R': -1.2, 'exit': 'stop', 'mfeR': 0.06, 'budget': 150}
+{'tag': '10/13 13:53:05 gate=t1', 'sym': 'ES', 'side': 'short', 't': '10/13 13:54', 'entry': 7851.5, 'stop': 7856.25, 't1': 7846.34, 'prem': 0.69, 'n': 2.17, 'pnl': -74, 'R': -1.11, 'exit': 'stop', 'mfeR': 0.21, 'budget': 150}
+{'tag': '10/14 09:15:42 gate=t1', 'sym': 'MNQ', 'side': 'short', 't': '10/14 09:16', 'entry': 30525.0, 'stop': 30583.22, 't1': 30457.5, 'prem': 1.65, 'n': 0.91, 'pnl': 138, 'R': 2.19, 'exit': 'T1+T2', 'mfeR': 2.36, 'budget': 150}
+{'tag': '10/15 08:33:21 gate=t1', 'sym': 'MNQ', 'side': 'short', 't': '10/15 08:34', 'entry': 29769.25, 'stop': 29799.5, 't1': 29684.25, 'prem': 1.63, 'n': 0.92, 'pnl': -37, 'R': -1.0, 'exit': 'stop', 'mfeR': 2.63, 'budget': 150}
+n 4 win 1 0DTE $ -124 R -1.12

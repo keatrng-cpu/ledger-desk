@@ -65,3 +65,48 @@ Script: `replay_unblock.py`, output in `replay_unblock.txt`, run over the audit'
 - `docs/fire-unblock-1015/watcher.patch` is a diff against the watcher code as of 10/15 morning. It also applies cleanly (with offsets) on top of the live tree that already has the #19 feed_gapped edits.
 - Files: `watcher/{fastchain,gates,daemon}.py`, `watcher/desk-rules.json`, `tests/test_fastchain.py`, new `tests/test_fire_unblock.py`.
 - The patch is not applied to the live watcher, and the live watcher was not restarted.
+
+
+## Review round 1 (reviews/2026-10-15-fire-unblock-pr20.md) — changes
+- **Mode:** `fastChain.mode` is now **shadow** in both rules copies.
+  - The existing live chain fires.
+  - The fast chain logs `shadow:fast:*` rows plus `shadow:fast:would_fire`.
+  - The target ladder and velocity cut take effect desk-wide only when the mode is live.
+  - In shadow the daemon tracks the hold but does not touch the live ticket.
+- **F1 (persist):**
+  - The qualifying conditions (band ≥ B+, plan, agree, geometry) must hold continuously for 20s.
+  - `persistDip` tolerates at most 1 non-qualifying card and at most 5s since the last qualifying card. A longer dip resets.
+  - A dip adds no hold time.
+  - 30 min of B followed by B+ starts a fresh 20s hold (tested on desk and watcher).
+  - It also resets on PR #19 `strategy.invalidated`, on side change, and on price through the stop or T1 traded.
+  - **persistGrace removal:** `firefix.persist_grace` (fireFix.persistGrace, a one-card band-dip grace plus the `shadow:fx:persistGrace` row) is no longer called. `persistDip` replaces it as an explicit, time-bounded rule shared with the desk.
+- **F2 (velocity cut):**
+  - The soft-velocity one-step cut is set in `_evaluate_fire_core` **before** `size_contracts` (row `fast:velocity_cut`).
+  - So the `sizing` row, which `daemon.fire_live` reads for `n`, carries the cut count. Tested in `test_soft_velocity_cut_reaches_the_sizing_row`.
+  - On the desk, `velocitySoftRow` is wired into `desk-listen`: `wire.strategy.velocitySizeCut`, and `floor.sizeCut` when fastChain is live.
+- **F3 (plan pin):**
+  - The desk build is the single pin source (`plan-pin.ts` `stepPins`). The card carries the pinned plan whole: entry, stop, T1, T2, q, R:R, `planFvgId`, `planId` and `planMinute`.
+  - `gateTarget` is computed from the pinned plan.
+  - The pin's FVG is re-read live every build by its id; if it fails, the pin is dropped.
+  - Pins are cleared on side change, invalidation (live price), and session end (ET day change or outside the trade window).
+  - The watcher keeps no pin of its own: the `state["plan_pin"]` and daemon level override are removed. `plan_pick` remains only as a parity twin.
+  - Limitation: the desk pin lives in process memory. A desk restart re-picks from the next build; the watcher never diverges because it only reads the card.
+- **F4 (ladder):**
+  - The T2 ladder needs T1 R:R ≥ 0.6 (`t1RrMin`).
+  - Option EV (late PnL, `loss_option_net`, `t1_option_value`, desk `optionNetAtT1`) stays on T1.
+  - Only R:R, velocity and chase use T2. That applies desk-wide only when fastChain is live.
+- **F5 (POI):**
+  - If either 1h or 4h opposes the side, the veto stays.
+  - Soft only when neither frame opposes.
+  - Exempt (canon pass) only when both align.
+- **Replay** (`replay_unblock.py`):
+  - It now imports the patched watcher `fastchain` and reads every threshold from the rules: `setup_rows`, `streak_next`, `fast_rows`, `gate_target`, `velocity_cut`.
+  - Result: **4 fires, 1 win, −$124 (0DTE), −1.12R**.
+  - All 4 fires were sized at $150, because polls.jsonl has no velocity read and unknown velocity takes the soft cut.
+  - 4 candidates were refused at the fill on R:R from the fill.
+  - Not modelled: brain side, Floor ticket, RH quote/sizing, news, plan pin.
+- **Tests:**
+  - `tsc` clean.
+  - `npm test` 337/337, with `WATCHER_DIR` set to a fresh copy of the live watcher plus this patch.
+  - Watcher pytest on that fresh copy: 432 passed, 2 skipped.
+  - In the conftest, `@pytest.mark.fast` tests force `mode=live`; `@pytest.mark.shipped_mode` keeps the rules as shipped.

@@ -549,9 +549,12 @@ function gradeBook(
     const timeNote = f.id === "time";
     // Keaton 2026-10-13: premium/discount-for-side COUNTS in the ring (q
     // already scores it), so the half is a must again — no note demotion.
-    // fire-unblock 2026-10-15: outside the HTF-aligned exemption the half is SOFT — a note that costs the canon score
+    // fire-unblock 2026-10-15: both frames aligned = exempt (canon pass); neither opposing = SOFT — a note that costs the canon score
     // (it stays a canon must, so mustHits/score drop) but never a STAND/WAIT veto on the brain.
-    const pdSoft = f.id === "pd_half" && POI_HALF.mode === "soft" && !f.pass;
+    // Review F5: soft only when NEITHER 1h nor 4h opposes the side (neutral/unknown); either frame against keeps the veto.
+    const oppTf = side === "long" ? "bear" : side === "short" ? "bull" : null;
+    const htfOpposes = oppTf != null && (htfFrames?.bias1h === oppTf || htfFrames?.bias4h === oppTf);
+    const pdSoft = f.id === "pd_half" && POI_HALF.mode === "soft" && !f.pass && !htfOpposes;
     const note = mtfNote || htfNote || timeNote || pdSoft;
     void halfNote;
     const noteLine = halfNote

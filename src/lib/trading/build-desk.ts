@@ -1,5 +1,5 @@
 import { planTargetText } from "@/lib/trading/card-plan";
-import { gateTarget } from "@/lib/execution/fast-chain";
+import { fastLive, gateTarget } from "@/lib/execution/fast-chain";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
@@ -1732,8 +1732,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const ch = lossGuards.chopRead(m, atr);
         out.chop = ch;
         if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { liveMut = true; c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
-        // fire-unblock 10/15 target ladder: velocity / late R:R / option EV gate on T2 when T1 R:R < 1.2 and T2 R:R >= 1.5 (T1 stays the first scale-out).
-        const gt = gateTarget({ entry, stop_px: pl.stop, first_target: pl.t1, t2: (pl as { t2?: number | null }).t2 ?? null, side }).target;
+        // fire-unblock 10/15 target ladder: velocity / late R:R gate on T2 when T1 R:R < 1.2 and T2 R:R >= 1.5 (T1 stays the first scale-out).
+        // Ladder is desk-wide only when fastChain is live; in shadow the live chain keeps T1. Option EV stays on T1 (review F4).
+        const gt = fastLive() ? gateTarget({ entry, stop_px: pl.stop, first_target: pl.t1, t2: (pl as { t2?: number | null }).t2 ?? null, side }).target : pl.t1;
         const v = lossGuards.velocityRead(m, entry, gt);
         out.velocity = v;
         if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
@@ -1765,7 +1766,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           else shadow("late", lg.why!);
         } else if (lg.late) c.reasons.push(lg.why!);
         // 7) projected option net at T1
-        const on = gt == null ? null : lossGuards.optionNetAtT1(c.symbol, entry, gt, v.expMin);
+        const on = pl.t1 == null ? null : lossGuards.optionNetAtT1(c.symbol, entry, pl.t1, v.expMin);
         out.option = on;
         if (on && !on.ok) { if (isLive(LOSS_RULES.option.mode)) { c.actionable = false; c.reasons.push(`No fire: ${on.why}`); guards.live.push({ rule: "option", did: on.why }); lossBlocked.set(`${c.symbol}:${side}`, on.why); } else shadow("option", `no fire: ${on.why}`); }
         // 2a / 6b) management after the fill (watcher manage_action reads the modes)
