@@ -5,7 +5,7 @@
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
-import { IFVG_FLIP, ifvgFlipOf, readFlipped, type WireArray } from "@/lib/smc/ifvg-flip";
+import { IFVG_FLIP, flipTargets, ifvgFlipOf, readFlipped, scannerPools, type WireArray } from "@/lib/smc/ifvg-flip";
 import { mtfArrays } from "@/lib/smc/mtf-arrays";
 import RULES_ALL from "../../../shared/desk-rules.json";
 import { APLUS_RULES } from "@/lib/aplus/config";
@@ -1521,7 +1521,9 @@ export function scoreCandidates(
     const { targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
     const arr = mtfArrays(c.symbol, isL ? leftMinute : rightMinute, isL ? closedL : closedR) as unknown as WireArray[];
     if (readFlipped(arr, c.side)) (c as { readFlippedAgainst?: boolean }).readFlippedAgainst = true;   // read-priority: this side's 5m gaps are failing on 1m
-    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets, nowMs: armNow, arrays: arr });
+    // 10/15 13:03 CT: feed the scanner's full pool list (EQH/EQL, swings, opposite FVGs) - session pools alone left the flip short with no T1.
+    const flipT = flipTargets(targets, scannerPools({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, nowMs: armNow, arrays: arr }));
+    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets: flipT, nowMs: armNow, arrays: arr });
     (c as { ifvgFlip?: unknown }).ifvgFlip = f;
     if (!f) continue;
     c.reasons.push(`iFVG flip (${IFVG_FLIP.mode}): ${f.why}; entry ${f.entry} (edge ${f.entryEdge}), stop ${f.stop}${f.t1 ? `, T1 ${f.t1.name} ${f.t1.price} (${f.rr1}R)` : ", no real pool >= 1R ahead"}`);

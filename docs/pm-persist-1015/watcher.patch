@@ -1,0 +1,149 @@
+--- a/watcher/fastchain.py	2026-10-15 14:15:06.612926632 -0500
++++ b/watcher/fastchain.py	2026-10-15 14:15:06.628926632 -0500
+@@ -22,7 +22,16 @@
+     if pm.get("mode") == "live" and snap.get("band") == "B+":   # a B+ card only (an A- is not a B+); 13:15 CT ES short A- still fires
+         hh, mm = (int(x) for x in pm["fromEt"].split(":"))
+         if _et_min(snap) >= hh * 60 + mm: pen += pm["q"]; why.append(f"after {pm['fromEt']} ET -{pm['q']}")
++    if is_stand(snap): pen += STAND_Q; why.append(f"brain STAND -{STAND_Q}")
+     return round(pen, 4), why
++# 10/15 PM (Keaton): brain STAND is a q weight, not a veto; STAND + iFVG flip against the side still blocks (fast:agree).
++# Code constants (no desk-rules.json key): rulesHash unchanged. Twin of fast-chain.ts STAND_Q / isStand.
++STAND_Q = 0.03
++def is_stand(snap): return str(snap.get("brain_word") or "").upper() == "STAND"
++PERSIST_HOLD_S = 20
++def fast_evidence(snap):
++    b = snap.get("band_pre_penalty") or snap.get("band")
++    return BAND_RANK.get(b, -1) >= BAND_RANK["A-"] and (snap.get("sweep") is True or snap.get("displacement") is True)
+ _EDGES = [(b, RULES["bandEdges"][b]) for b in ("A+", "A", "A-", "B+", "B")]
+ def band_of_q(q): return next((b for b, e in _EDGES if q >= e - 1e-9), "C")
+ def penalized_band(snap):
+@@ -71,6 +80,9 @@
+         _okr, _wr = ltf_reversal(snap, _ok_b or snap.get("fast_band_smoothed") is True)
+         if _okr: both = False; snap["fast_htf_half"] = True
+         _rev = f" — {_wr}"
++    _arr = [a for a in (snap.get("wire_arrays") or []) if a.get("symbol") in (None, sym)]
++    stand_veto = is_stand(snap) and ifvg_against(_arr, "short" if side == "short" else "long", px, band=None)[0]
++    if is_stand(snap): opposite = stand_veto   # STAND weighs q only; vetoes only with the iFVG flip against this side
+     rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' AGAINST' if both else ''}{_rev}"))
+     rows.append(ifvg_row(snap))
+     rows.append(geometry_row(snap))
+@@ -283,20 +295,24 @@
+     if st.get("last_id") == sid: st["last_id"] = None
+     return st
+ 
+-def persist_check(st, now_ms):
+-    """(ok, why) for fast:persist: confirmPolls consecutive passes and age <= maxActionableAgeS."""
++def persist_check(st, now_ms, snap=None):
++    """(ok, why) for fast:persist (10/15 PM fix, twin of fast-chain.ts persistOk): the clock starts at the first qualifying
++    card; A- or better with a fresh sweep/displacement fires on the next real poll (2 passes, no hold); otherwise
++    confirmPolls passes AND >= PERSIST_HOLD_S since the first qualifying card; never older than maxActionableAgeS."""
+     st = st or {}
+-    if st.get("first_ms") is None: return False, f"setup not actionable yet (need {confirm_polls()} consecutive polls)"
++    if st.get("first_ms") is None: return False, "no qualifying card yet (clock starts at the first card that passes every fast row)"
+     age = (now_ms - st["first_ms"]) / 1000; n = st.get("polls", 0)
+-    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first actionable {round(age, 1)}s ago (> {max_age_s()}s), never fired"
+-    return n >= confirm_polls(), f"setup {st.get('key')} passed {n} consecutive polls (need {confirm_polls()}), age {round(age, 1)}s (max {max_age_s()}s)"
++    if age > max_age_s(): return False, f"setup {st.get('key')} stale: first qualifying card {round(age, 1)}s ago (> {max_age_s()}s), never fired"
++    if snap is not None and fast_evidence(snap):
++        return n >= 2, f"setup {st.get('key')} A-+ with fresh sweep/displacement: {n} poll(s) since first qualifying card {round(age, 1)}s ago (need 2)"
++    return n >= confirm_polls() and age >= PERSIST_HOLD_S, f"setup {st.get('key')} {n} poll(s), held {round(age, 1)}s since first qualifying card (need {confirm_polls()} and >= {PERSIST_HOLD_S}s, <= {max_age_s()}s)"
+ 
+ def apply(g, snap, now_ms):
+     """Rewrite the gate list for the fast chain: hard rows kept, the rest soft:* (ok=True), fast rows added."""
+     hard = set(FC["hard"]) | {"rules_pin", "bplus_window", "day_loss"}; out = []   # fireFix live hard rows
+     rows = setup_rows(snap)
+     st = snap.get("fast_streak") or {}
+-    ok_p, why_p = persist_check(st, now_ms)
++    ok_p, why_p = persist_check(st, now_ms, snap)
+     rows.insert(1, ("fast:persist", ok_p, why_p))
+     names = {n for n, _, _ in rows}
+     for n, ok, w in g:
+--- a/tests/test_fastchain.py	2026-10-15 14:15:24.168926632 -0500
++++ b/tests/test_fastchain.py	2026-10-15 14:15:35.184926632 -0500
+@@ -28,7 +28,8 @@
+ 
+ def test_fires_on_second_consecutive_poll_no_timer():
+     st = fc.streak_next(None, snap(at="a1"), 0); assert _persist(st, 0) is False          # 1 poll: anti-flicker
+-    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is True      # 2 consecutive polls, 4 s: fires
++    st = fc.streak_next(st, snap(at="a2"), 4_000); assert _persist(st, 4_000) is False     # 10/15 PM: B+ needs the 20 s hold
++    st = fc.streak_next(st, snap(at="a2b"), 20_000); assert _persist(st, 20_000) is True   # 2+ polls, 20 s from the first card: fires
+ 
+ def test_same_card_reread_is_not_a_new_poll():
+     st = fc.streak_next(None, snap(at="a1"), 0); st = fc.streak_next(st, snap(at="a1"), 1_000)
+@@ -38,7 +39,7 @@
+     st = fc.streak_next(None, snap(at="a1"), 0)
+     st = fc.streak_next(st, snap(**SIB), 4_000)                                           # sibling poll in between
+     st = fc.streak_next(st, snap(at="a3"), 8_000); assert st["polls"] == 1 and st["first_ms"] == 0 and _persist(st, 8_000) is False
+-    st = fc.streak_next(st, snap(at="a4"), 12_000); assert _persist(st, 12_000) is True
++    st = fc.streak_next(st, snap(at="a4"), 20_000); assert _persist(st, 20_000) is True
+     st = fc.streak_next(st, snap(at="a5", band="C", q=0.45), 16_000)   # unblock-2: one B poll after B+ polls is smoothed (2 of 3), so fail on band C + q far below
+     st = fc.streak_next(st, snap(at="a6", band="C", q=0.40), 20_000); assert st["polls"] == 0 and st["first_ms"] == 0   # failing poll
+ 
+@@ -86,11 +87,13 @@
+     n, why = gates.size_contracts(0.20, 4, cfg, "A+", vel_snap=fast(None))
+     assert n is None and "floor" in why
+ 
++EV = {"band": "A-", "sweep": True}   # A-+ with a fresh sweep: fires on the next poll (10/15 PM persist fix)
++
+ def _arm(st, t0):
+     st = fc.streak_next(st, snap(at=f"r{t0}"), t0); return fc.streak_next(st, snap(at=f"s{t0}"), t0 + 4000)
+ 
+ def test_no_refire_after_stop():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.streak_next(st, snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+     assert st["spent"][fc.setup_id(snap())]["why"] == "invalidated"
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+@@ -100,16 +103,16 @@
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+ 
+ def test_no_refire_after_fire_then_rearm():
+-    st = _arm(None, 0); assert fc.persist_check(st, 4000)[0]
++    st = _arm(None, 0); assert fc.persist_check(st, 4000, EV)[0]
+     st = fc.mark_spent(st, fc.setup_id(snap()), "fired", 4000)
+     st = fc.streak_next(st, snap(at="out", **CHASE), 6000)     # chased out of the zone
+     st = _arm(st, 10000); assert not fc.persist_check(st, 14000)[0]
+     o = snap(entry=7852.25)                                      # another entry = another setup
+-    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000)[0]
++    st = fc.streak_next(fc.streak_next(st, dict(o, at="o1"), 20000), dict(o, at="o2"), 24000); assert fc.persist_check(st, 24000, EV)[0]
+ 
+ def test_spent_clears_next_session():
+     st = fc.streak_next(_arm(None, 0), snap(at="stop", tape_prices={"ES": 7857.0}), 5000)
+-    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000)[0]
++    t = 5000 + 86_400_000; st = _arm(st, t); assert fc.persist_check(st, t + 4000, EV)[0]
+ 
+ CHASE = dict(tape_prices={"ES": 7847.0})   # 4.75 past entry (> 0.5 x ATR 8), stop and T1 untouched
+ 
+@@ -118,7 +121,7 @@
+     st = fc.streak_next(st, snap(at="c1", **CHASE), 4_000); assert st["first_ms"] == 0 and st.get("out_of_zone")   # kept alive
+     st = fc.streak_next(st, snap(at="c2", **CHASE), 120_000)                                # ran for 2 min
+     st = fc.streak_next(st, snap(at="p1"), 125_000); assert st["first_ms"] == 125_000 and st["polls"] == 1 and _persist(st, 125_000) is False
+-    st = fc.streak_next(st, snap(at="p2"), 129_000); assert _persist(st, 129_000) is True    # re-armed: fires
++    st = fc.streak_next(st, snap(at="p2"), 145_000); assert _persist(st, 145_000) is True    # re-armed: fires
+     assert fc.streak_next(st, snap(at="p3"), 215_001)["first_ms"] == 125_000 and _persist(fc.streak_next(st, snap(at="p3"), 215_001), 215_001) is False
+ 
+ def test_entry_rearm_needs_band_and_untouched_levels():
+@@ -285,3 +288,23 @@
+              htf_bias=[("1h", "bull"), ("4h", "bear")], displacement=True, sweep=True, et_min=14 * 60 + 15)
+     rows = [(n, ok) for n, ok, _ in fc.setup_rows(s)]
+     assert all(ok for n, ok in rows), rows
++
++
++def test_persist_10_15_pm_first_card_short_hold():
++    """10/15 PM: clock from the first qualifying card; B+ needs 2 polls + 20 s; A-+ with fresh sweep/disp fires on poll 2."""
++    st = fc.streak_next(None, snap(at="q1"), 0); assert st["first_ms"] == 0
++    assert "Nones" not in fc.persist_check(st, 0)[1]
++    st = fc.streak_next(st, snap(at="q2"), 4000)
++    assert not fc.persist_check(st, 4000, snap())[0]                       # B+ no evidence: short hold
++    assert fc.persist_check(st, 4000, dict(snap(), band="A-", displacement=True))[0]
++    assert not fc.persist_check(st, 4000, dict(snap(), band="A-"))[0]       # A- without fresh sweep/disp: hold
++    assert fc.persist_check(st, 20000, snap())[0]
++    assert not fc.persist_check(st, 91000, dict(snap(), band="A", sweep=True))[0]   # stale
++
++def test_stand_is_q_weight_not_veto():
++    base = dict(snap(), brain_word="STAND", brain_side="long", q=0.70, band="A-")
++    rows = {n: ok for n, ok, _ in fc.setup_rows(dict(base))}
++    assert rows["fast:agree"]
++    assert fc.q_penalty(dict(base))[0] >= fc.STAND_Q
++    flip = dict(base, wire_arrays=[{"tf": "5m", "kind": "ifvg", "dir": "bull", "lo": 7850, "hi": 7851, "ageBars": 1, "failed": False}])
++    assert not {n: ok for n, ok, _ in fc.setup_rows(flip)}["fast:agree"]

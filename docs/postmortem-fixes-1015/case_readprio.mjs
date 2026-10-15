@@ -17,7 +17,7 @@ for (const [m, s] of [[0, 30], [1, 5], [2, 3], [3, 5], [4, 5], [5, 5], [6, 5], [
   const [blk, why] = F.ifvgAgainst(arr, "long", px, undefined, "B+");
   const flipped = F.readFlipped(arr, "long");
   const pools = A.sessionPools(upto, now, 60_000);
-  const sh = F.ifvgFlipOf({ symbol: "ES:rp", side: "short", minute: upto, closed15: [], targets: pools, nowMs: now, arrays: arr });
+  const sh = F.ifvgFlipOf({ symbol: "ES:rp", side: "short", minute: upto, closed15: [], targets: F.flipTargets(pools, F.scannerPools({ symbol: "ES:rp", side: "short", minute: upto, nowMs: now, arrays: arr })), nowMs: now, arrays: arr });
   out.push({ ct: ct(now), px, longBlocked: blk, why, readFlipped: flipped, short: sh && { tf: sh.tf, gap: sh.gap, entry: sh.entry, stop: sh.stop, t1: sh.t1, rr1: sh.rr1, why: sh.why } });
   console.log(ct(now), "px", px, "| long(B+)", blk ? "BLOCK" : "ok", "-", why, "| flipped", flipped, "| short:", sh ? `entry ${sh.entry} stop ${sh.stop} T1 ${sh.t1?.name} ${sh.t1?.price} (${sh.rr1}R) — ${sh.why}` : "none");
 }

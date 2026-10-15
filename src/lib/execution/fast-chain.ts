@@ -31,8 +31,16 @@ export function qPenalty(s: FastSnap): [number, string[]] {
   if (QP.htf.mode === "live" && nOppOf(s) >= 1) { pen += QP.htf.q; why.push(`1h/4h opposes -${QP.htf.q}`); }
   const [h, m] = QP.pmBplus.fromEt.split(":").map(Number);
   if (QP.pmBplus.mode === "live" && s.band === "B+" && (s.etMin ?? etMinNow()) >= h! * 60 + m!) { pen += QP.pmBplus.q; why.push(`after ${QP.pmBplus.fromEt} ET -${QP.pmBplus.q}`); }
+  if (isStand(s)) { pen += STAND_Q; why.push(`brain STAND -${STAND_Q}`); }
   return [+pen.toFixed(4), why];
 }
+/**
+ * 10/15 PM (Keaton: 4-5 correct reads did not fire): brain STAND is a q WEIGHT (-STAND_Q), not a veto. It still blocks
+ * (fast:agree) when it combines with the iFVG flip against the card's side (read-priority flip, 1m close-through or 5m/15m
+ * inversion). Code constants, no desk-rules.json key: rulesHash unchanged (c40b5555966491f3).
+ */
+export const STAND_Q = 0.03;
+export const isStand = (s: FastSnap) => String(s.brain_word ?? "").toUpperCase() === "STAND";
 /** Band after the q penalties: never above the card's band; edges unchanged. */
 export function penalizedBand(s: FastSnap): string | null | undefined {
   const [pen] = qPenalty(s); if (!pen || s.q == null) return s.band;
@@ -89,7 +97,10 @@ export function fastSetupRows(s: FastSnap): [string, boolean][] {
   const nOpp = [s.bias1h, s.bias4h].filter((b) => b != null && b !== want).length;
   const against = QP.htf.mode === "live" ? nOpp >= 1 && !htfEvidence(s)
     : (HR.anyOppose ? nOpp >= 1 : s.bias1h != null && s.bias4h != null && nOpp === 2) && !ltfReversal(s, bandOk);
-  r.push(["fast:agree", !opposite && !against]);
+  const flipAgainst = ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px, undefined, null)[0];
+  // STAND (incl. a STAND brain leaning the other way) only weighs q; STAND + iFVG flip against this side = veto.
+  const standVeto = isStand(s) && flipAgainst;
+  r.push(["fast:agree", (isStand(s) ? !standVeto : !opposite) && !against]);
   r.push(["fast:ifvg", !ifvgAgainst(s.arrays ?? [], side === "short" ? "short" : "long", s.px, undefined, s.band ?? null)[0]]);
   // fast:geometry (twin of watcher geometry_row; Floor review 2026-10-13 19:28 ET): long stop<entry<T1 / short reversed.
   // fire-bugs-live 10/15: a T2 not beyond T1 is "no T2" (see effectiveT2), and a desk Floor ticket on another underlying or
@@ -226,8 +237,26 @@ export function streakNext(prev: FastStreak | null, s: FastSnap & { at?: string 
   const cur = by[sid];
   return cur ? { key: sid, ...cur, byId: by, lastId, spent, hist } : { key: null, firstMs: null, polls: 0, lastAt: at, byId: by, lastId, spent, hist };
 }
-/** fast:persist: confirmPolls consecutive passes and no older than maxActionableAgeS. */
-export function persistOk(st: FastStreak | null, nowMs: number): boolean {
+/**
+ * fast:persist (10/15 PM fix; live gates.log showed "held Nones over 0 cards (need >= 90s)" ~3k times: the hold clock never
+ * started). The clock starts at the FIRST qualifying card (streakNext sets firstMs the poll every fast row passes).
+ *  - A- or better with a fresh sweep or displacement: fires on the next real poll (2 consecutive passes, no hold);
+ *  - otherwise: confirmPolls consecutive passes AND a short hold of PERSIST_HOLD_S since the first qualifying card;
+ *  - either way no older than maxActionableAgeS (stale). Code constants: rulesHash unchanged.
+ */
+export const PERSIST_HOLD_S = 20;
+export const fastEvidence = (s: FastSnap | null | undefined) => !!s && rank(s.band) >= rank("A-") && (s.sweep === true || s.displacement === true);
+export function persistOk(st: FastStreak | null, nowMs: number, s?: FastSnap | null): boolean {
   if (st?.firstMs == null) return false;
-  return (nowMs - st.firstMs) / 1000 <= FC.maxActionableAgeS && st.polls >= FC.confirmPolls;
+  const age = (nowMs - st.firstMs) / 1000;
+  if (age > FC.maxActionableAgeS) return false;
+  if (fastEvidence(s)) return st.polls >= 2;
+  return st.polls >= FC.confirmPolls && age >= PERSIST_HOLD_S;
+}
+/** The fast:persist row text (never "Nones": names the first qualifying card and what is still missing). */
+export function persistWhy(st: FastStreak | null, nowMs: number, s?: FastSnap | null): string {
+  if (st?.firstMs == null) return "no qualifying card yet (clock starts at the first card that passes every fast row)";
+  const age = +((nowMs - st.firstMs) / 1000).toFixed(1);
+  return fastEvidence(s) ? `A-+ with fresh sweep/displacement: ${st.polls} poll(s) since first qualifying card ${age}s ago (need 2)`
+    : `${st.polls} poll(s), held ${age}s since first qualifying card (need ${FC.confirmPolls} and >= ${PERSIST_HOLD_S}s, <= ${FC.maxActionableAgeS}s)`;
 }

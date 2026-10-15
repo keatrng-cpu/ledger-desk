@@ -106,3 +106,60 @@ export function ifvgFlipOf(i: { symbol: string; side: Side; minute: OhlcBar[] | 
   }
   return best;
 }
+
+/**
+ * Scanner pool list for flip target selection (10/15 13:03 CT: the read-priority short armed with no T1 because only
+ * the session H/L were fed in). Adds, from CLOSED 1m/5m bars within lookbackMin, real unswept liquidity only:
+ *  - swing highs/lows (1m and 5m pivots, ties allowed, nothing beyond them traded since),
+ *  - EQH/EQL: >= 2 unswept pivots within tol (max(0.5, 0.1 x ATR5m)) -> the outermost price of the cluster,
+ *  - opposite FVGs: unmitigated, not closed through, 5m/15m gaps against the trade (bull gap below a short -> its top;
+ *    bear gap above a long -> its bottom).
+ * Code constants only (no desk-rules.json key) so rulesHash is unchanged. Nothing is invented: no pivot, no pool.
+ */
+export function scannerPools(i: { symbol: string; side?: Side; minute: OhlcBar[] | null | undefined; nowMs: number; arrays?: WireArray[]; lookbackMin?: number }): Pool[] {
+  const mn = (i.minute ?? []).filter((b) => b.t + 60_000 <= i.nowMs && b.t >= i.nowMs - (i.lookbackMin ?? 390) * 60_000);
+  if (mn.length < 5) return [];
+  const five = rung(i.symbol, i.minute!, "5m", i.nowMs).bars;
+  const a5 = five.length ? rollingAtr(five)[five.length - 1] ?? NaN : NaN;
+  const tol = Math.max(0.5, Number.isFinite(a5) ? 0.1 * a5 : 0);
+  const out: Pool[] = [];
+  const lows: { p: number; t: number }[] = []; const highs: { p: number; t: number }[] = [];
+  const pivots = (bars: OhlcBar[], tf: string) => {
+    for (let k = 1; k < bars.length - 1; k++) {
+      const b = bars[k]!, p = bars[k - 1]!, n = bars[k + 1]!;
+      const end = b.t + (tf === "5m" ? 300_000 : 60_000);
+      const later = mn.filter((x) => x.t >= end);
+      if (b.l <= p.l && b.l <= n.l && b.l < Math.max(p.l, n.l) && !later.some((x) => x.l < b.l)) { lows.push({ p: b.l, t: b.t }); out.push({ name: `${tf} swing low`, price: b.l }); }
+      if (b.h >= p.h && b.h >= n.h && b.h > Math.min(p.h, n.h) && !later.some((x) => x.h > b.h)) { highs.push({ p: b.h, t: b.t }); out.push({ name: `${tf} swing high`, price: b.h }); }
+    }
+  };
+  pivots(mn, "1m");
+  pivots(five.filter((b) => b.t >= mn[0]!.t), "5m");
+  const eq = (xs: { p: number; t: number }[], low: boolean) => {
+    const s = [...xs].sort((x, y) => x.p - y.p); const used = new Set<number>();
+    for (let k = 0; k < s.length; k++) {
+      if (used.has(k)) continue;
+      const cl = s.filter((x, j) => j >= k && x.p - s[k]!.p <= tol);
+      const ts = new Set(cl.map((x) => x.t));
+      if (ts.size >= 2) { cl.forEach((_, j) => used.add(k + j)); out.push({ name: low ? "EQL" : "EQH", price: low ? Math.min(...cl.map((x) => x.p)) : Math.max(...cl.map((x) => x.p)) }); }
+    }
+  };
+  eq(lows, true); eq(highs, false);
+  for (const a of i.arrays ?? []) {
+    if ((a.tf !== "5m" && a.tf !== "15m") || (a.kind !== "fvg" && a.kind !== "sponsored") || a.mitigated === true || a.through1mAgeMin != null) continue;
+    out.push(a.dir === "bull" ? { name: `${a.tf} bull FVG top`, price: a.hi } : { name: `${a.tf} bear FVG bottom`, price: a.lo });
+  }
+  // one pool per price; EQH/EQL outrank a plain swing at the same price
+  const rank = (n: string) => (/^EQ[HL]$/.test(n) ? 0 : /swing/.test(n) ? 1 : 2);
+  const by = new Map<string, Pool>();
+  for (const p of out.sort((x, y) => rank(x.name) - rank(y.name))) { const k = p.price.toFixed(2); if (!by.has(k)) by.set(k, p); }
+  // a short draws on sell-side (lows, EQL, bull FVG tops); a long on buy-side - a swing high is not a short's target
+  const sell = (n: string) => /low|EQL|bull FVG/.test(n);
+  return [...by.values()].filter((p) => i.side == null || (i.side === "short" ? sell(p.name) : !sell(p.name)));
+}
+/** Flip targets = the session/draw targets + scannerPools, deduped by price (first name wins). */
+export function flipTargets(base: Pool[], extra: Pool[]): Pool[] {
+  const by = new Map<string, Pool>();
+  for (const p of [...extra.filter((x) => /^EQ[HL]$/.test(x.name)), ...base, ...extra]) { const k = p.price.toFixed(2); if (!by.has(k)) by.set(k, p); }
+  return [...by.values()];
+}

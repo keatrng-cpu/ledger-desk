@@ -43,11 +43,14 @@ test("watcher (Python) fastchain.setup_rows matches the TS chain on the same cas
   snaps.forEach((s, i) => assert.deepEqual(r.rows[i], fc.fastSetupRows(s).map(([n, ok]) => [n, ok]), JSON.stringify(CASES[i])));
 });
 
+const EV = { band: "A-", sweep: true }; // 10/15 PM persist fix: A-+ with a fresh sweep fires on the next poll
 const SIB = { at: "sib", entry: 7851.25, px: 7856 }; // sibling on the same symbol:side failing fast:entry
 test("persist: fires on the 2nd consecutive real poll of the same setup id, no timer", () => {
   let st = fc.streakNext(null, { ...BASE, at: "a1" }, 0); assert.ok(!fc.persistOk(st, 0));
   assert.ok(!fc.persistOk(fc.streakNext(st, { ...BASE, at: "a1" }, 1_000), 1_000)); // re-read of the same card
-  st = fc.streakNext(st, { ...BASE, at: "a2" }, 4_000); assert.ok(fc.persistOk(st, 4_000));
+  st = fc.streakNext(st, { ...BASE, at: "a2" }, 4_000); assert.ok(!fc.persistOk(st, 4_000)); // 10/15 PM: B+ needs the 20 s hold
+  assert.ok(fc.persistOk(st, 4_000, EV)); // A-+ with fresh sweep: next poll
+  st = fc.streakNext(st, { ...BASE, at: "a2b" }, 20_000); assert.ok(fc.persistOk(st, 20_000));
 });
 test("persist: a sibling/failing poll breaks the consecutive count but keeps the setup age; stale after 90 s", () => {
   let st = fc.streakNext(null, { ...BASE, at: "a1" }, 0);
@@ -83,7 +86,7 @@ test("entry re-arm: chase keeps the setup; pullback restarts the 90 s clock and 
   let st = fc.streakNext(null, { ...BASE, at: "a1" }, 0);
   st = fc.streakNext(st, { ...BASE, at: "c1", px: 7847 }, 4_000); assert.equal(st.firstMs, 0); assert.ok(st.outOfZone);
   st = fc.streakNext(st, { ...BASE, at: "p1" }, 125_000); assert.equal(st.firstMs, 125_000); assert.ok(!fc.persistOk(st, 125_000));
-  st = fc.streakNext(st, { ...BASE, at: "p2" }, 129_000); assert.ok(fc.persistOk(st, 129_000));
+  st = fc.streakNext(st, { ...BASE, at: "p2" }, 145_000); assert.ok(fc.persistOk(st, 145_000));
   const b = fc.streakNext(fc.streakNext(fc.streakNext(null, { ...BASE, at: "a1" }, 0), { ...BASE, at: "c1", px: 7847 }, 4_000), { ...BASE, at: "p1", band: "B" }, 8_000);
   assert.ok(!fc.persistOk(b, 8_000));
 });
@@ -101,7 +104,7 @@ test("geometry: Floor ticket on another underlying/direction ignored; malformed 
 // Accuracy CHANGES 10/15: a setup that fired, hit its stop or touched T1 is spent for the session.
 const arm = (st, t0) => fc.streakNext(fc.streakNext(st, { ...BASE, at: `r${t0}` }, t0), { ...BASE, at: `s${t0}` }, t0 + 4_000);
 test("spent: no re-fire after a stop", () => {
-  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000));
+  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000, EV));
   st = fc.streakNext(st, { ...BASE, at: "stop", px: 7857 }, 5_000);
   assert.equal(st.spent[fc.setupId(BASE)].why, "invalidated");
   st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000)); assert.equal(st.key, null);
@@ -112,17 +115,17 @@ test("spent: no re-fire after a T1 touch", () => {
   st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000));
 });
 test("spent: no re-fire after fire then re-arm (chase out, pull back)", () => {
-  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000));
+  let st = arm(null, 0); assert.ok(fc.persistOk(st, 4_000, EV));
   st = fc.markSpent(st, fc.setupId(BASE), "fired", 4_000);
   st = fc.streakNext(st, { ...BASE, at: "out", px: 7848 }, 6_000);   // > 0.5xATR from entry, stop/T1 untouched
   st = arm(st, 10_000); assert.ok(!fc.persistOk(st, 14_000));
   // another entry on the same symbol/side is another setup and can still fire
   const other = { ...BASE, entry: 7852.25 };
-  st = fc.streakNext(fc.streakNext(st, { ...other, at: "o1" }, 20_000), { ...other, at: "o2" }, 24_000); assert.ok(fc.persistOk(st, 24_000));
+  st = fc.streakNext(fc.streakNext(st, { ...other, at: "o1" }, 20_000), { ...other, at: "o2" }, 24_000); assert.ok(fc.persistOk(st, 24_000, EV));
 });
 test("spent: clears on the next session", () => {
   let st = fc.streakNext(arm(null, 0), { ...BASE, at: "stop", px: 7857 }, 5_000);
-  const next = 5_000 + 86_400_000; st = arm(st, next); assert.ok(fc.persistOk(st, next + 4_000));
+  const next = 5_000 + 86_400_000; st = arm(st, next); assert.ok(fc.persistOk(st, next + 4_000, EV));
 });
 test("default-ATR fallback in chased() matches the watcher", () => {
   assert.equal(fc.chased({ ...BASE, atr: null, px: 7851.75 + 2.1 }), true);   // ES default ATR 4 -> 0.5x = 2
@@ -147,11 +150,11 @@ test("spent: watcher streak_next/mark_spent agree with the TS twin (stop, T1, fi
   if (!dir) return;
   const seq = [[{ at: "a1" }, 0], [{ at: "a2" }, 4000], ["FIRE", 4000], [{ at: "o", px: 7848 }, 6000], [{ at: "b1" }, 10000], [{ at: "b2" }, 14000],
     [{ at: "e1", entry: 7852.25 }, 20000], [{ at: "e2", entry: 7852.25 }, 24000], [{ at: "e3", entry: 7852.25, px: 7857 }, 25000], [{ at: "e4", entry: 7852.25 }, 30000], [{ at: "e5", entry: 7852.25 }, 34000]]
-    .map(([c, t]) => [c === "FIRE" ? c : { ...BASE, ...c }, t]);
-  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[];last=None\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  if s=="FIRE":\n    st=f.mark_spent(st,f.setup_id(last),"fired",t); out.append(f.persist_check(st,t)[0]); continue\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; last=s\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
+    .map(([c, t]) => [c === "FIRE" ? c : { ...BASE, ...EV, ...c }, t]);
+  const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[];last=None\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  if s=="FIRE":\n    st=f.mark_spent(st,f.setup_id(last),"fired",t); out.append(f.persist_check(st,t,last)[0]); continue\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; last=s\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t,s)[0])\nprint(json.dumps(out))`;
   const py_out = JSON.parse(execFileSync("python3", ["-c", py]).toString());
   let st = null; let last = null;
-  const ts_out = seq.map(([s, t]) => { if (s === "FIRE") { st = fc.markSpent(st, fc.setupId(last), "fired", t); return fc.persistOk(st, t); } last = s; st = fc.streakNext(st, s, t); return fc.persistOk(st, t); });
+  const ts_out = seq.map(([s, t]) => { if (s === "FIRE") { st = fc.markSpent(st, fc.setupId(last), "fired", t); return fc.persistOk(st, t, last); } last = s; st = fc.streakNext(st, s, t); return fc.persistOk(st, t, s); });
   assert.deepEqual(py_out, ts_out);
   assert.deepEqual(ts_out, [false, true, false, false, false, false, false, true, false, false, false]);
 });
@@ -209,4 +212,21 @@ test("post-mortem 13:02 F1: through1m reads the first closed 1m close through a 
   assert.deepEqual(r, { through1mAgeMin: 1, reclaimed1m: false });
   assert.equal(m.through1m([bar(0, 7784.75), bar(1, 7787)], g, t0 + 2 * 60_000).reclaimed1m, true);
   assert.equal(m.through1m([bar(0, 7786)], g, t0 + 60_000).through1mAgeMin, null);
+});
+
+test("10/15 PM persist: clock from the first qualifying card; B+ 2 polls + 20 s; A-+ fresh sweep/disp on the next poll; never 'Nones'", () => {
+  let st = fc.streakNext(null, { ...BASE, at: "q1" }, 0); assert.equal(st.firstMs, 0); assert.ok(!/None/.test(fc.persistWhy(st, 0, BASE)));
+  st = fc.streakNext(st, { ...BASE, at: "q2" }, 4_000);
+  assert.ok(!fc.persistOk(st, 4_000, BASE)); assert.ok(fc.persistOk(st, 4_000, { ...BASE, band: "A-", displacement: true }));
+  assert.ok(!fc.persistOk(st, 4_000, { ...BASE, band: "A-" })); assert.ok(fc.persistOk(st, 20_000, BASE));
+  assert.ok(!fc.persistOk(st, 91_000, { ...BASE, band: "A", sweep: true }));
+  assert.equal(fc.persistWhy(null, 0), "no qualifying card yet (clock starts at the first card that passes every fast row)");
+});
+test("10/15 PM: brain STAND is a q weight (-STAND_Q), not a veto; STAND + iFVG flip against the side blocks", () => {
+  const s = { ...BASE, brain_word: "STAND", brain_side: "long", q: 0.70, band: "A-" };
+  assert.ok(Object.fromEntries(fc.fastSetupRows(s))["fast:agree"]);
+  assert.ok(fc.qPenalty(s)[0] >= fc.STAND_Q);
+  const flip = { ...s, arrays: [{ tf: "5m", kind: "ifvg", dir: "bull", lo: 7850, hi: 7851, ageBars: 1, failed: false }] };
+  assert.equal(Object.fromEntries(fc.fastSetupRows(flip))["fast:agree"], false);
+  assert.equal(Object.fromEntries(fc.fastSetupRows({ ...BASE, brain_side: "long", brain_word: "WAIT" }))["fast:agree"], false); // a non-STAND brain on the other side still blocks
 });

@@ -40,8 +40,11 @@
    },
    "entry": 7781.75,
    "stop": 7786.76,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "EQL",
+    "price": 7775.25
+   },
+   "rr1": 1.3,
    "why": "read flipped: 2 5m bull FVGs closed through on 1m - short at the gap CE retest, stop beyond 7786.25"
   }
  },
@@ -62,8 +65,11 @@
    },
    "entry": 7781.75,
    "stop": 7786.76,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "EQL",
+    "price": 7775.25
+   },
+   "rr1": 1.3,
    "why": "read flipped: 2 5m bull FVGs closed through on 1m - short at the gap CE retest, stop beyond 7786.25"
   }
  },
@@ -84,8 +90,11 @@
    },
    "entry": 7781.75,
    "stop": 7783.98,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "1m swing low",
+    "price": 7772
+   },
+   "rr1": 4.37,
    "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
   }
  },
@@ -106,8 +115,11 @@
    },
    "entry": 7781.75,
    "stop": 7783.98,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "1m swing low",
+    "price": 7774.25
+   },
+   "rr1": 3.36,
    "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
   }
  },
@@ -128,8 +140,11 @@
    },
    "entry": 7781.75,
    "stop": 7783.98,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "1m swing low",
+    "price": 7774.25
+   },
+   "rr1": 3.36,
    "why": "5m bull FVG 7780-7783.5 inverted 0 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
   }
  },
@@ -150,8 +165,11 @@
    },
    "entry": 7781.75,
    "stop": 7783.98,
-   "t1": null,
-   "rr1": null,
+   "t1": {
+    "name": "1m swing low",
+    "price": 7772
+   },
+   "rr1": 4.37,
    "why": "5m bull FVG 7780-7783.5 inverted 1 bar(s) ago (body 2.28xATR) - short at the iFVG retest"
   }
  }

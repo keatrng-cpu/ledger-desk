@@ -2,6 +2,7 @@ import { planTargetText, orderTargets } from "@/lib/trading/card-plan";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
+import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
@@ -1784,6 +1785,18 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Loss-pattern guards (Keaton 2026-10-13, shared rules loss.*; src/lib/smc/loss-guards.ts). Per-rule mode:
       // "live" acts; "shadow" only records what it WOULD do on c.guards.shadow (wire.strategy.guards) and changes
       // nothing — q, band, size, stop, watch row, brain word and fire stay as before.
+      // T1 FREEZE (post-mortem 10/15 item 2): an armed or fired setup keeps the T1 it armed with; re-selection can't move it.
+      for (const c of payload.scan.candidates) {
+        if ((c as { watchOnly?: boolean }).watchOnly || !c.plan) continue;
+        const pl = c.plan as { entry: number; stop: number; t1: number | null; rr1: number | null };
+        const entry = c.entryPx ?? pl.entry;
+        const x = c as { ltfArmed?: boolean; ifvgFlipped?: boolean; fired?: boolean; actionable?: boolean; t1Freeze?: unknown };
+        const state = x.fired ? "fired" : (x.ltfArmed || x.ifvgFlipped || x.actionable) ? "armed" : null;
+        const fz = t1Freeze(DESK_T1_FREEZE, { symbol: c.symbol, side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, state }, nowCtxPlan);
+        x.t1Freeze = fz.frozen;
+        if (fz.frozen && pl.t1 !== fz.t1) { pl.t1 = fz.t1; pl.rr1 = fz.rr1; const tx = planTargetText(c.plan as never); if (tx.length) c.targets = tx; }
+        if (fz.note) c.reasons.push(fz.note);
+      }
       capStage("loss guards");
       const lossBlocked = new Map<string, string>();
       const isLive = (m: string): boolean => String(m) === "live";
