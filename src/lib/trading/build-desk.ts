@@ -1,4 +1,5 @@
 import { planTargetText } from "@/lib/trading/card-plan";
+import { fastLive, gateTarget } from "@/lib/execution/fast-chain";
 import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
@@ -1731,7 +1732,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const ch = lossGuards.chopRead(m, atr);
         out.chop = ch;
         if (ch.chop) { if (isLive(LOSS_RULES.chop.mode)) { liveMut = true; c.chop = true; c.pathBand = capBand(c.pathBand, LOSS_RULES.chop.capBand as never) as never; c.reasons.push(ch.why!); guards.live.push({ rule: "chop", did: ch.why! }); } else shadow("chop", ch.why!); }
-        const v = lossGuards.velocityRead(m, entry, pl.t1);
+        // fire-unblock 10/15 target ladder: velocity / late R:R gate on T2 when T1 R:R < 1.2 and T2 R:R >= 1.5 (T1 stays the first scale-out).
+        // Ladder is desk-wide only when fastChain is live; in shadow the live chain keeps T1. Option EV stays on T1 (review F4).
+        const gt = fastLive() ? gateTarget({ entry, stop_px: pl.stop, first_target: pl.t1, t2: (pl as { t2?: number | null }).t2 ?? null, side }).target : pl.t1;
+        const v = lossGuards.velocityRead(m, entry, gt);
         out.velocity = v;
         if (v.penalty) { if (isLive(LOSS_RULES.velocity.mode)) { liveMut = true; c.confluence = +Math.max(0, c.confluence - v.penalty).toFixed(4); c.reasons.push(v.why!); guards.live.push({ rule: "velocity", did: v.why! }); } else shadow("velocity", v.why!); }
         if (liveMut) sealBand(c as never);
@@ -1750,7 +1754,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         } else if (hg.why) shadow("htf", hg.why);
         // 4) late entry (LIVE per Keaton 13:45 CT)
         const past = price == null ? null : side === "long" ? price - entry : entry - price;
-        const rrFromPx = price == null || pl.t1 == null ? null : (side === "long" ? pl.t1 - price : price - pl.t1) / Math.abs(price - pl.stop);
+        const rrFromPx = price == null || gt == null ? null : (side === "long" ? gt - price : price - gt) / Math.abs(price - pl.stop);
         const lateMin = (RULES_ALL.lateEntry.rrMin as Record<string, number>)[String(c.pathBand)];
         const lg = lossGuards.lateGuard(past != null && past > 0 ? price : null, entry, atr, lateMin != null && rrFromPx != null && rrFromPx >= lateMin);
         // Desk half of the full late rule: band (A+/A/A-) + RR from price. The other half — Floor ARMED and

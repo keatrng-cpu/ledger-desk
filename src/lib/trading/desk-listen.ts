@@ -1,4 +1,6 @@
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
+import { FC, gateTarget, velocitySoftRow } from "@/lib/execution/fast-chain";
+import { buildMinute, fvgId, planId, stepPins, type ArrayLike, type PinPlan } from "@/lib/execution/plan-pin";
 import { RULES_HASH } from "@/lib/desk/rules-hash";
 import { buildDeskSeq, type DeskSeqWire } from "@/lib/smc/seq/wire";
 import { RR_DISPLAY_MAX } from "@/lib/smc/exec-context";
@@ -188,6 +190,16 @@ export interface DeskWire {
     target: number | null;
     /** ATR(14) of the setup's (15m) series. */
     atr: number | null;
+    /** fire-unblock 10/15 (#30): pinned plan id (symbol:side:entry:stop:T1), its build minute, why it was kept/swapped. */
+    planId?: string | null;
+    planMinute?: number | null;
+    planFvgFailed?: boolean;
+    planWhy?: string;
+    planPinned?: boolean;
+    planFvgId?: string | null;
+    velocitySizeCut?: boolean;
+    /** fire-unblock target ladder: the target the R:R/velocity/chase/EV gates use (T1 stays the first scale-out). */
+    gateTarget?: { price: number | null; which: "t1" | "t2"; rr: number | null };
   } | null;
   brain: {
     word: string | null;
@@ -236,6 +248,35 @@ export interface DeskWire {
   };
 }
 
+const PLAN_PINS = new Map<string, PinPlan>();
+/** Test hook: forget pinned plans. */
+export function resetPlanPins() { PLAN_PINS.clear(); }
+const etDay = (ms: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date(ms));
+type TopLike = { symbol: string; side: string; confluence: number; entryPx?: number | null; plan?: { entry?: number | null; stop?: number | null; t2?: number | null } | null };
+/** Desk plan pin (review F3): atomic, FVG re-read live, cleared on side change / invalidation / session end. */
+export function pinPlan(top: TopLike, arrays: ArrayLike[], nowMs: number, px: number | null, sessionOpen: boolean) {
+  const pt = primaryTarget((top as { plan?: unknown }).plan as Parameters<typeof primaryTarget>[0]);
+  const cand: PinPlan = {
+    symbol: top.symbol, side: top.side, entry: top.entryPx ?? top.plan?.entry ?? null, stop: top.plan?.stop ?? null,
+    t1: pt.price ?? null, t2: top.plan?.t2 ?? null, q: top.confluence, rr: pt.rr ?? null, minute: buildMinute(nowMs),
+  };
+  const { plan, why, cleared } = stepPins(PLAN_PINS, cand, { arrays, px, day: etDay(nowMs), sessionOpen });
+  const g = plan ? gateTarget({ entry: plan.entry, stop_px: plan.stop, first_target: plan.t1, t2: plan.t2 ?? null, side: plan.side }) : null;
+  return {
+    plan, why, cleared,
+    wire: {
+      planId: plan ? planId(plan) : null,
+      planMinute: cand.minute,
+      planFvgId: plan ? fvgId(plan.fvg) : null,
+      planFvgFailed: plan == null,
+      planWhy: cleared.length ? `${why}; cleared ${cleared.join(", ")}` : why,
+      planPinned: plan != null && plan !== cand && planId(plan) !== planId(cand),
+      ...(plan ? { entry: plan.entry, stopPx: plan.stop, target: plan.t1, t2: plan.t2 ?? null, q: plan.q ?? top.confluence, rrRaw: plan.rr, rr: plan.rr == null ? null : Math.min(plan.rr, RR_DISPLAY_MAX) } : {}),
+      gateTarget: g ? { price: g.target, which: g.which, rr: g.rr } : undefined,
+    },
+  };
+}
+
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const floor = evaluateOptionsDesk(desk);
   const armed = floor.best;
@@ -272,6 +313,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .sort((a, b) => Number(a.mitigated) - Number(b.mitigated) || b.createdT - a.createdT)
     .slice(0, WIRE_ARRAYS_CAP)
     .map(({ createdT: _t, ...r }) => r);
+  // fire-unblock 2026-10-15 (#30): one plan per symbol:side per build minute; failed-FVG plans dropped; hysteresis.
+  const pin = top ? pinPlan(top, arrRows, Date.now(), top.symbol === desk.quotes.left.symbol ? desk.quotes.left.price : desk.quotes.right.price, desk.clock.inTradeWindow) : null;
+  const velCut = top ? velocitySoftRow({ expMin: ((top as { loss?: { velocity?: { expMin?: number | null } } }).loss?.velocity?.expMin) ?? null }).sizeCut : false;
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
     ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
@@ -359,6 +403,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           t2: top.plan?.t2 ?? null,
           stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,
+          ...(pin ? pin.wire : {}),
+          // soft velocity (fire-unblock): one-step size cut, wired on the desk too (floor.sizeCut when fastChain is live)
+          velocitySizeCut: velCut,
         }
       : null,
     brain: {
@@ -395,7 +442,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     floor: {
       verdict,
       kzSeat: kzSeatNote(),
-      sizeCut: shown?.sizeCut === true,
+      sizeCut: shown?.sizeCut === true || (velCut && FC.mode === "live"),
       handTo: shown?.handTo ?? null,
       blocks: (shown?.blocks ?? []).slice(0, 4),
       ticket: shown?.ticket

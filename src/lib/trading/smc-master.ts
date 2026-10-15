@@ -7,6 +7,9 @@ import type { RankedDraw } from "@/lib/smc/exec-context";
  * LTF shift, then the retrace. A single concept is never TAKE.
  */
 
+import { htfBiasOf } from "@/lib/smc/mtf-context";
+import DESK_RULES_POI from "../../../shared/desk-rules.json";
+const POI_HALF = ((DESK_RULES_POI as unknown) as { poiHalf?: { htfAlignedExempt?: boolean; mode?: string } }).poiHalf ?? {};
 import { smtFightsContinuation } from "@/lib/smc/mtf-context";
 import { atr15Of, continuationArray, type ContinuationArray } from "@/lib/smc/mtf-arrays";
 import { poolArms } from "@/lib/smc/shared";
@@ -383,9 +386,13 @@ function gradeBook(
   minute: OhlcBar[] | undefined,
   shockLean: "long" | "short" | null = null,
   ranked: RankedDraw[] | null = null,
+  htfFrames: { bias1h: string | null; bias4h: string | null } | null = null,
 ): SmcMasterBook {
   const cand = pickCandidate(scan, bias, narrative, shockLean);
   const side = cand?.side ?? null;
+  // fire-unblock 2026-10-15 (shared rules poiHalf): 1h AND 4h both with the side -> the half is exempt.
+  const wantTf = side === "long" ? "bull" : side === "short" ? "bear" : null;
+  const htfAlignedBoth = POI_HALF.htfAlignedExempt === true && wantTf != null && htfFrames?.bias1h === wantTf && htfFrames?.bias4h === wantTf;
 
   // The range premium/discount is graded on. Impulse leg when the knob says
   // so AND a raid of this side's polarity exists to anchor it; the 80-bar
@@ -462,6 +469,7 @@ function gradeBook(
           inKillzone: session.live,
           killzoneLabel: session.reason,
           smtLed,
+          htfAlignedBoth,
         }
       : {
           side,
@@ -476,6 +484,7 @@ function gradeBook(
           components: [],
           strategy: null,
           smtLed,
+          htfAlignedBoth,
         },
   );
 
@@ -540,7 +549,13 @@ function gradeBook(
     const timeNote = f.id === "time";
     // Keaton 2026-10-13: premium/discount-for-side COUNTS in the ring (q
     // already scores it), so the half is a must again — no note demotion.
-    const note = mtfNote || htfNote || timeNote;
+    // fire-unblock 2026-10-15: both frames aligned = exempt (canon pass); neither opposing = SOFT — a note that costs the canon score
+    // (it stays a canon must, so mustHits/score drop) but never a STAND/WAIT veto on the brain.
+    // Review F5: soft only when NEITHER 1h nor 4h opposes the side (neutral/unknown); either frame against keeps the veto.
+    const oppTf = side === "long" ? "bear" : side === "short" ? "bull" : null;
+    const htfOpposes = oppTf != null && (htfFrames?.bias1h === oppTf || htfFrames?.bias4h === oppTf);
+    const pdSoft = f.id === "pd_half" && POI_HALF.mode === "soft" && !f.pass && !htfOpposes;
+    const note = mtfNote || htfNote || timeNote || pdSoft;
     void halfNote;
     const noteLine = halfNote
       ? `${f.detail} The raid and the displacement named ${side}. The half is a note, not a halt.`
@@ -555,7 +570,7 @@ function gradeBook(
       id: f.id,
       label: f.label,
       must: note ? false : f.must,
-      state: factorState(f.pass, note ? false : f.must, waiting),
+      state: factorState(f.pass, note ? false : f.must, pdSoft ? false : waiting),
       detail:
         f.id === "pd_half" && dealing
           ? `${noteLine} · graded on the ${dealing.source} range (${dealing.zone}${
@@ -1031,6 +1046,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.left?.minute,
     leanFor(desk.bias.left.symbol),
     desk.rankedDraws?.left ?? null,
+    htfBiasOf(desk.mtfContext, desk.bias.left.symbol),
   );
   const right = gradeBook(
     desk.bias.right,
@@ -1047,6 +1063,7 @@ export function gradeSmcMaster(desk: SmcMasterInput): SmcMasterRead {
     desk.right?.minute,
     leanFor(desk.bias.right.symbol),
     desk.rankedDraws?.right ?? null,
+    htfBiasOf(desk.mtfContext, desk.bias.right.symbol),
   );
 
   const ranked = [left, right].sort((a, b) => {

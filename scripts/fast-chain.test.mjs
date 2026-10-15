@@ -10,7 +10,7 @@ const BASE = { band: "B+", symbol: "ES", side: "short", entry: 7851.75, stop_px:
 const CASES = [{}, { band: "B" }, { band: "A+" }, { stop_px: 7840 }, { first_target: 7849 }, { px: 7860 }, { brain_side: "long" }, { bias1h: "bull", bias4h: "bull" }, { expMin: 31 }, { expMin: null }, { side: "long", stop_px: 7840, first_target: 7870 }, { side: "long", stop_px: 7856.25, first_target: 7846.3 }, { t2: 7850 }, { desk_ticket_side: "call" }];
 test("fastChain from shared rules: B+ / 90 s hold / T1 <= 30 m / first target 0.85R", () => {
   assert.deepEqual(fc.FC, RULES.fastChain);
-  assert.equal(RULES.fastChain.mode, "live"); assert.equal(RULES.fastChain.minHoldS, 90); assert.equal(RULES.fastChain.minBand, "B+");
+  assert.equal(RULES.fastChain.mode, "shadow"); assert.equal(RULES.fastChain.minHoldS, 20); assert.equal(RULES.fastChain.minBand, "B+");
   assert.equal(RULES.fastChain.maxMinutesToT1, 30); assert.equal(RULES.fastChain.firstTargetR, 0.85); assert.equal(RULES.fastChain.spreadFallback, false);
   assert.ok(fc.fastSetupRows(BASE).every(([, ok]) => ok));
 });
