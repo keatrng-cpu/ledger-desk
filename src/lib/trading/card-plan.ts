@@ -311,9 +311,14 @@ export function primaryTarget(
   minRr = 1,
 ): { price: number | null; rr: number | null; which: "t1" | "t2" | null } {
   if (!p) return { price: null, rr: null, which: null };
-  if (p.t1 != null && p.rr1 != null && p.rr1 >= minRr) return { price: p.t1, rr: p.rr1, which: "t1" };
-  if (p.t2 != null && p.rr2 != null && p.rr2 >= minRr) return { price: p.t2, rr: p.rr2, which: "t2" };
-  return p.t1 != null ? { price: p.t1, rr: p.rr1, which: "t1" } : { price: null, rr: null, which: null };
+  // Live lesson 10/15 13:02 CT (ES long sig-85e8feddd99efe46): when T1's R:R from the live price dipped under minRr
+  // (price ran toward T1: 0.92R), this handed the first target to T2 7874.25 (12R) and the card's first_target jumped
+  // 7792.25 -> 7874.25. T1 stays T1; a T1 under minRr is the R:R gate's call (the card fails fast:plan), never a silent
+  // promotion of T2. T2 is the first target only when there is no T1.
+  void minRr;
+  if (p.t1 != null) return { price: p.t1, rr: p.rr1, which: "t1" };
+  if (p.t2 != null) return { price: p.t2, rr: p.rr2, which: "t2" };
+  return { price: null, rr: null, which: null };
 }
 
 export function raidOnStopSide(

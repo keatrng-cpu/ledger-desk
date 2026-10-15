@@ -1,0 +1,205 @@
+[
+ {
+  "ct": "13:00:00",
+  "px": 7787.25,
+  "longBlocked": false,
+  "why": "no 5m/15m bull FVG being inverted",
+  "short": null
+ },
+ {
+  "ct": "13:01:00",
+  "px": 7786,
+  "longBlocked": false,
+  "why": "no 5m/15m bull FVG being inverted",
+  "short": null
+ },
+ {
+  "ct": "13:02:00",
+  "px": 7781.25,
+  "longBlocked": true,
+  "why": "5m bull FVG 7785-7786.5 being inverted: price 7781.25 below its bottom on the forming bar - no long",
+  "short": null
+ },
+ {
+  "ct": "13:03:00",
+  "px": 7779.5,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 being inverted: price 7779.5 below its bottom on the forming bar - no long",
+  "short": null
+ },
+ {
+  "ct": "13:04:00",
+  "px": 7777.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 being inverted: price 7777.75 below its bottom on the forming bar - no long",
+  "short": null
+ },
+ {
+  "ct": "13:05:00",
+  "px": 7775.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 0 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ },
+ {
+  "ct": "13:06:00",
+  "px": 7775.5,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 0 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ },
+ {
+  "ct": "13:07:00",
+  "px": 7777,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 0 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ },
+ {
+  "ct": "13:08:00",
+  "px": 7777.5,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 0 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ },
+ {
+  "ct": "13:09:00",
+  "px": 7774.75,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 0 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 0
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ },
+ {
+  "ct": "13:10:00",
+  "px": 7774,
+  "longBlocked": true,
+  "why": "5m bull FVG 7779.75-7783.25 inverted 1 bar(s) ago (closed through) - no long",
+  "short": {
+   "tf": "5m",
+   "gap": {
+    "lo": 7779.75,
+    "hi": 7783.25,
+    "ce": 7781.5,
+    "invertedT": 1792087200000,
+    "ageBars": 1
+   },
+   "entry": 7781.5,
+   "stop": 7783.71,
+   "t1": {
+    "name": "Prior RTH high",
+    "price": 7759.5
+   },
+   "t2": {
+    "name": "Prior RTH low",
+    "price": 7759.5
+   },
+   "rr1": 9.95,
+   "dispAtr": 2.51
+  }
+ }
+]

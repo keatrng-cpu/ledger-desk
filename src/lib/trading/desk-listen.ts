@@ -183,6 +183,8 @@ export interface DeskWire {
     rr1Raw: number | null;
     rr2Raw: number | null;
     t2: number | null;
+    /** The plan's own T1 (10/15 13:02 CT T1-jump fix): the watcher reads this before `target`. */
+    t1?: number | null;
     /** The plan's stop as a number (the text stays on `stop`). Null without a plan. */
     stopPx: number | null;
     /** deep-audit #4: structural anchor (raid/sweep price) — the journal's setup id. */
@@ -390,6 +392,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           rr1Raw: top.plan?.rr1 ?? null,
           rr2Raw: top.plan?.rr2 ?? null,
           t2: top.plan?.t2 ?? null,
+          t1: top.plan?.t1 ?? null,
           stopPx: top.plan?.stop ?? null,
           atr: top.plan?.atr ?? null,
         }

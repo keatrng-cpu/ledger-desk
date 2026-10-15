@@ -20,8 +20,10 @@ test("weighted SMT: no majority → no lead", () => {
   assert.equal(m.weightedSmt([s("15m", "bullish"), s("30m", "bearish")]).lead, null);
   assert.equal(m.weightedSmt([]).lead, null);
 });
-test("primaryTarget: T1 under 1R hands the target to T2 when T2 clears 1R", () => {
-  assert.deepEqual(cp.primaryTarget({ t1: 30792, t2: 31058, rr1: 0.28, rr2: 1.9 }), { price: 31058, rr: 1.9, which: "t2" });
+test("primaryTarget: T1 stays the first target even under 1R (no silent T2 promotion; live 10/15 13:02 CT T1 jump)", () => {
+  assert.deepEqual(cp.primaryTarget({ t1: 30792, t2: 31058, rr1: 0.28, rr2: 1.9 }), { price: 30792, rr: 0.28, which: "t1" });
+  assert.deepEqual(cp.primaryTarget({ t1: 7792.25, t2: 7874.25, rr1: 0.92, rr2: 12.0 }), { price: 7792.25, rr: 0.92, which: "t1" });
+  assert.deepEqual(cp.primaryTarget({ t1: null, t2: 101, rr1: null, rr2: 1.2 }), { price: 101, rr: 1.2, which: "t2" });
   assert.deepEqual(cp.primaryTarget({ t1: 100, t2: null, rr1: 1.5, rr2: null }), { price: 100, rr: 1.5, which: "t1" });
   assert.deepEqual(cp.primaryTarget({ t1: 100, t2: 101, rr1: 0.3, rr2: 0.6 }), { price: 100, rr: 0.3, which: "t1" });
   assert.deepEqual(cp.primaryTarget(null), { price: null, rr: null, which: null });

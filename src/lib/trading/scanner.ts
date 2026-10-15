@@ -5,6 +5,7 @@
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
 import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
+import { IFVG_FLIP, ifvgFlipOf } from "@/lib/smc/ifvg-flip";
 import RULES_ALL from "../../../shared/desk-rules.json";
 import { APLUS_RULES } from "@/lib/aplus/config";
 import type { OhlcBar } from "@/lib/market/types";
@@ -1508,6 +1509,27 @@ export function scoreCandidates(
       if (c.entryPx == null || !Number.isFinite(c.entryPx)) c.entryPx = arm.entry;
       c.entryZone = `${arm.tf} ${arm.gap.kind} ${arm.gap.lo}–${arm.gap.hi} CE ${arm.entry}`;
       c.invalidation = `Stop ${arm.stop.toFixed(2)} — one tick past the ${arm.tf} sweep wick ${arm.sweep.wick}`;
+    }
+  }
+  // iFVG FLIP (fastChain.ifvgFlip, live lesson 10/15 13:05 CT): a fresh 5m/15m inversion of the OTHER side's FVG
+  // generates/upgrades THIS side's card (bull FVG closed through -> short; mirrored), entry at the iFVG CE retest.
+  for (const c of candidates) {
+    const isL = c.symbol === left.symbol;
+    const mn = (isL ? leftMinute : rightMinute) ?? [];
+    const sess = mn.length ? sessionPools(mn, armNow, 60_000) : sessionPools(isL ? closedL : closedR, armNow, 900_000);
+    const { targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
+    const f = ifvgFlipOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, targets, nowMs: armNow });
+    (c as { ifvgFlip?: unknown }).ifvgFlip = f;
+    if (!f) continue;
+    c.reasons.push(`iFVG flip (${IFVG_FLIP.mode}): ${f.why}; entry ${f.entry} (edge ${f.entryEdge}), stop ${f.stop}${f.t1 ? `, T1 ${f.t1.name} ${f.t1.price} (${f.rr1}R)` : ", no real pool >= 1R ahead"}`);
+    if (IFVG_FLIP.mode !== "live") continue;
+    const add = ["ifvg", ...(f.dispAtr >= IFVG_FLIP.dispBodyAtr ? ["displacement"] : [])].filter((k) => !c.components.includes(k as ComponentKey));
+    if (add.length) c.components = [...c.components, ...(add as ComponentKey[])];
+    if (!c.ltfArmed && f.t1) {
+      (c as { ifvgFlipped?: boolean }).ifvgFlipped = true;
+      if (c.entryPx == null || !Number.isFinite(c.entryPx)) c.entryPx = f.entry;
+      c.entryZone = `${f.tf} iFVG ${f.gap.lo}–${f.gap.hi} CE ${f.entry}`;
+      c.invalidation = `Stop ${f.stop.toFixed(2)} — beyond the ${f.tf} iFVG`;
     }
   }
   const pathCandidates = candidates.map((c) => applyProfitPathToCandidate(c, { etMin }));
