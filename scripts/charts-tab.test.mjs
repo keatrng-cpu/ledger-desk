@@ -25,8 +25,11 @@ test("charts tab: read-only, published folder light and secret-free", () => {
   assert.ok(!/method:\s*["'](POST|PUT|DELETE|PATCH)/i.test(src) && !/\/api\//.test(src), "static GETs only");
   const dir = new URL("../public/trade-charts/", import.meta.url).pathname;
   if (!existsSync(dir)) return;
-  let total = 0; const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); const s = statSync(p); if (s.isDirectory()) walk(p); else { total += s.size; assert.ok(s.size <= 450_000, `${f} over cap`); if (f.endsWith(".json")) assert.ok(!/account|token|secret|password|api_key/i.test(readFileSync(p, "utf8")), `${f} leaks`); } } };
+  let total = 0; const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); const s = statSync(p); if (s.isDirectory()) walk(p); else { total += s.size; assert.ok(s.size <= 450_000, `${f} over cap`); if (f.endsWith(".json")) { const j = readFileSync(p, "utf8"); assert.ok(!/account|token|secret|password|api_key|"pnl_usd"|"option"|opt_fill|underlier/i.test(j), `${f} leaks`); } } } };
   walk(dir); assert.ok(total <= 20_000_000, `public/trade-charts ${total} bytes`);
   const idx = JSON.parse(readFileSync(join(dir, "index.json"), "utf8"));
   assert.ok(idx.trades.length > 0 && idx.trades.every((t) => tc.chartUrl(t.png) && tc.chartUrl(t.json)));
+  for (const t of idx.trades) if (String(t.source).startsWith("live")) assert.ok(!("pnl_usd" in t) && !("paper_pnl_usd" in t), `${t.id}: live dollars published`);
+  const listed = new Set(idx.trades.flatMap((t) => [t.png, t.json]));
+  for (const d of readdirSync(dir)) if (statSync(join(dir, d)).isDirectory()) for (const f of readdirSync(join(dir, d))) assert.ok(listed.has(`${d}/${f}`), `orphan ${d}/${f}`);
 });

@@ -2,7 +2,7 @@
 export type ChartRow = {
   id: string; day: string; symbol: string; side: string; source: string; band?: string | null;
   fill_t: string; exit_t?: string | null; fill_px?: number | null; exit_px?: number | null;
-  R?: number | null; pnl_usd?: number | null; summary?: string | null; png: string; json: string;
+  R?: number | null; paper_pnl_usd?: number | null; summary?: string | null; png: string; json: string;
 };
 export type Filter = "all" | "win" | "loss";
 

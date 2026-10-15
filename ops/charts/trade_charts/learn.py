@@ -44,19 +44,46 @@ def _key(day, symbol, side, entry):
     except (TypeError, ValueError): e = None
     return (str(day), str(symbol or "").upper(), str(side or "").lower(), e)
 
-def load_voids(root, path=None):
-    """Void annotations (append-only JSONL, same meaning as desk_learn_annotation.exclude_from_learning):
-    {"row_id": <signal|chart_id>, "exclude_from_learning": true} and/or {"day","symbol","side","entry"} (journal twin, entry to the
-    cent — the snapNotVoided rule). Path: TC_VOIDS or <root>/voids.jsonl. Returns (ids, keys)."""
-    path = path or os.environ.get("TC_VOIDS") or os.path.join(root, "voids.jsonl"); ids, keys = set(), set()
-    if not os.path.exists(path): return ids, keys
-    for line in open(path):
-        try: a = json.loads(line)
-        except ValueError: continue
-        if not isinstance(a, dict) or a.get("exclude_from_learning") is False: continue
-        if a.get("row_id"): ids.add(str(a["row_id"]))
-        if a.get("day") and a.get("entry") is not None: keys.add(_key(a["day"], a.get("symbol"), a.get("side"), a.get("entry")))
+class VoidsUnavailable(RuntimeError):
+    """desk_learn_annotation could not be read: learning refuses to run and writes nothing."""
+
+VOIDS_SQL = ("select a.src, a.row_id, coalesce(j.day_key, s.day_key), coalesce(j.symbol, s.symbol), coalesce(j.side, s.side), "
+             "coalesce(j.entry, s.entry)::float8 from desk_learn_annotation a "
+             "left join desk_card_journal j on a.src = 'desk_card_journal' and j.id = a.row_id "
+             "left join desk_card_snap s on a.src = 'desk_card_snap' and s.id = a.row_id where a.exclude_from_learning")
+MAX_EXPORT_AGE_H = 26
+
+def _from_rows(rows):
+    ids, keys = set(), set()
+    for src, row_id, day, sym, side, entry in rows:
+        if row_id: ids.add(str(row_id))
+        if day and entry is not None: keys.add(_key(day, sym, side, entry))   # journal/snap twin, entry to the cent (snapNotVoided)
     return ids, keys
+
+def load_voids(root, export=None):
+    """Voids from the real desk_learn_annotation table (the source annotations.ts / snapNotVoided read):
+    1) direct READ ONLY query when psycopg + DATABASE_URL are available (the VPS), else
+    2) the export written by `node scripts/export-learn-voids.mjs <out>` (TC_VOIDS_EXPORT or <root>/learn-voids.json),
+       which must say ok and be < MAX_EXPORT_AGE_H old. Anything else raises VoidsUnavailable."""
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        try: import psycopg
+        except ImportError: psycopg = None
+        if psycopg is not None:
+            try:
+                with psycopg.connect(url, connect_timeout=15) as c:
+                    c.read_only = True
+                    with c.cursor() as cur: cur.execute(VOIDS_SQL); return _from_rows(cur.fetchall())
+            except Exception as ex: raise VoidsUnavailable(f"desk_learn_annotation query failed: {type(ex).__name__}") from None
+    path = export or os.environ.get("TC_VOIDS_EXPORT") or os.path.join(root, "learn-voids.json")
+    try: doc = json.load(open(path))
+    except (OSError, ValueError) as ex: raise VoidsUnavailable(f"no voids export at {path} ({type(ex).__name__}); run scripts/export-learn-voids.mjs") from None
+    if not (isinstance(doc, dict) and doc.get("ok") is True and doc.get("source") == "desk_learn_annotation" and isinstance(doc.get("voids"), list)):
+        raise VoidsUnavailable(f"voids export {path} is not a valid desk_learn_annotation export")
+    try: age = (D.datetime.now(D.timezone.utc) - D.datetime.fromisoformat(doc["exported_at"].replace("Z", "+00:00"))).total_seconds() / 3600
+    except Exception: raise VoidsUnavailable("voids export has no valid exported_at") from None
+    if age > MAX_EXPORT_AGE_H: raise VoidsUnavailable(f"voids export is {age:.0f}h old (> {MAX_EXPORT_AGE_H}h)")
+    return _from_rows([(v.get("src"), v.get("row_id"), v.get("day_key"), v.get("symbol"), v.get("side"), v.get("entry")) for v in doc["voids"]])
 
 def is_voided(s, ids, keys):
     t = s.get("trade") or {}; f = s.get("features") or {}
@@ -156,11 +183,12 @@ def proto_feed(rows, splits, proto_dir, cap=0.6):
     atomic_write(os.path.join(out, "weights_chart_features.json"), json.dumps(dict(meta=meta, weights=w), indent=1))
     return out
 
-def run(root, proto_dir=None):
-    with locked(root): return _run(root, proto_dir)
+def run(root, proto_dir=None, voids=None):
+    voids = voids if voids is not None else load_voids(root)     # raises before anything is written
+    with locked(root): return _run(root, proto_dir, voids)
 
-def _run(root, proto_dir=None):
-    rows = build_table(root); learn = os.path.join(root, "learn")
+def _run(root, proto_dir, voids):
+    rows = build_table(root, voids); learn = os.path.join(root, "learn")
     write_table(rows, os.path.join(learn, "features.csv"))
     splits = all_splits(rows)
     fed = proto_feed(rows, splits, proto_dir)

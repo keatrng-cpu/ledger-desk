@@ -54,6 +54,11 @@ def main(argv=None):
         from . import publish as P
         dest = a.dest or os.path.join(os.path.dirname(__file__), "..", "..", "..", "public", "trade-charts")
         print(json.dumps(P.publish(c["out"], os.path.abspath(dest)), indent=1)); return 0
+    voids = None
+    if a.cmd in ("learn", "nightly", "exit", "backfill"):
+        try: voids = learn.load_voids(c["out"])
+        except learn.VoidsUnavailable as ex:
+            print(json.dumps(dict(error=f"voids unavailable, learning refused: {ex}")), file=sys.stderr); voids = False
     since = T.ts(a.since) if a.since else None; until = T.ts(a.until) if a.until else None
     if a.cmd == "exit":     # watcher hook: chart the most recent closed live trade (or --signal), then refresh learning
         tr = [t for t in T.load_live(c["watcher_dir"], pd.Timestamp.now(tz=CT) - pd.Timedelta(days=1)) if not a.signal or t["signal"] == a.signal][-1:]
@@ -70,7 +75,8 @@ def main(argv=None):
     else:
         res = [_one((t, c["out"], not a.no_render)) for t in tr]
     if a.cmd in ("learn", "nightly", "exit", "backfill"):
-        rows, _ = learn.run(c["out"], c["proto"]); res.append(dict(learn_rows=len(rows), report=os.path.join(c["out"], "learn", "report.md")))
+        if voids is False: return 3                                      # charts may be drawn; nothing learned or weighted
+        rows, _ = learn.run(c["out"], c["proto"], voids); res.append(dict(learn_rows=len(rows), report=os.path.join(c["out"], "learn", "report.md")))
     print(json.dumps(res, default=str, indent=1))
     return 0 if not any("error" in r for r in res) else 1
 

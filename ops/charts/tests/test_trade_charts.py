@@ -101,11 +101,11 @@ def test_end_to_end_synthetic(tmp_path, monkeypatch):
     png, side, f = cli.chart_one(tr, str(tmp_path / "out"), sources=src)
     assert os.path.getsize(png) > 20000 and f["data_ok"] and f["session_phase"] == "ny_pm"
     j = json.load(open(side)); assert j["features"]["R"] == -1.0 and "structure_at_entry" in j
-    rows, splits = learn.run(str(tmp_path / "out"), None)
+    rows, splits = learn.run(str(tmp_path / "out"), None, (set(), set()))
     assert len(rows) == 1 and os.path.exists(tmp_path / "out" / "learn" / "report.md")
 
 def test_learn_empty(tmp_path):
-    rows, splits = learn.run(str(tmp_path), None)
+    rows, splits = learn.run(str(tmp_path), None, (set(), set()))
     assert rows == [] and splits == [] and "Trades: **0**" in open(tmp_path / "learn" / "report.md").read()
 
 # ---- review fixes (PR #25 Accuracy CHANGES) ----
@@ -179,18 +179,34 @@ def _sidecar(root, day, cid, R, **trade):
     (d / f"{cid}.json").write_text(json.dumps(dict(trade=t, features=dict(data_ok=True, R=R, win=R > 0, ifvg_against=R < 0), chart=None)))
     (d / f"{cid}.png").write_bytes(b"\x89PNG" + b"0" * 100)
 
+def _export(path, voids, age_h=0, **kw):
+    import datetime as D
+    t = (D.datetime.now(D.timezone.utc) - D.timedelta(hours=age_h)).isoformat()
+    doc = dict(ok=True, source="desk_learn_annotation", exported_at=t, n=len(voids), voids=voids); doc.update(kw); path.write_text(json.dumps(doc))
+
 def test_learn_skips_voided(tmp_path, monkeypatch):
-    monkeypatch.delenv("TC_VOIDS", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False); monkeypatch.delenv("TC_VOIDS_EXPORT", raising=False)
     _sidecar(tmp_path, "2026-10-15", "keep-1", 1.0); _sidecar(tmp_path, "2026-10-15", "void-id", -4.1)
     _sidecar(tmp_path, "2026-10-14", "void-twin", -2.0, entry=7790.004); _sidecar(tmp_path, "2026-10-14", "void-flag", -1.0, voided=True)
-    (tmp_path / "voids.jsonl").write_text(json.dumps(dict(row_id="void-id", exclude_from_learning=True)) + "\n"
-                                          + json.dumps(dict(day="2026-10-14", symbol="ES", side="long", entry=7790.0)) + "\n"
-                                          + json.dumps(dict(row_id="keep-1", exclude_from_learning=False)) + "\n")
+    _export(tmp_path / "learn-voids.json", [dict(src="desk_card_journal", row_id="void-id"),
+                                             dict(src="desk_card_journal", row_id="2026-10-14:ES:long:7790", day_key="2026-10-14", symbol="ES", side="long", entry=7790.0)])
     assert [r["chart_id"] for r in learn.build_table(str(tmp_path))] == ["keep-1"]
     proto = tmp_path / "proto"; proto.mkdir()
     rows, _ = learn.run(str(tmp_path), str(proto))
     assert len(rows) == 1 and json.load(open(proto / "extra" / "weights_chart_features.json"))["meta"]["n_trades"] == 1
-    assert "void" not in (proto / "extra" / "chart_features.csv").read_text()
+
+@pytest.mark.parametrize("bad", ["missing", "stale", "notok", "garbage"])
+def test_learn_refuses_without_voids(tmp_path, monkeypatch, bad):
+    monkeypatch.delenv("DATABASE_URL", raising=False); monkeypatch.delenv("TC_VOIDS_EXPORT", raising=False)
+    _sidecar(tmp_path, "2026-10-15", "keep-1", 1.0); p = tmp_path / "learn-voids.json"
+    if bad == "stale": _export(p, [], age_h=48)
+    if bad == "notok": _export(p, [], ok=False)
+    if bad == "garbage": p.write_text("{")
+    proto = tmp_path / "proto"; proto.mkdir()
+    with pytest.raises(learn.VoidsUnavailable): learn.run(str(tmp_path), str(proto))
+    assert not (tmp_path / "learn").exists() and not (proto / "extra").exists()     # wrote nothing
+    monkeypatch.setenv("TC_OUT", str(tmp_path)); monkeypatch.setenv("TC_PROTO_DIR", str(proto))
+    assert cli.main(["learn"]) == 3 and not (tmp_path / "learn").exists()
 
 def test_atomic_writes_and_lock(tmp_path):
     p = tmp_path / "a" / "x.json"; learn.atomic_write(str(p), "1"); learn.atomic_write(str(p), "2")
@@ -212,9 +228,41 @@ def test_publish_index_caps_and_whitelist(tmp_path):
     from trade_charts import publish as P
     src = tmp_path / "src"; _sidecar(src, "2026-10-14", "a-old", 1.0); _sidecar(src, "2026-10-15", "b-new", -1.0, option=dict(account="SECRET"))
     big = src / "2026-10-15"; _sidecar(src, "2026-10-15", "c-big", 1.0); (big / "c-big.png").write_bytes(b"0" * (P.MAX_PNG + 1))
-    dest = tmp_path / "public" / "trade-charts"; dest.mkdir(parents=True); (dest / "stale.png").write_bytes(b"x")
+    dest = tmp_path / "public" / "trade-charts"; dest.mkdir(parents=True); (dest / "stale.png").write_bytes(b"x"); (dest / "index.json").write_text("{}")
     out = P.publish(str(src), str(dest))
     idx = json.load(open(dest / "index.json"))
     assert [t["id"] for t in idx["trades"]] == ["b-new", "a-old"] and out["n"] == 2   # newest first, oversize skipped
     assert not (dest / "stale.png").exists() and (dest / "2026-10-15" / "b-new.png").exists()
     assert "SECRET" not in (dest / "2026-10-15" / "b-new.json").read_text()
+
+def test_publish_strips_live_dollars_and_guards_dest(tmp_path):
+    from trade_charts import publish as P
+    src = tmp_path / "src"; _sidecar(src, "2026-10-15", "live-1", -1.0, source="live_rh", pnl_usd=-36.0, opt_fill=2.96, option=dict(underlier="SPY", strike=770))
+    _sidecar(src, "2026-10-15", "paper-1", 0.4, source="paper_futures", pnl_usd=120.0)
+    dest = tmp_path / "trade-charts"; P.publish(str(src), str(dest))
+    blob = (dest / "index.json").read_text() + "".join(p.read_text() for p in dest.glob("*/*.json"))
+    assert "pnl_usd\": -36" not in blob and "-36" not in blob and "SPY" not in blob and "2.96" not in blob and "770" not in blob
+    idx = {t["id"]: t for t in json.load(open(dest / "index.json"))["trades"]}
+    assert "paper_pnl_usd" not in idx["live-1"] and "pnl_usd" not in idx["live-1"] and idx["paper-1"]["paper_pnl_usd"] == 120.0
+    for bad in (tmp_path, tmp_path / "src"):                                   # wrong --dest: refuse, delete nothing
+        with pytest.raises(SystemExit): P.publish(str(src), str(bad))
+    assert (src / "2026-10-15" / "live-1.png").exists()
+    (tmp_path / "x" / "trade-charts").mkdir(parents=True); (tmp_path / "x" / "trade-charts" / "keep.txt").write_text("1")
+    with pytest.raises(SystemExit): P.publish(str(src), str(tmp_path / "x" / "trade-charts"))   # non-empty, no index.json
+
+def test_png_text_has_no_live_dollars_or_option(tmp_path):
+    pytest.importorskip("matplotlib")
+    from trade_charts import render as Rn
+    import matplotlib.pyplot as plt
+    df, tr, fill = _render_case(tmp_path)
+    tr.update(option=dict(n=1, underlier="SPY", exp="2026-10-16", strike=770.0, cp="C"), opt_fill=2.96)
+    seen = []; orig = plt.Figure.savefig
+    def grab(self, *a, **k): seen.extend(t.get_text() for t in self.findobj(lambda o: hasattr(o, "get_text"))); return orig(self, *a, **k)
+    plt.Figure.savefig = grab
+    try:
+        st = dict(levels={}, range=None, pools=[], htf={})
+        Rn.render(tr, {"1m": df, "5m": B.resample(df, "5min"), "15m": B.resample(df, "15min")}, st, dict(data_ok=False), str(tmp_path / "x.png"))
+    finally: plt.Figure.savefig = orig
+    txt = "\n".join(seen)
+    assert "$" not in txt and "-36" not in txt and "SPY" not in txt and "filled" not in txt and "2.96" not in txt and "-1.00R" in txt
+    tr.update(source="paper_futures"); assert "paper $ -36" in Rn.legend_text(tr, st, dict(data_ok=False))

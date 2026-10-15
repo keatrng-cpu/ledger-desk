@@ -43,6 +43,8 @@ def _spread(items, gap):
             if out[i][0] - out[i - 1][0] < gap: out[i] = (out[i - 1][0] + gap, out[i][1], out[i][2])
     return out
 
+def is_live(tr): return str(tr.get("source") or "").startswith("live")
+
 def inside_any(z, inside): return inside(z['lo']) or inside(z['hi'])
 
 def _fmt(t): return pd.Timestamp(t).tz_convert(CT).strftime("%H:%M")
@@ -135,7 +137,8 @@ def draw_panel(ax, fr, st, tr, tf, a, b, detail):
 def legend_text(tr, st, f):
     v = tr.get("verdicts") or {}; g = tr.get("gates") or {}; desk = v.get("desk") or {}
     R = tr.get("R"); res = "WIN" if (R or 0) > 0 else "LOSS" if (R or 0) < 0 else "FLAT"
-    L = [f"{res}  {R:+.2f}R" if R is not None else res, f"$ {tr['pnl_usd']:+,.0f}" if tr.get("pnl_usd") is not None else "", ""]
+    usd = tr.get("pnl_usd")   # live account dollars are never drawn (charts are published); paper is labelled as such
+    L = [f"{res}  {R:+.2f}R" if R is not None else res, f"paper $ {usd:+,.0f}" if usd is not None and not is_live(tr) else "", ""]
     L += ["VERDICTS", f" desk  {desk.get('band') or desk.get('card_band') or tr.get('band') or '-'} q={desk.get('q') or tr.get('q') or '-'}"
           + (" actionable" if desk.get("actionable") else ""), f" brain {v.get('brain') or '-'}", f" Floor {v.get('floor') or '-'}", ""]
     lb, sb, hb = g.get("live_block") or [], g.get("soft_block") or [], g.get("shadow_block") or []
@@ -181,11 +184,10 @@ def render(tr, fr, st, f, out_png):
            ("iFVG (hatched)", COL["ifvg"]), ("entry FVG / OB", COL["fvg_bull"]), ("EQ (0.25 tick)", COL["eq"])]
     for j, (txt, c) in enumerate(key):
         lax.text(0, 0.0 + 0.032 * (len(key) - 1 - j), "■ " + txt, va="bottom", ha="left", fontsize=10, color=c, transform=lax.transAxes)
-    o = tr.get("option"); opt = f"  ·  {o['n']}x {o['underlier']} {o['exp']} {o['strike']:g}{o['cp']} filled {tr.get('opt_fill')}" if o else ""
     R = tr.get("R")
     title = (f"{tr['symbol']} {tr['side'].upper()} {tr.get('band') or ''}  ·  {tr['signal']}  ·  {tr['source']}  ·  "
              f"fill {_fmt(tr['fill_t'])} {tr['fill_px']:.2f} → exit {_fmt(tr['exit_t'])} {tr['exit_px']:.2f} CT  ·  "
-             + (f"{R:+.2f}R" if R is not None else "R n/a") + opt)
+             + (f"{R:+.2f}R" if R is not None else "R n/a"))   # R only: no option contract / option fill
     fig.suptitle(title, fontsize=14, x=0.045, y=0.995, ha="left", va="top", weight="bold", color=UP if (R or 0) > 0 else DN)
     summ = summary(tr, st, f)
     fig.text(0.045, 1 - 0.75 / (5.0 * len(panels) + 2.0), "\n".join(textwrap.wrap(summ, 150)), fontsize=12.5, va="top", ha="left", color="#212121",

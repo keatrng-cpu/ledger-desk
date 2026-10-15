@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated": "2026-10-15T14:07:52-05:00",
+ "generated": "2026-10-15T14:23:22-05:00",
  "trades": [
   {
    "id": "ES-S-20261015-131709",
@@ -14,7 +14,7 @@
    "fill_px": 7772.0,
    "exit_px": 7772.25,
    "R": 0.41,
-   "pnl_usd": 630.0,
+   "paper_pnl_usd": 630.0,
    "summary": "Short A- after sweep of 7753.25 high in deep premium; a bear 1m FVG inverted at 13:34; trailed stop hit +0.41R. Lesson: plan worked despite an against-side iFVG at the fill (lucky; don't count on it).",
    "png": "2026-10-15/ES-S-20261015-131709.png",
    "json": "2026-10-15/ES-S-20261015-131709.json"
@@ -31,7 +31,7 @@
    "fill_px": 7782.25,
    "exit_px": 7774.5,
    "R": -1.07,
-   "pnl_usd": -1570.0,
+   "paper_pnl_usd": -1570.0,
    "summary": "Long B+ after sweep of 7768.5 low in deep premium from a with-side FVG; bull 1m FVGs inverted at 13:03/13:05; stopped \u22121.07R. Lesson: an against-side iFVG was already at the fill: skip.",
    "png": "2026-10-15/ES-L-20261015-130210.png",
    "json": "2026-10-15/ES-L-20261015-130210.json"
@@ -48,7 +48,6 @@
    "fill_px": 7782.0,
    "exit_px": 7775.0,
    "R": -1.0,
-   "pnl_usd": -36.0,
    "summary": "Long B+ after sweep of 7768.5 low in deep premium from a with-side FVG; bull 1m FVGs inverted at 13:03/13:05; stopped \u22121R. Lesson: an against-side iFVG was already at the fill: skip.",
    "png": "2026-10-15/sig-85e8feddd99efe46.png",
    "json": "2026-10-15/sig-85e8feddd99efe46.json"
@@ -65,7 +64,7 @@
    "fill_px": 30143.0,
    "exit_px": 30097.0,
    "R": -1.14,
-   "pnl_usd": -1850.0,
+   "paper_pnl_usd": -1850.0,
    "summary": "Long A- in deep discount from a with-side FVG; bull FVGs inverted at 15:25/15:41/15:48/15:50; stopped \u22121.14R. Lesson: an against-side iFVG was already at the fill: skip.",
    "png": "2026-10-14/MNQ-L-20261014-151148.png",
    "json": "2026-10-14/MNQ-L-20261014-151148.json"
@@ -82,7 +81,7 @@
    "fill_px": 30641.75,
    "exit_px": 30215.0,
    "R": -4.1,
-   "pnl_usd": -8540.0,
+   "paper_pnl_usd": -8540.0,
    "summary": "Long A- after sweep of 30168.25 low in deep premium; stopped \u22124.10R. Lesson: longs in premium need a deeper pullback.",
    "png": "2026-10-14/MNQ-L-20261014-143343.png",
    "json": "2026-10-14/MNQ-L-20261014-143343.json"
@@ -99,7 +98,7 @@
    "fill_px": 30587.25,
    "exit_px": 30617.25,
    "R": -1.07,
-   "pnl_usd": -2470.0,
+   "paper_pnl_usd": -2470.0,
    "summary": "Short A- after sweep of 30765.75 high in deep discount; a bear 1m FVG inverted at 07:47; stopped \u22121.07R. Lesson: a with-side FVG inverting after the fill is the invalidation: exit there, not at the stop.",
    "png": "2026-10-14/MNQ-S-20261014-074544.png",
    "json": "2026-10-14/MNQ-S-20261014-074544.json"
@@ -116,7 +115,7 @@
    "fill_px": 7842.75,
    "exit_px": 7842.75,
    "R": 0.4,
-   "pnl_usd": 720.0,
+   "paper_pnl_usd": 720.0,
    "summary": "Long B+ after sweep of 7864.75 low in deep discount; trailed stop hit +0.40R. Lesson: plan worked.",
    "png": "2026-10-14/ES-L-20261014-073116.png",
    "json": "2026-10-14/ES-L-20261014-073116.json"
@@ -133,7 +132,7 @@
    "fill_px": 7852.5,
    "exit_px": 7848.5,
    "R": -1.0,
-   "pnl_usd": -2050.0,
+   "paper_pnl_usd": -2050.0,
    "summary": "Long B+ after sweep of 7864.75 low in deep discount; stopped \u22121R. Lesson: no structural warning at entry; normal loss.",
    "png": "2026-10-14/ES-L-20261013-1924.png",
    "json": "2026-10-14/ES-L-20261013-1924.json"
@@ -150,7 +149,7 @@
    "fill_px": 30817.0,
    "exit_px": 30591.25,
    "R": 3.84,
-   "pnl_usd": 7462.5,
+   "paper_pnl_usd": 7462.5,
    "summary": "Short A- after sweep of 30805 high mid-range from a with-side FVG; a bear 5m FVG inverted at 07:30; T1 hit, closed +3.84R. Lesson: plan worked despite an against-side iFVG at the fill (lucky; don't count on it).",
    "png": "2026-10-14/MNQ-S-20261014-044008.png",
    "json": "2026-10-14/MNQ-S-20261014-044008.json"
@@ -167,7 +166,7 @@
    "fill_px": 7855.63,
    "exit_px": 7855.5,
    "R": 0.36,
-   "pnl_usd": 623.5,
+   "paper_pnl_usd": 623.5,
    "summary": "Long B+ after sweep of 7852.25 low mid-range; a bull 1m FVG inverted at 20:10; trailed stop hit +0.36R. Lesson: plan worked despite an against-side iFVG at the fill (lucky; don't count on it).",
    "png": "2026-10-13/ES-L-20261013-1912.png",
    "json": "2026-10-13/ES-L-20261013-1912.json"

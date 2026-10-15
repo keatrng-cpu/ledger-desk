@@ -6,7 +6,7 @@ from .learn import atomic_write
 
 MAX_PNG = 450_000          # bytes per chart
 MAX_TOTAL = 20_000_000     # bytes for the whole folder (newest trades win)
-TRADE_KEYS = ("signal", "chart_id", "source", "symbol", "side", "band", "q", "entry", "stop", "t1", "t2", "fill_t", "fill_px", "exit_t", "exit_px", "R", "pnl_usd")
+TRADE_KEYS = ("signal", "chart_id", "source", "symbol", "side", "band", "q", "entry", "stop", "t1", "t2", "fill_t", "fill_px", "exit_t", "exit_px", "R", "pnl_usd")   # pnl_usd: paper only, renamed paper_pnl_usd
 FEAT_KEYS = ("session_phase", "premium_pct", "range_name", "ifvg_against", "ifvg_with", "in_with_fvg", "in_with_ob", "wrong_half", "htf_1h", "htf_4h",
              "htf_aligned", "sweep_with_before", "sweep_against_before", "displacement_atr", "rr_from_fill", "stop_atr5", "brain", "floor",
              "t1_hit", "mfe_R", "mae_R", "R", "win")
@@ -14,7 +14,16 @@ SAFE = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.")
 
 def _ok(name): return bool(name) and set(name) <= SAFE and not name.startswith(".")
 
+def _is_live(t): return str(t.get("source") or "").startswith("live")
+
+def _dest_ok(dest):
+    """Prune only a directory literally named trade-charts that is empty or already holds our index.json (never /, ~, the repo)."""
+    d = os.path.realpath(dest)
+    if os.path.basename(d) != "trade-charts" or d in ("/", os.path.realpath(os.path.expanduser("~"))): return False
+    return not os.path.exists(d) or not os.listdir(d) or os.path.isfile(os.path.join(d, "index.json"))
+
 def publish(src_root, dest):
+    if not _dest_ok(dest): raise SystemExit(f"publish: refusing --dest {dest!r} (must be an empty or existing trade-charts dir with index.json)")
     items = []
     for p in sorted(glob.glob(os.path.join(src_root, "20??-??-??", "*.json"))):
         day = os.path.basename(os.path.dirname(p)); stem = os.path.basename(p)[:-5]; png = p[:-5] + ".png"
@@ -28,7 +37,10 @@ def publish(src_root, dest):
     items.sort(key=lambda x: x[0], reverse=True)
     total = 0; rows = []; keep = {"index.json"}
     for fill_t, day, stem, png, t, f, summ in items:
-        side = dict(schema=1, summary=summ, trade={k: t.get(k) for k in TRADE_KEYS}, features={k: f.get(k) for k in FEAT_KEYS})
+        live = _is_live(t)
+        tk = {k: t.get(k) for k in TRADE_KEYS if not (live and k == "pnl_usd")}
+        if not live and t.get("pnl_usd") is not None: tk["paper_pnl_usd"] = tk.pop("pnl_usd")
+        side = dict(schema=1, summary=summ, trade=tk, features={k: f.get(k) for k in FEAT_KEYS if not (live and k == "pnl_usd")})
         js = json.dumps(side, default=str)
         sz = os.path.getsize(png) + len(js)
         if total + sz > MAX_TOTAL: break
@@ -38,7 +50,7 @@ def publish(src_root, dest):
         keep |= {f"{day}/{stem}.png", f"{day}/{stem}.json"}
         rows.append(dict(id=stem, day=day, symbol=t.get("symbol"), side=t.get("side"), source=t.get("source"), band=t.get("band"),
                          fill_t=t.get("fill_t"), exit_t=t.get("exit_t"), fill_px=t.get("fill_px"), exit_px=t.get("exit_px"),
-                         R=t.get("R"), pnl_usd=t.get("pnl_usd"), summary=summ, png=f"{day}/{stem}.png", json=f"{day}/{stem}.json"))
+                         R=t.get("R"), **({} if live else dict(paper_pnl_usd=t.get("pnl_usd"))), summary=summ, png=f"{day}/{stem}.png", json=f"{day}/{stem}.json"))
     for p in glob.glob(os.path.join(dest, "**", "*"), recursive=True):     # prune what is no longer published
         rel = os.path.relpath(p, dest)
         if os.path.isfile(p) and rel not in keep: os.unlink(p)
