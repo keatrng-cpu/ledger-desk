@@ -114,7 +114,13 @@ test("velocity cut is applied BEFORE sizing: $ cap and min_debit still hold, min
   assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, 20), 4);      // within cap: full
   assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, 40), 2);      // over 30m: half
   assert.equal(fc.velocitySizedContracts(1.5, 4, 4, 650, 50, null), 1);    // unknown: 1ct
-  assert.equal(fc.velocitySizedContracts(2.0, 6, 6, 650, 50, 40), 3);      // half of 6, $600 <= $650
+  assert.equal(fc.velocitySizedContracts(2.0, 6, 6, 650, 50, 40), 1);      // half of 6 = 3ct, but the $ cap is halved to $325: 1ct $200
+  assert.equal(fc.velocitySizedContracts(1.0, 6, 6, 650, 50, 40), 3);      // 3ct x $100 = $300 <= $325
+  assert.equal(fc.velocitySizedContracts(1.2, 6, 6, 650, 50, 40), 2);      // 3ct $360 > $325 -> 2ct $240
+  assert.equal(fc.velocitySizedContracts(4.0, 4, 4, 650, 50, 40), null);   // 1ct $400 <= $650 but > halved $325: refuse
+  assert.equal(fc.velocitySizedContracts(4.0, 4, 4, 650, 50, 20), 1);      // within ETA cap: full $650 cap, 1ct $400
+  assert.equal(fc.velocitySizedContracts(3.5, 1, 4, 650, 50, null), null); // unknown ETA: min size and $325 cap, 1ct $350 refuses
+  assert.equal(fc.velocityDebitMult(), 0.5);
   assert.equal(fc.velocitySizedContracts(0.3, 4, 4, 650, 50, null), null); // 1ct = $30 < $50 floor and ceiling is 1: refuse
   assert.equal(fc.velocitySizedContracts(7.0, 1, 4, 650, 50, 40), null);   // 1ct $700 > $650 cap
 });

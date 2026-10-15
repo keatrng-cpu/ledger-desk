@@ -75,16 +75,23 @@ export function velocitySize(n: number | null, expMin: number | null | undefined
   if (expMin > cap) return Math.min(n, Math.max(lo, Math.floor(n * FC.velocity.cutMult)));
   return n;
 }
+/** Debit-cap multiplier when the velocity cut applies (twin of watcher fastchain.velocity_debit_mult): cutMult, i.e. $650 -> $325. */
+export function velocityDebitMult(): number {
+  const m = Number(FC.velocity.cutMult); return m > 0 && m <= 1 ? m : 0.5;
+}
 /**
  * Velocity cut BEFORE sizing (twin of watcher fastchain.velocity_cap + gates.size_contracts; Accuracy CHANGES 10/15): the
- * contract ceiling min(maxContracts, wanted) is cut by velocity, then the band $ cap (maxDebit) and the minDebit floor are
- * enforced on the cut count (minimum 1 whole contract). Returns null when no count fits.
+ * contract ceiling min(maxContracts, wanted) is cut by velocity and the band $ cap (maxDebit) is cut by cutMult ($650 -> $325),
+ * then that cut $ cap and the minDebit floor are enforced on the cut count (minimum 1 whole contract). Returns null when no count fits.
  */
 export function velocitySizedContracts(ask: number | null | undefined, wanted: number | null | undefined, maxContracts: number, maxDebit: number,
   minDebit: number, expMin: number | null | undefined, minContracts = 1): number | null {
   if (ask == null || !(ask > 0) || maxContracts < minContracts) return null;
   const lo = Math.max(1, minContracts); const base = Math.max(lo, Math.min(maxContracts, Math.floor(wanted || 1)));
   const maxc = velocitySize(base, expMin, minContracts) ?? base;
+  // The velocity cut also halves the band $ cap ($650 -> $325) before the $ cap and minDebit checks (twin of gates.size_contracts).
+  const cutApplies = FC.velocity.mode === "size" && (expMin == null || expMin > FC.maxMinutesToT1);
+  if (cutApplies) maxDebit = maxDebit * velocityDebitMult();
   const per = ask * 100;
   if (per > maxDebit + 1e-9) return null;
   let n = Math.max(minContracts, Math.min(maxc, Math.floor(wanted || 1)));

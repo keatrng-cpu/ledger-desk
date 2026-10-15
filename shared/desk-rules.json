@@ -290,7 +290,7 @@
     "confirmPolls": 2,
     "maxActionableAgeS": 90,
     "velocity": {
-      "_doc": "fire-bugs-live 10/15 (Keaton): fast:velocity is a size cut, not a block. T1 ETA > maxMinutesToT1 -> contracts x cutMult; > minSizeBeyondCapX x maxMinutesToT1 or unknown -> minimum size (1 whole contract). Never above the band/$650 debit-cap size.",
+      "_doc": "fire-bugs-live 10/15 (Keaton): fast:velocity is a size cut, not a block. T1 ETA > maxMinutesToT1 -> contracts x cutMult; > minSizeBeyondCapX x maxMinutesToT1 or unknown -> minimum size (1 whole contract). The cut also multiplies the band $ debit cap by cutMult ($650 -> $325) before the $ cap and minDebit checks.",
       "mode": "size",
       "cutMult": 0.5,
       "minSizeBeyondCapX": 2

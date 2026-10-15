@@ -21,9 +21,9 @@ Live fix for the two bugs that stopped the desk firing (audit `audits/fire-fail-
 - `fastChain.velocity`: `mode` = "size", `cutMult` = 0.5, `minSizeBeyondCapX` = 2.
 - If the T1 ETA is over the 30m cap, the contracts are halved (whole contracts, minimum 1).
 - If the ETA is over 60m, or unknown, the trade uses the minimum size (1 contract).
-- The cut never raises size above what the band and the $650 debit cap allow.
+- The cut also halves the band $ debit cap ($650 → $325, by `cutMult`), and it never raises size above the band's contract size.
 - `fast:velocity` is removed from `fastChain.hard`, and the row becomes `soft:fast:velocity`.
-- **The cut is applied BEFORE sizing (Accuracy CHANGES 10/15):** `fastchain.velocity_cap` lowers the contract ceiling inside `gates.size_contracts`, so the band $ cap ($650) and the `min_debit` ($50) floor are enforced on the cut count (minimum 1 whole contract; refuse if 1ct is under the floor). Desk twin: `velocitySizedContracts`. The fire path reads the leading count of the `sizing` row.
+- **The cut is applied BEFORE sizing (Accuracy CHANGES 10/15):** `fastchain.velocity_cap` lowers the contract ceiling inside `gates.size_contracts` and halves the band $ cap ($650 → $325, `fastchain.velocity_debit_mult`) first; then the $325 cap and the `min_debit` ($50) floor are enforced on the cut count (minimum 1 whole contract; refuse if 1ct is under the floor). Desk twin: `velocitySizedContracts`. The fire path reads the leading count of the `sizing` row.
 
 ## Entry re-arm (Keaton, 10/15)
 - `fastChain.entryRearm.mode` = "live".

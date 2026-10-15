@@ -1,6 +1,6 @@
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/daemon.py dw-firebug/watcher/daemon.py
---- a/watcher/daemon.py	2026-10-15 12:15:48.372926632 -0500
-+++ b/watcher/daemon.py	2026-10-15 12:51:23.192926632 -0500
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/watcher/daemon.py dw-firebug/watcher/daemon.py
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
 @@ -246,8 +246,11 @@
          if optexec.mode("limitWalk") == "live": lim, how = optexec.walk_limit(q.get("bid"), q["ask"], 0), "mid (walk 0)"   # fix 4
          else: lim, how = gates.limit_price(q.get("bid"), q["ask"], self.cfg.slip, self.cfg.wide_spread)
@@ -15,9 +15,9 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/daemon.py d
          try:
              res = self.broker.buy(c, n, lim)
          except BrokerRefused as e:
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/desk-rules.json dw-firebug/watcher/desk-rules.json
---- a/watcher/desk-rules.json	2026-10-15 12:15:48.384926632 -0500
-+++ b/watcher/desk-rules.json	2026-10-15 12:53:40.152926632 -0500
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/watcher/desk-rules.json dw-firebug/watcher/desk-rules.json
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
 @@ -284,10 +284,21 @@
      "lossLock": -300
    },
@@ -30,7 +30,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/desk-rules.
 +    "confirmPolls": 2,
 +    "maxActionableAgeS": 90,
 +    "velocity": {
-+      "_doc": "fire-bugs-live 10/15 (Keaton): fast:velocity is a size cut, not a block. T1 ETA > maxMinutesToT1 -> contracts x cutMult; > minSizeBeyondCapX x maxMinutesToT1 or unknown -> minimum size (1 whole contract). Never above the band/$650 debit-cap size.",
++      "_doc": "fire-bugs-live 10/15 (Keaton): fast:velocity is a size cut, not a block. T1 ETA > maxMinutesToT1 -> contracts x cutMult; > minSizeBeyondCapX x maxMinutesToT1 or unknown -> minimum size (1 whole contract). The cut also multiplies the band $ debit cap by cutMult ($650 -> $325) before the $ cap and minDebit checks.",
 +      "mode": "size",
 +      "cutMult": 0.5,
 +      "minSizeBeyondCapX": 2
@@ -71,10 +71,10 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/desk-rules.
      "nearMissFire": {
        "mode": "shadow",
        "qMin": 0.58,
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.py dw-firebug/watcher/fastchain.py
---- a/watcher/fastchain.py	2026-10-14 12:16:09.000000000 -0500
-+++ b/watcher/fastchain.py	2026-10-15 12:50:54.972926632 -0500
-@@ -31,34 +31,130 @@
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/watcher/fastchain.py dw-firebug/watcher/fastchain.py
+--- a/watcher/fastchain.py
++++ b/watcher/fastchain.py
+@@ -31,34 +31,138 @@
      rows.append(("fast:agree", not opposite and not both, f"brain {snap.get('brain_word')} {bs} {bd}{' OPPOSITE' if opposite else ''}; 1h {hb.get('1h')} 4h {hb.get('4h')}{' BOTH AGAINST' if both else ''}"))
      rows.append(geometry_row(snap))
      vel = ((snap.get("loss") or {}).get("velocity") or {}); m = _num(vel.get("expMin"))
@@ -97,6 +97,14 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +    if m is None or m > v.get("minSizeBeyondCapX", 2) * cap: return None, f"ETA {m}m > {v.get('minSizeBeyondCapX', 2)}x cap (or unknown): minimum size"
 +    if m > cap: return v.get("cutMult", 0.5), f"ETA {m}m > cap: size x{v.get('cutMult', 0.5)}"
 +    return 1.0, "within cap: full size"
++
++def velocity_debit_mult():
++    """Debit-cap multiplier when the velocity cut applies (fire-bugs-live 10/15): fastChain.velocity.cutMult (0.5), so the
++    band $ cap is halved ($650 -> $325) before size_contracts checks the $ cap and the min_debit floor."""
++    v = (FC.get("velocity") or {}) if isinstance(FC, dict) else {}
++    try: m = float(v.get("cutMult", 0.5))
++    except (TypeError, ValueError): m = 0.5
++    return m if 0 < m <= 1 else 0.5
 +
 +def velocity_cap(maxc, wanted, snap, cfg):
 +    """Velocity size cut applied BEFORE sizing (Accuracy CHANGES 10/15): returns (contract ceiling, note or None). The
@@ -224,7 +232,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
      names = {n for n, _, _ in rows}
      for n, ok, w in g:
          if n in names: continue
-@@ -71,7 +167,7 @@
+@@ -71,7 +175,7 @@
      """fast:geometry (hard; Floor review 2026-10-13 19:28 ET: a long plan card carried short levels). Refuse unless
      long: stop < entry < T1 (< T2) / short: stop > entry > T1 (> T2) for BOTH the plan stop and the management stop
      (resolve_stop), and the option side matches the card side: the traded ticket (call=long / put=short, ETF of the
@@ -233,7 +241,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
      from .gates import resolve_stop, SIDE_TO_TYPE
      side = snap.get("side"); e = _num(snap.get("entry")); t1 = _num(snap.get("first_target")); t2 = _num(snap.get("t2"))
      why = []
-@@ -83,12 +179,16 @@
+@@ -83,12 +187,16 @@
      st_plan = _num(snap.get("stop_px")); st_mgmt = resolve_stop(snap)[0]
      if not ok_order(st_plan): why.append(f"plan stop {st_plan} / entry {e} / T1 {t1} not {'stop<entry<T1' if L else 'stop>entry>T1'}")
      if st_mgmt is not None and not ok_order(st_mgmt): why.append(f"management stop {st_mgmt} on the wrong side")
@@ -254,9 +262,9 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/fastchain.p
 +    if ds is not None and (ds != want or (du is not None and und is not None and du != und)): note.append(f"desk Floor ticket {du} {ds} ignored (not this card's {und} {want})")
 +    tail = ("; " + "; ".join(note)) if note else ""
 +    return ("fast:geometry", not why, ("; ".join(why) + tail) if why else f"{side}: stop {st_plan} / entry {e} / T1 {t1}" + (f" / T2 {t2}" if t2 else "") + f"; ticket {want}" + tail)
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/firefix.py dw-firebug/watcher/firefix.py
---- a/watcher/firefix.py	2026-10-14 12:16:09.000000000 -0500
-+++ b/watcher/firefix.py	2026-10-15 12:51:53.396926632 -0500
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/watcher/firefix.py dw-firebug/watcher/firefix.py
+--- a/watcher/firefix.py
++++ b/watcher/firefix.py
 @@ -84,15 +84,6 @@
      ok = brain_ok and floor_ok and not both
      return ok, f"q {q} near B+; brain {snap.get('brain_side')} {'same' if brain_ok else 'not same'} side; floor {snap.get('verdict')}; 1h/4h both against={both}"
@@ -273,9 +281,9 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/firefix.py 
  def sole_blocker(g):
      """One line for the Watcher tab: the single failing hard gate, else the count."""
      bad = [(n, w) for n, ok, w in g if ok is False]
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw-firebug/watcher/gates.py
---- a/watcher/gates.py	2026-10-15 10:00:46.528926632 -0500
-+++ b/watcher/gates.py	2026-10-15 12:51:14.792926632 -0500
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/watcher/gates.py dw-firebug/watcher/gates.py
+--- a/watcher/gates.py
++++ b/watcher/gates.py
 @@ -108,6 +108,7 @@
          "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
          "stop_px": _strict(strat.get("stopPx")),
@@ -293,7 +301,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw
      """Contracts so total debit (at live ask) is within [min_debit, band cap]. None + reason on refusal.
      cut=True (one of 1h/4h opposing) halves the band's contract and debit caps."""
      ask = _num(ask)
-@@ -519,6 +520,11 @@
+@@ -519,6 +520,14 @@
      if shadow is not None: shadow.extend(_rows)
      if maxc < cfg.min_contracts:
          return None, f"band {band} has no size"
@@ -301,11 +309,14 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw
 +    if vel_snap is not None:     # fast:velocity size cut BEFORE sizing: the $ cap and min_debit floor below apply to the cut count
 +        from . import fastchain as _fcv
 +        _vc, _vw = _fcv.velocity_cap(maxc, wanted, vel_snap, cfg)
-+        if _vw: maxc = _vc; wanted = min(int(wanted or 1), _vc); _vnote = f"; {_vw}"
++        if _vw:
++            maxc = _vc; wanted = min(int(wanted or 1), _vc)
++            maxd = maxd * _fcv.velocity_debit_mult()     # the cut also halves the band $ cap ($650 -> $325) before the $ cap / min_debit checks
++            _vnote = f"; {_vw}; $ cap -> ${maxd:.0f}"
      per = ask * 100
      if per > maxd + 1e-9:
          return None, f"1 contract ${per:.2f} > ${maxd:.0f} cap ({band})"
-@@ -529,8 +535,8 @@
+@@ -529,8 +538,8 @@
          while n < maxc and n * per < cfg.min_debit:
              n += 1
          if n * per < cfg.min_debit - 1e-9 or n * per > maxd + 1e-9:
@@ -316,7 +327,7 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw
  
  def pick_strike(strikes, spot, opt_type, offset):
      """ATM = nearest strike; OTM_1 = next strike out of the money."""
-@@ -762,7 +768,7 @@
+@@ -762,7 +771,7 @@
      if _bcut or _dcut: snap["size_cut"] = True
      nct, why = size_contracts(q["ask"], _want, cfg, snap["band"], snap.get("size_cut", False) or _bcut or _dcut, broker.get("week"),
                                equity=broker.get("equity") or broker.get("buying_power"), t1_mult=_t1_mult(snap, q, broker.get("contract")),
@@ -325,10 +336,10 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/watcher/gates.py dw
      for _r in _fxrows: add(*_r)
      if nct is not None and _ox.mode("todSize") == "live":
          _m = _ox.tod_mult(et_now)
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_fastchain.py dw-firebug/tests/test_fastchain.py
---- a/tests/test_fastchain.py	2026-10-13 18:29:55.940376822 -0500
-+++ b/tests/test_fastchain.py	2026-10-15 12:53:26.776926632 -0500
-@@ -12,23 +12,130 @@
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/tests/test_fastchain.py dw-firebug/tests/test_fastchain.py
+--- a/tests/test_fastchain.py
++++ b/tests/test_fastchain.py
+@@ -12,23 +12,144 @@
      s.update(kw); return s
  
  def test_rules():
@@ -413,6 +424,20 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_fastchai
 +    n, why = gates.size_contracts(0.20, 4, cfg, "A+", vel_snap=fast(None))
 +    assert n is None and "floor" in why
 +
++def test_velocity_cut_halves_debit_cap_before_checks(cfg):
++    """The velocity cut halves the band $ cap ($650 -> $325) before the $ cap and $50 floor checks."""
++    fast = lambda m: snap(loss={"velocity": {"expMin": m}})
++    assert fc.velocity_debit_mult() == 0.5
++    full_cap = gates.band_caps(cfg, "A+")[1]
++    n, why = gates.size_contracts(2.00, 6, cfg, "A+", vel_snap=fast(40))     # half of the ceiling, but $200 x 2 = $400 > $325
++    assert n is not None and n * 200 <= full_cap / 2 + 1e-9 and f"${full_cap/2:.0f}" in why
++    n, why = gates.size_contracts(4.00, 4, cfg, "A+", vel_snap=fast(40))     # 1ct $400 <= $650 but > $325: refuse
++    assert n is None and f"${full_cap/2:.0f} cap" in why
++    assert gates.size_contracts(4.00, 4, cfg, "A+", vel_snap=fast(20))[0] == 1       # within ETA cap: full $650 cap
++    assert gates.size_contracts(3.50, 1, cfg, "A+", vel_snap=fast(None))[0] is None  # unknown ETA: $325 cap too
++    n, why = gates.size_contracts(0.40, 4, cfg, "A+", vel_snap=fast(None))           # cut to 1ct $40 < $50 floor: refuse
++    assert n is None and "floor" in why
++
 +def _arm(st, t0):
 +    st = fc.streak_next(st, snap(at=f"r{t0}"), t0); return fc.streak_next(st, snap(at=f"s{t0}"), t0 + 4000)
 +
@@ -467,9 +492,9 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_fastchai
  
  def test_other_gates_become_soft_safety_stays_hard():
      g = [("verdict", False, "floor WATCH"), ("phase", False, "look"), ("grok_agree", False, "x"), ("news", False, "CPI"), ("weekly_lock", False, "loss lock"), ("account", None, "unverified")]
-diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_firefix.py dw-firebug/tests/test_firefix.py
---- a/tests/test_firefix.py	2026-10-13 19:52:48.932376822 -0500
-+++ b/tests/test_firefix.py	2026-10-15 12:13:13.700926632 -0500
+diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/tests/test_firefix.py dw-firebug/tests/test_firefix.py
+--- a/tests/test_firefix.py
++++ b/tests/test_firefix.py
 @@ -66,9 +66,9 @@
      assert fc.geometry_row(base)[1] is True
      bad = {**base, "stop_px": 30750.75, "strategy_stop": 30750.75, "first_target": 30591.25}     # the 19:28 ET Floor card
@@ -483,8 +508,8 @@ diff -ruN -x __pycache__ -x '*.pyc' -x fixtures desk-watcher/tests/test_firefix.
      assert fc.geometry_row(sh)[1] is True
      assert fc.geometry_row({**sh, "first_target": 30800.0})[1] is False
 diff -ruN -x __pycache__ -x '*.pyc' desk-watcher/tools/fast_dryrun.py dw-firebug/tools/fast_dryrun.py
---- a/tools/fast_dryrun.py	2026-10-13 16:40:46.176852046 -0500
-+++ b/tools/fast_dryrun.py	2026-10-15 12:15:01.328926632 -0500
+--- a/tools/fast_dryrun.py
++++ b/tools/fast_dryrun.py
 @@ -1,5 +1,5 @@
  """Dry-run the FAST chain over a cards.log (no broker: broker rows stay unverified/None). Prints every would-fire and
 -a per-gate funnel. Usage: python -m tools.fast_dryrun CARDS_LOG [--cards=N]  (--cards=N: hold = N distinct cards instead of minHoldS)"""
