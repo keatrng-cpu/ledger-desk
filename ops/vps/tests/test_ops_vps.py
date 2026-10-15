@@ -8,7 +8,7 @@ NIGHT = D.datetime(2026, 10, 17, 15, 0, tzinfo=UTC)    # Saturday
 def host(**k): return dict(disk_pct=32, mem_avail_mb=500, psi_some_avg60=0.0) | k
 def hb(age=10, **p):
     t = (RTH - D.timedelta(seconds=age)).isoformat()
-    return {"updated_at": t, "payload": dict(watcher_alive=True, watcher_log_mtime=t, paper_pid=1, paper_state_mtime=t, card={"ok": True}) | p}
+    return {"updated_at": t, "payload": dict(watcher_alive=True, watcher_log_mtime=t, watcher_status_mtime=t, paper_pid=1, paper_state_mtime=t, card={"ok": True}) | p}
 GW = {"service": "active", "tick_lag_s": {"ES": 1.0, "NQ": 1.0}, "missing": {"ES": [], "NQ": []}}
 
 def ev(now=RTH, h=None, gw=GW, hs=None, card=None, pv=None):
@@ -43,11 +43,24 @@ def test_cost_abort_before_download():
     assert got == []
 def test_reconcile_dedupes():
     class C:
-        def __init__(s): s.open = {"vps_disk": 1, "old": 2}; s.sql = []
+        def __init__(s, ins): s.open = {"vps_disk": 1, "old": 2}; s.ins = ins
         def execute(s, q, a=None):
-            s.sql.append(q); return types.SimpleNamespace(fetchall=lambda: list(s.open.items()))
-    c = C(); o, r = watchdog.reconcile(c, {"vps_disk": ("crit", "m", {}), "new": ("warn", "n", {})}, RTH)
+            return types.SimpleNamespace(fetchall=lambda: list(s.open.items()), fetchone=lambda: s.ins)
+    o, r = watchdog.reconcile(C((7,)), {"vps_disk": ("crit", "m", {}), "new": ("warn", "n", {})}, RTH)
     assert [x[0] for x in o] == ["new"] and r == ["old"]
+    o, _ = watchdog.reconcile(C(None), {"new": ("warn", "n", {})}, RTH)   # insert lost the race (conflict): not a new incident
+    assert o == []
+
+def test_watcher_status_stale_not_log():
+    t_old = (RTH - D.timedelta(seconds=400)).isoformat()
+    assert "watcher_status_stale" not in ev(h=hb(watcher_log_mtime=t_old))   # quiet log alone is fine
+    assert "watcher_status_stale" in ev(h=hb(watcher_status_mtime=t_old))
+
+def test_units_start_limits_and_timers():
+    sd = os.path.join(os.path.dirname(__file__), "..", "systemd"); rd = lambda n: open(os.path.join(sd, n)).read()
+    assert "StartLimitIntervalSec=600" in rd("ledger-paper-trend.service") and "StartLimitBurst=5" in rd("ledger-paper-trend.service")
+    assert "/opt/ledger-gateway/.env" not in rd("ledger-paper-trend.service") + rd("ledger-watchdog.service") + rd("ledger-backtest.service")
+    for t in ("ledger-archive.timer", "ledger-backtest.timer"): assert "Persistent=false" in rd(t)
 def test_retention(tmp_path):
     for d in ["2026/10/01", "2026/10/02", "2026/10/03"]:
         p = tmp_path / d; p.mkdir(parents=True); (p / "f").write_bytes(b"x" * 1000)

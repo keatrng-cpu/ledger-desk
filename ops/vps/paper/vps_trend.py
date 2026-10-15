@@ -28,4 +28,4 @@ def wire():
     import fastpath; fastpath.install(tp)
 
 if __name__ == "__main__":
-    load_env(); wire(); tp.main()
+    wire(); tp.main()   # env: /etc/ledger-ops/paper.env (DATABASE_URL for the read-only role only)

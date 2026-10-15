@@ -37,8 +37,10 @@ def evaluate(now, hb, gw, host, card, paper_vps):
         else:
             p = hb["payload"]
             if not p.get("watcher_alive"): f["watcher_dead"] = ("crit", "desk-watcher pid not alive on box", {"pid": p.get("watcher_pid")})
-            la = _age(p.get("watcher_log_mtime"), now)
-            if la is None or la > T["hb_stale_s"]: f["watcher_log_stale"] = ("crit", f"watcher.log not written for {la and int(la)}s", {"age_s": la})
+            # status.json is rewritten every ~12s by the watcher loop; watcher.log is event-driven and goes quiet for
+            # 3-6 min in normal operation (it flapped on 2026-10-15), so it is reported but not alerted on.
+            la = _age(p.get("watcher_status_mtime"), now)
+            if la is None or la > T["hb_stale_s"]: f["watcher_status_stale"] = ("crit", f"watcher status.json not written for {la and int(la)}s", {"age_s": la, "log_age_s": _age(p.get("watcher_log_mtime"), now)})
             if not p.get("paper_pid"): f["paper_box_down"] = ("warn", "box paper-trend lane not running", {})
             # trend lane only acts 08:30-15:00 CT and polls every 30s; state.json is rewritten each poll
             n_ct = now.astimezone(CT)
@@ -110,15 +112,16 @@ def reconcile(c, firing, now):
     for k, (sev, msg, det) in firing.items():
         if k in open_rows: c.execute("update ops_alerts set last_seen_at=now(), message=%s where id=%s", (msg, open_rows[k]))
         else:
-            c.execute("insert into ops_alerts(alert_key,severity,message,detail) values (%s,%s,%s,%s::jsonb) on conflict do nothing",
-                      (k, sev, msg, json.dumps(det, default=str))); opened.append((k, sev, msg))
+            r = c.execute("insert into ops_alerts(alert_key,severity,message,detail) values (%s,%s,%s,%s::jsonb) on conflict do nothing returning id",
+                          (k, sev, msg, json.dumps(det, default=str))).fetchone()
+            if r: opened.append((k, sev, msg))   # only a row that was actually inserted is a new incident
     for k, i in open_rows.items():
         if k not in firing:
             c.execute("update ops_alerts set state='resolved', resolved_at=now(), notified_resolved=true where id=%s", (i,)); resolved.append(k)
     return opened, resolved
 
 def main():
-    load_env(); import psycopg
+    import psycopg   # env comes only from /etc/ledger-ops/watchdog.env (least privilege)
     now = D.datetime.now(UTC); os.makedirs(LOG_DIR, exist_ok=True); os.makedirs(STATE_DIR, exist_ok=True)
     cache = os.path.join(STATE_DIR, "card.json"); card = None
     try: card = json.load(open(cache))

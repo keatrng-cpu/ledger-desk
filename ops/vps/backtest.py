@@ -32,7 +32,7 @@ def run(bars, days, tmp):
     return res
 
 def main():
-    load_env(); os.makedirs(OUT, exist_ok=True); tmp = os.path.join(OUT, ".scratch"); os.makedirs(tmp, exist_ok=True)
+    os.makedirs(OUT, exist_ok=True); tmp = os.path.join(OUT, ".scratch"); os.makedirs(tmp, exist_ok=True)
     for f in os.listdir(tmp): os.remove(os.path.join(tmp, f))
     bars = load_bars(os.path.join(HIST, "NQ_1m.parquet"))
     alld = sorted({b["t"].date() for b in bars if b["t"].weekday() < 5})

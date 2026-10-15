@@ -47,7 +47,11 @@ def snapshot(do_card=True):
     if not alive:
         pid = proc_running("watcher.daemon"); alive = pid is not None
     ts, ev = last_event(os.path.join(P, "events.jsonl"))
+    hbv = None
+    try: hbv = json.load(open(os.path.join(W, "status.json"))).get("heartbeat")
+    except Exception: pass
     out = dict(watcher_pid=pid, watcher_alive=alive, watcher_log_mtime=mtime(os.path.join(W, "watcher.log")),
+               watcher_status_mtime=mtime(os.path.join(W, "status.json")), watcher_heartbeat=hbv,
                paper_pid=proc_running("trend_paper.py"), paper_last_event_ts=ts, paper_last_event=ev,
                paper_state_mtime=mtime(os.path.join(P, "state.json")))
     if do_card: out["card"] = card()

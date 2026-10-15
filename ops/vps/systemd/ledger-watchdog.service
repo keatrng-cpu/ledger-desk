@@ -6,7 +6,7 @@ Type=oneshot
 WorkingDirectory=/opt/ledger-ops
 # gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
 BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
-EnvironmentFile=/opt/ledger-gateway/.env
+EnvironmentFile=/etc/ledger-ops/watchdog.env
 User=ledgerops
 Group=ledgerops
 Nice=10

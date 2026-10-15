@@ -1,12 +1,14 @@
 [Unit]
 Description=ledger-desk PAPER trend lane, VPS backup copy (no broker, logs only)
 After=network-online.target
-StartLimitIntervalSec=0
+# at most 5 starts per 10 min, then the unit stays failed (watchdog raises paper_vps_down) instead of looping forever
+StartLimitIntervalSec=600
+StartLimitBurst=5
 [Service]
 WorkingDirectory=/opt/ledger-ops
 # gateway dir is 0700 root; expose only its venv, read-only, inside this unit's mount namespace
 BindReadOnlyPaths=/opt/ledger-gateway/venv:/opt/ledger-ops/venv
-EnvironmentFile=/opt/ledger-gateway/.env
+EnvironmentFile=/etc/ledger-ops/paper.env
 User=ledgerops
 Group=ledgerops
 Nice=10
