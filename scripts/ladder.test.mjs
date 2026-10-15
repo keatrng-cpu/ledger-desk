@@ -109,3 +109,73 @@ test("10-15 08:55 CT fast LTF flip: MNQ sweeps 29648-29659, closes back inside, 
   const r0 = L.ladderBook({ symbol: "MNQ", price: c0.at(-1).c, nowMs: pre, hourly: b.hourly.filter((x) => x.t + 3_600_000 <= pre), daily: b.daily, minuteClosed: c0, map: mapOf(b, "MNQ") });
   assert.ok(!r0.ltfFlip || r0.ltfFlip.stage !== "PROMOTED");
 });
+
+// ---------------------------------------------------------------- Accuracy Review (PR #17) fixes
+const end902 = Date.parse("2026-10-15T14:02:00Z");
+const book902 = () => {
+  const b = FX.books.MNQ; const closed = b.minute.filter((x) => x.t + 60_000 <= end902);
+  return L.ladderBook({ symbol: "MNQ", price: closed.at(-1).c, nowMs: end902, hourly: b.hourly.filter((x) => x.t + 3_600_000 <= end902), daily: b.daily, minuteClosed: closed, map: mapOf(b, "MNQ") });
+};
+const onTick = (x) => Math.abs(x * 4 - Math.round(x * 4)) < 1e-9;
+
+test("review (1): every entry/stop/target/flip price sits on the 0.25 tick; 09:01 flip reads 29681.25 / 29616.25", () => {
+  assert.equal(L.snapSide(29681.375, 0.25, "long"), 29681.25); assert.equal(L.snapSide(29681.375, 0.25, "short"), 29681.5);
+  assert.equal(L.snapSide(29616.32, 0.25, "long"), 29616.25); assert.equal(L.snapSide(7741.28, 0.25, "short"), 7741.5);
+  const r = book902();
+  assert.equal(r.ltfFlip.entry, 29681.25); assert.equal(r.ltfFlip.stop, 29616.25);
+  for (const b of [r, bookOf("MNQ"), bookOf("ES")]) for (const s of [b.bull, b.bear]) {
+    for (const e of s.entries) assert.ok(onTick(e.entry) && onTick(e.stop), `${b.symbol} ${e.kind} ${e.entry}/${e.stop} off tick`);
+    for (const t of s.targets) assert.ok(onTick(t.touch) && onTick(t.lo) && onTick(t.hi), `${b.symbol} target ${t.touch} off tick`);
+  }
+});
+
+test("review (2): a level swept on the 1m (29638.75 at 08:54 CT) leaves targets, pools, clusters and stop anchors", () => {
+  const r = book902();
+  const all = [...r.bull.targets, ...r.bear.targets];
+  assert.ok(!all.some((t) => 29638.75 >= t.lo && 29638.75 <= t.hi), "29638.75 still on the ladder");
+  assert.ok(!r.bull.entries.some((e) => e.entry === 29638.75 || /29638\.75/.test(e.stopWhy)));
+  // a map pool flagged swept by the map itself is dropped too
+  const b = FX.books.MNQ;
+  const m = { ...mapOf(b, "MNQ"), pools: [{ side: "sellside", price: 29700, touches: 2, tf: "1m", sweptT: end902 - 120_000, name: "EQL test" }] };
+  const r2 = L.ladderBook({ symbol: "MNQ", price: 29750, nowMs: FX.cutT, hourly: b.hourly, daily: b.daily, map: m });
+  assert.ok(![...r2.bear.targets].some((t) => t.names.includes("EQL test")));
+});
+
+test("review (3): no retrace entry on the wrong side of price (long at/below, short at/above)", () => {
+  for (const b of [book902(), bookOf("MNQ"), bookOf("ES")]) {
+    for (const e of b.bull.entries) assert.ok(e.entry <= b.price, `${b.symbol} long entry ${e.entry} above px ${b.price}`);
+    for (const e of b.bear.entries) assert.ok(e.entry >= b.price, `${b.symbol} short entry ${e.entry} below px ${b.price}`);
+  }
+});
+
+test("review (4): proxy odds are flagged (every win odds, LTF array fills, map-pool touches) and the panel labels them", () => {
+  for (const b of [bookOf("MNQ"), bookOf("ES")]) for (const s of [b.bull, b.bear]) for (const e of s.entries) {
+    if (e.pWin.p != null) assert.equal(e.pWin.proxy, true);
+    if (e.pFill.p != null && !["1h", "4h"].includes(e.tf) && e.kind !== "sweep retest") assert.equal(e.pFill.proxy, true);
+  }
+  const panel = readFileSync(new URL("../src/components/desk/two-sided-ladder-panel.tsx", import.meta.url), "utf8");
+  assert.match(panel, /p\.proxy/); assert.match(panel, />proxy</);
+});
+
+test("review (5): calibration records sha256 of the raw Yahoo inputs and a Brier per holdout session", () => {
+  assert.equal(CAL.inputs.length, 4);
+  for (const x of CAL.inputs) { assert.match(x.sha256, /^[0-9a-f]{64}$/); assert.ok(x.bars > 1000 && x.file); }
+  const days = Object.keys(CAL.holdout.brierBySession);
+  assert.ok(days.length >= 50 && days.every((d) => d >= CAL.holdout.from));
+  for (const d of days) for (const v of Object.values(CAL.holdout.brierBySession[d])) assert.ok(v.n > 0 && v.table >= 0 && v.base >= 0);
+});
+
+test("review (6): hourly leg wait capped (cold + warm), listed in the budget receipt, payload hourly trimmed", () => {
+  const src = readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  assert.match(src, /export const HOURLY_WAIT_MS = 1_500;/);
+  assert.match(src, /waitMs: Math\.min\(HOURLY_WAIT_MS[^}]*coldWaitMs: Math\.min\(HOURLY_WAIT_MS/);
+  assert.match(src, /hL\.leg,\s*hR\.leg,\s*\],\s*\[`bars:/);
+  assert.match(src, /mtf: mtfOut,/); assert.match(src, /slice\(-LADDER_HOURLY_SHIP\)/);
+});
+
+test("review (7): ladder rows are tagged display-only on the wire", async () => {
+  const W = await import("../src/lib/smc/seq/ladder-wire.ts");
+  const src = readFileSync(new URL("../src/lib/smc/seq/ladder-wire.ts", import.meta.url), "utf8");
+  assert.match(src, /\[display-only, never an order\]/);
+  assert.equal(typeof W.buildLadderWire, "function");
+});

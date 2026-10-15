@@ -1,4 +1,42 @@
 {
+ "inputs": [
+  {
+   "what": "MNQ 60m",
+   "file": "y60-MNQ=F.json",
+   "sha256": "8a6cef438fc07a2f3ef384c8787abe5f0fa3acf3350316fe37e54f36336f4068",
+   "bytes": 836159,
+   "bars": 11495,
+   "firstT": "2024-10-15T13:00:00.000Z",
+   "lastT": "2026-10-15T13:33:28.000Z"
+  },
+  {
+   "what": "MNQ 1d",
+   "file": "y1d-MNQ=F.json",
+   "sha256": "0985ace4c4960de4bc086ad87956eb6cc8587e1f577fa44cb6b774d86c813a50",
+   "bytes": 78387,
+   "bars": 1258,
+   "firstT": "2021-10-15T04:00:00.000Z",
+   "lastT": "2026-10-15T04:00:00.000Z"
+  },
+  {
+   "what": "ES 60m",
+   "file": "y60-ES=F.json",
+   "sha256": "bb350e14e3e5b7a89076b3f1f363802e55d8399ec2b67a535e119cf7667c95d5",
+   "bytes": 787689,
+   "bars": 11473,
+   "firstT": "2024-10-15T13:00:00.000Z",
+   "lastT": "2026-10-15T13:33:28.000Z"
+  },
+  {
+   "what": "ES 1d",
+   "file": "y1d-ES=F.json",
+   "sha256": "f3f9bdb06add2a230865c76c443229549e6838388cd69100a59d758e139cac49",
+   "bytes": 72432,
+   "bars": 1258,
+   "firstT": "2021-10-15T04:00:00.000Z",
+   "lastT": "2026-10-15T04:00:00.000Z"
+  }
+ ],
  "method": "empirical hit rate by level group × distance (ATR1h), Yahoo 60m MNQ=F+ES=F, 2025-02-12→2026-10-13, train < 2026-06-16 (331 sessions), holdout 83 sessions; cut 10:00 ET; cells n<30 shown as n/a",
  "train": {
   "from": "2025-02-12",
@@ -11,35 +49,1838 @@
   "sessions": 83,
   "brier": {
    "touchSession": {
-    "n": 15369,
-    "table": 0.0208,
-    "base": 0.0367
+    "n": 13530,
+    "table": 0.0211,
+    "base": 0.0356
    },
    "touch5d": {
-    "n": 15369,
-    "table": 0.0677,
-    "base": 0.132
+    "n": 13530,
+    "table": 0.0695,
+    "base": 0.1341
    },
    "entryFill": {
-    "n": 1103,
-    "table": 0.2182,
-    "base": 0.2572
+    "n": 1072,
+    "table": 0.2227,
+    "base": 0.2566
    },
    "entryWin": {
-    "n": 482,
-    "table": 0.1585,
-    "base": 0.1681
+    "n": 463,
+    "table": 0.1343,
+    "base": 0.143
+   }
+  },
+  "brierBySession": {
+   "2026-06-16": {
+    "touchSession": {
+     "n": 156,
+     "table": 0.0367,
+     "base": 0.0602
+    },
+    "touch5d": {
+     "n": 156,
+     "table": 0.0832,
+     "base": 0.1555
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.2652,
+     "base": 0.241
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-06-17": {
+    "touchSession": {
+     "n": 154,
+     "table": 0.0752,
+     "base": 0.1133
+    },
+    "touch5d": {
+     "n": 154,
+     "table": 0.0488,
+     "base": 0.1404
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.2615,
+     "base": 0.2206
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.0864,
+     "base": 0.1019
+    }
+   },
+   "2026-06-18": {
+    "touchSession": {
+     "n": 145,
+     "table": 0.0216,
+     "base": 0.0274
+    },
+    "touch5d": {
+     "n": 145,
+     "table": 0.0374,
+     "base": 0.1205
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.3305,
+     "base": 0.269
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.4042,
+     "base": 0.4716
+    }
+   },
+   "2026-06-22": {
+    "touchSession": {
+     "n": 143,
+     "table": 0.0343,
+     "base": 0.0528
+    },
+    "touch5d": {
+     "n": 143,
+     "table": 0.0711,
+     "base": 0.1443
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.4608,
+     "base": 0.255
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-06-23": {
+    "touchSession": {
+     "n": 136,
+     "table": 0.0221,
+     "base": 0.0488
+    },
+    "touch5d": {
+     "n": 136,
+     "table": 0.056,
+     "base": 0.1311
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.1656,
+     "base": 0.2563
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.0976,
+     "base": 0.123
+    }
+   },
+   "2026-06-24": {
+    "touchSession": {
+     "n": 144,
+     "table": 0.0187,
+     "base": 0.0463
+    },
+    "touch5d": {
+     "n": 144,
+     "table": 0.0444,
+     "base": 0.1301
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.1973,
+     "base": 0.237
+    },
+    "entryWin": {
+     "n": 11,
+     "table": 0.3886,
+     "base": 0.3909
+    }
+   },
+   "2026-06-25": {
+    "touchSession": {
+     "n": 140,
+     "table": 0.0087,
+     "base": 0.0026
+    },
+    "touch5d": {
+     "n": 140,
+     "table": 0.0688,
+     "base": 0.0961
+    },
+    "entryFill": {
+     "n": 7,
+     "table": 0.3263,
+     "base": 0.2901
+    }
+   },
+   "2026-06-26": {
+    "touchSession": {
+     "n": 134,
+     "table": 0.0223,
+     "base": 0.0495
+    },
+    "touch5d": {
+     "n": 134,
+     "table": 0.0903,
+     "base": 0.1278
+    },
+    "entryFill": {
+     "n": 18,
+     "table": 0.1468,
+     "base": 0.2515
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.2068,
+     "base": 0.2498
+    }
+   },
+   "2026-06-29": {
+    "touchSession": {
+     "n": 148,
+     "table": 0.0269,
+     "base": 0.0693
+    },
+    "touch5d": {
+     "n": 148,
+     "table": 0.0617,
+     "base": 0.1231
+    },
+    "entryFill": {
+     "n": 15,
+     "table": 0.2555,
+     "base": 0.2232
+    },
+    "entryWin": {
+     "n": 13,
+     "table": 0.0918,
+     "base": 0.0792
+    }
+   },
+   "2026-06-30": {
+    "touchSession": {
+     "n": 150,
+     "table": 0.0143,
+     "base": 0.0445
+    },
+    "touch5d": {
+     "n": 150,
+     "table": 0.0437,
+     "base": 0.1089
+    },
+    "entryFill": {
+     "n": 12,
+     "table": 0.1695,
+     "base": 0.2386
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-01": {
+    "touchSession": {
+     "n": 156,
+     "table": 0.0066,
+     "base": 0.0199
+    },
+    "touch5d": {
+     "n": 156,
+     "table": 0.0716,
+     "base": 0.1101
+    },
+    "entryFill": {
+     "n": 7,
+     "table": 0.1476,
+     "base": 0.257
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.2613,
+     "base": 0.2498
+    }
+   },
+   "2026-07-02": {
+    "touchSession": {
+     "n": 143,
+     "table": 0.0483,
+     "base": 0.0466
+    },
+    "touch5d": {
+     "n": 143,
+     "table": 0.0892,
+     "base": 0.0947
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.3543,
+     "base": 0.2756
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-06": {
+    "touchSession": {
+     "n": 151,
+     "table": 0.0158,
+     "base": 0.0145
+    },
+    "touch5d": {
+     "n": 151,
+     "table": 0.0482,
+     "base": 0.1212
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.1697,
+     "base": 0.262
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.2006,
+     "base": 0.1943
+    }
+   },
+   "2026-07-07": {
+    "touchSession": {
+     "n": 158,
+     "table": 0.0192,
+     "base": 0.0424
+    },
+    "touch5d": {
+     "n": 158,
+     "table": 0.0371,
+     "base": 0.1377
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.2211,
+     "base": 0.236
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-08": {
+    "touchSession": {
+     "n": 147,
+     "table": 0.0236,
+     "base": 0.0454
+    },
+    "touch5d": {
+     "n": 147,
+     "table": 0.0717,
+     "base": 0.1368
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.1676,
+     "base": 0.2576
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.1028,
+     "base": 0.028
+    }
+   },
+   "2026-07-09": {
+    "touchSession": {
+     "n": 151,
+     "table": 0.0172,
+     "base": 0.0442
+    },
+    "touch5d": {
+     "n": 151,
+     "table": 0.058,
+     "base": 0.0956
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.184,
+     "base": 0.246
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0834,
+     "base": 0.1112
+    }
+   },
+   "2026-07-10": {
+    "touchSession": {
+     "n": 155,
+     "table": 0.0124,
+     "base": 0.0432
+    },
+    "touch5d": {
+     "n": 155,
+     "table": 0.0596,
+     "base": 0.1189
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.1949,
+     "base": 0.2206
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.147,
+     "base": 0.1759
+    }
+   },
+   "2026-07-13": {
+    "touchSession": {
+     "n": 151,
+     "table": 0.0263,
+     "base": 0.0324
+    },
+    "touch5d": {
+     "n": 151,
+     "table": 0.0438,
+     "base": 0.117
+    },
+    "entryFill": {
+     "n": 15,
+     "table": 0.3891,
+     "base": 0.2747
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-14": {
+    "touchSession": {
+     "n": 145,
+     "table": 0.025,
+     "base": 0.0088
+    },
+    "touch5d": {
+     "n": 145,
+     "table": 0.0582,
+     "base": 0.1205
+    },
+    "entryFill": {
+     "n": 23,
+     "table": 0.2536,
+     "base": 0.2867
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.2567,
+     "base": 0.6934
+    }
+   },
+   "2026-07-15": {
+    "touchSession": {
+     "n": 152,
+     "table": 0.0213,
+     "base": 0.0381
+    },
+    "touch5d": {
+     "n": 152,
+     "table": 0.0691,
+     "base": 0.1037
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2951,
+     "base": 0.2604
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-16": {
+    "touchSession": {
+     "n": 153,
+     "table": 0.0123,
+     "base": 0.032
+    },
+    "touch5d": {
+     "n": 153,
+     "table": 0.0667,
+     "base": 0.099
+    },
+    "entryFill": {
+     "n": 5,
+     "table": 0.1489,
+     "base": 0.2283
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-17": {
+    "touchSession": {
+     "n": 152,
+     "table": 0.0139,
+     "base": 0.0381
+    },
+    "touch5d": {
+     "n": 152,
+     "table": 0.0562,
+     "base": 0.0952
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.1145,
+     "base": 0.246
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-20": {
+    "touchSession": {
+     "n": 150,
+     "table": 0.0146,
+     "base": 0.0326
+    },
+    "touch5d": {
+     "n": 150,
+     "table": 0.06,
+     "base": 0.1132
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.1779,
+     "base": 0.257
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.1398,
+     "base": 0.1389
+    }
+   },
+   "2026-07-21": {
+    "touchSession": {
+     "n": 160,
+     "table": 0.0186,
+     "base": 0.0307
+    },
+    "touch5d": {
+     "n": 160,
+     "table": 0.0841,
+     "base": 0.1565
+    },
+    "entryFill": {
+     "n": 15,
+     "table": 0.204,
+     "base": 0.2592
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.2613,
+     "base": 0.2498
+    }
+   },
+   "2026-07-22": {
+    "touchSession": {
+     "n": 160,
+     "table": 0.0093,
+     "base": 0.0307
+    },
+    "touch5d": {
+     "n": 160,
+     "table": 0.1635,
+     "base": 0.1806
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.125,
+     "base": 0.2515
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.1641,
+     "base": 0.1611
+    }
+   },
+   "2026-07-23": {
+    "touchSession": {
+     "n": 149,
+     "table": 0.0129,
+     "base": 0.0026
+    },
+    "touch5d": {
+     "n": 149,
+     "table": 0.0948,
+     "base": 0.1397
+    },
+    "entryFill": {
+     "n": 6,
+     "table": 0.2327,
+     "base": 0.2901
+    }
+   },
+   "2026-07-24": {
+    "touchSession": {
+     "n": 161,
+     "table": 0.0221,
+     "base": 0.0194
+    },
+    "touch5d": {
+     "n": 161,
+     "table": 0.0489,
+     "base": 0.1437
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.2515,
+     "base": 0.2625
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.1641,
+     "base": 0.1611
+    }
+   },
+   "2026-07-27": {
+    "touchSession": {
+     "n": 168,
+     "table": 0.0281,
+     "base": 0.056
+    },
+    "touch5d": {
+     "n": 168,
+     "table": 0.0773,
+     "base": 0.208
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.1305,
+     "base": 0.2283
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0413,
+     "base": 0.028
+    }
+   },
+   "2026-07-28": {
+    "touchSession": {
+     "n": 151,
+     "table": 0.0254,
+     "base": 0.0264
+    },
+    "touch5d": {
+     "n": 151,
+     "table": 0.119,
+     "base": 0.2322
+    },
+    "entryFill": {
+     "n": 8,
+     "table": 0.4816,
+     "base": 0.2708
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.3827,
+     "base": 0.3607
+    }
+   },
+   "2026-07-29": {
+    "touchSession": {
+     "n": 144,
+     "table": 0.0246,
+     "base": 0.0649
+    },
+    "touch5d": {
+     "n": 144,
+     "table": 0.108,
+     "base": 0.2509
+    },
+    "entryFill": {
+     "n": 17,
+     "table": 0.1369,
+     "base": 0.2401
+    },
+    "entryWin": {
+     "n": 11,
+     "table": 0.1509,
+     "base": 0.149
+    }
+   },
+   "2026-07-30": {
+    "touchSession": {
+     "n": 148,
+     "table": 0.0155,
+     "base": 0.0269
+    },
+    "touch5d": {
+     "n": 148,
+     "table": 0.105,
+     "base": 0.2101
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.1269,
+     "base": 0.2625
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-07-31": {
+    "touchSession": {
+     "n": 155,
+     "table": 0.024,
+     "base": 0.0721
+    },
+    "touch5d": {
+     "n": 155,
+     "table": 0.0911,
+     "base": 0.1937
+    },
+    "entryFill": {
+     "n": 12,
+     "table": 0.1494,
+     "base": 0.2193
+    },
+    "entryWin": {
+     "n": 11,
+     "table": 0.0267,
+     "base": 0.028
+    }
+   },
+   "2026-08-03": {
+    "touchSession": {
+     "n": 149,
+     "table": 0.031,
+     "base": 0.0689
+    },
+    "touch5d": {
+     "n": 149,
+     "table": 0.0618,
+     "base": 0.1354
+    },
+    "entryFill": {
+     "n": 8,
+     "table": 0.1836,
+     "base": 0.2129
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-04": {
+    "touchSession": {
+     "n": 145,
+     "table": 0.0081,
+     "base": 0.0274
+    },
+    "touch5d": {
+     "n": 145,
+     "table": 0.0428,
+     "base": 0.0583
+    },
+    "entryFill": {
+     "n": 4,
+     "table": 0.0889,
+     "base": 0.2322
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-05": {
+    "touchSession": {
+     "n": 158,
+     "table": 0.045,
+     "base": 0.0594
+    },
+    "touch5d": {
+     "n": 158,
+     "table": 0.0398,
+     "base": 0.0887
+    },
+    "entryFill": {
+     "n": 5,
+     "table": 0.6187,
+     "base": 0.2592
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-06": {
+    "touchSession": {
+     "n": 159,
+     "table": 0.0199,
+     "base": 0.0421
+    },
+    "touch5d": {
+     "n": 159,
+     "table": 0.0382,
+     "base": 0.1046
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.2133,
+     "base": 0.2611
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.5042,
+     "base": 0.4716
+    }
+   },
+   "2026-08-07": {
+    "touchSession": {
+     "n": 160,
+     "table": 0.0152,
+     "base": 0.0419
+    },
+    "touch5d": {
+     "n": 160,
+     "table": 0.0426,
+     "base": 0.084
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.1955,
+     "base": 0.2545
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.2613,
+     "base": 0.2498
+    }
+   },
+   "2026-08-10": {
+    "touchSession": {
+     "n": 165,
+     "table": 0.009,
+     "base": 0.0353
+    },
+    "touch5d": {
+     "n": 165,
+     "table": 0.0232,
+     "base": 0.0941
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.1381,
+     "base": 0.241
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.333,
+     "base": 0.3132
+    }
+   },
+   "2026-08-11": {
+    "touchSession": {
+     "n": 169,
+     "table": 0.028,
+     "base": 0.0557
+    },
+    "touch5d": {
+     "n": 169,
+     "table": 0.027,
+     "base": 0.1193
+    },
+    "entryFill": {
+     "n": 15,
+     "table": 0.2228,
+     "base": 0.2438
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-12": {
+    "touchSession": {
+     "n": 170,
+     "table": 0.0079,
+     "base": 0.0132
+    },
+    "touch5d": {
+     "n": 170,
+     "table": 0.0289,
+     "base": 0.1188
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.1635,
+     "base": 0.2747
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.3827,
+     "base": 0.3607
+    }
+   },
+   "2026-08-13": {
+    "touchSession": {
+     "n": 171,
+     "table": 0.0016,
+     "base": 0.0026
+    },
+    "touch5d": {
+     "n": 171,
+     "table": 0.0985,
+     "base": 0.1334
+    }
+   },
+   "2026-08-14": {
+    "touchSession": {
+     "n": 181,
+     "table": 0.0162,
+     "base": 0.0175
+    },
+    "touch5d": {
+     "n": 181,
+     "table": 0.1257,
+     "base": 0.1562
+    },
+    "entryFill": {
+     "n": 6,
+     "table": 0.2959,
+     "base": 0.2644
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-17": {
+    "touchSession": {
+     "n": 183,
+     "table": 0.016,
+     "base": 0.0419
+    },
+    "touch5d": {
+     "n": 183,
+     "table": 0.119,
+     "base": 0.1584
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2153,
+     "base": 0.2366
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.2613,
+     "base": 0.2498
+    }
+   },
+   "2026-08-18": {
+    "touchSession": {
+     "n": 171,
+     "table": 0.0143,
+     "base": 0.0236
+    },
+    "touch5d": {
+     "n": 171,
+     "table": 0.0638,
+     "base": 0.0882
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.1683,
+     "base": 0.2708
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-19": {
+    "touchSession": {
+     "n": 166,
+     "table": 0.0103,
+     "base": 0.0135
+    },
+    "touch5d": {
+     "n": 166,
+     "table": 0.0658,
+     "base": 0.0782
+    },
+    "entryFill": {
+     "n": 17,
+     "table": 0.1864,
+     "base": 0.2765
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.4042,
+     "base": 0.4716
+    }
+   },
+   "2026-08-20": {
+    "touchSession": {
+     "n": 169,
+     "table": 0.0166,
+     "base": 0.0292
+    },
+    "touch5d": {
+     "n": 169,
+     "table": 0.0554,
+     "base": 0.0812
+    },
+    "entryFill": {
+     "n": 15,
+     "table": 0.2072,
+     "base": 0.2644
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.2118,
+     "base": 0.2942
+    }
+   },
+   "2026-08-21": {
+    "touchSession": {
+     "n": 181,
+     "table": 0.0227,
+     "base": 0.0076
+    },
+    "touch5d": {
+     "n": 181,
+     "table": 0.0483,
+     "base": 0.1171
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2832,
+     "base": 0.2842
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-24": {
+    "touchSession": {
+     "n": 172,
+     "table": 0.0159,
+     "base": 0.0183
+    },
+    "touch5d": {
+     "n": 172,
+     "table": 0.0888,
+     "base": 0.1066
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.1879,
+     "base": 0.2736
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.747,
+     "base": 0.6934
+    }
+   },
+   "2026-08-25": {
+    "touchSession": {
+     "n": 181,
+     "table": 0.0206,
+     "base": 0.0324
+    },
+    "touch5d": {
+     "n": 181,
+     "table": 0.0513,
+     "base": 0.1527
+    },
+    "entryFill": {
+     "n": 23,
+     "table": 0.1978,
+     "base": 0.2767
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.3025,
+     "base": 0.1943
+    }
+   },
+   "2026-08-26": {
+    "touchSession": {
+     "n": 181,
+     "table": 0.0186,
+     "base": 0.0076
+    },
+    "touch5d": {
+     "n": 181,
+     "table": 0.0477,
+     "base": 0.1527
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.2693,
+     "base": 0.2853
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.4471,
+     "base": 0.6934
+    }
+   },
+   "2026-08-27": {
+    "touchSession": {
+     "n": 180,
+     "table": 0.0254,
+     "base": 0.0375
+    },
+    "touch5d": {
+     "n": 180,
+     "table": 0.0585,
+     "base": 0.1569
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.2717,
+     "base": 0.2467
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-08-28": {
+    "touchSession": {
+     "n": 188,
+     "table": 0.0264,
+     "base": 0.0647
+    },
+    "touch5d": {
+     "n": 188,
+     "table": 0.0704,
+     "base": 0.1516
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.2844,
+     "base": 0.2129
+    },
+    "entryWin": {
+     "n": 14,
+     "table": 0.1906,
+     "base": 0.1706
+    }
+   },
+   "2026-08-31": {
+    "touchSession": {
+     "n": 173,
+     "table": 0.0144,
+     "base": 0.013
+    },
+    "touch5d": {
+     "n": 173,
+     "table": 0.0435,
+     "base": 0.121
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.205,
+     "base": 0.282
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-01": {
+    "touchSession": {
+     "n": 170,
+     "table": 0.0132,
+     "base": 0.0501
+    },
+    "touch5d": {
+     "n": 170,
+     "table": 0.0438,
+     "base": 0.1112
+    },
+    "entryFill": {
+     "n": 16,
+     "table": 0.1451,
+     "base": 0.2515
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.1393,
+     "base": 0.1943
+    }
+   },
+   "2026-09-02": {
+    "touchSession": {
+     "n": 170,
+     "table": 0.0226,
+     "base": 0.0238
+    },
+    "touch5d": {
+     "n": 170,
+     "table": 0.0576,
+     "base": 0.1074
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.3054,
+     "base": 0.2604
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.3099,
+     "base": 0.2942
+    }
+   },
+   "2026-09-03": {
+    "touchSession": {
+     "n": 168,
+     "table": 0.0107,
+     "base": 0.0347
+    },
+    "touch5d": {
+     "n": 168,
+     "table": 0.0562,
+     "base": 0.1045
+    },
+    "entryFill": {
+     "n": 9,
+     "table": 0.1418,
+     "base": 0.2386
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-04": {
+    "touchSession": {
+     "n": 177,
+     "table": 0.0121,
+     "base": 0.0179
+    },
+    "touch5d": {
+     "n": 177,
+     "table": 0.0993,
+     "base": 0.119
+    },
+    "entryFill": {
+     "n": 8,
+     "table": 0.2626,
+     "base": 0.2708
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-08": {
+    "touchSession": {
+     "n": 171,
+     "table": 0.0175,
+     "base": 0.0184
+    },
+    "touch5d": {
+     "n": 171,
+     "table": 0.08,
+     "base": 0.107
+    },
+    "entryFill": {
+     "n": 20,
+     "table": 0.1906,
+     "base": 0.2785
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-09": {
+    "touchSession": {
+     "n": 173,
+     "table": 0.0152,
+     "base": 0.0182
+    },
+    "touch5d": {
+     "n": 173,
+     "table": 0.0661,
+     "base": 0.0949
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2683,
+     "base": 0.2782
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.1376,
+     "base": 0.3607
+    }
+   },
+   "2026-09-10": {
+    "touchSession": {
+     "n": 170,
+     "table": 0.0193,
+     "base": 0.0132
+    },
+    "touch5d": {
+     "n": 170,
+     "table": 0.0453,
+     "base": 0.1074
+    },
+    "entryFill": {
+     "n": 8,
+     "table": 0.2854,
+     "base": 0.2805
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-11": {
+    "touchSession": {
+     "n": 174,
+     "table": 0.023,
+     "base": 0.013
+    },
+    "touch5d": {
+     "n": 174,
+     "table": 0.0505,
+     "base": 0.1427
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.3028,
+     "base": 0.286
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-14": {
+    "touchSession": {
+     "n": 180,
+     "table": 0.0473,
+     "base": 0.0774
+    },
+    "touch5d": {
+     "n": 180,
+     "table": 0.1837,
+     "base": 0.2464
+    },
+    "entryFill": {
+     "n": 23,
+     "table": 0.2598,
+     "base": 0.2465
+    },
+    "entryWin": {
+     "n": 13,
+     "table": 0.1705,
+     "base": 0.1815
+    }
+   },
+   "2026-09-15": {
+    "touchSession": {
+     "n": 171,
+     "table": 0.0231,
+     "base": 0.0394
+    },
+    "touch5d": {
+     "n": 171,
+     "table": 0.1012,
+     "base": 0.2276
+    },
+    "entryFill": {
+     "n": 20,
+     "table": 0.2789,
+     "base": 0.2669
+    },
+    "entryWin": {
+     "n": 6,
+     "table": 0.0899,
+     "base": 0.1389
+    }
+   },
+   "2026-09-16": {
+    "touchSession": {
+     "n": 184,
+     "table": 0.0718,
+     "base": 0.0953
+    },
+    "touch5d": {
+     "n": 184,
+     "table": 0.1499,
+     "base": 0.2452
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.2047,
+     "base": 0.2349
+    },
+    "entryWin": {
+     "n": 10,
+     "table": 0.1004,
+     "base": 0.0945
+    }
+   },
+   "2026-09-17": {
+    "touchSession": {
+     "n": 169,
+     "table": 0.0172,
+     "base": 0.0133
+    },
+    "touch5d": {
+     "n": 169,
+     "table": 0.1099,
+     "base": 0.1651
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.2089,
+     "base": 0.2779
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.2613,
+     "base": 0.2498
+    }
+   },
+   "2026-09-18": {
+    "touchSession": {
+     "n": 184,
+     "table": 0.0158,
+     "base": 0.0417
+    },
+    "touch5d": {
+     "n": 184,
+     "table": 0.117,
+     "base": 0.1822
+    },
+    "entryFill": {
+     "n": 14,
+     "table": 0.1605,
+     "base": 0.246
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.2395,
+     "base": 0.2775
+    }
+   },
+   "2026-09-21": {
+    "touchSession": {
+     "n": 183,
+     "table": 0.0446,
+     "base": 0.0664
+    },
+    "touch5d": {
+     "n": 183,
+     "table": 0.044,
+     "base": 0.1197
+    },
+    "entryFill": {
+     "n": 12,
+     "table": 0.1797,
+     "base": 0.2322
+    },
+    "entryWin": {
+     "n": 9,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-22": {
+    "touchSession": {
+     "n": 179,
+     "table": 0.004,
+     "base": 0.0026
+    },
+    "touch5d": {
+     "n": 179,
+     "table": 0.0482,
+     "base": 0.1036
+    },
+    "entryFill": {
+     "n": 4,
+     "table": 0.1762,
+     "base": 0.2515
+    },
+    "entryWin": {
+     "n": 2,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-23": {
+    "touchSession": {
+     "n": 187,
+     "table": 0.0197,
+     "base": 0.0458
+    },
+    "touch5d": {
+     "n": 187,
+     "table": 0.043,
+     "base": 0.1074
+    },
+    "entryFill": {
+     "n": 5,
+     "table": 0.2332,
+     "base": 0.2129
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-24": {
+    "touchSession": {
+     "n": 176,
+     "table": 0.0206,
+     "base": 0.0434
+    },
+    "touch5d": {
+     "n": 176,
+     "table": 0.0528,
+     "base": 0.1158
+    },
+    "entryFill": {
+     "n": 20,
+     "table": 0.187,
+     "base": 0.2592
+    },
+    "entryWin": {
+     "n": 8,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-09-25": {
+    "touchSession": {
+     "n": 178,
+     "table": 0.0136,
+     "base": 0.0278
+    },
+    "touch5d": {
+     "n": 178,
+     "table": 0.0393,
+     "base": 0.1004
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.309,
+     "base": 0.236
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.2396,
+     "base": 0.2181
+    }
+   },
+   "2026-09-28": {
+    "touchSession": {
+     "n": 181,
+     "table": 0.0239,
+     "base": 0.0373
+    },
+    "touch5d": {
+     "n": 181,
+     "table": 0.0476,
+     "base": 0.1349
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2759,
+     "base": 0.2485
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.1225,
+     "base": 0.123
+    }
+   },
+   "2026-09-29": {
+    "touchSession": {
+     "n": 175,
+     "table": 0.0129,
+     "base": 0.0232
+    },
+    "touch5d": {
+     "n": 175,
+     "table": 0.0613,
+     "base": 0.1237
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.1785,
+     "base": 0.2698
+    },
+    "entryWin": {
+     "n": 5,
+     "table": 0.1641,
+     "base": 0.1611
+    }
+   },
+   "2026-09-30": {
+    "touchSession": {
+     "n": 166,
+     "table": 0.0232,
+     "base": 0.0351
+    },
+    "touch5d": {
+     "n": 166,
+     "table": 0.0403,
+     "base": 0.1248
+    },
+    "entryFill": {
+     "n": 13,
+     "table": 0.2223,
+     "base": 0.2663
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.283,
+     "base": 0.3607
+    }
+   },
+   "2026-10-01": {
+    "touchSession": {
+     "n": 158,
+     "table": 0.0203,
+     "base": 0.0424
+    },
+    "touch5d": {
+     "n": 158,
+     "table": 0.0692,
+     "base": 0.1173
+    },
+    "entryFill": {
+     "n": 18,
+     "table": 0.1364,
+     "base": 0.2429
+    },
+    "entryWin": {
+     "n": 11,
+     "table": 0.1626,
+     "base": 0.2095
+    }
+   },
+   "2026-10-02": {
+    "touchSession": {
+     "n": 154,
+     "table": 0.0093,
+     "base": 0.0143
+    },
+    "touch5d": {
+     "n": 154,
+     "table": 0.0379,
+     "base": 0.0735
+    },
+    "entryFill": {
+     "n": 8,
+     "table": 0.1777,
+     "base": 0.2708
+    },
+    "entryWin": {
+     "n": 1,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-10-05": {
+    "touchSession": {
+     "n": 160,
+     "table": 0.0261,
+     "base": 0.0475
+    },
+    "touch5d": {
+     "n": 160,
+     "table": 0.0417,
+     "base": 0.08
+    },
+    "entryFill": {
+     "n": 10,
+     "table": 0.2508,
+     "base": 0.236
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-10-06": {
+    "touchSession": {
+     "n": 172,
+     "table": 0.0048,
+     "base": 0.0026
+    },
+    "touch5d": {
+     "n": 172,
+     "table": 0.0348,
+     "base": 0.1103
+    },
+    "entryFill": {
+     "n": 3,
+     "table": 0.1328,
+     "base": 0.2901
+    }
+   },
+   "2026-10-07": {
+    "touchSession": {
+     "n": 175,
+     "table": 0.0162,
+     "base": 0.0437
+    },
+    "touch5d": {
+     "n": 175,
+     "table": 0.0816,
+     "base": 0.1642
+    },
+    "entryFill": {
+     "n": 12,
+     "table": 0.2211,
+     "base": 0.2451
+    },
+    "entryWin": {
+     "n": 7,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-10-08": {
+    "touchSession": {
+     "n": 164,
+     "table": 0.0318,
+     "base": 0.0847
+    },
+    "touch5d": {
+     "n": 164,
+     "table": 0.1053,
+     "base": 0.2084
+    },
+    "entryFill": {
+     "n": 22,
+     "table": 0.1844,
+     "base": 0.2269
+    },
+    "entryWin": {
+     "n": 18,
+     "table": 0.1126,
+     "base": 0.1389
+    }
+   },
+   "2026-10-09": {
+    "touchSession": {
+     "n": 161,
+     "table": 0.0207,
+     "base": 0.0194
+    },
+    "touch5d": {
+     "n": 161,
+     "table": 0.0983,
+     "base": 0.1837
+    },
+    "entryFill": {
+     "n": 9,
+     "table": 0.2822,
+     "base": 0.2558
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-10-12": {
+    "touchSession": {
+     "n": 163,
+     "table": 0.0132,
+     "base": 0.0192
+    },
+    "touch5d": {
+     "n": 163,
+     "table": 0.1117,
+     "base": 0.17
+    },
+    "entryFill": {
+     "n": 11,
+     "table": 0.1881,
+     "base": 0.269
+    },
+    "entryWin": {
+     "n": 3,
+     "table": 0.0184,
+     "base": 0.028
+    }
+   },
+   "2026-10-13": {
+    "touchSession": {
+     "n": 155,
+     "table": 0.0393,
+     "base": 0.02
+    },
+    "touch5d": {
+     "n": 155,
+     "table": 0.105,
+     "base": 0.1854
+    },
+    "entryFill": {
+     "n": 19,
+     "table": 0.3161,
+     "base": 0.2738
+    },
+    "entryWin": {
+     "n": 4,
+     "table": 0.2609,
+     "base": 0.1943
+    }
    }
   }
  },
  "touchSession": {
   "gap|<0.5": {
-   "hit": 176,
-   "n": 191
+   "hit": 129,
+   "n": 134
   },
   "pool|2-4": {
    "hit": 62,
-   "n": 180
+   "n": 184
   },
   "pdpw|2-4": {
    "hit": 123,
@@ -49,13 +1890,13 @@
    "hit": 40,
    "n": 580
   },
-  "gap|4-8": {
-   "hit": 212,
-   "n": 2178
-  },
   "swing1W|4-8": {
    "hit": 16,
    "n": 173
+  },
+  "gap|4-8": {
+   "hit": 178,
+   "n": 1806
   },
   "swing1D|8-16": {
    "hit": 2,
@@ -66,28 +1907,28 @@
    "n": 396
   },
   "gap|8-16": {
-   "hit": 48,
-   "n": 3445
+   "hit": 40,
+   "n": 2755
   },
   "swing4h|8-16": {
    "hit": 16,
-   "n": 1261
+   "n": 1263
   },
   "pdpw|<0.5": {
    "hit": 66,
-   "n": 71
+   "n": 70
   },
   "pool|4-8": {
-   "hit": 32,
-   "n": 291
+   "hit": 33,
+   "n": 294
   },
   "swing1h|4-8": {
-   "hit": 40,
-   "n": 436
+   "hit": 38,
+   "n": 404
   },
   "swing1h|8-16": {
-   "hit": 11,
-   "n": 704
+   "hit": 10,
+   "n": 626
   },
   "swing1W|16-inf": {
    "hit": 0,
@@ -95,11 +1936,11 @@
   },
   "pool|16-inf": {
    "hit": 2,
-   "n": 1191
+   "n": 1194
   },
   "swing4h|16-inf": {
    "hit": 3,
-   "n": 6465
+   "n": 6475
   },
   "swing1D|16-inf": {
    "hit": 3,
@@ -107,23 +1948,19 @@
   },
   "swing1h|16-inf": {
    "hit": 4,
-   "n": 3280
+   "n": 2629
   },
   "gap|16-inf": {
    "hit": 3,
-   "n": 20348
-  },
-  "swing4h|<0.5": {
-   "hit": 14,
-   "n": 16
-  },
-  "gap|0.5-1": {
-   "hit": 208,
-   "n": 255
+   "n": 15067
   },
   "swing1W|0.5-1": {
    "hit": 1,
    "n": 1
+  },
+  "gap|1-2": {
+   "hit": 245,
+   "n": 415
   },
   "swing4h|2-4": {
    "hit": 70,
@@ -137,33 +1974,25 @@
    "hit": 10,
    "n": 29
   },
-  "gap|1-2": {
-   "hit": 334,
-   "n": 561
-  },
   "swing1h|2-4": {
-   "hit": 128,
-   "n": 362
+   "hit": 99,
+   "n": 294
   },
   "pdpw|8-16": {
    "hit": 12,
    "n": 333
   },
   "pool|8-16": {
-   "hit": 7,
-   "n": 492
-  },
-  "swing1h|1-2": {
-   "hit": 72,
-   "n": 126
+   "hit": 8,
+   "n": 501
   },
   "gap|2-4": {
-   "hit": 387,
-   "n": 1136
+   "hit": 358,
+   "n": 989
   },
   "pdpw|0.5-1": {
    "hit": 62,
-   "n": 81
+   "n": 82
   },
   "pdpw|1-2": {
    "hit": 114,
@@ -182,58 +2011,70 @@
    "n": 150
   },
   "swing4h|1-2": {
-   "hit": 44,
-   "n": 71
+   "hit": 40,
+   "n": 64
+  },
+  "gap|0.5-1": {
+   "hit": 116,
+   "n": 148
+  },
+  "swing4h|<0.5": {
+   "hit": 10,
+   "n": 11
   },
   "pool|0.5-1": {
-   "hit": 38,
-   "n": 48
+   "hit": 39,
+   "n": 49
   },
   "swing1D|1-2": {
    "hit": 9,
    "n": 16
   },
   "pool|1-2": {
-   "hit": 84,
-   "n": 122
+   "hit": 79,
+   "n": 116
   },
   "pool|<0.5": {
-   "hit": 46,
-   "n": 48
+   "hit": 44,
+   "n": 47
   },
   "swing1h|0.5-1": {
-   "hit": 26,
-   "n": 33
+   "hit": 21,
+   "n": 25
   },
   "swing1D|0.5-1": {
    "hit": 2,
    "n": 2
   },
+  "swing1h|1-2": {
+   "hit": 67,
+   "n": 112
+  },
   "swing4h|0.5-1": {
-   "hit": 9,
-   "n": 14
+   "hit": 7,
+   "n": 12
   },
   "swing1W|1-2": {
    "hit": 7,
    "n": 13
   },
-  "swing1h|<0.5": {
-   "hit": 4,
-   "n": 5
-  },
   "swing1D|<0.5": {
    "hit": 3,
    "n": 3
+  },
+  "swing1h|<0.5": {
+   "hit": 3,
+   "n": 4
   }
  },
  "touch5d": {
   "gap|<0.5": {
-   "hit": 189,
-   "n": 191
+   "hit": 132,
+   "n": 134
   },
   "pool|2-4": {
-   "hit": 142,
-   "n": 180
+   "hit": 146,
+   "n": 184
   },
   "pdpw|2-4": {
    "hit": 264,
@@ -243,13 +2084,13 @@
    "hit": 276,
    "n": 580
   },
-  "gap|4-8": {
-   "hit": 1278,
-   "n": 2178
-  },
   "swing1W|4-8": {
    "hit": 115,
    "n": 173
+  },
+  "gap|4-8": {
+   "hit": 1086,
+   "n": 1806
   },
   "swing1D|8-16": {
    "hit": 102,
@@ -260,28 +2101,28 @@
    "n": 396
   },
   "gap|8-16": {
-   "hit": 905,
-   "n": 3445
+   "hit": 743,
+   "n": 2755
   },
   "swing4h|8-16": {
-   "hit": 297,
-   "n": 1261
+   "hit": 298,
+   "n": 1263
   },
   "pdpw|<0.5": {
-   "hit": 71,
-   "n": 71
+   "hit": 70,
+   "n": 70
   },
   "pool|4-8": {
-   "hit": 155,
-   "n": 291
+   "hit": 158,
+   "n": 294
   },
   "swing1h|4-8": {
-   "hit": 253,
-   "n": 436
+   "hit": 232,
+   "n": 404
   },
   "swing1h|8-16": {
-   "hit": 239,
-   "n": 704
+   "hit": 213,
+   "n": 626
   },
   "swing1W|16-inf": {
    "hit": 95,
@@ -289,38 +2130,34 @@
   },
   "pool|16-inf": {
    "hit": 106,
-   "n": 1191
+   "n": 1194
   },
   "swing4h|16-inf": {
    "hit": 168,
-   "n": 6465
+   "n": 6475
   },
   "swing1D|16-inf": {
    "hit": 63,
    "n": 1544
   },
   "swing1h|16-inf": {
-   "hit": 131,
-   "n": 3280
+   "hit": 113,
+   "n": 2629
   },
   "gap|16-inf": {
-   "hit": 391,
-   "n": 20348
-  },
-  "swing4h|<0.5": {
-   "hit": 16,
-   "n": 16
-  },
-  "gap|0.5-1": {
-   "hit": 245,
-   "n": 255
+   "hit": 320,
+   "n": 15067
   },
   "swing1W|0.5-1": {
    "hit": 1,
    "n": 1
   },
+  "gap|1-2": {
+   "hit": 358,
+   "n": 415
+  },
   "swing4h|2-4": {
-   "hit": 153,
+   "hit": 152,
    "n": 224
   },
   "swing1W|2-4": {
@@ -331,33 +2168,25 @@
    "hit": 20,
    "n": 29
   },
-  "gap|1-2": {
-   "hit": 493,
-   "n": 561
-  },
   "swing1h|2-4": {
-   "hit": 301,
-   "n": 362
+   "hit": 249,
+   "n": 294
   },
   "pdpw|8-16": {
    "hit": 123,
    "n": 333
   },
   "pool|8-16": {
-   "hit": 158,
-   "n": 492
-  },
-  "swing1h|1-2": {
-   "hit": 113,
-   "n": 126
+   "hit": 161,
+   "n": 501
   },
   "gap|2-4": {
-   "hit": 866,
-   "n": 1136
+   "hit": 767,
+   "n": 989
   },
   "pdpw|0.5-1": {
-   "hit": 77,
-   "n": 81
+   "hit": 78,
+   "n": 82
   },
   "pdpw|1-2": {
    "hit": 161,
@@ -376,100 +2205,112 @@
    "n": 150
   },
   "swing4h|1-2": {
-   "hit": 63,
-   "n": 71
+   "hit": 57,
+   "n": 64
+  },
+  "gap|0.5-1": {
+   "hit": 138,
+   "n": 148
+  },
+  "swing4h|<0.5": {
+   "hit": 11,
+   "n": 11
   },
   "pool|0.5-1": {
-   "hit": 47,
-   "n": 48
+   "hit": 48,
+   "n": 49
   },
   "swing1D|1-2": {
    "hit": 11,
    "n": 16
   },
   "pool|1-2": {
-   "hit": 117,
-   "n": 122
+   "hit": 111,
+   "n": 116
   },
   "pool|<0.5": {
-   "hit": 48,
-   "n": 48
+   "hit": 47,
+   "n": 47
   },
   "swing1h|0.5-1": {
-   "hit": 29,
-   "n": 33
+   "hit": 24,
+   "n": 25
   },
   "swing1D|0.5-1": {
    "hit": 2,
    "n": 2
   },
+  "swing1h|1-2": {
+   "hit": 101,
+   "n": 112
+  },
   "swing4h|0.5-1": {
-   "hit": 12,
-   "n": 14
+   "hit": 10,
+   "n": 12
   },
   "swing1W|1-2": {
    "hit": 12,
    "n": 13
   },
-  "swing1h|<0.5": {
-   "hit": 4,
-   "n": 5
-  },
   "swing1D|<0.5": {
    "hit": 3,
    "n": 3
+  },
+  "swing1h|<0.5": {
+   "hit": 3,
+   "n": 4
   }
  },
  "entryFill": {
   "sweep|<0.5": {
-   "hit": 148,
-   "n": 160
+   "hit": 142,
+   "n": 153
   },
   "array|1-2": {
-   "hit": 293,
-   "n": 485
-  },
-  "array|2-4": {
-   "hit": 399,
-   "n": 1139
-  },
-  "array|0.5-1": {
-   "hit": 146,
-   "n": 180
+   "hit": 266,
+   "n": 439
   },
   "sweep|0.5-1": {
-   "hit": 155,
-   "n": 206
+   "hit": 153,
+   "n": 204
   },
   "sweep|2-4": {
-   "hit": 327,
-   "n": 733
+   "hit": 325,
+   "n": 730
+  },
+  "array|2-4": {
+   "hit": 403,
+   "n": 1106
   },
   "sweep|1-2": {
-   "hit": 419,
-   "n": 674
+   "hit": 409,
+   "n": 662
   },
   "array|<0.5": {
-   "hit": 140,
-   "n": 152
+   "hit": 73,
+   "n": 80
+  },
+  "array|0.5-1": {
+   "hit": 133,
+   "n": 158
   },
   "array|4-8": {
-   "hit": 1,
-   "n": 4
+   "hit": 0,
+   "n": 3
   }
  },
  "entryWin": {
   "2-3R": {
-   "hit": 88,
-   "n": 255
+   "hit": 55,
+   "n": 166
   },
   "1-2R": {
-   "hit": 92,
-   "n": 244
+   "hit": 37,
+   "n": 75
   },
   "3R+": {
-   "hit": 230,
-   "n": 1498
+   "hit": 222,
+   "n": 1636
   }
  }
 }

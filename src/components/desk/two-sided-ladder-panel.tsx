@@ -7,7 +7,12 @@
 import type { DeskPayload } from "@/lib/trading/build-desk";
 import type { LadderBook, LadderSide, Prob } from "@/lib/smc/seq/ladder";
 
-const pct = (p: Prob) => (p.p == null ? <span title={p.note ?? `n=${p.n}`} className="text-[var(--color-subtle)]">n/a</span> : <span title={`${p.key} · n=${p.n}`}>{Math.round(p.p * 100)}%</span>);
+/** Calibrated odds print as "NN%"; a PROXY (a rate measured on a different setup/timeframe: every win odds, 15m/1m
+ * array fills, 1m/15m map-pool touch odds) prints as "~NN% proxy" in muted text with the reason on hover. */
+const pct = (p: Prob) =>
+  p.p == null ? <span title={p.note ?? `n=${p.n}`} className="text-[var(--color-subtle)]">n/a</span>
+  : p.proxy ? <span title={`${p.note ?? "proxy"} · ${p.key} · n=${p.n}`} className="italic text-[var(--color-muted)]">~{Math.round(p.p * 100)}% <span className="text-[9px] uppercase">proxy</span></span>
+  : <span title={`${p.key} · n=${p.n}`}>{Math.round(p.p * 100)}%</span>;
 
 function Side({ s, atr }: { s: LadderSide; atr: number }) {
   const bull = s.side === "long";
@@ -72,7 +77,7 @@ export function TwoSidedLadderPanel({ desk }: { desk: DeskPayload }) {
   if (!books.length) return null;
   return (
     <section className="space-y-2" aria-label="Two-sided ladder">
-      <div className="text-[10px] text-[var(--color-subtle)]">Both sides · display only · odds: {w.method}</div>
+      <div className="text-[10px] text-[var(--color-subtle)]">Both sides · display only · odds: {w.method} · "~N% proxy" = rate borrowed from a different setup/timeframe</div>
       {books.map((b) => <Book key={b.symbol} b={b} />)}
     </section>
   );

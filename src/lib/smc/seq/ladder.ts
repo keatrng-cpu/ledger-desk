@@ -32,8 +32,14 @@ const GROUP_W: Record<LevelGroup, number> = { swing1W: 4, swing1D: 3, pdpw: 3, s
 export const DIST_EDGES = [0.5, 1, 2, 4, 8, 16, Infinity];
 export const MIN_N = 30;
 
-export interface RawLevel { price: number; name: string; group: LevelGroup; side: "high" | "low"; t?: number }
-export interface Prob { p: number | null; n: number; key: string; note?: string }
+export interface RawLevel { price: number; name: string; group: LevelGroup; side: "high" | "low"; t?: number; proxy?: boolean }
+
+// --------------------------------------------------------------------------------------------- tick snapping
+/** Nearest tick (levels with no side preference, e.g. a gap CE). */
+export const snapTick = (x: number, tick: number) => r2(Math.round(x / tick + 1e-9) * tick);
+/** Tradeable price for an order on `side`: a long entry/stop rounds DOWN (deeper fill, wider stop), a short rounds UP. */
+export const snapSide = (x: number, tick: number, side: Side) => r2((side === "long" ? Math.floor(x / tick + 1e-9) : Math.ceil(x / tick - 1e-9)) * tick);
+export interface Prob { p: number | null; n: number; key: string; note?: string; proxy?: boolean }
 export interface LadderLevel { lo: number; hi: number; touch: number; names: string[]; group: LevelGroup; confluence: number; distAtr: number; rank: number; pSession: Prob; p5d: Prob }
 export interface LadderEntry {
   kind: string; tf: string; entry: number; stop: number; stopWhy: string; distAtr: number;
@@ -149,7 +155,7 @@ export function eqFromSwings(sw: { price: number; side: "high" | "low"; t: numbe
   }
   return out;
 }
-/** 3-candle gaps not fully filled by any later bar (or by `after`). */
+/** 3-candle gaps not fully filled by any later bar (or by `after`); lo/hi = the part still unfilled. */
 export function unfilledGaps(bars: OhlcBar[], after: OhlcBar[] = []): { dir: "bull" | "bear"; lo: number; hi: number; t: number }[] {
   const out: { dir: "bull" | "bear"; lo: number; hi: number; t: number }[] = [];
   const n = bars.length; const sufH = new Array<number>(n + 1).fill(-Infinity), sufL = new Array<number>(n + 1).fill(Infinity);
@@ -158,8 +164,9 @@ export function unfilledGaps(bars: OhlcBar[], after: OhlcBar[] = []): { dir: "bu
   for (let i = n - 1; i >= 0; i--) { sufH[i] = Math.max(sufH[i + 1]!, bars[i]!.h); sufL[i] = Math.min(sufL[i + 1]!, bars[i]!.l); }
   for (let i = 2; i < n; i++) {
     const a = bars[i - 2]!, c = bars[i]!;
-    if (c.l > a.h && sufL[i + 1]! > a.h) out.push({ dir: "bull", lo: a.h, hi: c.l, t: c.t });
-    else if (c.h < a.l && sufH[i + 1]! < a.l) out.push({ dir: "bear", lo: c.h, hi: a.l, t: c.t });
+    // a partly-filled gap keeps only its UNFILLED part (a wick into it has swept the near edge)
+    if (c.l > a.h && sufL[i + 1]! > a.h) out.push({ dir: "bull", lo: a.h, hi: Math.min(c.l, sufL[i + 1]!), t: c.t });
+    else if (c.h < a.l && sufH[i + 1]! < a.l) out.push({ dir: "bear", lo: Math.max(c.h, sufH[i + 1]!), hi: a.l, t: c.t });
   }
   return out;
 }
@@ -170,8 +177,12 @@ export function htfLevels(i: HtfInput): { levels: RawLevel[]; gaps: { tf: string
   const look = (i.lookbackDays ?? 183) * 86_400_000;
   const h1 = i.hourly.filter((b) => b.t + H <= i.cutT && b.t >= i.cutT - look);
   const h1All = i.hourly.filter((b) => b.t + H <= i.cutT);
-  const after = (i.after ?? []).filter((b) => b.t >= (h1.at(-1)?.t ?? 0) + H && b.t < i.cutT);
+  // 1m tail from the START of the last closed hour: overlap is harmless for sweep/fill tests, and it covers a last 1h
+  // bar that Yahoo served as a partial snapshot (10-15: the 13:00Z bar ended before the 13:54Z sweep of 29638.75).
+  const after = (i.after ?? []).filter((b) => b.t >= (h1.at(-1)?.t ?? 0) && b.t < i.cutT);
   const h4 = to4h(h1).filter((b) => b.t + 4 * H <= i.cutT);
+  // closed 1h bars inside the still-open 4h bucket sweep/fill 4h levels too (not just the 1m tail after the last hour)
+  const after4 = [...h1.filter((b) => b.t >= (h4.at(-1)?.t ?? 0) + 4 * H), ...after];
   const sess = sessions(h1All);
   const curKey = sessionKeyOf(i.cutT - 1);
   const done = sess.filter((s) => s.key < curKey);
@@ -183,10 +194,11 @@ export function htfLevels(i: HtfInput): { levels: RawLevel[]; gaps: { tf: string
   const curH1 = sess.filter((s) => s.key === curKey);
   const afterAll = [...curH1, ...after];
   const lv: RawLevel[] = [];
+  const tick = TICK[i.symbol] ?? 0.25;
   const add = (xs: { price: number; side: "high" | "low"; t: number }[], group: LevelGroup, tf: string) =>
     xs.forEach((s) => lv.push({ price: r2(s.price), side: s.side, t: s.t, group, name: `${tf} swing ${s.side}` }));
   add(unsweptSwings(h1, 2, after), "swing1h", "1h");
-  add(unsweptSwings(h4, 2, after), "swing4h", "4h");
+  add(unsweptSwings(h4, 2, after4), "swing4h", "4h");
   add(unsweptSwings(d1.slice(-130), 2, afterAll), "swing1D", "1D");
   add(unsweptSwings(w1.slice(-60), 1, afterAll), "swing1W", "1W");
   const pd = done.at(-1);
@@ -196,22 +208,21 @@ export function htfLevels(i: HtfInput): { levels: RawLevel[]; gaps: { tf: string
   const pwk = pw.length ? weekKey(pw.at(-1)!.key) : null;
   const pwBars = pw.filter((s) => weekKey(s.key) === pwk);
   if (pwBars.length) lv.push({ price: r2(Math.max(...pwBars.map((b) => b.h))), side: "high", group: "pdpw", name: "PWH" }, { price: r2(Math.min(...pwBars.map((b) => b.l))), side: "low", group: "pdpw", name: "PWL" });
-  const tick = TICK[i.symbol] ?? 0.25;
-  for (const [bars, tf, w, aft, ms] of [[h1, "1h", 2, after, H], [h4, "4h", 2, after, 4 * H], [d1.slice(-130), "1D", 2, afterAll, 24 * H]] as const) {
+  for (const [bars, tf, w, aft, ms] of [[h1, "1h", 2, after, H], [h4, "4h", 2, after4, 4 * H], [d1.slice(-130), "1D", 2, afterAll, 24 * H]] as const) {
     const a = rollingAtr(bars as OhlcBar[]).at(-1) ?? 0;
     const pts = [...unsweptSwings(bars as OhlcBar[], w, aft as OhlcBar[]), ...unsweptTouches(bars as OhlcBar[], aft as OhlcBar[])];
     const uniq = [...new Map(pts.map((p) => [`${p.side}:${p.t}`, p])).values()];
     lv.push(...eqFromSwings(uniq, tf, Number.isFinite(a) ? a : 0, tick, ms));
   }
   const gaps: { tf: string; dir: "bull" | "bear"; lo: number; hi: number }[] = [];
-  for (const [bars, tf] of [[h1, "1h"], [h4, "4h"]] as const) {
-    for (const g of unfilledGaps(bars, after)) {
+  for (const [bars, tf, aft] of [[h1, "1h", after], [h4, "4h", after4]] as const) {
+    for (const g of unfilledGaps(bars, aft)) {
       gaps.push({ tf, dir: g.dir, lo: r2(g.lo), hi: r2(g.hi) });
       // a gap BELOW price is reached at its top first; ABOVE price at its bottom (side resolved in ladderSide)
       lv.push({ price: r2(g.hi), side: "low", group: "gap", name: `${tf} ${g.dir} gap ${r2(g.lo)}–${r2(g.hi)}`, t: g.t });
       lv.push({ price: r2(g.lo), side: "high", group: "gap", name: `${tf} ${g.dir} gap ${r2(g.lo)}–${r2(g.hi)}`, t: g.t });
       // a 4h gap's CE (consequent encroachment) is a level in its own right on both sides
-      if (tf === "4h") for (const sd of ["low", "high"] as const) lv.push({ price: r2((g.lo + g.hi) / 2), side: sd, group: "gap", name: `4h ${g.dir} gap CE ${r2((g.lo + g.hi) / 2)}`, t: g.t });
+      if (tf === "4h") { const ce = snapTick((g.lo + g.hi) / 2, tick); for (const sd of ["low", "high"] as const) lv.push({ price: ce, side: sd, group: "gap", name: `4h ${g.dir} gap CE ${ce}`, t: g.t }); }
     }
   }
   const atr1h = rollingAtr(h1).at(-1) ?? NaN;
@@ -235,16 +246,17 @@ export function probOf(tab: Record<string, Cell> | undefined, key: string): Prob
 export function cluster(levels: RawLevel[], px: number, side: Side, atr: number, tick: number): LadderLevel[] {
   const tol = Math.max(4 * tick, 0.12 * atr);
   const xs = levels.filter((l) => (side === "long" ? l.price > px : l.price < px)).sort((a, b) => Math.abs(a.price - px) - Math.abs(b.price - px));
-  const out: (LadderLevel & { _groups: Set<LevelGroup> })[] = [];
+  const out: (LadderLevel & { _groups: Set<LevelGroup>; _proxy: boolean })[] = [];
   for (const l of xs) {
     const c = out.find((o) => l.price >= o.lo - tol && l.price <= o.hi + tol);
     if (c) {
       c.lo = Math.min(c.lo, l.price); c.hi = Math.max(c.hi, l.price);
       if (!c.names.includes(l.name)) c.names.push(l.name);
       c._groups.add(l.group);
+      if (l.proxy && l.group === "pool") c._proxy = true;
       continue;
     }
-    out.push({ lo: l.price, hi: l.price, touch: l.price, names: [l.name], group: l.group, confluence: 0, distAtr: 0, rank: 0, pSession: null as unknown as Prob, p5d: null as unknown as Prob, _groups: new Set([l.group]) });
+    out.push({ lo: l.price, hi: l.price, touch: l.price, names: [l.name], group: l.group, confluence: 0, distAtr: 0, rank: 0, pSession: null as unknown as Prob, p5d: null as unknown as Prob, _groups: new Set([l.group]), _proxy: !!(l.proxy && l.group === "pool") });
   }
   for (const c of out) {
     c.touch = side === "long" ? c.lo : c.hi;
@@ -255,11 +267,12 @@ export function cluster(levels: RawLevel[], px: number, side: Side, atr: number,
     c.pSession = probOf(C.touchSession, key);
     c.p5d = probOf(C.touch5d, key);
     if (c.group === "session") for (const p of [c.pSession, c.p5d]) p.note = "not calibrated: session/15m map level (the 1h calibration cannot see it)";
+    else if (c._proxy && c.group === "pool") for (const p of [c.pSession, c.p5d]) if (p.p != null) { p.proxy = true; p.note = "proxy: 1h-calibrated pool touch rate applied to a 1m/15m map pool"; }
   }
   const sorted = out.sort((a, b) => a.distAtr - b.distAtr);
   const byScore = [...sorted].sort((a, b) => b.confluence / (1 + b.distAtr) - a.confluence / (1 + a.distAtr));
   byScore.forEach((c, k) => (c.rank = k + 1));
-  return sorted.map(({ _groups, ...c }) => { void _groups; return c; });
+  return sorted.map(({ _groups, _proxy, ...c }) => { void _groups; void _proxy; return c; });
 }
 
 /** A plan is invalid when its stop is on the wrong side of entry or price has already traded through it. */
@@ -276,16 +289,16 @@ export function entriesFor(side: Side, px: number, atr: number, tick: number, ar
   const cands: { kind: string; tf: string; entry: number; far: number }[] = [];
   for (const a of arrays) {
     if (!a.live || a.failed || a.dir !== (long ? "bull" : "bear")) continue;
-    const e = entryOf(a, side);
-    if (long ? e > px + 0.25 * atr : e < px - 0.25 * atr) continue; // retrace entries only (at or beyond price)
+    const e = snapSide(entryOf(a, side), tick, side);
+    if (long ? e > px : e < px) continue; // retrace entries only: a long rests at/below price, a short at/above
     if (Math.abs(e - px) > 4 * atr) continue;
-    cands.push({ kind: a.kind === "fvg" || a.kind === "ifvg" ? `${a.kind} CE` : a.kind, tf: a.tf, entry: r2(e), far: long ? a.lo : a.hi });
+    cands.push({ kind: a.kind === "fvg" || a.kind === "ifvg" ? `${a.kind} CE` : a.kind, tf: a.tf, entry: e, far: long ? a.lo : a.hi });
   }
   // sweep retest: the nearest unswept liquidity on the OTHER side of price gets raided, entry back at the level
   for (const s of swings) {
     if (long ? !(s.side === "low" && s.price < px) : !(s.side === "high" && s.price > px)) continue;
     if (Math.abs(s.price - px) > 3 * atr) continue;
-    cands.push({ kind: "sweep retest", tf: s.name, entry: s.price, far: long ? s.price - 0.25 * atr : s.price + 0.25 * atr });
+    cands.push({ kind: "sweep retest", tf: s.name, entry: snapSide(s.price, tick, side), far: long ? s.price - 0.25 * atr : s.price + 0.25 * atr });
   }
   const seen = new Set<string>();
   const out: LadderEntry[] = [];
@@ -295,7 +308,7 @@ export function entriesFor(side: Side, px: number, atr: number, tick: number, ar
     const prot = swings.filter((s) => (long ? s.side === "low" && s.price <= c.far && s.price >= c.far - atr : s.side === "high" && s.price >= c.far && s.price <= c.far + atr))
       .sort((a, b) => (long ? b.price - a.price : a.price - b.price))[0];
     const base = prot ? prot.price : c.far;
-    const stop = r2(long ? base - buf : base + buf);
+    const stop = snapSide(long ? base - buf : base + buf, tick, side);
     const chk = stopCheck(side, c.entry, stop, px);
     const risk = Math.abs(c.entry - stop);
     const tg = targets.filter((t) => (long ? t.touch > c.entry : t.touch < c.entry)).map((t) => ({ touch: t.touch, r: r2(Math.abs(t.touch - c.entry) / risk) }));
@@ -306,10 +319,10 @@ export function entriesFor(side: Side, px: number, atr: number, tick: number, ar
       distAtr, valid: chk.valid, invalidWhy: chk.why,
       pFill: (() => {
         const p = probOf(C.entryFill, `${c.kind === "sweep retest" ? "sweep" : "array"}|${distBucket(distAtr)}`);
-        if (p.p != null && c.kind !== "sweep retest" && c.tf !== "1h" && c.tf !== "4h") p.note = `proxy: 1h/4h gap-CE fill rate applied to a ${c.tf} array`;
+        if (p.p != null && c.kind !== "sweep retest" && c.tf !== "1h" && c.tf !== "4h") { p.proxy = true; p.note = `proxy: 1h/4h gap-CE fill rate applied to a ${c.tf} array`; }
         return p;
       })(),
-      pWin: t1 ? probOf(C.entryWin, rrBucket(t1.r)) : { p: null, n: 0, key: "no T1 ≥ 1R", note: "no target clears 1R" },
+      pWin: t1 ? (() => { const p = probOf(C.entryWin, rrBucket(t1.r)); if (p.p != null) { p.proxy = true; p.note = "proxy: T1-before-stop rate of 1h-calibrated entries in this R bucket, not this exact setup"; } return p; })() : { p: null, n: 0, key: "no T1 ≥ 1R", note: "no target clears 1R" },
       t1R: t1?.r ?? null, targets: tg,
     });
     if (out.length >= 8) break;
@@ -375,10 +388,10 @@ export function ltfFlip(m1: OhlcBar[], pools: { side: Side; lo: number; hi: numb
         const k2 = w.indexOf(inv);
         const fullWick = bull ? Math.min(...w.slice(i, k2 + 1).map((b) => b.l)) : Math.max(...w.slice(i, k2 + 1).map((b) => b.h));
         f.wick = fullWick;
-        f.entry = g.ce; f.stop = r2(bull ? fullWick - buf : fullWick + buf);
+        f.entry = snapSide(g.ce, tick, flipSide); f.stop = snapSide(bull ? fullWick - buf : fullWick + buf, tick, flipSide);
         const risk = Math.abs(f.entry - f.stop);
         f.targets = (bull ? ladders.long : ladders.short).filter((t) => (bull ? t.touch > f.entry! : t.touch < f.entry!)).map((t) => ({ touch: t.touch, r: r2(Math.abs(t.touch - f.entry!) / risk) }));
-        why.push(`${g.tf} ${bull ? "bear" : "bull"} FVG ${r2(g.lo)}–${r2(g.hi)} inverted by close ${inv.c} (MSS) → ${flipSide} promoted, entry CE ${g.ce}, stop ${f.stop} beyond wick ${f.wick}; ${bull ? "short" : "long"} demoted`);
+        why.push(`${g.tf} ${bull ? "bear" : "bull"} FVG ${r2(g.lo)}–${r2(g.hi)} inverted by close ${inv.c} (MSS) → ${flipSide} promoted, entry CE ${f.entry}, stop ${f.stop} beyond wick ${f.wick}; ${bull ? "short" : "long"} demoted`);
         break;
       }
     }
@@ -410,9 +423,30 @@ export function ladderBook(i: LadderInput): LadderBook {
     price: l.price, name: l.name, side: /high|PDH|PWH|EQH/i.test(l.name) ? "high" : "low",
     group: l.kind === "pdh" || l.kind === "pdl" || l.kind === "pwh" || l.kind === "pwl" ? "pdpw" : l.kind === "pool" ? "pool" : "session",
   }));
-  const pools: RawLevel[] = (i.map?.pools ?? []).filter((p) => !p.used).map((p) => ({ price: p.price, name: p.name ?? `EQ ${p.tf}`, side: p.side === "buyside" ? "high" : "low", group: "pool" }));
+  const poolsRaw = (i.map?.pools ?? []).filter((p) => !p.used);
+  const poolOf = (p: (typeof poolsRaw)[number]): RawLevel => ({ price: p.price, name: p.name ?? `EQ ${p.tf}`, side: p.side === "buyside" ? "high" : "low", group: "pool", proxy: true });
+  // Swept = a closed 1m bar since the level formed traded strictly through it.
+  // Gaps are excluded (they have their own fill test). Applied to map levels, map pools AND the HTF set, so a level
+  // swept after the last closed hour (e.g. 29638.75 at 08:54 CT) leaves targets, pools, clusters and stops at once.
+  const curKey = sessionKeyOf(i.nowMs - 1);
+  const m1Now = (i.minuteClosed ?? []).filter((b) => b.t + M <= i.nowMs);
+  const m1Sess = m1Now.filter((b) => sessionKeyOf(b.t) === curKey);
+  // A level with no formation time (map Premarket/Asia high, PDH, pools) counts from the LAST session bar that printed
+  // it (so a higher overnight bar before a premarket high is not a "sweep" of it); none printed it → the whole session.
+  const swept = (l: RawLevel) => {
+    if (l.group === "gap") return false;
+    const hi = l.side === "high";
+    let from = m1Now;
+    if (l.t != null) from = m1Now.filter((b) => b.t > l.t!);
+    else { let k = -1; m1Sess.forEach((b, j) => { if (Math.abs((hi ? b.h : b.l) - l.price) < 1e-9) k = j; }); from = m1Sess.slice(k + 1); }
+    return from.some((b) => (hi ? b.h > l.price : b.l < l.price));
+  };
+  const mapLvAll = mapLv;
+  const pools: RawLevel[] = poolsRaw.filter((p) => p.sweptT == null).map(poolOf).filter((l) => !swept(l));
+  const mapLvLive = mapLv.filter((l) => !swept(l));
+  const htfLive = h.levels.filter((l) => !swept(l));
   // Map levels below/above price are only real liquidity on their own side (a broken PDL above price is not buyside).
-  const all = [...h.levels, ...mapLv, ...pools];
+  const all = [...htfLive, ...mapLvLive, ...pools];
   const above = all.filter((l) => l.price > i.price && (l.side === "high" || l.group === "gap"));
   const below = all.filter((l) => l.price < i.price && (l.side === "low" || l.group === "gap"));
   const gapEdge = (l: RawLevel, wantHigh: boolean) => l.group !== "gap" || (wantHigh ? l.side === "high" : l.side === "low");
@@ -420,18 +454,18 @@ export function ladderBook(i: LadderInput): LadderBook {
   const bearT = cluster(below.filter((l) => gapEdge(l, false)), i.price, "short", atr, tick);
   // the bull ladder runs at least to max(PDH, PWH); the bear ladder to min(PDL, PWL) or 12 ATR, whichever is further
   const cap = (xs: LadderLevel[], must: number | null) => xs.filter((x, k) => k < 12 || x.distAtr <= 12 || (must != null && Math.abs(x.touch - i.price) <= Math.abs(must - i.price) + 1e-9)).slice(0, 40);
-  const pdpw = h.levels.filter((l) => l.group === "pdpw");
+  const pdpw = htfLive.filter((l) => l.group === "pdpw");
   const hiMust = Math.max(...pdpw.filter((l) => l.side === "high" && l.price > i.price).map((l) => l.price), -Infinity);
   const loMust = Math.min(...pdpw.filter((l) => l.side === "low" && l.price < i.price).map((l) => l.price), Infinity);
   const bullTargets = cap(bullT, Number.isFinite(hiMust) ? hiMust : null), bearTargets = cap(bearT, Number.isFinite(loMust) ? loMust : null);
-  const swings = [...h.levels.filter((l) => l.group !== "gap"), ...mapLv.filter((l) => /swing/i.test(l.name)), ...pools];
-  const arrays: MapArray[] = [...(i.map?.arrays ?? []), ...h.gaps.map((g) => ({ tf: g.tf as MapArray["tf"], kind: "fvg" as const, dir: g.dir, lo: g.lo, hi: g.hi, ce: r2((g.lo + g.hi) / 2), live: true, t: 0 }))];
+  const swings = [...htfLive.filter((l) => l.group !== "gap"), ...mapLvLive.filter((l) => /swing/i.test(l.name)), ...pools];
+  const arrays: MapArray[] = [...(i.map?.arrays ?? []), ...h.gaps.map((g) => ({ tf: g.tf as MapArray["tf"], kind: "fvg" as const, dir: g.dir, lo: g.lo, hi: g.hi, ce: (g.lo + g.hi) / 2, live: true, t: 0 }))]; // raw CE; entriesFor snaps it per side
   const sc = i.scen?.ranked ?? [];
   const pUp = sc.length ? r2(sc.filter((s) => s.dist === "up").reduce((a, s) => a + s.prior, 0)) : null;
   const prior = (up: boolean) => ({ p: pUp == null ? null : r2(up ? pUp : 1 - pUp), method: "deskSeq scenario priors (S1/S2 scripts, fitted LR when deskSeq.scenarioOdds.lr exists)", n: 38, note: "scenario top-1 hit 0.474 over n=38 sessions, holdout n=10 — small; read as a lean, not an edge" });
   const stack = i.map?.biasStack;
   const from: "bull" | "bear" | "mixed" = stack ? (stack.htf === stack.mtf && stack.htf !== "mixed" ? stack.htf : stack.mtf !== "mixed" ? stack.mtf : stack.htf) : "mixed";
-  const sw1h = h.levels.filter((l) => l.group === "swing1h" || l.group === "swing4h");
+  const sw1h = htfLive.filter((l) => l.group === "swing1h" || l.group === "swing4h");
   const hiAbove = sw1h.filter((l) => l.side === "high" && l.price > i.price).sort((a, b) => a.price - b.price)[0];
   const loBelow = sw1h.filter((l) => l.side === "low" && l.price < i.price).sort((a, b) => b.price - a.price)[0];
   const flip = from === "bear" && hiAbove ? { level: hiAbove.price, tf: "1h body close" as const, from, to: "bull", why: `a 1h body close above the last unswept lower high (${hiAbove.name}) breaks bear structure` }
@@ -452,7 +486,9 @@ export function ladderBook(i: LadderInput): LadderBook {
     const pre = htfLevels({ symbol: i.symbol, hourly: i.hourly, daily: i.daily, cutT: preT, after: m1.filter((b) => b.t + M <= preT) });
     const prePx = [...m1].reverse().find((b) => b.t + M <= preT)?.c ?? null;
     if (prePx != null) {
-      const preAll = [...pre.levels, ...mapLv, ...pools];
+      // pools as of 60 min ago: include ones swept since (that sweep is what the flip reads)
+      const prePools = poolsRaw.filter((p) => p.sweptT == null || p.sweptT >= preT).map(poolOf);
+      const preAll = [...pre.levels, ...mapLvAll, ...prePools];
       const pBull = cluster(preAll.filter((l) => l.price > prePx && l.side === "high" && l.group !== "gap"), prePx, "long", atr, tick);
       const pBear = cluster(preAll.filter((l) => l.price < prePx && l.side === "low" && l.group !== "gap"), prePx, "short", atr, tick);
       const rp = rankedPools(pBull, pBear);
@@ -474,7 +510,7 @@ export function ladderBook(i: LadderInput): LadderBook {
   };
 }
 
-const pct = (p: Prob) => (p.p == null ? `n/a (${p.note ?? "n=" + p.n})` : `${Math.round(p.p * 100)}% n=${p.n}${p.note ? " [" + p.note + "]" : ""}`);
+const pct = (p: Prob) => (p.p == null ? `n/a (${p.note ?? "n=" + p.n})` : `${p.proxy ? "PROXY " : ""}${Math.round(p.p * 100)}% n=${p.n}${p.note ? " [" + p.note + "]" : ""}`);
 export function ladderText(b: LadderBook): string[] {
   const L: string[] = [`${b.symbol} px ${b.price} | ATR1h ${b.atr1h} | 1h history ${b.bars1h} bars / ${b.spanDays}d`];
   if (b.flip) L.push(`FLIP (${b.flip.tf}): ${b.flip.level} — ${b.flip.from} → ${b.flip.to}. ${b.flip.why}`);

@@ -269,14 +269,20 @@ async function loadDaily(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcB
   return { bars: r.value ?? [], leg: r.leg };
 }
 
-/** ~6 months of 1h bars for the two-sided ladder's 1h/4h swings, gaps and pools. Display-only; not a budget leg the grades read. */
+/**
+ * ~6 months of 1h bars for the two-sided ladder's 1h/4h swings, gaps and pools. Display-only; listed in the budget
+ * receipt but not a leg the grades read. Wait is capped at HOURLY_WAIT_MS (cold or warm): a slow Yahoo 6mo pull keeps
+ * running in the background (startFetch) and lands in last-good for the next build, so it can never hold the desk
+ * to the 6.5s budget.
+ */
 const HOURLY_CACHE_MS = 10 * 60_000;
+export const HOURLY_WAIT_MS = 1_500;
 async function loadHourly(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; leg: BudgetLeg }> {
   const r = await budgetedLeg(
     `hourly:${symbol}`,
     `hourly:${symbol}`,
     async () => (await fetchYahooBars(symbol, "6mo", "60m", 4000))?.bars ?? null,
-    { waitMs: remaining(t0, DESK_BUDGET_MS), ttlMs: HOURLY_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
+    { waitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), coldWaitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), ttlMs: HOURLY_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
     cloneBars,
   );
   return { bars: r.value ?? [], leg: r.leg };
@@ -625,6 +631,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         mR.leg,
         spy.leg,
         qqq.leg,
+        hL.leg,
+        hR.leg,
       ],
       [`bars:${data.left}`, `bars:${data.right}`, `quote:${data.left}`, `quote:${data.right}`],
       t0,
@@ -1826,13 +1834,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const budgetOut: DeskBudgetRead = { ...budget, elapsedMs: Date.now() - t0 };
     // Display-only: built last, from the finished candidates; it cannot feed back into anything above.
     const twoSided = buildLadderWire({ ...payload, mtf } as Parameters<typeof buildLadderWire>[0]);
+    // Payload trim: the ladder is built above from the full ~6mo hourly series; the shipped payload carries only the
+    // last LADDER_HOURLY_SHIP bars (enough for 1h swings/ATR on a client fallback rebuild), not ~3,600 per book.
+    const LADDER_HOURLY_SHIP = 120;
+    const mtfOut = {
+      left: { ...mtf.left, hourly: (mtf.left.hourly ?? []).slice(-LADDER_HOURLY_SHIP) },
+      right: { ...mtf.right, hourly: (mtf.right.hourly ?? []).slice(-LADDER_HOURLY_SHIP) },
+    };
     return {
       ...payload,
       smcMaster,
       mtfContext,
       rankedDraws: { left: rankDraws(payload.draws.left, closedL), right: rankDraws(payload.draws.right, closedR) },
       coach,
-      mtf,
+      mtf: mtfOut,
       twoSided,
       ladder,
       budget: budgetOut,

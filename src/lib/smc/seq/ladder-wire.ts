@@ -37,7 +37,10 @@ export function buildLadderWire(desk: DeskLike): LadderWire | null {
       for (const n of b.noUpgrade) if (top && top.side === n.side) rows.push(`${sym} ${n.why} (card ${top.side} band ${top.pathBand ?? "?"})`);
       if (b.cardCheck && !b.cardCheck.valid) rows.push(`${sym} card plan ${b.cardCheck.side} invalid: ${b.cardCheck.why}`);
     }
-    return { mode: "shadow", displayOnly: true, method: LADDER_METHOD, books, rows };
+    // Desk-side guard: every ladder row is tagged display-only so no consumer (watcher shadow:seq:ladder, MCP, Grok)
+    // can mistake it for an order. The watcher logs deskSeq.rows as shadow rows and never gates on them
+    // (scripts/watcher-tests/test_ladder_rows_inert.py).
+    return { mode: "shadow", displayOnly: true, method: LADDER_METHOD, books, rows: rows.map((r) => `[display-only, never an order] ${r}`) };
   } catch {
     return null; // display layer must never break the card
   }

@@ -14,6 +14,8 @@
  * 1h granularity: a touch is a wick reaching the level; sweep retest = touch of the level (no reclaim test).
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { basename } from "node:path";
 import { htfLevels, cluster, entriesFor, distBucket, rrBucket, type RawLevel } from "../src/lib/smc/seq/ladder.ts";
 import { etOf } from "../src/lib/smc/seq/rules.ts";
 import { sessionKeyOf } from "../src/lib/smc/smc-unity.ts";
@@ -25,6 +27,12 @@ const tab = () => ({} as Record<string, Cell>);
 const bump = (t: Record<string, Cell>, k: string, hit: boolean) => { const c = (t[k] ??= { hit: 0, n: 0 }); c.n++; if (hit) c.hit++; };
 
 const [hM, dM, hE, dE] = process.argv.slice(2);
+// Reproducibility receipt: sha256 of every raw Yahoo payload + its bar span. Re-running on files with these hashes
+// must reproduce the tables and the Brier scores below byte-for-byte (scripts/ladder.test.mjs checks the shape).
+const inputs = ([["MNQ 60m", hM], ["MNQ 1d", dM], ["ES 60m", hE], ["ES 1d", dE]] as const).map(([what, f]) => {
+  const raw = readFileSync(f!); const b = load(f!);
+  return { what, file: basename(f!), sha256: createHash("sha256").update(raw).digest("hex"), bytes: raw.length, bars: b.length, firstT: new Date(b[0]!.t).toISOString(), lastT: new Date(b.at(-1)!.t).toISOString() };
+});
 const books: [string, B[], B[]][] = [["MNQ", load(hM!), load(dM!)], ["ES", load(hE!), load(dE!)]];
 const rows: { book: string; day: string; tab: string; key: string; hit: boolean }[] = [];
 for (const [sym, h1, d1] of books) {
@@ -85,12 +93,29 @@ for (const tn of Object.keys(fit)) {
   for (const r of ho) { const c = fit[tn]![r.key]; if (!c || c.n < 30) continue; const p = c.hit / c.n; bt += (p - +r.hit) ** 2; bb += (base - +r.hit) ** 2; n++; }
   brier[tn] = { n, table: +(bt / Math.max(1, n)).toFixed(4), base: +(bb / Math.max(1, n)).toFixed(4) };
 }
+// Brier per holdout session (table vs train base rate), so a single bad day is visible instead of averaged away.
+const brierBySession: Record<string, Record<string, { n: number; table: number; base: number }>> = {};
+for (const tn of Object.keys(fit)) {
+  const tr = rows.filter((r) => r.tab === tn && r.day < split);
+  const base = tr.filter((r) => r.hit).length / Math.max(1, tr.length);
+  const acc = new Map<string, { n: number; bt: number; bb: number }>();
+  for (const r of rows) {
+    if (r.tab !== tn || r.day < split) continue;
+    const c = fit[tn]![r.key]; if (!c || c.n < 30) continue;
+    const a = acc.get(r.day) ?? acc.set(r.day, { n: 0, bt: 0, bb: 0 }).get(r.day)!;
+    a.n++; a.bt += (c.hit / c.n - +r.hit) ** 2; a.bb += (base - +r.hit) ** 2;
+  }
+  for (const [d, a] of [...acc].sort()) (brierBySession[d] ??= {})[tn] = { n: a.n, table: +(a.bt / a.n).toFixed(4), base: +(a.bb / a.n).toFixed(4) };
+}
 const out = {
+  inputs,
   method: `empirical hit rate by level group × distance (ATR1h), Yahoo 60m MNQ=F+ES=F, ${days[0]}→${days.at(-1)}, train < ${split} (${days.filter((d) => d < split).length} sessions), holdout ${days.filter((d) => d >= split).length} sessions; cut 10:00 ET; cells n<30 shown as n/a`,
   train: { from: days[0], to: split, sessions: days.filter((d) => d < split).length },
-  holdout: { from: split, to: days.at(-1), sessions: days.filter((d) => d >= split).length, brier },
+  holdout: { from: split, to: days.at(-1), sessions: days.filter((d) => d >= split).length, brier, brierBySession },
   ...fit,
 };
 writeFileSync(new URL("../src/lib/smc/seq/ladder-calibration.json", import.meta.url), JSON.stringify(out, null, 1) + "\n");
-console.log(JSON.stringify({ train: out.train, holdout: out.holdout }, null, 1));
+console.log(JSON.stringify({ inputs, train: out.train, holdout: { ...out.holdout, brierBySession: undefined } }, null, 1));
+console.log("\nBrier per holdout session (table/base, n):");
+for (const [d, t] of Object.entries(brierBySession)) console.log(`  ${d} ` + Object.entries(t).map(([k, v]) => `${k} ${v.table}/${v.base} n=${v.n}`).join(" | "));
 for (const tn of Object.keys(fit)) { console.log(`\n${tn}`); for (const [k, c] of Object.entries(fit[tn]!).sort()) console.log(`  ${k.padEnd(22)} ${c.n < 30 ? "n/a " : (c.hit / c.n).toFixed(2)}  n=${c.n}`); }
