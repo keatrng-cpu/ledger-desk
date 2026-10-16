@@ -1,0 +1,418 @@
+diff --git a/tests/test_exitsafe.py b/tests/test_exitsafe.py
+new file mode 100644
+index 0000000..1d20304
+--- /dev/null
++++ b/tests/test_exitsafe.py
+@@ -0,0 +1,116 @@
++import pytest
++from types import SimpleNamespace as NS
++from watcher import exitsafe as ex
++
++
++class FakeBroker:
++    def __init__(self, live=True, ready=True, fills=None):
++        self.cfg = NS(live=live); self.ready = ready; self.rs = object() if ready else None
++        self.orders, self.states, self.log = {}, {}, []
++        self.fills = fills or {}   # order seq -> fill on Nth state check
++        self.n = 0; self.pos_qty = 1
++    def _guard(self):
++        if not self.cfg.live: raise Exception("LIVE=0 — dry-run")
++    def session_valid(self): return True
++    def _new(self, kind, *a):
++        self.n += 1; oid = f"o{self.n}"; self.orders[oid] = (kind, a); self.states[oid] = "queued"; self.log.append(("send", kind, oid, a)); return {"id": oid}
++    def sell(self, c, qty, px): return self._new("sell", qty, px)
++    def place_stop_limit_close(self, c, qty, stop, lim): return self._new("stop", qty, stop, lim)
++    def cancel(self, oid): self.log.append(("cancel", oid)); self.states[oid] = "cancelled"
++    def order_state(self, oid):
++        f = self.fills.get(oid)
++        if f is not None:
++            self.fills[oid] = f - 1
++            if f <= 0: self.states[oid] = "filled"; self.pos_qty = 0
++        return self.states[oid]
++    def position_qty(self, _id): return self.pos_qty, None
++    def working(self): return [o for o, s in self.states.items() if s not in ex.TERMINAL]
++
++
++class Clock:
++    def __init__(self): self.t = 0.0
++    def __call__(self): return self.t
++    def sleep(self, s): self.t += s
++
++
++C = {"id": "opt1"}
++
++# ---- preflight ----
++def test_preflight_refuses_live_mismatch():
++    ok, why = ex.preflight_exit_path(NS(live=True), FakeBroker(live=False))
++    assert not ok and "LIVE mismatch" in why
++
++def test_preflight_refuses_dry_run_both():
++    ok, why = ex.preflight_exit_path(NS(live=False), FakeBroker(live=False))
++    assert not ok and "LIVE=0" in why
++
++def test_preflight_refuses_other_instance():
++    b = FakeBroker(); ok, why = ex.preflight_exit_path(b.cfg, b, entry_broker=FakeBroker())
++    assert not ok and "instance" in why
++
++def test_preflight_refuses_no_session():
++    b = FakeBroker(ready=False); ok, why = ex.preflight_exit_path(b.cfg, b)
++    assert not ok and "session" in why
++
++def test_preflight_refuses_missing_exit_fn():
++    b = FakeBroker(); b.sell = None; ok, why = ex.preflight_exit_path(b.cfg, b)
++    assert not ok and "sell" in why
++
++def test_preflight_ok_same_mode():
++    b = FakeBroker(); assert ex.preflight_exit_path(b.cfg, b)[0]
++
++def test_flags_default_off(monkeypatch):
++    monkeypatch.delenv("EXIT_SAFE", raising=False); assert not ex.enabled() and not ex.resting_stop_enabled()
++
++# ---- single close ----
++def test_single_close_invariant_blocks_second_send():
++    b = FakeBroker(); g = ex.CloseGuard(b, C, sleep=lambda s: None)
++    g.place_resting_stop(1, 1.20)
++    with pytest.raises(ex.ExitPathRefused): g.send("ladder", b.sell, C, 1, 1.0)
++    assert len(b.working()) == 1
++
++def test_stop_limit_price_offset():
++    assert ex.stop_limit_price(1.20) == 1.02 and ex.stop_limit_price(0.20) == 0.15
++
++# ---- resting stop cancel on other exit ----
++def test_ladder_cancels_resting_stop_first():
++    b = FakeBroker(); clk = Clock(); g = ex.CloseGuard(b, C, sleep=clk.sleep)
++    g.place_resting_stop(1, 1.20)
++    b.fills["o2"] = 1
++    st, rungs = ex.run_ladder(g, 1, lambda: 1.47, clock=clk, sleep=clk.sleep)
++    assert b.log[1] == ("cancel", "o1") and b.log[2][1] == "sell"
++    assert st == "filled" and b.working() == []
++
++def test_resting_stop_already_filled_no_second_sell():
++    b = FakeBroker(); g = ex.CloseGuard(b, C, sleep=lambda s: None)
++    g.place_resting_stop(1, 1.20); b.states["o1"] = "filled"
++    st, rungs = ex.run_ladder(g, 1, lambda: 1.0, sleep=lambda s: None)
++    assert st == "closed_by_stop" and not [l for l in b.log if l[1] == "sell"]
++    with pytest.raises(ex.ExitPathRefused): g.send("ladder", b.sell, C, 1, 1.0)
++
++# ---- ladder timing / reprice / cross ----
++def test_ladder_reprices_then_crosses():
++    b = FakeBroker(); clk = Clock(); g = ex.CloseGuard(b, C, sleep=clk.sleep)
++    bids = iter([1.47, 1.40, 1.30, 1.20, 1.14, 1.10])
++    b.fills["o4"] = 0
++    st, rungs = ex.run_ladder(g, 1, lambda: next(bids), clock=clk, sleep=clk.sleep)
++    assert st == "filled"
++    assert [r[1] for r in rungs] == [1.47, 1.40, 1.30, 1.19]
++    assert [r[2] for r in rungs] == [False, False, False, True]
++    ts = [r[0] for r in rungs]
++    assert all(2.0 <= b2 - a2 <= 3.0 for a2, b2 in zip(ts, ts[1:]))
++    assert ts[-1] >= ex.PARAMS["cross_after_s"] and ts[2] < ex.PARAMS["cross_after_s"]
++    # never more than one working close: each new rung preceded by cancel of prior
++    sends = [i for i, l in enumerate(b.log) if l[0] == "send"]
++    for i in sends[1:]: assert b.log[i - 1][0] == "cancel"
++
++def test_ladder_timeout_leaves_nothing_working():
++    b = FakeBroker(); clk = Clock(); g = ex.CloseGuard(b, C, sleep=clk.sleep)
++    st, _ = ex.run_ladder(g, 1, lambda: 1.0, clock=clk, sleep=clk.sleep)
++    assert st == "timeout" and b.working() == []
++
++def test_filled_not_flat_flagged():
++    b = FakeBroker(); clk = Clock(); g = ex.CloseGuard(b, C, sleep=clk.sleep)
++    b.fills["o1"] = 0; b.position_qty = lambda _i: (1, None)
++    st, _ = ex.run_ladder(g, 1, lambda: 1.0, clock=clk, sleep=clk.sleep)
++    assert st == "filled_not_flat"
+diff --git a/watcher/broker.py b/watcher/broker.py
+index 5224af3..1827b47 100644
+--- a/watcher/broker.py
++++ b/watcher/broker.py
+@@ -267,3 +267,33 @@ class Broker:
+                                                       account_number=AGENTIC_ACCOUNT, timeInForce="gfd")
+         return self.rs.orders.order_sell_option_limit("close", "credit", price, c["symbol"], qty, c["exp"], c["strike"],
+                                                       optionType=c["type"], account_number=AGENTIC_ACCOUNT, timeInForce="gfd")
++
++    # ----- exit safety (EXIT_SAFE=1, default off) -----
++    def session_valid(self):
++        """Cheap READ: session still authorised for the Agentic account (no orders)."""
++        if not (self.ready and self.rs):
++            return False
++        try:
++            prof = self.rs.profiles.load_account_profile(account_number=AGENTIC_ACCOUNT) or {}
++            return str(prof.get("account_number")) == AGENTIC_ACCOUNT
++        except Exception:
++            return False
++
++    def place_stop_limit_close(self, c, qty, stop, limit):
++        """Resting stop-limit SELL-TO-CLOSE on a single-leg option.
++        robin_stocks 3.4.0 has NO option stop helper (order_sell_stop_limit is equities-only), so this posts the
++        options-order payload with trigger=stop/stop_price via robin_stocks' own request_post. UNVERIFIED against RH:
++        only reachable with EXIT_SAFE_RESTING_STOP=1; if RH rejects it the caller falls back to the script-watched stop."""
++        self._guard()
++        if c.get("spread_short"):
++            raise BrokerRefused("resting stop not supported for spreads")
++        from robin_stocks.robinhood import helper, urls, profiles
++        import uuid
++        acct = profiles.load_account_profile(account_number=AGENTIC_ACCOUNT, info="url")
++        payload = {"account": acct, "direction": "credit", "time_in_force": "gfd",
++                   "legs": [{"position_effect": "close", "side": "sell", "ratio_quantity": 1,
++                             "option": urls.option_instruments_url(c["id"])}],
++                   "type": "limit", "trigger": "stop", "price": f"{limit:.2f}", "stop_price": f"{stop:.2f}",
++                   "quantity": qty, "override_day_trade_checks": False, "override_dtbp_checks": False,
++                   "ref_id": str(uuid.uuid4())}
++        return helper.request_post(urls.option_orders_url(), payload, json=True)
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 96af02c..bc2164e 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -282,6 +282,11 @@ class Watcher:
+         sig = self.state["signals"].setdefault(key, {}); sig["fired"] = time.time()
+         from . import fastchain
+         if fastchain.live(): self.state["fast_streak"] = fastchain.mark_spent(self.state.get("fast_streak"), fastchain.setup_id(snap), "fired", int(time.time() * 1000))   # setup spent for the session
++        from . import exitsafe
++        if exitsafe.enabled():   # Keaton 2026-10-16: no entry unless the exit path is live in the same mode/instance
++            okx, whyx = exitsafe.preflight_exit_path(self.cfg, self.broker)
++            if not okx:
++                self.log("fire_refused", signal=key, failing=[("exit_path_preflight", whyx)]); self._skip(dayst, key, snap, [("exit_path_preflight", whyx)]); return
+         self.save()  # persist BEFORE send
+         try:
+             res = self.broker.buy(c, n, lim)
+@@ -310,6 +315,44 @@ class Watcher:
+                                              "ordered": n, "limit": lim, "debit": round(n * lim * 100, 2), "gates": [[a, b, w] for a, b, w in g]})
+         self.save()
+ 
++    # ----- exit safety helpers (EXIT_SAFE=1 only) -----
++    def _close_guard(self, pos):
++        from . import exitsafe
++        g = exitsafe.CloseGuard(self.broker, pos["contract"], log=self.log)
++        if pos.get("resting_stop_id"): g.working = ("stop", pos["resting_stop_id"])
++        return g
++
++    def _place_resting_stop(self, pos, qty=None):
++        from . import exitsafe
++        if not exitsafe.resting_stop_enabled() or pos["contract"].get("spread_short"): return
++        stop = pos.get("opt_stop") or round((pos.get("entry") or 0) * (1 - self.cfg.hard_stop_loss), 2)
++        if stop <= 0.01: return
++        try:
++            res = self._close_guard(pos).place_resting_stop(qty or pos["qty"], stop)
++            pos["resting_stop_id"] = (res or {}).get("id") if isinstance(res, dict) else None
++            if not pos["resting_stop_id"]: self.alert("RESTING STOP REJECTED — script-watched stop still active", result=res)
++        except Exception as e:
++            pos["resting_stop_id"] = None; self.log("resting_stop_failed", reason=str(e))
++        self.save()
++
++    def _ladder_close(self, pos, qty, md, act):
++        from . import exitsafe
++        g = self._close_guard(pos)
++        def fresh_bid():
++            _m, m2 = self.broker.mark(pos["contract"]["id"]); return float((m2 or {}).get("bid_price") or 0)
++        status, rungs = exitsafe.run_ladder(g, qty, fresh_bid, log=self.log)
++        pos["resting_stop_id"] = None
++        self.log("exit_ladder", action=act, status=status, rungs=rungs)
++        if status == "closed_by_stop":
++            px = pos.get("opt_stop") or round((pos.get("entry") or 0) * (1 - self.cfg.hard_stop_loss), 2)
++            return px, {"id": None, "via": "resting_stop"}
++        if status not in ("filled", "filled_not_flat") or not rungs:
++            self.alert(f"EXIT LADDER {status.upper()} — position may still be open; manage manually"); return None, None
++        if status == "filled_not_flat" and act == "exit": self.alert("EXIT filled but RH still shows a position — check")
++        if act == "trim":
++            pos["qty"] = max(0, pos["qty"] - qty); self._place_resting_stop(pos)
++        return rungs[-1][1], {"id": g.working[1] if g.working else None, "ladder": rungs}
++
+     def manage(self, et):
+         pos = self.state["position"]
+         if not self.cfg.live:
+@@ -320,6 +363,7 @@ class Watcher:
+             st = self.broker.order_state(pos["order_id"])
+             if qty > 0:
+                 pos.update(filled=True, qty=qty, entry=pos["entry"] if pos["contract"].get("spread_short") else (avg or pos["entry"])); self.alert(f"FILLED {qty} @ {pos['entry']} ({st})")
++                self._place_resting_stop(pos)
+                 for f in self.day(et.strftime("%Y-%m-%d")).get("fires", []):
+                     if f.get("signal") == pos.get("signal"): f.update(fill=avg, filled_qty=qty, filled_at=time.time())
+                 self.save(); self._status(mode="manage")
+@@ -382,8 +426,14 @@ class Watcher:
+             self.log("kill_switch", note=f"STOP present — NOT sending {act} {qty} ({why}); manage manually"); return
+         bid = float((md or {}).get("bid_price") or 0)
+         px = round(max(0.01, mark if act == "trim" else (bid or mark or 0.01)), 2)   # trim at mark, exits at bid
+-        try: res = self.broker.sell(pos["contract"], qty, px)
+-        except BrokerRefused as e: self.log("manage_blocked", reason=str(e)); return
++        from . import exitsafe
++        if exitsafe.enabled():   # ladder via CloseGuard: cancels resting stop first, one working close max, confirms flat
++            try: px, res = self._ladder_close(pos, qty, md, act)
++            except (BrokerRefused, exitsafe.ExitPathRefused) as e: self.log("manage_blocked", reason=str(e)); return
++            if px is None: return
++        else:
++          try: res = self.broker.sell(pos["contract"], qty, px)
++          except BrokerRefused as e: self.log("manage_blocked", reason=str(e)); return
+         self.alert(f"{act.upper()} {qty} @ {px}: {why}", result=res)
+         if act == "exit" and pos.get("entry") and px < pos["entry"]:      # losing exit -> no B+ for the rest of the day
+             d = self.day(et.strftime("%Y-%m-%d")); d["lost"] = True
+diff --git a/watcher/exitsafe.py b/watcher/exitsafe.py
+new file mode 100644
+index 0000000..75bb3af
+--- /dev/null
++++ b/watcher/exitsafe.py
+@@ -0,0 +1,166 @@
++"""Exit safety (Keaton 2026-10-16, after the QQQ put: entry went out LIVE, exit script ran LIVE=0, -$30 stop became -$96).
++
++Three pieces, all behind EXIT_SAFE=1 (default OFF -> behaviour unchanged, desk rules hash unchanged):
++  0. preflight_exit_path(): refuse ANY entry unless the exit path is live in the SAME mode as the entry.
++  1. resting broker stop (stop-limit sell-to-close) placed after a fill; cancelled + confirmed before any other close.
++  2. exit ladder: limit at bid, re-price to fresh bid every ~2.5 s, cross to marketable after ~6 s, one working close max.
++Single-close invariant: CloseGuard is the ONLY way a close order is sent; it never allows two working closes.
++Pure logic is injectable (clock/sleep/broker) so it is unit-tested without RH.
++"""
++import os, time
++
++PARAMS = {  # mirrored in ledger-desk shared/exit-safe.json (NOT desk-rules.json -> RULES_HASH unchanged)
++    "reprice_s": 2.5, "cross_after_s": 6.0, "max_ladder_s": 20.0, "tick": 0.01,
++    "stop_limit_offset_pct": 0.15, "stop_limit_offset_min": 0.05, "flat_confirm_tries": 5,
++}
++
++def enabled():
++    return os.environ.get("EXIT_SAFE", "0").strip().lower() in ("1", "true", "yes", "on")
++
++def resting_stop_enabled():
++    return enabled() and os.environ.get("EXIT_SAFE_RESTING_STOP", "0").strip().lower() in ("1", "true", "yes", "on")
++
++
++class ExitPathRefused(Exception):
++    pass
++
++
++def preflight_exit_path(cfg, broker, entry_broker=None):
++    """(ok, reason). Entry is allowed only if the exit path would go out in the same mode as the entry."""
++    eb = entry_broker if entry_broker is not None else broker
++    if eb is not broker:
++        return False, "exit broker instance differs from entry broker instance"
++    bl = getattr(getattr(broker, "cfg", cfg), "live", None)
++    if bool(bl) != bool(cfg.live):
++        return False, f"LIVE mismatch: entry cfg.live={cfg.live} exit broker.cfg.live={bl}"
++    if not cfg.live:
++        return False, "LIVE=0: exit path is dry-run -> refuse entry"
++    for fn in ("sell", "cancel", "order_state", "position_qty"):
++        if not callable(getattr(broker, fn, None)):
++            return False, f"exit function broker.{fn} not callable"
++    if not getattr(broker, "ready", False) or getattr(broker, "rs", None) is None:
++        return False, "broker session not ready (not logged in)"
++    try:
++        guard = getattr(broker, "_guard", None)
++        if callable(guard):
++            guard()          # same STOP / LIVE / account guard the sell will hit
++    except Exception as e:
++        return False, f"exit guard would refuse: {e}"
++    chk = getattr(broker, "session_valid", None)
++    if callable(chk):
++        try:
++            if not chk():
++                return False, "broker session invalid"
++        except Exception as e:
++            return False, f"session check failed: {e}"
++    if resting_stop_enabled() and not callable(getattr(broker, "place_stop_limit_close", None)):
++        return False, "resting stop enabled but broker.place_stop_limit_close missing"
++    return True, "exit path live, same mode/instance as entry"
++
++
++def stop_limit_price(stop, p=PARAMS):
++    off = max(p["stop_limit_offset_min"], round(stop * p["stop_limit_offset_pct"], 2))
++    return round(max(0.01, stop - off), 2)
++
++
++def _oid(res):
++    return res.get("id") if isinstance(res, dict) else None
++
++
++TERMINAL = {"filled", "cancelled", "canceled", "rejected", "failed", "expired"}
++
++
++class CloseGuard:
++    """Owns every close order for one position. At most ONE working close order at any time
++    (resting stop counts as a working close)."""
++
++    def __init__(self, broker, contract, log=lambda *a, **k: None, sleep=time.sleep):
++        self.b, self.c, self.log, self.sleep = broker, contract, log, sleep
++        self.working = None          # (kind, order_id)
++        self.closed = False
++
++    def _wait_terminal(self, oid, tries=10):
++        st = None
++        for _ in range(tries):
++            st = self.b.order_state(oid)
++            if st in TERMINAL:
++                return st
++            self.sleep(0.3)
++        return st
++
++    def clear(self):
++        """Cancel the working close (stop or ladder rung) and CONFIRM it is terminal before anything else is sent.
++        Returns the terminal state; 'filled' means the position closed via that order."""
++        if not self.working:
++            return None
++        kind, oid = self.working
++        st = self.b.order_state(oid) if oid else "cancelled"
++        if st not in TERMINAL:
++            self.b.cancel(oid)
++            st = self._wait_terminal(oid)
++        if st not in TERMINAL:
++            raise ExitPathRefused(f"working {kind} {oid} not confirmed terminal ({st}); refusing a second close")
++        self.working = None
++        if st == "filled":
++            self.closed = True
++        self.log("close_cleared", kind=kind, order_id=oid, state=st)
++        return st
++
++    def send(self, kind, fn, *a):
++        if self.closed:
++            raise ExitPathRefused("position already closed; no further close orders")
++        if self.working:
++            raise ExitPathRefused(f"single-close invariant: {self.working[0]} already working")
++        res = fn(*a)
++        self.working = (kind, _oid(res))
++        return res
++
++    def place_resting_stop(self, qty, stop):
++        lim = stop_limit_price(stop)
++        res = self.send("stop", self.b.place_stop_limit_close, self.c, qty, round(stop, 2), lim)
++        self.log("resting_stop_placed", stop=round(stop, 2), limit=lim, order_id=_oid(res))
++        return res
++
++
++def run_ladder(guard, qty, fresh_bid, clock=time.monotonic, sleep=time.sleep, p=PARAMS, log=lambda *a, **k: None):
++    """Sell-to-close ladder. Cancels any resting stop first (exactly one close). Returns (status, rungs).
++    rungs: list of (t, price, crossed). Marketable cross after cross_after_s = bid - tick."""
++    st = guard.clear()
++    if st == "filled":
++        return "closed_by_stop", []
++    if guard.closed:
++        return "already_closed", []
++    t0, rungs = clock(), []
++    while True:
++        t = clock() - t0
++        if t > p["max_ladder_s"]:
++            guard.clear()
++            return "timeout", rungs
++        bid = fresh_bid()
++        if not bid or bid <= 0:
++            sleep(0.5); continue
++        crossed = t >= p["cross_after_s"]
++        px = round(max(0.01, bid - p["tick"]) if crossed else bid, 2)
++        if guard.working:
++            st = guard.clear()
++            if st == "filled":
++                return "filled", rungs
++        guard.send("ladder", guard.b.sell, guard.c, qty, px)
++        rungs.append((round(t, 2), px, crossed))
++        log("ladder_rung", t=round(t, 2), px=px, crossed=crossed)
++        nxt = clock() + p["reprice_s"]
++        while clock() < nxt:
++            oid = guard.working[1]
++            if oid and guard.b.order_state(oid) == "filled":
++                guard.working, guard.closed = None, True
++                return ("filled" if confirm_flat(guard.b, guard.c, sleep=sleep, p=p) else "filled_not_flat"), rungs
++            sleep(0.25)
++
++
++def confirm_flat(broker, contract, sleep=time.sleep, p=PARAMS):
++    for _ in range(p["flat_confirm_tries"]):
++        q, _avg = broker.position_qty(contract["id"])
++        if q == 0:
++            return True
++        sleep(0.4)
++    return False
