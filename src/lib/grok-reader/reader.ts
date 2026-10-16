@@ -158,7 +158,7 @@ export async function callXai(user: string, opts: { env?: Env; fetchImpl?: Fetch
     const res = await (opts.fetchImpl ?? fetch)(CFG.endpoint, {
       method: "POST", signal: ac.signal,
       headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: CFG.model, max_tokens: CFG.maxOutputTokens, temperature: 0.2, messages: [{ role: "system", content: SMC_PACK }, { role: "user", content: user }] }),
+      body: JSON.stringify({ model: CFG.model, max_tokens: CFG.maxOutputTokens, temperature: 0.2, response_format: { type: "json_object" }, messages: [{ role: "system", content: SMC_PACK }, { role: "user", content: user }] }),
     });
     if (!res.ok) return { status: "error", text: `http ${res.status}`, inTok: 0, outTok: 0 };
     const j = (await res.json()) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
