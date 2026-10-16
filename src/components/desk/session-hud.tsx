@@ -54,7 +54,7 @@ function QuoteChip({
           {changePct.toFixed(2)}%
         </span>
       </span>
-      <span className="ml-1 text-[10px] uppercase tracking-wide text-[var(--color-subtle)]">
+      <span className="ml-1 text-[11px] uppercase tracking-wide text-[var(--color-subtle)]">
         {tag}
       </span>
     </span>
@@ -317,10 +317,10 @@ export function SessionHud({
           Everything else that used to stack here (killzone, news, month/week
           focus, session, risk, halt room, focus line, PATH line, SMT, alarm
           controls) lives in the drawer below — one click away, still live. */}
-      <div className="mx-auto flex h-12 max-w-7xl min-w-0 items-center gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mx-auto flex max-w-7xl min-w-0 flex-col gap-1.5 py-1.5 sm:h-12 sm:flex-row sm:items-center sm:gap-2 sm:py-0">
+        <div className="flex min-w-0 items-center gap-2 sm:flex-1">
         <div className="flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[13px] whitespace-nowrap text-[var(--color-fg)]">
-          <Clock className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+          <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
           <span suppressHydrationWarning>{etNow ?? clock.nowEt}</span>
         </div>
 
@@ -365,6 +365,8 @@ export function SessionHud({
             {entry.label}
           </button>
         )}
+        </div>
+        <div className="flex min-w-0 items-center gap-2 sm:ml-auto">
         <button
           type="button"
           role="switch"
@@ -372,16 +374,15 @@ export function SessionHud({
           onClick={() => setFlashOn(!flashOn)}
           title={flashOn ? "Screen flash on — the edges flash when the entry state changes. Click to turn off." : "Screen flash off. Click to flash the screen edges on entry-state changes."}
           className={cn(
-            "flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[12px]",
+            "flex shrink-0 items-center gap-1 rounded-full border-2 bg-[var(--color-surface)] px-2.5 py-1 text-[12px]",
             flashOn
               ? "border-[var(--color-primary)] text-[var(--color-fg)]"
-              : "border-[var(--color-border)] text-[var(--color-subtle)]",
+              : "border-[var(--color-border-strong)] text-[var(--color-fg)]",
           )}
         >
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
           <span className="hidden lg:inline">Flash</span>
         </button>
-        </div>
         <SynapseChip tab={synapseTab} />
         <button
           type="button"
@@ -396,6 +397,7 @@ export function SessionHud({
             className={cn("h-3.5 w-3.5 transition-transform", drawerOpen && "rotate-180")}
           />
         </button>
+        </div>
       </div>
 
       {/* Tabs get their own row and wrap, so every tab is always reachable. */}
@@ -529,7 +531,7 @@ export function SessionHud({
           </p>
         </div>
 
-        <div className="mx-auto mt-1 flex w-full min-w-0 max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
+        <div className="mx-auto mt-1 flex w-full min-w-0 max-w-7xl flex-wrap items-center gap-1.5 text-[11px] text-[var(--color-subtle)]">
           <span
             className={cn(
               "min-w-0 max-w-full whitespace-normal font-mono text-[11px] font-semibold",

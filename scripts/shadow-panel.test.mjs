@@ -30,6 +30,7 @@ test("rules hash unchanged", () => {
 test("q_v2 is read off the card, not recomputed", () => {
   const src = readFileSync("src/components/desk/shadow-panel.tsx", "utf8") + readFileSync("src/components/desk/shadow-view.ts", "utf8");
   assert.equal(src.includes("computeQV2"), false);
+  assert.equal(src.includes("ticket.symbol === live.symbol"), true);
   assert.equal(src.includes("recordShadowOrder"), false);
   assert.equal(view.readCardQV2({ q_v2: { q: 0.71, band: "A-", deltas: [{ source: "keySweep", delta: 0.04 }], mode: "shadow", version: 2, vetoed: false } }).band, "A-");
   assert.equal(view.readCardQV2({}), null);
@@ -69,13 +70,34 @@ test("factor rows clamp to ±0.07 and the anchored base does not", () => {
   assert.equal(view.displayDelta("base:anchored", 0.51), 0.51);
 });
 
-test("next session skips a cash holiday the week-ahead plan marks", () => {
-  assert.equal(view.cashHoliday("2026-10-12"), true);
-  assert.equal(view.cashHoliday("2026-10-13"), false);
-  assert.equal(view.nextWeekday("2026-10-09"), "2026-10-13");
+test("next session uses the NYSE full close, not Columbus Day", () => {
+  assert.equal(view.cashHoliday("2026-10-12"), false);
+  assert.equal(view.cashHoliday("2026-11-11"), false);
+  assert.equal(view.cashHoliday("2026-11-26"), true);
+  assert.equal(view.cashHoliday("2026-11-27"), false);
+  assert.equal(view.cashHoliday("2026-12-24"), false);
+  assert.equal(view.cashHoliday("2026-12-25"), true);
+  for (const day of ["2026-01-01", "2026-01-19", "2026-02-16", "2026-04-03", "2026-05-25", "2026-06-19", "2026-07-03", "2026-09-07"]) {
+    assert.equal(view.cashHoliday(day), true, day);
+  }
+  assert.equal(view.cashHoliday("2027-06-18"), true);
+  assert.equal(view.cashHoliday("2027-07-05"), true);
+  assert.equal(view.cashHoliday("2027-03-26"), true);
+  assert.equal(view.cashHoliday("2027-11-25"), true);
+  assert.equal(view.cashHoliday("2027-12-24"), true);
+  assert.equal(view.cashHoliday("2028-01-01"), false);
+  assert.equal(view.cashHoliday("2028-04-14"), true);
+  assert.equal(view.cashHoliday("2028-07-04"), true);
+  assert.equal(view.cashHoliday("2028-11-23"), true);
+  assert.equal(view.nextWeekday("2026-10-09"), "2026-10-12");
+  assert.equal(view.nextWeekday("2026-11-25"), "2026-11-27");
+  assert.equal(view.nextWeekday("2026-12-24"), "2026-12-28");
   const fri = Date.parse("2026-10-09T13:40:00Z");
-  assert.equal(view.rule1Phase(Date.parse("2026-10-12T13:30:00Z"), fri), "closed");
-  assert.equal(view.rule1Phase(Date.parse("2026-10-13T13:30:00Z"), fri), "hidden");
+  assert.equal(view.rule1Phase(Date.parse("2026-10-11T18:00:00Z"), fri), "closed");
+  assert.equal(view.rule1Phase(Date.parse("2026-10-12T13:30:00Z"), fri), "hidden");
+  const beforeThanksgiving = Date.parse("2026-11-25T14:30:00Z");
+  assert.equal(view.rule1Phase(Date.parse("2026-11-26T14:30:00Z"), beforeThanksgiving), "closed");
+  assert.equal(view.rule1Phase(Date.parse("2026-11-27T14:30:00Z"), beforeThanksgiving), "hidden");
 });
 
 test("window, closed, and next session open", () => {

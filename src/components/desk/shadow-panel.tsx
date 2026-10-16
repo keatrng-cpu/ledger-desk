@@ -109,9 +109,9 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
     return () => mq.removeEventListener("change", apply);
   }, [defaultOpen]);
 
-  // Not filtered to live.symbol. This is the one desk panel, not a row on
-  // each card, so a Rule 1 ticket on the other index stays visible.
+  // The lead card's symbol only. The other index keeps its own card.
   const shown = rule1
+    .filter((ticket) => live?.symbol != null && ticket.symbol === live.symbol)
     .map((ticket) => ({ ticket, phase: rule1Phase(nowMs, ticket.at) }))
     .filter((row): row is { ticket: Rule1Ticket; phase: "window" | "closed" } => row.phase === "window" || row.phase === "closed");
   const diverges = shown.some(
@@ -137,12 +137,12 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
     >
       <button
         type="button"
-        className="flex min-h-11 w-full items-center gap-2 text-left"
+        className="flex min-h-11 w-full min-w-0 items-center gap-2 text-left"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="text-[11px] font-bold tracking-[0.14em] text-[var(--shadow-fg)]">Shadow — not traded</span>
-        {versions.length > 0 && <span className="font-mono text-[12px] text-[var(--color-subtle)]">{versions.join(" · ")}</span>}
+        <span className="min-w-0 truncate text-[11px] font-bold tracking-[0.14em] text-[var(--shadow-fg)]">Shadow — not traded</span>
+        {versions.length > 0 && <span className="min-w-0 truncate font-mono text-[12px] text-[var(--color-subtle)]">{versions.join(" · ")}</span>}
         <ChevronDown className={cn("ml-auto h-4 w-4 shrink-0 text-[var(--shadow-fg)]", open && "rotate-180")} />
       </button>
       {open && (
@@ -181,8 +181,7 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
                         delta === 0 && "text-[var(--color-muted)]",
                       )}
                     >
-                      Δ {delta > 0 ? "+" : ""}
-                      {delta.toFixed(2)}
+                      Δ {fmtDelta(delta)}
                     </span>
                   )}
                 </p>

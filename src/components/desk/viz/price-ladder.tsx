@@ -153,7 +153,7 @@ export function PriceLadder({
             />
             <div
               className={cn(
-                "absolute left-0 w-[36%] -translate-y-1/2 pr-1 text-right leading-tight",
+                "absolute left-0 w-[34%] -translate-y-1/2 pr-1 text-right leading-tight",
                 r.strong ? "text-[12px] font-bold" : "text-[12px] font-medium opacity-75",
               )}
               style={{ top: r.ly, color: r.color }}
@@ -163,7 +163,7 @@ export function PriceLadder({
             </div>
             <div
               className={cn(
-                "absolute left-[68%] -translate-y-1/2 font-mono text-[13px] tabular-nums",
+                "absolute left-[68%] -translate-y-1/2 font-mono text-[15px] tabular-nums",
                 r.strong ? "font-bold" : "font-medium opacity-75",
               )}
               style={{ top: r.ly, color: r.color }}

@@ -891,7 +891,7 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
         const flipBtn = (
           <button
             type="button"
-            className="ml-auto inline-flex min-h-11 shrink-0 items-center rounded border border-[var(--color-border)] px-3 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+            className="ml-auto inline-flex min-h-11 shrink-0 items-center rounded border border-[var(--color-border)] px-3 text-[11px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
             aria-pressed={isFlipped}
             onClick={(e) => {
               e.stopPropagation();
@@ -1246,7 +1246,7 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
         <ul className="mt-2 space-y-1 border-t border-[var(--color-border)] pt-1.5">
           {pins.map((pn) => (
             <li key={pn.id} className="text-[11px] leading-snug">
-              <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--color-subtle)]">{etTime(pn.at).slice(0, 5)}</span>
+              <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--color-subtle)]"><span aria-hidden>📌 </span>{etTime(pn.at).slice(0, 5)}</span>
               <span className="font-semibold" style={{ color: COLOR[pn.who as Character] ?? "var(--color-fg)" }}>
                 {pn.who}
               </span>{" "}
@@ -1363,7 +1363,7 @@ function DecisionStrip({
         </span>
       </div>
       <button type="button" onClick={onManager} className="flex min-h-11 min-w-0 items-center gap-2 text-left" title="Open the Manager's stand">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
         <span className="font-mono text-[11px] font-semibold text-[var(--color-fg)]">{managerState?.current ?? "—"}</span>
         <span className="min-w-0 truncate text-[11px] text-[var(--color-muted)]">
           {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
@@ -1622,6 +1622,39 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </p>
       )}
 
+      <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          {frame?.trace.meeting && (
+            <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-warn)]">MEETING · {frame.trace.meeting.title}</span>
+          )}
+          {frame && <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 font-mono text-[11px] text-[var(--color-fg)]">{frame.trace.beat}</span>}
+          {env && <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] text-[var(--color-muted)]">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
+        </div>
+        <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max flex-nowrap gap-1">
+          {CAMERAS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
+                // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
+                if (camera === c.id) sceneRef.current?.setCamera(c.id);
+                else setCamera(c.id);
+              }}
+              className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border px-2.5 text-[11px] ${camera === c.id ? "border-[var(--color-fg)] bg-[var(--color-fg)] text-[var(--color-bg)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-fg)]"}`}
+            >
+              {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
+              {c.label}
+            </button>
+          ))}
+          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 text-[11px] text-[var(--color-fg)]" aria-label="Full screen">
+            <Expand className="inline h-3 w-3" />
+          </button>
+          </div>
+        </div>
+      </div>
+
       <div ref={wrap} className="relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--floor-canvas)] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
         <FloorCanvas
           frame={frame}
@@ -1680,13 +1713,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             "Click Walk or press W to walk · V switches eyes · Esc to stop · the camera buttons leave the walk"
           )}
         </div>
-        <div className="pointer-events-none absolute left-2 top-14 flex max-w-[70%] flex-wrap gap-1 sm:top-2">
-          {frame?.trace.meeting && (
-            <span className="rounded bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-amber-300">MEETING · {frame.trace.meeting.title}</span>
-          )}
-          {frame && <span className="rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-slate-200">{frame.trace.beat}</span>}
-          {env && <span className="rounded bg-black/50 px-2 py-0.5 text-[11px] text-slate-400">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
-        </div>
         {(following || looking) && (
           <div className="absolute left-2 top-9 flex items-center gap-1 rounded bg-black/75 px-2 py-0.5 text-[11px] text-slate-100">
             <Footprints className="h-3 w-3" />
@@ -1701,7 +1727,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             )}
             <button
               type="button"
-              className="ml-1 inline-flex min-h-11 items-center gap-0.5 rounded border border-[var(--color-border)] px-2 text-[11px] text-[var(--color-fg)]"
+              className="ml-1 inline-flex min-h-11 items-center gap-0.5 rounded border border-[var(--color-border)] px-2 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-fg)]"
               onClick={() => {
                 sceneRef.current?.follow(null);
                 setLooking(null);
@@ -1713,29 +1739,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             </button>
           </div>
         )}
-        <div className="absolute right-2 top-2 z-10 max-w-[calc(100%-1rem)] overflow-x-auto max-sm:inset-x-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="ml-auto flex w-max flex-wrap justify-end gap-1 max-sm:flex-nowrap">
-          {CAMERAS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => {
-                // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
-                // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
-                if (camera === c.id) sceneRef.current?.setCamera(c.id);
-                else setCamera(c.id);
-              }}
-              className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded px-2.5 text-[11px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
-            >
-              {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
-              {c.label}
-            </button>
-          ))}
-          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded bg-black/60 px-2.5 text-[11px] text-slate-200" aria-label="Full screen">
-            <Expand className="inline h-3 w-3" />
-          </button>
-          </div>
-        </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
         <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (

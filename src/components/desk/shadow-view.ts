@@ -7,7 +7,6 @@
 import QV2CFG from "../../../shared/q-v2.json";
 import type { QV2 } from "@/lib/trading/q-v2";
 import type { Rule1Ticket } from "@/lib/trading/rule1";
-import { weekDayFor } from "@/lib/trading/week-ahead";
 
 const WINDOW_FROM = 510;
 const WINDOW_TO = 540;
@@ -38,9 +37,95 @@ export function ctParts(ms: number): { min: number; day: string; weekday: number
   };
 }
 
-/** Cash holiday on a day the week-ahead plan already marks. A day with no plan is not invented as one. */
+/**
+ * NYSE full-session close, which is the cash open the Rule 1 window sits on.
+ * Early closes (the day after Thanksgiving, Christmas Eve when it is not the
+ * observed Christmas) still open at 09:30 ET, so they are not in this set.
+ * Columbus Day and Veterans Day are not NYSE closes.
+ *
+ * Dates follow the published table at https://www.nyse.com/markets/hours-calendars
+ * (2026–2028, read 2026-10-16). Saturday New Year's is not observed (the 2028
+ * footnote). Other Saturday holidays move to Friday; Sunday holidays move to Monday.
+ * CME equity-index settlements match the full closes used here for Thanksgiving
+ * and Christmas (no settlement 2026-11-26 or 2026-12-25) and are normal on
+ * Columbus Day. Globex halt times are published about two weeks ahead
+ * (https://www.cmegroup.com/trading-hours.html) and are not copied here.
+ */
+const closeCache = new Map<number, Set<string>>();
+
+function ymd(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function nthWeekday(year: number, month: number, weekday: number, n: number): number {
+  const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  return 1 + ((weekday - first + 7) % 7) + (n - 1) * 7;
+}
+
+function lastWeekday(year: number, month: number, weekday: number): number {
+  const last = new Date(Date.UTC(year, month, 0));
+  return last.getUTCDate() - ((last.getUTCDay() - weekday + 7) % 7);
+}
+
+/** Gregorian Computus. Month is 3 or 4. */
+function easterSunday(year: number): { month: number; day: number } {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return { month, day };
+}
+
+function observedFixed(year: number, month: number, day: number, saturday: "friday" | "none"): string | null {
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  const wd = dt.getUTCDay();
+  if (wd === 6) {
+    if (saturday === "none") return null;
+    dt.setUTCDate(dt.getUTCDate() - 1);
+  } else if (wd === 0) dt.setUTCDate(dt.getUTCDate() + 1);
+  return ymd(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+}
+
+function closesFor(year: number): Set<string> {
+  const out = new Set<string>();
+  const add = (day: string | null) => {
+    if (day) out.add(day);
+  };
+  add(observedFixed(year, 1, 1, "none"));
+  out.add(ymd(year, 1, nthWeekday(year, 1, 1, 3)));
+  out.add(ymd(year, 2, nthWeekday(year, 2, 1, 3)));
+  const easter = easterSunday(year);
+  const goodFriday = new Date(Date.UTC(year, easter.month - 1, easter.day));
+  goodFriday.setUTCDate(goodFriday.getUTCDate() - 2);
+  out.add(ymd(goodFriday.getUTCFullYear(), goodFriday.getUTCMonth() + 1, goodFriday.getUTCDate()));
+  out.add(ymd(year, 5, lastWeekday(year, 5, 1)));
+  add(observedFixed(year, 6, 19, "friday"));
+  add(observedFixed(year, 7, 4, "friday"));
+  out.add(ymd(year, 9, nthWeekday(year, 9, 1, 1)));
+  out.add(ymd(year, 11, nthWeekday(year, 11, 4, 4)));
+  add(observedFixed(year, 12, 25, "friday"));
+  return out;
+}
+
 export function cashHoliday(day: string): boolean {
-  return weekDayFor(day)?.kind === "holiday";
+  const year = Number(day.slice(0, 4));
+  if (!Number.isInteger(year) || year < 1970) return false;
+  let set = closeCache.get(year);
+  if (!set) {
+    set = closesFor(year);
+    closeCache.set(year, set);
+  }
+  return set.has(day);
 }
 
 /** The next weekday after `day` that is not a cash holiday. That day's 08:30 CT is the next Rule 1 session open. */
