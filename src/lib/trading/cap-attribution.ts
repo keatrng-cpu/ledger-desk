@@ -5,7 +5,7 @@
  * q_scan is the scanner's q; q_raw is q immediately before the seal (sealBand) — both pre-seal.
  */
 import { bandFromQ } from "@/lib/smc/discipline";
-import { takeQSource } from "./q-source";
+import { takeQSource, takeQWhy } from "./q-source";
 
 export type CapReason = {
   stage: string; field: "pathBand" | "confluence"; kind: "cap" | "penalty" | "nudge";
@@ -34,12 +34,14 @@ export function trackCard<T extends Card>(c: T): T {
       get: () => v,
       set: (n) => {
         // A no-op write still consumes the label, so it can never leak onto the next real write.
-        if (n === v) { takeQSource(); return; }
+        if (n === v) { takeQSource(); takeQWhy(); return; }
         const bandBefore = bandOf(c);
         const old = v; v = n;
         const down = field === "confluence" ? Number(n) < Number(old) : rank(n) < rank(old);
         const source = takeQSource();
-        log.push({ stage, field, source, kind: down ? (field === "pathBand" ? "cap" : "penalty") : "nudge", before: old as never, after: n as never, bandBefore, bandAfter: bandOf(c), _ri: c.reasons.length });
+        const own = takeQWhy();
+        // A writer-supplied why wins; else the next reason line pushed after the write (_ri).
+        log.push({ stage, field, source, kind: down ? (field === "pathBand" ? "cap" : "penalty") : "nudge", before: old as never, after: n as never, bandBefore, bandAfter: bandOf(c), ...(own != null ? { why: own } : { _ri: c.reasons.length }) });
       },
     });
   }

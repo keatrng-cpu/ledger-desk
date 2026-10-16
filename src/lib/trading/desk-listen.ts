@@ -536,8 +536,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         q_raw: (c as { q_raw?: number }).q_raw ?? null,
         q_v2: (c as { q_v2?: unknown }).q_v2 ?? null,
         q_scan: (c as { q_scan?: number }).q_scan ?? null,
-        capReasons: ((c as { capReasons?: { stage: string; field: string; kind: string; before: unknown; after: unknown; bandBefore: string | null; bandAfter: string | null; why?: string | null }[] }).capReasons ?? [])
-          .filter((r) => r.kind !== "nudge").map(({ stage, field, kind, before, after, bandBefore, bandAfter, why }) => ({ stage, field, kind, before, after, bandBefore, bandAfter, why: why ?? null })),
+        capReasons: ((c as { capReasons?: { stage: string; field: string; kind: string; before: unknown; after: unknown; bandBefore: string | null; bandAfter: string | null; why?: string | null; source?: string | null }[] }).capReasons ?? [])
+          // fix/cap-why-attribution-1016: serve the writer's own label (source) too; it was dropped here.
+          .filter((r) => r.kind !== "nudge").map(({ stage, field, kind, before, after, bandBefore, bandAfter, why, source }) => ({ stage, field, kind, before, after, bandBefore, bandAfter, why: why ?? null, source: source ?? null })),
         actionable: c.actionable,
         strategy: c.completeStrategy || c.strategyPrimary || null,
         entry: c.entryPx ?? c.plan?.entry ?? null,
