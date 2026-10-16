@@ -1,0 +1,170 @@
+diff --git a/tests/test_rule1_lane.py b/tests/test_rule1_lane.py
+new file mode 100644
+index 0000000..1ff7fbb
+--- /dev/null
++++ b/tests/test_rule1_lane.py
+@@ -0,0 +1,52 @@
++import json
++from watcher import rule1_lane, fastchain
++
++TK = {"mode": "shadow", "symbol": "MNQ", "side": "long", "at": 1_000_000, "entry": 30758.0, "stop": 30590.72,
++      "lane": {"lane": "rule1", "wouldFire": True, "ageS": 2.9, "persistExempt": True, "live": False, "builtAt": 1_002_900}}
++
++
++def test_would_fire_once_with_latency_and_never_orders(tmp_path):
++    seen = set()
++    rows = rule1_lane.log(str(tmp_path), {"rule1": [TK], "at": "x"}, seen, 1_005_000)
++    r = rows[0]
++    assert r["would_fire"] and r["broker"] is False and r["orders"] == 0 and r["live"] is False
++    assert r["latency_s"] == 5.0 and r["card_build_s"] == 2.9 and r["watcher_recv_s"] == 2.1
++    assert r["legacy_min_latency_s"] == 5.0 + fastchain.PERSIST_HOLD_S and r["legacy_observed_latency_s"] == 101.0
++    assert rule1_lane.log(str(tmp_path), {"rule1": [TK]}, seen, 1_006_000) == []
++    assert len(open(tmp_path / rule1_lane.FILE).read().splitlines()) == 1
++
++
++def test_stale_stop_and_non_shadow(tmp_path):
++    assert rule1_lane.log(str(tmp_path), {"rule1": [TK]}, set(), 1_000_000 + 301_000)[0]["would_fire"] is False
++    assert rule1_lane.log(str(tmp_path), {"rule1": [TK]}, set(), 1_005_000, stop_file=True)[0]["why"] == "STOP file"
++    assert rule1_lane.log(str(tmp_path), {"rule1": [dict(TK, mode="live")]}, set()) == []
++    assert rule1_lane.log(str(tmp_path), {}, set()) == []
++
++
++def test_restart_dedupe(tmp_path):
++    now = 1792076400000
++    tk = dict(TK, at=now - 5000)
++    rule1_lane.log(str(tmp_path), {"rule1": [tk]}, set(), now)
++    assert (tk["symbol"], tk["side"], tk["at"]) in rule1_lane.load_seen(str(tmp_path), now)
++    assert rule1_lane.load_seen(str(tmp_path), now + 86_400_000) == set()
++
++
++def test_no_order_code_imported():
++    src = open(rule1_lane.__file__).read().split('"""')[2]
++    for bad in ("broker.", "import broker", "optexec", "place_", "fire("):
++        assert bad not in src
++
++
++def test_daemon_logs_lane_without_touching_gates(tmp_path, monkeypatch):
++    from watcher import daemon
++    calls = []
++    class D: pass
++    d = D(); d.cfg = type("C", (), {"path": lambda self, x: str(tmp_path / x) if x else str(tmp_path)})()
++    d.log = lambda ev, **k: calls.append(ev); d.stopped = lambda: False
++    daemon.Watcher._rule1_shadow(d, {"rule1": [TK]}, 1_005_000)
++    assert "rule1_lane_would_fire" in calls and "rule1_would_fire" in calls
++
++
++def test_reads_wire_rule1_like_the_live_card(tmp_path):
++    rows = rule1_lane.log(str(tmp_path), {"at": "x", "wire": {"rule1": [TK]}}, set(), 1_005_000)
++    assert len(rows) == 1 and rows[0]["would_fire"]
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 96af02c..0ec1ac7 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -485,6 +485,15 @@ class Watcher:
+                 self.log("rule1_would_fire", **{k: r[k] for k in ("symbol", "side", "entry", "stop", "target", "strike", "contracts")})
+         except Exception as e:
+             self.log("rule1_shadow_error", error=str(e))
++        try:   # Rule 1 shadow fire lane (ledger-desk shared/rule1-lane.json): would-fire + latency only, no order, no gate
++            from . import rule1_lane
++            ls = self.__dict__.get("_r1_lane_seen")
++            if ls is None:
++                ls = self._r1_lane_seen = rule1_lane.load_seen(self.cfg.path(""), now)
++            for r in rule1_lane.log(self.cfg.path(""), card, ls, now, self.stopped()):
++                self.log("rule1_lane_would_fire", **{k: r[k] for k in ("symbol", "side", "would_fire", "latency_s", "legacy_min_latency_s")})
++        except Exception as e:
++            self.log("rule1_lane_error", error=str(e))
+ 
+     def _gate_log(self, key, snap, g, dayst, broker=False):
+         from . import hygiene
+diff --git a/watcher/rule1_lane.py b/watcher/rule1_lane.py
+new file mode 100644
+index 0000000..d361983
+--- /dev/null
++++ b/watcher/rule1_lane.py
+@@ -0,0 +1,86 @@
++"""Rule 1 SHADOW fire lane for desk-watcher (ledger-desk shared/rule1-lane.json, audits/overnight-1016 #2).
++
++Rule 1 tickets are closed-5m-bar signals, so their lane is exempt from fast:persist. On the first poll that sees a
++ticket this module logs when the lane WOULD fire and with what latency (bar close -> watcher decision), next to the
++legacy path's lower bound (latency + fast:persist hold) and the 96 s the one live fire actually spent in persist.
++It never imports the order code, never places or stages an order, and changes no gate, firing or the rules hash.
++One row per (day, symbol, side, at); the dedupe survives a restart (load_seen re-reads today's CT rows).
++"""
++import json, os, time
++from datetime import datetime
++from zoneinfo import ZoneInfo
++
++CT = ZoneInfo("America/Chicago")
++FILE = "rule1_lane_shadow.jsonl"
++KIND = "rule1_lane_would_fire"
++OBSERVED_LIVE_PERSIST_S = 96   # 10/15 ES long: first seen 13:00:26, gates passed 13:02:02
++
++
++def _hold_s():
++    try:
++        from . import fastchain
++        return float(fastchain.PERSIST_HOLD_S)
++    except Exception:
++        return 20.0
++
++
++def rows_from_feed(card, seen, now_ms=None, stop_file=False):
++    now_ms = now_ms or int(time.time() * 1000)
++    out = []
++    hold = _hold_s()
++    card_at = (card or {}).get("at")
++    c = card if isinstance(card, dict) else {}
++    w = c.get("wire") if isinstance(c.get("wire"), dict) else {}
++    for tk in c.get("rule1") or w.get("rule1") or []:   # live card: wire.rule1
++        if not isinstance(tk, dict) or tk.get("mode") != "shadow" or not isinstance(tk.get("at"), (int, float)):
++            continue
++        k = (tk.get("symbol"), tk.get("side"), tk.get("at"))
++        if k in seen:
++            continue
++        seen.add(k)
++        ln = tk.get("lane") if isinstance(tk.get("lane"), dict) else {}
++        lat = round((now_ms - tk["at"]) / 1000, 1)
++        max_age = 300
++        closed = tk["at"] <= now_ms
++        would = closed and lat <= max_age and not stop_file
++        built = ln.get("builtAt")
++        out.append({
++            "ts": now_ms, "kind": KIND, "broker": False, "orders": 0, "live": False,
++            "symbol": tk.get("symbol"), "side": tk.get("side"), "at": tk.get("at"), "entry": tk.get("entry"), "stop": tk.get("stop"),
++            "would_fire": would, "why": "persist exempt; closed 5m bar" if would else ("STOP file" if stop_file else ("bar not closed" if not closed else f"stale {lat}s")),
++            "latency_s": lat,                                                   # bar close -> lane decision (this poll)
++            "card_build_s": round((built - tk["at"]) / 1000, 1) if isinstance(built, (int, float)) else None,
++            "watcher_recv_s": round((now_ms - built) / 1000, 1) if isinstance(built, (int, float)) else None,
++            "card_at": card_at,
++            "legacy_min_latency_s": round(lat + hold, 1),                       # same poll + fast:persist hold (lower bound)
++            "legacy_observed_latency_s": round(lat + OBSERVED_LIVE_PERSIST_S, 1),
++            "saved_s_vs_hold": hold, "saved_s_vs_observed": OBSERVED_LIVE_PERSIST_S,
++            "desk_lane": {k2: ln.get(k2) for k2 in ("wouldFire", "ageS", "persistExempt", "live")} if ln else None,
++        })
++    return out
++
++
++def log(path_dir, card, seen, now_ms=None, stop_file=False):
++    rows = rows_from_feed(card, seen, now_ms, stop_file)
++    if rows:
++        with open(os.path.join(path_dir, FILE), "a") as f:
++            for r in rows:
++                f.write(json.dumps(r) + "\n")
++    return rows
++
++
++def load_seen(path_dir, now_ms=None):
++    seen = set()
++    today = datetime.fromtimestamp((now_ms or int(time.time() * 1000)) / 1000, CT).date()
++    try:
++        with open(os.path.join(path_dir, FILE), encoding="utf-8", errors="replace") as f:
++            for line in f:
++                try:
++                    r = json.loads(line)
++                except ValueError:
++                    continue
++                if isinstance(r, dict) and r.get("kind") == KIND and isinstance(r.get("ts"), (int, float)) and datetime.fromtimestamp(r["ts"] / 1000, CT).date() == today:
++                    seen.add((r.get("symbol"), r.get("side"), r.get("at")))
++    except (OSError, ValueError):
++        pass
++    return seen

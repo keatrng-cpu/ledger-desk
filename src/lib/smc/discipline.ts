@@ -12,6 +12,7 @@
  *   R7 chop                  → band ≤ B+ (median 15m overlap > 60% or 8-bar range < 3×ATR15)
  *   R8 rejection wick        → ±0.01 q at a key level (wick ≥ 60% of range, close in the other half)
  */
+import { chaseEntry } from "@/lib/smc/fix1016";
 import RULES from "../../../shared/desk-rules.json";
 import type { OhlcBar } from "@/lib/market/types";
 import { rollingAtr } from "@/lib/trading/detectors";
@@ -159,9 +160,10 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
   }
   // evFire.qRawOnce (grade-audit-1015 fix 3): q before R3 chase and before any seal, recorded once.
   if ((c as { qRaw0?: number }).qRaw0 == null) (c as { qRaw0?: number }).qRaw0 = q;
-  // R3
-  if (entry != null && Number.isFinite(entry) && ctx.price != null && atr != null && atr > 0) {
-    const past = c.side === "long" ? ctx.price - entry : entry - ctx.price;
+  // R3 — fix1016 #5: chaseFromAnchor live measures from the re-anchored entry (shadow: the card's entry, as before).
+  const chaseFromE = chaseEntry(c as never) ?? entry;
+  if (chaseFromE != null && Number.isFinite(chaseFromE) && ctx.price != null && atr != null && atr > 0) {
+    const past = c.side === "long" ? ctx.price - chaseFromE : chaseFromE - ctx.price;
     const d = Math.max(0, past) / atr;
     if (d > 0) {
       const steps = Math.floor(d / CHASE_STEP_ATR);

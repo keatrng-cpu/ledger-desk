@@ -181,7 +181,7 @@ test("route refuses shadow / dry-run and requires the watcher token", () => {
   assert.match(src, /watcherFillsAuthorized\(/); assert.match(src, /WatcherFillRefused\) return jsonResponse\(.*, 422\)/); assert.match(src, /shadow \|\| p\.data\.dryRun/);
 });
 
-test("desk-rules hash unchanged", () => assert.equal(h.RULES_HASH, "178851ff55b729bc"));
+test("desk-rules hash unchanged", () => assert.equal(h.RULES_HASH, "00abb519533e1350"));
 
 test("backfill builds placed/filled/exit for sig-85e8feddd99efe46 that the endpoint schema accepts", async () => {
   const b = await import("./backfill/fill-sig-85e8feddd99efe46.mts");

@@ -1,4 +1,5 @@
 import { stopText, ticketMatchesCard, dteFitsPlan, tapeStale } from "@/lib/smc/deep-audit";
+import { cardLatency } from "@/lib/desk/push-shadow";
 import { floorDteRead } from "@/lib/smc/smc-unity";
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
 import { EVF, evCard, on as evOn } from "@/lib/desk/ev-fire";
@@ -121,6 +122,8 @@ export interface DeskWire {
   deskSeq?: DeskSeqWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
+  /** Push-path SHADOW timing (shared/push-shadow.json): last 1m bar close, build time, build latency. Logged by the watcher; never gates. */
+  latency?: import("@/lib/desk/push-shadow").CardLatency | null;
   /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
   rule1: import("./rule1").Rule1Ticket[];
   strategy: {
@@ -152,6 +155,8 @@ export interface DeskWire {
     ltfKillCleared: boolean;
     /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
     entryState: unknown;
+    /** fix1016 (post-mortem 10/16): per-item reads (re-anchor, chase-from-anchor, ltfPromote, score5, runner) + modes. Shadow = no effect. */
+    fix1016?: unknown;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -218,6 +223,8 @@ export interface DeskWire {
     htfReleased: boolean;
     /** kzDisp item 49: Kill Zone seat note in the brain context (shadow: a note, never a vote). */
     kzSeat?: string;
+    /** fix1016: the brain reads the same post-mortem line as the Floor (note only, never moves the word). */
+    fix1016Seat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -232,6 +239,8 @@ export interface DeskWire {
     ev?: string | null;
     /** kzDisp item 49: Floor "Kill Zone" seat line (shadow note, never a vote). */
     kzSeat?: string;
+    /** fix1016: Floor seat line for the post-mortem items (re-anchor / score5 / runner / ltfPromote) — a note, never a vote. */
+    fix1016Seat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -305,6 +314,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
+    latency: cardLatency(Date.parse(desk.fetchedAt) || Date.now()),   // push shadow (overnight-1016 #3)
     ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
@@ -363,6 +373,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           qV2: ((top as { q_v2?: unknown }).q_v2 as never) ?? null,
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
+          fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -402,6 +413,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : null,
     brain: {
       kzSeat: kzSeatNote(),
+      fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -434,6 +446,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     floor: {
       verdict,
       kzSeat: kzSeatNote(),
+      fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -665,4 +678,16 @@ export function ticketCheck(
   // A missing live ask is FLAGGED, not blocked: the watcher prices ARMED tickets on the RH chain (handTo "watcher").
   const flagsWhy = liveAskMissing ? [...why, "no live ask — model price only (watcher must price on the chain)"] : why;
   return { handable: why.length === 0, contradicts: !m.ok, blocks: why, flags: { sideOk: m.ok, dteOk, dteWant: want, liveAskMissing, contractsZero, why: flagsWhy } };
+}
+
+/** fix1016: one Floor line from the top card's fix1016 read. Shadow items are labelled "would"; never a vote. */
+export function fix1016SeatNote(f: unknown): string | null {
+  const x = f as { reanchor?: { trigger?: string | null; to?: { entry: number; src: string } | null; applied?: boolean; mode?: string }; score5?: { total: number; old: number; mode: string }; runner?: { runnerTarget: number | null; mode: string } | null; ltfPromote?: { deskOk?: boolean; mode?: string; promoted?: boolean } } | null | undefined;
+  if (!x || typeof x !== "object") return null;
+  const parts: string[] = [];
+  if (x.reanchor?.trigger) parts.push(`${x.reanchor.applied ? "re-anchored" : "would re-anchor"} → ${x.reanchor.to ? `${x.reanchor.to.src} ${x.reanchor.to.entry}` : "dead plan released"}`);
+  if (x.score5) parts.push(`score5 ${x.score5.total} vs q ${x.score5.old}${x.score5.mode === "live" ? " (live)" : " (shadow)"}`);
+  if (x.ltfPromote?.deskOk) parts.push(`LTF arm ${x.ltfPromote.promoted ? "promoted" : "would promote"} (needs Brain TAKE)`);
+  if (x.runner?.runnerTarget != null) parts.push(`runner → ${x.runner.runnerTarget}${x.runner.mode === "live" ? "" : " (shadow)"}`);
+  return parts.length ? `Post-mortem 10/16: ${parts.join(" · ")}` : null;
 }

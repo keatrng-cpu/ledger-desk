@@ -1076,5 +1076,74 @@
     "mode": "shadow",
     "margin": 0.03,
     "polls": 3
+  },
+  "fix1016": {
+    "_doc": "Short post-mortem 2026-10-16 (audits/1016-short-postmortem.md 'Exhaustive gate trace'), Keaton-approved 10 fixes. Every STRATEGY item ships mode shadow: computed on the card as card.fix1016 (wire strategy.fix1016) and logged by the watcher as shadow:fix1016:<item> rows; it never moves q, band, entry, plan, brain word, Floor verdict or a fire until a backtest survivor sets mode live and its parameters here. Only watcherWindow is live-capable now (no strategy change: the watcher polls from fastStartEt; the market_open gate refuses every fire before fireNotBeforeEt).",
+    "reanchor": {
+      "mode": "shadow",
+      "atrMult": 1.0,
+      "onInvalidated": true,
+      "replaceDeadPlan": true,
+      "maxAgeMin": 45,
+      "_doc": "Fix 1: |px-entry| > atrMult x ATR15, or the plan invalidated (price through its stop), re-anchors entry/stop/T1 to the NEWEST same-side post-sweep array (LTF arm, iFVG flip, AMD plan, newest unfilled 1m-5m gap) and lets fix33/fix34/flip writers replace the dead plan (build-desk first-plan-wins). live = writes; shadow = card.fix1016.reanchor only."
+    },
+    "amdRetest": {
+      "mode": "shadow",
+      "maxPerSide": 2,
+      "zone": "gap",
+      "tfs": [
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h"
+      ],
+      "closeBackThroughCe": true,
+      "_doc": "Fix 2: after a setup closed, a lower high (short) / higher low (long) that wicks into a live same-direction gap (zone) and closes back through its CE re-arms MANIP without a new extreme (amd-state new-extreme rule). zone gap = the wick trades into the gap (the HTF bear gap is the premium array, post-mortem fix 5); zone gapHalf = only its premium/discount half (stricter). tfs include 5m because the 10-16 09:48 CT tap was the 5m bear FVG 29940-29962.5; gaps = frozen premarket map + gaps printed this session on closed bars. Capped maxPerSide retests per side per session. shadow = read.retestShadow rows only."
+    },
+    "ltfPromote": {
+      "mode": "shadow",
+      "minBand": "B+",
+      "requireBrainTake": true,
+      "requireHtfAgree": true,
+      "_doc": "Fix 3: an ltfArm (shadow) setup is promoted to the live plan only when band >= minBand, 1h/4h agree with the side, and (watcher) Brain says TAKE on the same symbol+side. shadow = card.fix1016.ltfPromote + watcher shadow:fix1016:ltf_promote would-fire."
+    },
+    "score5": {
+      "mode": "shadow",
+      "weights": {
+        "htf": 0.25,
+        "liquidity": 0.2,
+        "displacement": 0.2,
+        "entry": 0.2,
+        "risk": 0.15
+      },
+      "minRr": 1.5,
+      "goodRr": 3.0,
+      "chaseAtrZero": 2.0,
+      "_doc": "Fix 4: five top layers (HTF context/bias+PD; liquidity event; displacement/structure; entry array; risk/target) with sub-factors, weights sum 1. The old q is kept and compared on every card (card.fix1016.score5.old). live = the new score replaces q before the seal."
+    },
+    "chaseFromAnchor": {
+      "mode": "shadow",
+      "_doc": "Fix 5: R3 chase/late-entry distance measured from the current (re-anchored) entry. shadow = card.fix1016.chase only."
+    },
+    "watcherWindow": {
+      "fastStartEt": "09:25",
+      "fireNotBeforeEt": "09:30",
+      "_doc": "Fix 6: watcher fast window opens at fastStartEt (polls, logs, persistence warm-up); the market_open hard gate refuses every fire before fireNotBeforeEt (options open). Not a strategy change."
+    },
+    "reviewQuoteRetry": {
+      "mode": "shadow",
+      "rounds": 2,
+      "roundDelayMs": 400,
+      "maxTotalMs": 2500,
+      "_doc": "Fix 7: after the v5 refetch tries still read a stale quote at order_review_quote, refetch for up to rounds more rounds (bounded by maxTotalMs) and proceed only if a fresh quote passes and the chase check passes. shadow = the extra reads run and log would-pass, the fire is still refused."
+    },
+    "runner": {
+      "mode": "shadow",
+      "t1PartialFrac": 0.5,
+      "beAfterT1": true,
+      "minRunnerR": 2.0,
+      "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
+    }
   }
 }

@@ -195,3 +195,28 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **Parity:** desk `src/lib/execution/bplus-brain.ts` (`bplusBrainGate`), used by options-desk `gateHand` (card → WATCH with a "B+ needs Brain TAKE: …" reason line); Brain note (meeting.ts Sterling) and Floor text (floor-cues stamp BRAIN for `bplus_brain_agree`, live-voices) say B+ is not fireable without it. Watcher: `Watcher._bplus_brain_ok` (refusal `bplus_brain_agree`), patches v2–v5 in /workspace/wfix; rules copy at docs/bplus-brain-1016/watcher-rules.patch. Deploy desk + watcher paired (hash).
 - **Watcher:** v5 patch (/workspace/wfix/order-review-quote-refetch-v5-bplus-brain.patch) hard-codes BPLUS_Q_MIN=0.60 and 1/day; docs/bplus-brain-1016/watcher-v5-followup.patch reads them from `fire.bplusBrainTake.hard` and moves the hash pin. Hard list also covers brain override (BRAIN_SOFT/BRAIN_OVERRIDE) and WOULD-block rows (09:45 Release Watch).
 - **Known gaps:** The desk has no `bplus_caution` gate (watcher-only); the desk checks it only when the result is supplied. Desk q and band are the gated card's own (`card.score`, `card.pathBand`), not the top scan candidate (fixed after Accuracy NO-GO). The desk `gateHand` never passes `nearMissPromoted`, so near-miss-promoted cards are caught only by the watcher. The desk has no day ledger yet (`bplusDay` unset ⇒ day limits enforced by the watcher only).
+
+### 2026-10-16 — SHADOW PR #37: Rule 1 Δ0.7 0DTE ticket (overnight-1016 #1)
+- **Status:** PROPOSED · **Decided by:** Keaton (approved shadow build 2026-10-16, chat) · **Source:** `audits/overnight-1016/report.md` item 1 / Top-10 #1 (line 156); validation in `docs/shadow-1016/d70/`
+- **Decision:** Shadow-only. Desk computes `wire.rule1[].ticketD70` (Δ0.7 0DTE next to the current ticket and ATM). Brain/Floor show a narrative line; watcher patch logs `d70`/`atm` with `d70_live:false`. **No live sizing, staging, or orders.** `shared/desk-rules.json` untouched; **RULES_HASH stays `a4bfcb65c88badcd`**. Config lives in `shared/rule1-d70.json`.
+- **Accuracy Review fixes (this entry):** (1) `_doc` matches validation — d0.7 beats ATM only under the study's cost model (+$42.7/trade paired, t 6.10, n 716; both negative −$40.9 vs −$116.1/wk); under the desk model both are positive (+$35.6 vs +$42.8/wk), d0.7 −$4.1/trade vs ATM (t −0.55). (2) README/PR body no longer imply both lose money unconditionally. (3) Over $650: validation counted no-trade; overnight line 156 steps down Δ0.6→ATM — shadow ticket logic now steps down (shadow only), with a test.
+- **Why:** overnight-1016 ticket change; the Δ0.7-over-ATM ordering replicates only under the study cost model (not the desk model). Kept off the live path until a later promote decision.
+- **File scope:** does not overlap lane (#38) or push (#39) feature files.
+
+### 2026-10-16 — SHADOW PR #38: Rule 1 persist-exempt fire lane (overnight-1016 #2)
+- **Status:** PROPOSED · **Decided by:** Dual Desk / overnight-1016 build queue · **Source:** `audits/overnight-1016/report.md` items 2–3 (fire lane + latency c); validation in `docs/shadow-1016/lane/`
+- **Decision:** Shadow-only. Desk stamps `wire.rule1[].lane = {lane:"rule1", mode:"shadow", live:false, persistExempt, … wouldFire}`. Watcher patch logs would-fire + latency to `rule1_lane_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Nothing fires.** Live fast chain, gates, and RH order path unchanged. Config in `shared/rule1-lane.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
+- **Why:** Measure the persist-exemption latency benefit (~+0.015R/trade on the desk Rule 1 set) without arming a live lane.
+- **File scope:** does not overlap Δ0.7 (#37) or push (#39) feature files.
+
+### 2026-10-16 — SHADOW PR #39: push path card-stream + latency logging (overnight-1016 #3)
+- **Status:** PROPOSED · **Decided by:** Dual Desk / overnight-1016 build queue · **Source:** `audits/overnight-1016/report.md` latency (a)+(b); validation in `docs/shadow-1016/push/`
+- **Decision:** Shadow-only. `GET /api/desk/card-stream` SSE is off unless `DESK_PUSH_SHADOW=1` (404 otherwise). `wire.latency` is stamped on every card. Watcher patch logs push/poll latency to `push_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Never feeds gates or firing.** Config in `shared/push-shadow.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
+- **Why:** Measure bar-close→decision latency (poll vs modelled push) without changing the live decision path; R gain from push alone is under 0.001R/trade.
+- **File scope:** does not overlap Δ0.7 (#37) or lane (#38) feature files.
+## 2026-10-16 — fix1016: short post-mortem fixes 1–8 + exit-safety rev2 (Grok Bot)
+Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy item ships mode shadow in the new
+`fix1016` rules block (RULES_HASH a4bfcb65c88badcd → 9eeed9b4083700cb; no existing key changed) so the running backtests
+set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
+live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
+was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).

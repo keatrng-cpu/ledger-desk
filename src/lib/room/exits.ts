@@ -178,3 +178,6 @@ export function pickExit(
   plans.sort((a, b) => EXIT_RANK[a.reason] - EXIT_RANK[b.reason] || a.position.pnl_percent - b.position.pnl_percent);
   return plans[0] ?? null;
 }
+
+// Floor/brain display: exit-safety status line (one unit with watcher exitsafe.py; notes only).
+export { exitSafetyNote, preflightExitPath } from "../execution/exit-safety";
