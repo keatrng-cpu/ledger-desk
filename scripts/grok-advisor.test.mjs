@@ -92,6 +92,9 @@ test("end to end (mock xAI): kick → parsed WRONGLY_BLOCKED row → routed; fir
   assert.equal(ret, undefined);
   await new Promise((r) => setTimeout(r, 10)); await A.drainAdvisor();
   const s = A.advisorSnapshot(); assert.ok(s.length >= 1); assert.equal(s[0].blocker, "POI in correct half"); assert.equal(s[0].mode, "shadow");
+  assert.equal(A.gradeRing([book("MNQ", now)], now), 0, "no bars after the decision yet → nothing graded");
+  const later = at(14, 15, 5); const n = A.gradeRing([book("MNQ", later)], later);
+  assert.ok(n >= 1); assert.ok(["TARGET", "STOP", "EOD", "NOFILL"].includes(A.advisorSnapshot()[0].grade.outcome));
 });
 
 test("grading: closed bars after decision; same-bar stop wins; NOFILL if the setup leaves first; tallies + promotion gate", () => {

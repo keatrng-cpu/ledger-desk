@@ -15,6 +15,7 @@ import { GATE_SECTIONS } from "./knowledge";
 import { callXai, estCostUsd, reserveBudget, settleBudget, resample, mtfSummary, missedScan, bandAtLeast, type Bar, type BookInput, type CardLite, type ArrayLite } from "./reader";
 import type { BrainView } from "./suggest";
 import { newsTag, type XPulse } from "./xpulse";
+import { gradeAdvice, type Graded } from "./grade";
 
 type Env = Record<string, string | undefined>;
 type Fetch = typeof fetch;
@@ -148,6 +149,8 @@ export type AdviceRow = Advice & {
   id: string; at: number; readAt: number; promptVersion: string; mode: "shadow"; cardId: string | null;
   desk: { grade: string | null; q: number | null; actionable: boolean; blockers: string[] } | null;
   brain: string | null; news: ReturnType<typeof newsTag>; costUsd: number;
+  /** Scoring harness result on closed bars seen so far (grade.ts); final once TARGET/STOP/NOFILL or the session closed. */
+  grade?: Graded;
 };
 export const SINKS = ["trading-stand", "smc-data-analysis"] as const;
 export function inboxNote(r: AdviceRow): string {
@@ -180,6 +183,18 @@ const seen = new Set<string>(); const ring: AdviceRow[] = []; const pending = ne
 export const advisorSnapshot = () => ring.map((r) => ({ ...r }));
 export async function drainAdvisor() { while (pending.size) await Promise.allSettled([...pending]); }
 export function resetAdvisor() { seen.clear(); ring.length = 0; }
+/** Grade the ring's open rows on CLOSED bars up to nowMs only (no lookahead). Final outcomes are frozen and logged once. */
+export function gradeRing(books: BookInput[], nowMs: number): number {
+  let n = 0;
+  for (const r of ring) {
+    if (r.type === "AGREE" || (r.grade && r.grade.outcome !== "EOD")) continue;
+    const bars = books.find((b) => b.symbol === r.symbol)?.minute.filter((b) => b.t + 60_000 <= nowMs) ?? [];
+    const g = gradeAdvice(r, bars);
+    const final = g.outcome === "TARGET" || g.outcome === "STOP" || g.outcome === "NOFILL" ? g.outcome !== "NOFILL" || nowMs - r.at >= ACFG.grading.fillWindowMin * 60_000 : ctMin(nowMs) >= ACFG.grading.sessionEndCt || ctDay(nowMs) !== ctDay(r.at);
+    if (final && g.outcome !== "NODATA") { r.grade = g; n++; log({ tag: "grok-advice-graded", id: r.id, type: r.type, reasonCode: r.reasonCode, blocker: r.blocker, outcome: g.outcome, r: g.r }); }
+  }
+  return n;
+}
 export type AdvisorJob = AdvisorCtx & { key: string };
 /** Pure planning: one job per (card id, grade, blocker set) for sub-B+/blocked cards, and per missed-scan flag with no card. */
 export function planAdvisorJobs(inp: { cards: CardLite[]; books: BookInput[]; nowMs: number; brain: BrainView | null }): AdvisorJob[] {
@@ -207,6 +222,7 @@ export function kickGrokAdvisor(inp: { cards: CardLite[]; books: BookInput[]; no
     setTimeout(() => {
       const p = (async () => {
         const books = inp.arraysOf ? inp.books.map((b) => ({ ...b, arrays: b.arrays ?? inp.arraysOf!(b) })) : inp.books;
+        try { gradeRing(inp.books, inp.nowMs); } catch { /* shadow */ }
         for (const j of planAdvisorJobs({ ...inp, books })) {
           seen.add(j.key);
           const prompt = advisorPrompt(j); const est = estCostUsd(Math.ceil((ADVISOR_PACK.length + prompt.length) / 4), ACFG.maxOutputTokens);
