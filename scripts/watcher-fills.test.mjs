@@ -1,5 +1,5 @@
 // /api/desk/fills core: idempotent room_orders by signal, desk_trades via recordRealFillFor/closeTradeFor, card signal stamp.
-import { test } from "node:test";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { register } from "tsx/esm/api";
@@ -12,15 +12,19 @@ const base = { signal: "sig-85e8feddd99efe46", orderId: "6ad1151c-8bc9-4446-a02f
 
 // Real PGLite with every migration applied, and the REAL journal bodies (recordRealFillFor / closeTradeFor /
 // computeLiveRiskState): the SQL under test is the SQL that ships.
-const j = await import("../src/lib/journal/server.ts");
+// journal/server-core.ts, NOT journal/server.ts: the core has no `@/lib/db` value import, so db.ts (whose import starts
+// the PGLite bootstrap and its import.meta.glob migrate) is never loaded here. Asserted below.
+const j = await import("../src/lib/journal/server-core.ts");
 const ws = await import("../src/lib/desk/watcher-status.ts");
 const { PGlite } = await import("@electric-sql/pglite");
 const { readdirSync } = await import("node:fs");
 const MIGS = readdirSync("migrations").filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(`migrations/${f}`, "utf8"));
 const FILL_ID = "6ad1151c-8bc9-4446-a02f-9223be78a8f9", EXIT_ID = "6ad115c6-72e9-4303-ad11-ab83fd3726ba";
 
+const opened = [];
+after(async () => { await Promise.all(opened.splice(0).map((pg) => pg.close())); });
 async function realDb() {
-  const pg = new PGlite();
+  const pg = new PGlite(); opened.push(pg);
   for (const m of MIGS) await pg.exec(m);
   const norm = (r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "bigint" ? Number(v) : v]));
   const run = async (text, params = []) => (await pg.query(text, params)).rows.map(norm);
@@ -37,6 +41,13 @@ const FILLED = { event: "filled", fillPx: 2.96 };
 const EXIT = { event: "exit", orderId: EXIT_ID, exitPx: 2.6, exitUnderlierPx: 7775, optionPnl: -36, reason: "ticket stop 7775.0 hit" };
 const trades = (db) => db.run(`select id, status, entry, stop, exit, pnl, commission, r, exit_reason, reason, why from desk_trades where user_id = 'u1' order by opened_at`);
 const order = async (db) => (await db.run(`select * from room_orders where user_id = 'u1' and client_order_id = $1`, [base.signal]))[0];
+
+test("the fill path never loads db.ts (no PGLite bootstrap / import.meta.glob in tests)", () => {
+  assert.equal(globalThis.__pgBootstrapPromise__, undefined);
+  assert.equal(globalThis.__pgliteInstance__, undefined);
+  for (const f of ["src/lib/desk/watcher-fills.ts", "src/lib/journal/server-core.ts", "src/lib/journal/fill-schemas.ts", "src/lib/journal/attest-server.ts"])
+    assert.doesNotMatch(readFileSync(f, "utf8"), /^import\s+\{[^}]*\bgetSql\b|^import\s+(?!type)[^;]*from\s+"@\/lib\/db"/m, f);
+});
 
 test("order status only moves forward", () => {
   assert.equal(w.nextOrderStatus(null, "placed"), "placed");
