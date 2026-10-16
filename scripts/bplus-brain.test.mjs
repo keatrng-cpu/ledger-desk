@@ -59,3 +59,23 @@ test("09:48 day limits: 1 B+-sized entry/day, none after a loss, unknown fails c
   assert.equal(g.bplusBrainGate({ ...ok, band: "A-", htfCapped: true, bplusEntriesToday: 1, lostToday: false }).fireable, false);
   assert.equal(g.bplusBrainGate({ ...ok, band: "A", bplusEntriesToday: 3, lostToday: true }).fireable, true);
 });
+test("gateHand uses the gated card's own q (two PATH cards: NQ top row + ES)", async () => {
+  const d = await import("../src/lib/trading/options-desk.ts");
+  const tk = (underlier) => ({ underlier, side: "call", product: "single", dteMin: 0, dteMax: 0, dteTarget: 0, deltaMin: 0.4, deltaMax: 0.6, strikeNote: "", contracts: 1, estDebitEach: 300, estDebitTotal: 300, maxLoss: 300 });
+  const card = (underlier, score) => ({ id: "path", name: "PATH", horizon: "day", whyHighProb: "", verdict: "ARMED", score, reasons: [], blocks: [], ticket: tk(underlier), proxy: underlier, pathBand: "B+" });
+  const desk = (topQ) => ({
+    scan: { candidates: [
+      { symbol: "MNQ", side: "long", confluence: topQ, pathBand: "B+", entryPx: 1 },
+      { symbol: "MES", side: "long", confluence: 0.55, pathBand: "B+", entryPx: 1 },
+    ] },
+    smcMaster: { oneBook: { symbol: "MES", side: "long", word: "TAKE" } },
+  });
+  const isBq = (c) => (c.holds ?? []).some((h) => /^B\+ needs Brain TAKE.*fit q/.test(h));
+  // NQ top row q 0.65, ES card q 0.55 -> ES goes WATCH on its own q.
+  const es = d.gateHand(desk(0.65), card("SPY", 0.55));
+  assert.equal(es.verdict, "WATCH"); assert.ok(isBq(es), JSON.stringify(es.holds));
+  assert.match(es.holds[0], /fit q 0\.55/);
+  // Card q 0.62 under a top row < 0.60 -> no B+ q hold.
+  const ok = d.gateHand(desk(0.5), card("SPY", 0.62));
+  assert.ok(!isBq(ok), JSON.stringify(ok.holds));
+});

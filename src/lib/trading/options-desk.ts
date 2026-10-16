@@ -2319,14 +2319,15 @@ export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCar
     const t = card.ticket;
     const bk = desk.smcMaster?.oneBook as { symbol?: string; side?: string; word?: unknown } | undefined;
     const g = bplusBrainGate({
-      band: card.pathBand ?? deskTopBand(desk),
+      // The gated card's own band and q (Accuracy NO-GO 2026-10-16): ES and NQ PATH cards can coexist, so never the top scan row.
+      band: card.pathBand,
       htfCapped: holds.some((h) => gateHandCutTrigger(h) === "htf_against"),
       symbol: t.underlier,
       side: t.side === "call" ? "long" : "short",
       brainWord: bk?.word == null ? null : String(bk.word),
       brainSymbol: bk?.symbol ?? null,
       brainSide: bk?.side ?? null,
-      q: desk.scan?.candidates?.[0]?.confluence ?? null,
+      q: Number.isFinite(card.score) ? card.score : null,
       floorBlocks: card.blocks,
       ...(desk.bplusDay ? { bplusEntriesToday: desk.bplusDay.entries, lostToday: desk.bplusDay.lost } : {}),
     });
