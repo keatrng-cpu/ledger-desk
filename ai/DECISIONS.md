@@ -192,3 +192,9 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **Accuracy Review fixes (this entry):** (1) `_doc` matches validation — d0.7 beats ATM only under the study's cost model (+$42.7/trade paired, t 6.10, n 716; both negative −$40.9 vs −$116.1/wk); under the desk model both are positive (+$35.6 vs +$42.8/wk), d0.7 −$4.1/trade vs ATM (t −0.55). (2) README/PR body no longer imply both lose money unconditionally. (3) Over $650: validation counted no-trade; overnight line 156 steps down Δ0.6→ATM — shadow ticket logic now steps down (shadow only), with a test.
 - **Why:** overnight-1016 ticket change; the Δ0.7-over-ATM ordering replicates only under the study cost model (not the desk model). Kept off the live path until a later promote decision.
 - **File scope:** does not overlap lane (#38) or push (#39) feature files.
+
+### 2026-10-16 — SHADOW PR #38: Rule 1 persist-exempt fire lane (overnight-1016 #2)
+- **Status:** PROPOSED · **Decided by:** Dual Desk / overnight-1016 build queue · **Source:** `audits/overnight-1016/report.md` items 2–3 (fire lane + latency c); validation in `docs/shadow-1016/lane/`
+- **Decision:** Shadow-only. Desk stamps `wire.rule1[].lane = {lane:"rule1", mode:"shadow", live:false, persistExempt, … wouldFire}`. Watcher patch logs would-fire + latency to `rule1_lane_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Nothing fires.** Live fast chain, gates, and RH order path unchanged. Config in `shared/rule1-lane.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
+- **Why:** Measure the persist-exemption latency benefit (~+0.015R/trade on the desk Rule 1 set) without arming a live lane.
+- **File scope:** does not overlap Δ0.7 (#37) or push (#39) feature files.
