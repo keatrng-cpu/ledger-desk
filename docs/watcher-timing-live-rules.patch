@@ -1,0 +1,11 @@
+--- a/watcher/desk-rules.json	2026-10-16 09:28:52.382009149 -0500
++++ b/watcher/desk-rules.json	2026-10-16 09:28:52.382009149 -0500
+@@ -29,7 +29,7 @@
+   },
+   "timing": {
+     "_doc": "Fix B (Keaton 2026-10-14): q and band measure SETUP QUALITY only; distance from entry is entryState (at/near/late/missed + ATR distance on 1m-4h) shown on the card. live = discipline R3 chase no longer cuts q/band (and the brain retrace layer reads timing, not a must); shadow = old penalties applied, the quality-only q/band and entryState logged as shadow:timing rows. Execution gates unchanged: watcher entry_distance 0.5xATR, loss.late guard, lateEntry.pnlMinPct. A late/missed card proposes a re-entry only at a real POI on the wire (unmitigated FVG/IFVG CE on any rung 1m-4h, or the retest of the broken entry zone).",
+-    "mode": "shadow",
++    "mode": "live",
+     "atAtr": 0.1,
+     "nearAtr": 0.5,
+     "lateAtr": 1.0,
