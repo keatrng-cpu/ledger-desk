@@ -557,7 +557,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     (c) => c.symbol === o.symbol && c.side === o.side,
   );
   if (!card) {
-    return `Limit at ${o.limit.toFixed(2)} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
+    return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
   }
   // One position per book. A resting order on a book that already holds a
   // paper trade would be a second entry on the same idea.
@@ -566,7 +566,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
   );
   if (open) {
     releasePending(o.id, `already holding ${open.displaySymbol} ${open.side} — one position per book`, Date.now());
-    return `Limit at ${o.limit.toFixed(2)} touched, but ${open.displaySymbol} ${open.side} is already open — not booked.`;
+    return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched, but ${open.displaySymbol} ${open.side} is already open — not booked.`;
   }
   // The ORDER's levels, not whatever the card says now. The toast promises
   // the order's stop and T1, and a card re-graded since the order rested can
@@ -598,7 +598,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     return pendingFillToast(o);
   }
   releasePending(o.id, `paper book refused: ${res.error}`, Date.now());
-  return `Limit at ${o.limit.toFixed(2)} touched but the paper book refused it: ${res.error}. The order is still resting.`;
+  return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched but the paper book refused it: ${res.error}. The order is still resting.`;
 }
 
 /**
@@ -1599,7 +1599,7 @@ function MasterplacePage() {
           if (!res.already) markTakeAction(c.symbol, c.side === "short" ? "short" : "long", "rested");
           const o = res.order;
           setPaperToast(
-            `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side?.toUpperCase() ?? "—"} @ ${o.limit.toFixed(2)} (CE) · SL ${o.stop.toFixed(2)}` +
+            `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side?.toUpperCase() ?? "—"} @ ${o.limit?.toFixed(2) ?? "—"} (CE) · SL ${o.stop?.toFixed(2) ?? "—"}` +
               (o.t1 != null ? ` · T1 ${o.t1.toFixed(2)}` : "") +
               ` · fills on the touch, expires in ${Math.round((o.expiresAt - Date.now()) / 60_000)}m` +
               (disc.factor !== 1.0

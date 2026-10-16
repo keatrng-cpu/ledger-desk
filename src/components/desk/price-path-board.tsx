@@ -340,7 +340,7 @@ export function pricePathVerdict(
       }
       return {
         word: "TAKE",
-        line: `${cand.symbol} ${cand.side?.toUpperCase() ?? "—"} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
+        line: `${cand.symbol} ${cand.side?.toUpperCase() ?? "—"} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets?.[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
         book,
       };
     }

@@ -25,7 +25,7 @@ test("no unguarded .toUpperCase() in the Now tree", () => {
         // Allowed: literal-fallback parens like (x ?? "QQQ"), or a receiver
         // guarded by a ternary on the same identifier earlier in the line.
         if (recv.endsWith(")") && /\?\?\s*"[^"]*"\)$/.test(line.slice(0, m.index + recv.length))) continue;
-        if (new RegExp(`${recv.replace(/[.$]/g, "\\$&")} \\?`).test(line.slice(0, m.index))) continue;
+        if (new RegExp(`${recv.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\?`).test(line.slice(0, m.index))) continue;
         bad.push(`${f}:${i + 1}: ${line.trim()}`);
       }
     });
@@ -42,12 +42,15 @@ test("every Now panel sits inside a PanelBoundary", () => {
   }
 });
 
-test("chart array label survives the live breaker shape (no tf, unknown kind)", async () => {
+test("chart array label never throws on a real SmcArray with fields missing at runtime", async () => {
   const { groupName } = await import("../src/components/desk/setup-chart.tsx");
-  // Shape seen in the live card's strategy.context.blocks on 10/16.
-  const breaker = { kind: "breaker", dir: "bear", lo: 29829, hi: 29849.25 };
-  assert.doesNotThrow(() => groupName({ outer: breaker, inner: [] }, null));
-  assert.match(groupName({ outer: breaker, inner: [] }, null), /BREAKER/);
-  const bare = { dir: "bear", lo: 1, hi: 2 };
-  assert.doesNotThrow(() => groupName({ outer: bare, inner: [] }, null));
+  // Real SmcArray shape (smc-board.ts SmcArray): breaker kind is "bb".
+  const bb = { kind: "bb", tf: "5m", side: "bear", top: 29849.25, bottom: 29829, mid: 29839.13, t: 1792155360000, at: "2026-10-16T13:52:00Z", state: "fresh", label: "5m BB" };
+  assert.equal(groupName({ outer: bb, inner: [] }, null), "5M BRK");
+  // Same object as it would arrive if a feed dropped fields the type promises.
+  const noTf = { ...bb, tf: undefined };
+  const noKind = { ...bb, kind: undefined };
+  assert.doesNotThrow(() => groupName({ outer: noTf, inner: [] }, null));
+  assert.doesNotThrow(() => groupName({ outer: noKind, inner: [] }, null));
+  assert.doesNotThrow(() => groupName({ outer: bb, inner: [bb, noTf] }, noTf));
 });

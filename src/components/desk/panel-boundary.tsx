@@ -1,11 +1,12 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { reportPanelError } from "@/lib/notify/browser-errors";
 
 /**
  * One panel's render crash must not blank the whole tab.
  *
- * 2026-10-16 08:52 CT: a card field arrived undefined after a fast MNQ leg and
- * a bare `.toUpperCase()` threw inside one Now panel. With no boundary React
- * unmounted the entire tree and the Now tab went white during market hours.
+ * 2026-10-16 08:52 CT: a `.toUpperCase()` on undefined threw inside the Now
+ * tab. With no boundary React unmounted the entire tree and the tab went white
+ * during market hours.
  * Each Now panel is wrapped in this so the failure stays inside its own box.
  */
 export class PanelBoundary extends Component<
@@ -20,6 +21,7 @@ export class PanelBoundary extends Component<
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(`[PanelBoundary] ${this.props.name} crashed`, error, info.componentStack);
+    reportPanelError(this.props.name, error, info.componentStack ?? undefined);
   }
 
   render() {
