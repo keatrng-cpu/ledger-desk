@@ -15,6 +15,23 @@ const OUTCOME_END = 895;
 
 export type Rule1Phase = "window" | "closed" | "hidden" | "absent";
 
+/**
+ * Lead-symbol tickets win. If the lead has none, or there is no lead card,
+ * the real ticket stays on screen. "No sweep" is only for an empty book.
+ * The note names the symbol so a ticket on the other index is not described
+ * as a missing sweep.
+ */
+export function rule1ForLead<T extends { symbol: string }>(
+  tickets: T[],
+  leadSymbol: string | null | undefined,
+): { rows: T[]; note: string | null } {
+  const onLead = leadSymbol ? tickets.filter((t) => t.symbol === leadSymbol) : [];
+  if (onLead.length) return { rows: onLead, note: null };
+  if (!tickets.length) return { rows: [], note: null };
+  const symbols = [...new Set(tickets.map((t) => t.symbol))];
+  return { rows: tickets, note: `Rule 1 ticket on ${symbols.join(" · ")}` };
+}
+
 export type ShadowBar = { t: number; h: number; l: number; c: number };
 
 export function ctParts(ms: number): { min: number; day: string; weekday: number } {

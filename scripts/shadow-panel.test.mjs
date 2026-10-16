@@ -30,7 +30,16 @@ test("rules hash unchanged", () => {
 test("q_v2 is read off the card, not recomputed", () => {
   const src = readFileSync("src/components/desk/shadow-panel.tsx", "utf8") + readFileSync("src/components/desk/shadow-view.ts", "utf8");
   assert.equal(src.includes("computeQV2"), false);
-  assert.equal(src.includes("ticket.symbol === live.symbol"), true);
+  assert.equal(src.includes("ticket.symbol === live.symbol") || src.includes("t.symbol === leadSymbol"), true);
+  const es = { symbol: "ES" };
+  const mnq = { symbol: "MNQ" };
+  assert.deepEqual(view.rule1ForLead([mnq, es], "ES").rows, [es]);
+  assert.equal(view.rule1ForLead([mnq, es], "ES").note, null);
+  assert.equal(view.rule1ForLead([mnq], "ES").note, "Rule 1 ticket on MNQ");
+  assert.deepEqual(view.rule1ForLead([mnq], "ES").rows, [mnq]);
+  assert.equal(view.rule1ForLead([mnq], null).note, "Rule 1 ticket on MNQ");
+  assert.equal(view.rule1ForLead([], "MNQ").note, null);
+  assert.deepEqual(view.rule1ForLead([], "MNQ").rows, []);
   assert.equal(src.includes("recordShadowOrder"), false);
   assert.equal(view.readCardQV2({ q_v2: { q: 0.71, band: "A-", deltas: [{ source: "keySweep", delta: 0.04 }], mode: "shadow", version: 2, vetoed: false } }).band, "A-");
   assert.equal(view.readCardQV2({}), null);

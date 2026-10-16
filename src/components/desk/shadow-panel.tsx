@@ -3,8 +3,7 @@
  *
  * Reads the card's existing q_v2. Does not recompute it, and does not gate,
  * size, or fire. After 09:00 CT the day's ticket stays, dimmed, until the
- * next weekday session opens at 08:30 CT. A cash holiday in the week-ahead
- * plan is not that session.
+ * next weekday session opens at 08:30 CT. A NYSE full close is not that session.
  */
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
@@ -20,6 +19,7 @@ import {
   optionLine,
   qv2Delta,
   readCardQV2,
+  rule1ForLead,
   rule1Phase,
   rule1Rows,
   rule1ShadowOutcome,
@@ -109,11 +109,12 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
     return () => mq.removeEventListener("change", apply);
   }, [defaultOpen]);
 
-  // The lead card's symbol only. The other index keeps its own card.
-  const shown = rule1
-    .filter((ticket) => live?.symbol != null && ticket.symbol === live.symbol)
+  const visible = rule1
     .map((ticket) => ({ ticket, phase: rule1Phase(nowMs, ticket.at) }))
     .filter((row): row is { ticket: Rule1Ticket; phase: "window" | "closed" } => row.phase === "window" || row.phase === "closed");
+  // Lead symbol when it has a ticket. Otherwise show the real ticket — a missing lead is not "no sweep".
+  const picked = rule1ForLead(visible.map((row) => row.ticket), live?.symbol);
+  const shown = visible.filter((row) => picked.rows.includes(row.ticket));
   const diverges = shown.some(
     (row) => live?.symbol != null && row.ticket.symbol === live.symbol && live.side != null && row.ticket.side !== live.side,
   );
@@ -231,6 +232,7 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
           </div>
           <div className="min-w-0 space-y-3">
             {shown.length === 0 && <p className="text-[13px] text-[var(--color-muted)]">{EMPTY_RULE}</p>}
+            {picked.note && <p className="text-[13px] text-[var(--color-muted)]">{picked.note}</p>}
             {shown.map(({ ticket, phase }) => (
               <TicketBlock
                 key={`${ticket.symbol}-${ticket.at}`}

@@ -1746,7 +1746,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
                 {speaker.line.character}
               </span>
-              <span className="mr-1 text-[11px] uppercase text-slate-400">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
+              <span className="mr-1 text-[11px] uppercase text-[var(--color-subtle)]">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
               {speaker.line.text}
             </p>
           ) : (
