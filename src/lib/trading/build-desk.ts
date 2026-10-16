@@ -19,6 +19,7 @@ import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/tr
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import * as fx16 from "@/lib/smc/fix1016";
 import * as s16 from "@/lib/smc/score1016";
+import * as c16 from "@/lib/smc/combo1016";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
 import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
@@ -2155,6 +2156,26 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             (c as { score1016?: unknown }).score1016 = { modes: s16.scoreModes(), ...s5, input: inp, entry: ed, exit: ex,
               wouldFire: s5.fire && ed != null, src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };
           } catch (e) { (c as { score1016?: unknown }).score1016 = { error: String(e).slice(0, 160) }; }
+          // combo1016 (shadow): score1016.v2 S2 + exported GBM gbmP; fire = S2>=75 AND gbmP>=thr; A+ logged only. Never writes q/band/plan/size.
+          try {
+            const arm = c.ltfArm ?? null;
+            const s5c = (c as { score1016?: { input?: s16.Score1016Input; entry?: { chaseR?: number } | null } }).score1016;
+            const inp = s5c?.input;
+            if (!inp) throw new Error("no score1016 input");
+            const nowD = new Date(nowMs);
+            const dowCt = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(nowD.toLocaleString("en-US", { timeZone: "America/Chicago", weekday: "short" }));
+            const pc = arm && px != null ? c16.comboPlan({ side, price: px, edge: arm.entryEdge, stop: arm.stop }) : null;
+            const ft = c16.featuresFromScore1016({ ...inp, poolTier: s16.poolTier, chaseR: pc?.chaseR ?? null, riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null,
+              atr5: closedAtr5(isL ? closedL : closedR), dow: (dowCt + 6) % 7 });
+            const veto = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(isL ? closedL : closedR),
+              staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
+            const rd = c16.comboRead(ft.v2, ft.gbm, veto.vetoed);
+            (c as { combo1016?: unknown }).combo1016 = { ...rd, plan: pc, wouldFire: rd.fire && pc != null, feat: ft,
+              rows: [rd.fire && pc != null ? "shadow:combo1016:would_fire" : "shadow:combo1016:read", ...(rd.aPlus ? ["shadow:combo1016:a_plus"] : [])],
+              setupId: arm ? c16.setupIdOf(String(c.symbol ?? ""), side, arm.sweep.level, arm.sweep.t ?? null) : null,
+              caps: { perDay: c16.CB.caps?.perDay ?? 3, perSymbol: c16.CB.caps?.perSymbol ?? 2, haltAfterLosses: c16.CB.caps?.haltAfterLosses ?? 1, by: "watcher day ledger" },
+              src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };
+          } catch (e) { (c as { combo1016?: unknown }).combo1016 = { error: String(e).slice(0, 160) }; }
           const deadNow = Boolean((c as { invalidated?: boolean }).invalidated || (c as { staleTape?: boolean }).staleTape || (c as { playedOut?: boolean }).playedOut);
           if (sc.mode === "live" && !deadNow) {
             setQSource("fix1016:score5"); qWrite(c as never, "confluence" as never, sc.total as never, "fix1016:score5 (5 layers; old q kept on fix1016.score5.old)");
@@ -2237,4 +2258,11 @@ function closedAtr1m(bars: { h: number; l: number; c: number }[] | null | undefi
   let s = 0;
   for (let k = 1; k < b.length; k++) s += Math.max(b[k]!.h - b[k]!.l, Math.abs(b[k]!.h - b[k - 1]!.c), Math.abs(b[k]!.l - b[k - 1]!.c));
   return s / (b.length - 1);
+}
+
+/** ATR14 of 5m bars built from closed 1m bars (combo1016 risk/ATR5, research a5). */
+function closedAtr5(bars: { t?: number; h: number; l: number; c: number }[] | null | undefined): number | null {
+  const b = (bars ?? []).slice(-75); const g: { h: number; l: number; c: number }[] = [];
+  for (let k = b.length % 5; k + 5 <= b.length; k += 5) { const w = b.slice(k, k + 5); g.push({ h: Math.max(...w.map((x) => x.h)), l: Math.min(...w.map((x) => x.l)), c: w[4]!.c }); }
+  return closedAtr1m(g);
 }

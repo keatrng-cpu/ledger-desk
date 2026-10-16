@@ -159,6 +159,8 @@ export interface DeskWire {
     fix1016?: unknown;
     /** score1016: event-driven five-layer score read (S, layers, p, grade, entry/exit, wouldFire) + modes. Shadow = no effect. */
     score1016?: unknown;
+    /** combo1016: SMC research combo read (S2 v2, gbmP, fire = S2>=75 AND gbmP>=thr, A+ logged only, hybrid plan, setup id). Shadow = no effect. */
+    combo1016?: unknown;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -229,6 +231,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** score1016: the brain reads the same five-layer score line as the Floor (note only, never moves the word). */
     score1016Seat?: string | null;
+    /** combo1016: the brain reads the same combo line as the Floor (note only, never moves the word). */
+    combo1016Seat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -247,6 +251,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** score1016: Floor seat line (S, p, grade, would-fire, entry kind) — a note, never a vote. */
     score1016Seat?: string | null;
+    /** combo1016: Floor seat line (S2, gbmP vs thr, would-fire, A+ tag, entry kind) — a note, never a vote. */
+    combo1016Seat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -381,6 +387,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
           score1016: (top as { score1016?: unknown }).score1016 ?? null,
+          combo1016: (top as { combo1016?: unknown }).combo1016 ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -422,6 +429,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
+      combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -456,6 +464,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
+      combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -707,4 +716,13 @@ export function score1016SeatNote(f: unknown): string | null {
   if (!x || typeof x !== "object" || typeof x.S !== "number") return null;
   const tag = x.mode === "live" ? "" : " (shadow)";
   return `Score1016 ${x.S} · p≈${Math.round((x.p ?? 0) * 100)}% · ${x.grade ?? "-"}${x.wouldFire ? ` · ${x.mode === "live" ? "FIRE" : "would fire"} ${x.entry ? `${x.entry.kind} ${x.entry.entry}` : ""}` : ""}${tag} — ${x.src ?? ""}`.trim();
+}
+
+/** combo1016: one seat line (Floor + Brain) from the top card's combo read. Shadow is labelled; never a vote. Prefix shadow:combo1016 for log greps. */
+export function combo1016SeatNote(f: unknown): string | null {
+  const x = f as { S2?: number; gbmP?: number; thr?: number; grade?: string; wouldFire?: boolean; aPlus?: boolean; mode?: string; plan?: { kind: string; entry: number } | null; setupId?: string | null; src?: string } | null | undefined;
+  if (!x || typeof x !== "object" || typeof x.S2 !== "number") return null;
+  const live = x.mode === "live";
+  const head = `${live ? "combo1016" : "shadow:combo1016:" + (x.wouldFire ? "would_fire" : "read")} S2 ${x.S2} · gbmP ${x.gbmP ?? "-"}/${x.thr ?? "-"} · ${x.grade ?? "-"}`;
+  return `${head}${x.wouldFire ? ` · ${live ? "FIRE" : "would fire"} ${x.plan ? `${x.plan.kind} ${x.plan.entry}` : ""}` : ""}${x.aPlus ? " · A+ (logged only, no size change)" : ""}${live ? "" : " (shadow)"} — ${x.src ?? ""}`.trim();
 }
