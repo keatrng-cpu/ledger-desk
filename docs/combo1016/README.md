@@ -29,3 +29,35 @@ Stacks on #47's score1016 (and #46). Spec: `/workspace/audits/smc-research/s2-co
 ## Partial label (review fix)
 `filled` lists every S2 input that did not come from a real value: median-filled subfactors plus the two research defaults (`ctx_lowvol` when atrpct is missing → 0.5, `ent_nochase` when chaseR is missing → chaseR 1). `card.combo1016.partial` = `partial: N/14 S2 filled, M/27 GBM missing` whenever any input is defaulted or missing. Then the desk row is `shadow:combo1016:would_fire_partial (partial: …)` (or `shadow:combo1016:read (partial: …)`), the Floor/Brain seat line reads `shadow:combo1016:would_fire_partial … · partial: …`, and the watcher logs `shadow:combo1016:would_fire_partial` with the label (recomputed from the card's feature vector). A clean `would_fire` appears only when every input is real. Numbers and fire decisions are unchanged (label only). The watcher imports combo1016 inside the try, so a corrupt GBM file only yields `shadow:combo1016:error`.
 
+
+## combo1016 arms (SMC pnl-push finalists, SHADOW ONLY)
+Source of truth: SMC integration bundle `/workspace/audits/smc-research/integration/` (README, FEATURES.md, features-ref.ts, option_ref, minutes fixtures, golden_decisions.json).
+Rules `combo1016Arms` (mode shadow): config1_trail (ALT_C70trail_tier250_500), config2_e75 (P1_B70E75_flat300), config3_e75_s65 (P3_A65E75_tier250_500), config2_e75_tier200_400 (P2).
+Fire S2 ≥ 70 (65 for config3) AND gbmP ≥ q90 0.6487956668756266 (walk-forward GBM 2020-01-01..2026-07-04, applies through 2027-01-02; 26-week refit is a documented parameter, no live refit).
+Entry market if chaseR ≤ 1 else limit at the newest near edge, 20 min, cancel at +0.75R. Caps 5/day, 3/symbol, 1 open/symbol, halt after the first losing day result (net R < 0), re-arm only on a new setupId, flat 14:55 CT.
+Fixed $/R; A+ (S2 ≥ 85) 2x for config1/config3. Exits TR (50% @1R → BE → trail MFE−1R) / E75 (50% @0.75R → BE → 2R). 2-tick cost. Rows `shadow:combo1016:<config>` (JSON, SMC log schema) with fire, legs, option-$ estimate, partial label. The legacy combo1016 arm is unchanged.
+
+### Inputs (arms only; the legacy arm keeps its inputs)
+- 5m context features: `combo1016-feat.ts barFeatures` (closed-bar port of feat.py; row t5 = floor(decision bar label, 5m)).
+- Candidate features: `candFeatures` = eng.py/score.py exact: b1/b4 sign(close − EMA20 adjust=False) on 1h / 4h bins (4h bins 02/06/10/14/18/22 UTC), pd on the eng.py DR (prior calendar-day RTH 08:30–15:00 + ON = prior day ≥15:15 and today <08:00) at the decision close, smt over [raid−5, decision] vs the 60 bars before, chaseR = |next open − newest near edge| / |next open − stop| (market-anchor risk, NOT riskEdge), tmin = decision bar label.
+- S2 defaults per SMC: atrpct → 0.5, chaseR → 1, tr4h_with null → ctx_htf4 = 0 (not the median).
+- Research quirks copied, not fixed: tr1h_with = −tr1h for both sides; ON/Asia/London levels use the full session — free of lookahead only during RTH (08:30+). Before 08:30 the research row used later overnight bars; the desk cannot, so those rows differ (sw_with 28, pdpos_with 266 of 4474 SMC minutes).
+- Desk finding: the desk's bias1h/bias4h are structural MTF rung biases (not EMA), pd used the arm entry edge and desk-named levels, smt was a component flag, chaseR divided by riskEdge. None of these matched research; the arms now use candFeatures.
+
+### Warmup (fail closed)
+atrpct needs ≥ 20 days of 24h 5m bars (5760; ≥ 500 for any value). The desk keeps 480 1m bars + 1 month of 15m, so atrpct is null and EVERY arms row is labelled `would_fire_partial (warmup<20d 5m; …)` until a 20-day 5m feed exists. The fire decision is computed as research would with atrpct missing (S2 0.5 default, GBM NaN routing) and stays shadow.
+
+### Parity
+| check | result |
+|---|---|
+| 5m features, 10 days × ES/NQ × both sides, every minute 08:30–14:59 (15600 each) | 100% all except since_disp 97.56% (380 censored null, 0 wrong), atrpct null |
+| SMC minutes fixtures (14 files, 4474 min) | 100% except pre-08:30 lookahead rows above, atrpct null |
+| candidate features on 326 research candidates (b1, b4, pd, smt, tmin) | 100% each; chaseR 324/325 (1 null: no market anchor), 0 wrong |
+| golden_decisions.json 166 decisions | dS2 5e-14, dgbmP 1e-16, fire 498/498 (TS) and watcher test_combo1016_arms |
+| arms vs pnl-push VAL | n/WR/$ per week exact for all four; exit sim dR 0 on 400 paths; option max d 1.7e-12 |
+
+### Brain P/D at entry (step 8, shadow)
+`brainPd.mode = "shadow"`: brainPdNudge (+0.1 when aligned, 0 otherwise, never negative) is only added to the score when mode is live; it is never a STAND reason. pd_cur and pd_ent are logged on the arms rows.
+
+### Hashes
+Repo RULES_HASH = first 16 hex of sha256 over canonical shared/desk-rules.json = `5b73f1001c0cb23d`. SMC quotes `dee7810e4d8e050a`, a hash over its own bundle files; the two differ by construction and neither is expected to equal the other. The arms GBM file is pinned separately (sha256_16 1d976c113099d0d8).

@@ -233,6 +233,8 @@ export interface DeskWire {
     score1016Seat?: string | null;
     /** combo1016: the brain reads the same combo line as the Floor (note only, never moves the word). */
     combo1016Seat?: string | null;
+    /** combo1016 arms (pnl-push cfg1/cfg2/cfg3/p2) + Brain step-8 pd_cur/pd_ent on the card's own book. Note only. */
+    combo1016ArmsSeat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -253,6 +255,8 @@ export interface DeskWire {
     score1016Seat?: string | null;
     /** combo1016: Floor seat line (S2, gbmP vs thr, would-fire, A+ tag, entry kind) — a note, never a vote. */
     combo1016Seat?: string | null;
+    /** combo1016 arms seat line (shadow:combo1016:<arm>) — a note, never a vote. */
+    combo1016ArmsSeat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -430,6 +434,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
       combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
+      combo1016ArmsSeat: combo1016ArmsSeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -465,6 +470,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
       combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
+      combo1016ArmsSeat: combo1016ArmsSeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -727,4 +733,13 @@ export function combo1016SeatNote(f: unknown): string | null {
   const partial = x.partial ?? ((x.filled?.length || x.gbmMissing?.length) ? `partial: ${x.filled?.length ?? 0}/14 S2 filled, ${x.gbmMissing?.length ?? 0}/27 GBM missing` : null);
   const head = `${live ? "combo1016" : "shadow:combo1016:" + (x.wouldFire ? (partial ? "would_fire_partial" : "would_fire") : "read")} S2 ${x.S2} · gbmP ${x.gbmP ?? "-"}/${x.thr ?? "-"} · ${x.grade ?? "-"}${partial ? ` · ${partial}` : ""}`;
   return `${head}${x.wouldFire ? ` · ${live ? "FIRE" : partial ? "would fire (partial)" : "would fire"} ${x.plan ? `${x.plan.kind} ${x.plan.entry}` : ""}` : ""}${x.aPlus ? " · A+ (logged only, no size change)" : ""}${live ? "" : " (shadow)"} — ${x.src ?? ""}`.trim();
+}
+
+/** combo1016 arms: one seat line (Floor + Brain) — every arm's tag, plan kind, $/R and option-$ estimate, plus pd_cur/pd_ent. Shadow; never a vote. */
+export function combo1016ArmsSeatNote(f: unknown): string | null {
+  const a = (f as { arms?: unknown } | null | undefined)?.arms as { mode?: string; reads?: { arm: string; row: string; usdPerR: number; plan?: { kind: string; entry: number } | null; opt?: { pnl: number; contracts: number; etf: string } | null }[];
+    pd?: { pd_cur: number | null; pd_ent: number | null } } | null | undefined;
+  if (!a || typeof a !== "object" || !Array.isArray(a.reads)) return null;
+  const parts = a.reads.map((r) => { const [tag, label] = r.row.split(" "); return `${tag} ${label}${label?.startsWith("would_fire") && r.plan ? ` ${r.plan.kind} ${r.plan.entry} $${r.usdPerR}/R${r.opt ? ` ≈${r.opt.contracts} ${r.opt.etf} (opt est)` : ""}` : ""}`; });
+  return `${parts.join(" · ")} · pd_cur ${a.pd?.pd_cur ?? "-"} pd_ent ${a.pd?.pd_ent ?? "-"}${a.mode === "live" ? "" : " (shadow)"}`;
 }

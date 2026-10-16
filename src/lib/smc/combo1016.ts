@@ -156,6 +156,8 @@ export function setupIdOf(symbol: string, side: Side, sweepLevel: number | null 
 export function featuresFromScore1016(i: {
   side: Side; bias1h: number; bias4h: number; pd: number | null; pools: string[]; poolTier: (n: string) => number; smt: boolean; dispAtr: number; mss: boolean; ifvg: boolean;
   arrayKind: "ifvg" | "fvg" | null; arrayAtLegEq: boolean; nArrays: number; minuteCt: number; chaseR: number | null; riskPts: number | null; atr5: number | null; dow: number;
+  /** closed-bar research features (combo1016-feat.ts barFeatures); absent → those inputs stay null and are listed */
+  bar?: Partial<Record<"sw_with" | "smt_with" | "fail3_with" | "mss5_with" | "tr1h_with" | "tr4h_with" | "pdpos_with" | "compress" | "rng30" | "since_disp" | "atrpct", number | null>> | null;
 }): { v2: V2Raw; gbm: Record<string, number | null> } {
   const wt = i.pools.length ? Math.max(...i.pools.map(i.poolTier)) : null;
   const nk = i.pools.length ? new Set(i.pools).size : null;
@@ -165,5 +167,9 @@ export function featuresFromScore1016(i: {
   const gbm: Record<string, number | null> = Object.fromEntries(G.features.map((k) => [k, null]));
   Object.assign(gbm, { b1: i.bias1h, b4: i.bias4h, pd: i.pd, wtmax: wt, smt: i.smt ? 1 : 0, nk, disp: i.dispAtr, mss: i.mss ? 1 : 0, ifvg: i.ifvg ? 1 : 0, arr_ifvg,
     eqhit: i.arrayAtLegEq ? 1 : 0, n_arr: i.nArrays, tmin: i.minuteCt, chaseR: i.chaseR, risk_atr, dow: i.dow });
+  if (i.bar) {
+    for (const k of ["sw_with", "smt_with", "fail3_with", "mss5_with", "tr1h_with", "tr4h_with", "pdpos_with", "compress", "rng30", "since_disp", "atrpct"] as const) { const v = i.bar[k]; if (fin(v)) gbm[k] = v; }
+    if (fin(i.bar.tr4h_with)) v2.tr4h_with = i.bar.tr4h_with; if (fin(i.bar.rng30)) v2.rng30 = i.bar.rng30; if (fin(i.bar.atrpct)) v2.atrpct = i.bar.atrpct;
+  }
   return { v2, gbm };
 }

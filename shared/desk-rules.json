@@ -1482,5 +1482,169 @@
       "newSetupIdOnly": true,
       "repriceSealed": false
     }
+  },
+  "combo1016Arms": {
+    "_doc": "SMC pnl-push finalists (audits/smc-research/pnl-push/report.md, tables_core.md; params_*.json) as SHADOW-ONLY arms beside the unchanged combo1016 arm. Fire = score1016.v2 S2 >= arm.fireS2 AND gbmP >= combo1016.gbm.thr (p90 of the model's fit window) AND no hard veto. Hybrid entry: market if chaseR <= 1, else a limit at the newest array edge valid 20 min, cancelled if price reaches +0.75R first. Caps 5/day 3/symbol, 1 open per symbol, halt after the first daily loss, re-arm only on a new setup id, flat by 14:55 CT. Fixed $/R sizing (A+ = S2 >= 85), never a percent of the account. Rows shadow:combo1016:<arm>:*; nothing moves q/band/plan/fire/size.",
+    "mode": "shadow",
+    "gbm": {
+      "rule": "gbmP >= p90 of the fit window",
+      "thrFrom": "combo1016.gbm.thr",
+      "refitWeeks": 26,
+      "liveRefit": false,
+      "_doc": "Arms use SMC's walk-forward refit (integration bundle): S2 and LightGBM trained 2020-01-01..2026-07-04, applying 2026-07-05..2027-01-02; thr = q90 of that window's gbmP. Refit cadence 26 weeks (next window 2027-01-03) is documented only: no live refit; a new window must be exported and re-pinned. The existing combo1016 arm keeps its IS 2010-18 model.",
+      "file": "shared/combo1016-arms-gbm.json",
+      "sha256_16": "1d976c113099d0d8",
+      "window": "wf_2020-01-01_2026-07-05",
+      "thr": 0.6487956668756266,
+      "nextRefit": "2027-01-03"
+    },
+    "entry": {
+      "mode": "shadow",
+      "marketWithinR": 1.0,
+      "limitValidMin": 20,
+      "cancelAtR": 0.75
+    },
+    "caps": {
+      "mode": "shadow",
+      "perDay": 5,
+      "perSymbol": 3,
+      "openPerSymbol": 1,
+      "haltAfterLosses": 1,
+      "newSetupIdOnly": true,
+      "flatByCt": "14:55"
+    },
+    "aPlusS2": 85,
+    "costTicks": 2,
+    "option": {
+      "etf": {
+        "ES": "SPY",
+        "MES": "SPY",
+        "NQ": "QQQ",
+        "MNQ": "QQQ"
+      },
+      "mult": {
+        "SPY": 10.0,
+        "QQQ": 41.0
+      },
+      "spread": {
+        "SPY": 0.02,
+        "QQQ": 0.03
+      },
+      "feePerContract": 0.65,
+      "sigmaFloor": 0.08,
+      "sigmaCap": 0.8,
+      "sigmaAdj": 0.9,
+      "_doc": "0DTE ATM estimate exactly as pnl-push pp4.opt_trade (Black-Scholes, sigma from 5m ATR, nearest $1 strike, legs repriced at their price/time). An estimate, never an order."
+    },
+    "arms": {
+      "config1_trail": {
+        "name": "ALT_C70trail_tier250_500",
+        "params": "params_ALT_C70trail_tier250_500.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "TR",
+          "t1R": 1.0,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "trailR": 1.0
+        },
+        "sizing": {
+          "baseUsdPerR": 250,
+          "aPlusUsdPerR": 500
+        }
+      },
+      "config2_e75": {
+        "name": "P1_B70E75_flat300",
+        "params": "params_P1_B70E75_flat300.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 300,
+          "aPlusUsdPerR": 300
+        }
+      },
+      "config3_e75_s65": {
+        "name": "P3_A65E75_tier250_500",
+        "params": "params_P3_A65E75_tier250_500.json",
+        "fireS2": 65,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 250,
+          "aPlusUsdPerR": 500
+        }
+      },
+      "config2_e75_tier200_400": {
+        "name": "P2_B70E75_tier200_400",
+        "params": "params_P2_B70E75_tier200_400.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 200,
+          "aPlusUsdPerR": 400
+        }
+      }
+    },
+    "s2": {
+      "window": "wf_2020-01-01_2026-07-05",
+      "coef": {
+        "ctx_htf4": 0.0405660561571263,
+        "ctx_lowvol": 0.20814669874966116,
+        "ctx_pd": 0.10951039259447268,
+        "liq_tier": -0.14194332610661306,
+        "liq_n": 0.13316681298552482,
+        "liq_smt": 0.009000901800501842,
+        "disp": 1.6597442323662701,
+        "mss": 0.6052483760096566,
+        "ifvg": 0.24051376989725318,
+        "ent_tight": 1.833947389033848,
+        "ent_nochase": 0.7218666231805471,
+        "ent_arr_fvg": 0.0661995828918033,
+        "tim_early": 0.08780032025894818,
+        "tim_rng30": 0.7500931606570318
+      },
+      "intercept": -3.512507205521919,
+      "lo": -1.0451393159289302,
+      "hi": 1.126948797376979,
+      "medians": {
+        "ctx_htf4": 0.0,
+        "ctx_lowvol": 0.17934027777777772,
+        "ctx_pd": 0.501755514101637,
+        "liq_tier": 0.9,
+        "liq_n": 0.3333333333333333,
+        "liq_smt": 0.0,
+        "disp": 0.440251572327044,
+        "mss": 1.0,
+        "ifvg": 1.0,
+        "ent_tight": 0.6401028277634961,
+        "ent_nochase": 0.7857142857142857,
+        "ent_arr_fvg": 0.0,
+        "tim_early": 0.5333333333333333,
+        "tim_rng30": 0.2780373831775701
+      },
+      "_doc": "S2 = 100*clip((z-lo)/(hi-lo)), z = intercept + sum coef*subfactor; subfactors as score1016.v2 (ctx_lowvol uses atrpct 0.5 when missing, ent_nochase chaseR 1); other missing subfactors take these medians."
+    }
+  },
+  "brainPd": {
+    "_doc": "Brain step 8 (dealing range): graded at the ENTRY via deskSeq.pdLeg on the card's OWN symbol book (was: current price, always the left/MNQ book). NON-GATING: at most +nudgeMax when the entry is in the aligned half, 0 otherwise, never a STAND/yellow reason. Logs pd_cur and pd_ent (+0.5 aligned / -0.25 EQ / -0.5 opposed, research coding). mode shadow = the legacy step 8 still scores and the new read is logged only (no live brain/fire change); live = the nudge replaces the legacy term.",
+    "mode": "shadow",
+    "nudgeMax": 0.1
   }
 }
