@@ -34,7 +34,7 @@ check("blackout keeps everyone off the board at 08:20", Object.values(at("08:20"
 check("post-news meeting at 08:47 quotes the move", at("08:47")?.cycle.trace.meeting?.kind === "post_news" && at("08:47").cycle.output.floor_dialogue_and_meetings.some((l) => /−0\.38%/.test(l.text)));
 check("morning brief at 09:20", at("09:20")?.cycle.trace.meeting?.kind === "brief");
 check("Judas refuses at 09:31", at("09:31").cycle.output.broker_action.action_type === "HOLD" && at("09:31").cycle.trace.beat === "blocked");
-check("B+ review at 09:40, and B+ is live", at("09:40")?.cycle.trace.meeting?.kind === "setup" && at("09:40").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /B\+ is live/.test(l.text)));
+check("B+ review at 09:40, and B+ is live only on a Brain TAKE (fire.bplusBrainTake)", at("09:40")?.cycle.trace.meeting?.kind === "setup" && at("09:40").cycle.output.floor_dialogue_and_meetings.some((l) => l.character === "Sterling" && /B\+ is live only on a Brain TAKE/.test(l.text)));
 check("a forming card waits for the touch, priced at its CE", at("09:47").cycle.trace.beat === "trigger_wait" && at("09:47").cycle.trace.entry?.ev != null, at("09:47").cycle.trace.beat);
 check("09:56 CE touch places — the ledger is a note, not a veto", at("09:56").cycle.output.broker_action.action_type === "BUY_OPEN" && at("09:56").cycle.trace.beat === "fill" && at("09:56").cycle.trace.refusalGate == null, `${at("09:56").cycle.trace.beat} ${at("09:56").cycle.trace.refusalGate}`);
 check("the fill opens its mandate twin in the ghost room", (at("09:56").book.lab?.ghosts ?? []).some((g) => g.kind === "twin"));
