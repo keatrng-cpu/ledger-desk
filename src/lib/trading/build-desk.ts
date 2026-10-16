@@ -125,7 +125,7 @@ const LOSS_RULES = RULES_ALL.loss;
 export interface DeskPayload {
   ok: true;
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
-  rule1?: (import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane })[];
+  rule1?: Array<import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane }>;
   fetchedAt: string;
   clock: SessionClock;
   left: SymbolSeries;
@@ -134,7 +134,7 @@ export interface DeskPayload {
   /** Cash SPY/QQQ spots for the Robinhood sleeve. Null = fall back to ES/10, NQ/40 (labelled). */
   proxies: { SPY: ProxySpot | null; QQQ: ProxySpot | null };
   /** Live Robinhood asks for the ATM call and put. Null when the session is not connected. */
-  optionMarks?: import("@/lib/execution/option-marks").OptionMark[] | null;
+  optionMarks?: Array<import("@/lib/execution/option-marks").OptionMark> | null;
   /** Tape circuit breaker — unscheduled catastrophic candle. See shock.ts. */
   shock: ShockRead;
   bias: { left: HtfBiasRead; right: HtfBiasRead };
