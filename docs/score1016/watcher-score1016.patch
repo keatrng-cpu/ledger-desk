@@ -1,0 +1,246 @@
+diff --git a/run.sh b/run.sh
+index cafde79..a709c6d 100755
+--- a/run.sh
++++ b/run.sh
+@@ -3,7 +3,21 @@
+ cd "$(dirname "$0")"
+ set -a; [ -f .env ] && . ./.env; set +a
+ export LIVE="${LIVE:-0}"
++# resilience: a missing venv used to loop silently every 5 s with nothing polling. Alert (log + alerts.log + webhooks) and stop.
++alert_novenv() {
++  MSG="$(date -Is) desk-watcher: .venv/bin/python missing — daemon NOT running (rebuild: python3 -m venv .venv && .venv/bin/pip install -r requirements.lock)" python3 - <<'PY' || echo "$(date -Is) desk-watcher: .venv missing (alert helper failed)" >> daemon.out
++import json, os, urllib.request
++m = os.environ["MSG"]
++open("daemon.out", "a").write(m + "\n")
++open("alerts.log", "a").write(json.dumps({"kind": "alert", "text": m}) + "\n")
++for url, body in ((os.environ.get("ALERT_WEBHOOK"), {"text": m, "content": m}), (os.environ.get("SLACK_DESK_WEBHOOK_URL"), {"text": m})):
++    if url:
++        try: urllib.request.urlopen(urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json"}), timeout=5)
++        except Exception: pass
++PY
++}
+ while true; do
++  if [ ! -x .venv/bin/python ]; then alert_novenv; exit 3; fi
+   .venv/bin/python -m watcher.daemon >> daemon.out 2>&1
+   echo "$(date -Is) daemon exited rc=$? — restarting in 5s" >> daemon.out
+   [ -f STOP_DAEMON ] && exit 0
+diff --git a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
+index 1d55159..7abc0d2 100644
+--- a/tests/test_review_quote_refetch.py
++++ b/tests/test_review_quote_refetch.py
+@@ -21,7 +21,7 @@ stale = {"bid": 1.0, "ask": 1.1, "asOfMs": 0}
+ 
+ def test_threshold_still_1s_and_hash_unchanged():
+     assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
+-    assert gates.RULES_HASH == "9eeed9b4083700cb"   # fix1016 block added 2026-10-16 (desk-rules.json); threshold unchanged
++    assert gates.RULES_HASH == "c3b14cab9e29a630"   # score1016 block added 2026-10-16 (after fix1016) (desk-rules.json); threshold unchanged
+ 
+ def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
+     w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
+diff --git a/tests/test_score1016.py b/tests/test_score1016.py
+new file mode 100644
+index 0000000..c64b5d3
+--- /dev/null
++++ b/tests/test_score1016.py
+@@ -0,0 +1,43 @@
++"""score1016 watcher half: shadow rows never gate; poll-gap alert; run.sh venv guard."""
++import os, subprocess, shutil, json
++from watcher import score1016 as S, gates
++
++def test_every_item_shadow():
++    for k in ("score", "entry", "exit", "caps", "poiHalf", "altEntryIfvgCe", "setupPerSweep", "scopeCaps"):
++        assert S.mode(k) == "shadow", k
++
++def test_would_fire_row_is_shadow_and_true():
++    snap = {"symbol": "MNQ", "side": "short", "score1016": {"S": 89.0, "p": 0.57, "grade": "A", "thr": 83, "layers": {}, "src": "ltfArm 1m PDH",
++            "wouldFire": True, "entry": {"kind": "limit", "entry": 29930.63, "stop": 29944.25}, "exit": {"t1": 29917.0, "t2": 29903.4, "partialFrac": 0.5}}}
++    rows = S.shadow_rows(snap)
++    assert rows and rows[0][0] == "shadow:score1016:would_fire" and rows[0][1] is True and "WOULD FIRE" in rows[0][2]
++    assert S.shadow_rows({}) == [] and S.shadow_rows({"score1016": {"error": "x"}}) == []
++    assert gates.all_pass([("x", True, "")] + rows)
++
++class _W:
++    def __init__(self): self.state = {}; self.alerts = []
++    def alert(self, t, **k): self.alerts.append(t)
++
++def test_poll_gap_alert_over_15s_once():
++    from watcher.daemon import Watcher
++    w = _W(); f = Watcher._poll_gap_check
++    t = f(w, None, "fast", 1000.0); t = f(w, t, "fast", 1010.0); assert w.alerts == []
++    t = f(w, t, "fast", 1026.5); assert len(w.alerts) == 1 and "16.5s" in w.alerts[0]
++    t = f(w, t, "idle", 1100.0); assert len(w.alerts) == 1      # idle polls are 60 s by design
++
++def test_run_sh_alerts_and_exits_when_venv_missing(tmp_path):
++    d = tmp_path / "w"; d.mkdir(); shutil.copy(os.path.join(os.path.dirname(__file__), "..", "run.sh"), d / "run.sh")
++    r = subprocess.run(["bash", str(d / "run.sh")], capture_output=True, timeout=20, env={**os.environ, "ALERT_WEBHOOK": "", "SLACK_DESK_WEBHOOK_URL": ""})
++    assert r.returncode == 3
++    assert "venv/bin/python missing" in (d / "daemon.out").read_text()
++    assert json.loads((d / "alerts.log").read_text().splitlines()[0])["kind"] == "alert"
++
++
++def test_score1016_hook_fails_closed_to_error_row(monkeypatch):
++    """A crash inside score1016.shadow_rows logs shadow:score1016:error (status True) and never breaks evaluate_fire."""
++    from watcher import gates, score1016
++    monkeypatch.setattr(score1016, "shadow_rows", lambda snap: (_ for _ in ()).throw(RuntimeError("boom")))
++    monkeypatch.setattr(gates, "_evaluate_fire_v5", lambda *a, **k: [("x", True, "")])
++    rows = gates.evaluate_fire({}, None, 0, {}, None, ())
++    err = [r for r in rows if r[0] == "shadow:score1016:error"]
++    assert err and err[0][1] is True and "boom" in err[0][2]
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 05ca657..3f9b784 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -52,6 +52,27 @@ class Watcher:
+             try: self.sess.post(self.cfg.webhook, json={"text": text, "content": text, **rec}, timeout=5)
+             except Exception as e: self.log("webhook_error", error=str(e))
+ 
++    # ---- resilience (live: alert only, no strategy change): a poll gap > POLL_GAP_ALERT_S (15 s) in the fast/slow window ----
++    def _poll_gap_check(self, last_ok, mode, now_s):
++        lim = float(os.environ.get("POLL_GAP_ALERT_S", "15"))
++        if mode != "idle" and last_ok is not None and now_s - last_ok > lim:
++            from . import hygiene
++            if hygiene.alert_once(self.state.setdefault("sig", {}), "poll_gap", int(now_s // 60), now_s):
++                self.alert(f"watcher poll gap {now_s - last_ok:.1f}s > {lim:.0f}s in {mode} window — cards were not read in that span")
++        return now_s
++
++    def _poll_gap_check_restart(self):
++        """On start: if the last heartbeat is > POLL_GAP_ALERT_S old and we are inside a polling window, the daemon was down."""
++        try:
++            hb = (self.state.get("heartbeat") or {}).get("ts")
++            if not hb: return
++            gap = (datetime.now(gates.ET) - datetime.fromisoformat(hb)).total_seconds()
++            mode = gates.mode_for(self.cfg, datetime.now(gates.ET))
++            if mode != "idle" and gap > float(os.environ.get("POLL_GAP_ALERT_S", "15")):
++                self.alert(f"watcher restarted after {gap:.0f}s without a poll (last heartbeat {hb}) inside the {mode} window")
++        except Exception as e:
++            self.log("poll_gap_check_error", error=str(e))
++
+     def stopped(self): return os.path.exists(self.cfg.path("STOP"))
+ 
+     def day(self, et_date):
+@@ -777,10 +798,13 @@ class Watcher:
+             if self.ensure_broker():
+                 self.log("rh_session", detail=getattr(self.broker, "login_detail", None))
+         errs = 0
++        self._poll_gap_check_restart()
++        last_ok = None
+         while self.running:
+             t0 = time.time(); mode = "idle"
+             try:
+                 mode = self.step(); errs = 0
++                last_ok = self._poll_gap_check(last_ok, mode, time.time())
+                 self.broker_health_bg()
+             except Exception as e:
+                 errs += 1
+diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
+index 8c0f2b5..a1d1c19 100644
+--- a/watcher/desk-rules.json
++++ b/watcher/desk-rules.json
+@@ -1121,5 +1121,57 @@
+       "minRunnerR": 2.0,
+       "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
+     }
++  },
++  "score1016": {
++    "_doc": "Event-driven five-layer score (audits/week1016-review, tested in audits/score-rebuild). S=(1.0 L1 HTF+PD, 1.5 L2 liquidity (+0.25 SMT, +0.1/extra pool, re-arm per event), 1.5 L3 displacement/MSS/iFVG, 1.0 L4 newest entry array, 0.5 L5 timing)/5.5x100. Probability grading from S (no band ceiling; A+ at S>=90 reachable). Only hard vetoes (risk, stale data, invalidation). Every item mode shadow: card.score1016 + watcher shadow:score1016:* would-fire rows; nothing moves q/band/plan/fire.",
++    "score": {
++      "mode": "shadow",
++      "fireAt": 83,
++      "smtBonus": true,
++      "weights": {
++        "L1": 1,
++        "L2": 1.5,
++        "L3": 1.5,
++        "L4": 1,
++        "L5": 0.5
++      }
++    },
++    "entry": {
++      "mode": "shadow",
++      "marketWithinR": 1,
++      "_doc": "market if within 1.0R of the newest array edge, else a resting limit at the edge"
++    },
++    "exit": {
++      "mode": "shadow",
++      "t1R": 1,
++      "t1PartialFrac": 0.5,
++      "beAfterT1": true,
++      "t2R": 2
++    },
++    "caps": {
++      "mode": "shadow",
++      "perDay": 2,
++      "perSymbol": 1
++    },
++    "veto": {
++      "minRiskAtr1m": 0.5,
++      "maxRiskAtr1m": 12
++    },
++    "poiHalf": {
++      "mode": "shadow",
++      "_doc": "Brain POI-in-correct-half graded at the ENTRY via seq pdLeg (narrow: atPoi zone only; EQ/no leg = no opinion). Backtest: not kept for live (cuts OOS frequency 6.6 to 0.5/wk at equal expectancy); shadow read only."
++    },
++    "altEntryIfvgCe": {
++      "mode": "shadow",
++      "_doc": "bt13 fix 3: alternate entry at the 1m iFVG CE (survivor set {2,3,7,8,10}; needs fix1016.chaseFromAnchor)."
++    },
++    "setupPerSweep": {
++      "mode": "shadow",
++      "_doc": "bt13 fix 7: setup id per sweep event (first-plan-wins scoped to the sweep, not the session side)."
++    },
++    "scopeCaps": {
++      "mode": "shadow",
++      "_doc": "bt13 fix 8: LTF-reversal and Played-out caps scoped to the setup that triggered them."
++    }
+   }
+ }
+diff --git a/watcher/gates.py b/watcher/gates.py
+index d727337..3b8ff6f 100644
+--- a/watcher/gates.py
++++ b/watcher/gates.py
+@@ -126,6 +126,8 @@ def snapshot(card):
+         "desk_seq_ticket": ((wire.get("deskSeq") or {}).get("ticket")) if isinstance((wire.get("deskSeq") or {}).get("ticket"), dict) else None,
+         # fix1016 (post-mortem 10/16): desk per-item reads (re-anchor / chase / ltfPromote / score5 / runner); shadow rows unless live
+         "fix1016": strat.get("fix1016") if isinstance(strat.get("fix1016"), dict) else None,
++        # score1016 (event-driven five-layer score): desk read, logged as shadow:score1016:* would-fire rows, never gates
++        "score1016": strat.get("score1016") if isinstance(strat.get("score1016"), dict) else None,
+     }
+ 
+ def displacement_present(*parts):
+@@ -563,7 +565,11 @@ def pick_strike(strikes, spot, opt_type, offset):
+ def evaluate_fire(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     g = _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker, calendar)
+     from . import fix1016 as _f16     # post-mortem 10/16: appended AFTER the fast chain / evFire so nothing softens them
+-    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap)
++    try:
++        from . import score1016 as _s16   # score1016: shadow would-fire rows only (never gate while mode shadow); a failure logs one row, never breaks the chain
++        _s = _s16.shadow_rows(snap)
++    except Exception as e: _s = [("shadow:score1016:error", True, str(e)[:160])]
++    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap) + _s
+ 
+ def _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     g = _evaluate_fire_core(snap, cfg, now_ms, state_day, broker, calendar)
+diff --git a/watcher/score1016.py b/watcher/score1016.py
+new file mode 100644
+index 0000000..e473d7a
+--- /dev/null
++++ b/watcher/score1016.py
+@@ -0,0 +1,18 @@
++"""score1016 — watcher half of the event-driven five-layer score (TS twin src/lib/smc/score1016.ts, rules block score1016).
++Shadow only: rows are logged as shadow:score1016:<item> (status True, so they never gate); nothing here changes a fire."""
++from .gates import RULES
++
++SC = RULES.get("score1016") or {}
++
++def mode(k):
++    return "live" if (SC.get(k) or {}).get("mode") == "live" else "shadow"
++
++def shadow_rows(snap):
++    s = snap.get("score1016") or {}
++    if not isinstance(s, dict) or "S" not in s: return []
++    e = s.get("entry") or {}; x = s.get("exit") or {}
++    head = f"S {s.get('S')} p {s.get('p')} grade {s.get('grade')} (fire at {s.get('thr')}) layers {s.get('layers')} src {s.get('src')}"
++    if s.get("wouldFire"):
++        return [("shadow:score1016:would_fire", True, f"WOULD FIRE {snap.get('symbol')} {snap.get('side')} {e.get('kind')} {e.get('entry')} stop {e.get('stop')} "
++                 f"T1 {x.get('t1')} ({x.get('partialFrac')}) -> BE -> T2 {x.get('t2')} | {head}")]
++    return [("shadow:score1016:read", True, head)]

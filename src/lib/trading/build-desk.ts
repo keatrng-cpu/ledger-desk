@@ -18,6 +18,12 @@ import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import * as fx16 from "@/lib/smc/fix1016";
+import * as s16 from "@/lib/smc/score1016";
+import * as c16 from "@/lib/smc/combo1016";
+import * as c16a from "@/lib/smc/combo1016-arms";
+import * as c16f from "@/lib/smc/combo1016-feat";
+import * as c16c from "@/lib/smc/combo1016-cand";
+import { pdLegRead, zoneOf as pdZoneOf } from "@/lib/smc/seq/pd-leg";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
 import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
@@ -315,6 +321,22 @@ async function loadHourly(symbol: IndexSymbol, t0: number): Promise<{ bars: Ohlc
     `hourly:${symbol}`,
     async () => (await fetchYahooBars(symbol, "6mo", "60m", 4000))?.bars ?? null,
     { waitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), coldWaitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), ttlMs: HOURLY_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
+    cloneBars,
+  );
+  return { bars: r.value ?? [], leg: r.leg };
+}
+
+/**
+ * combo1016 config1: 1 month of 24h 5m bars per book for atrpct (feat.py: rank of ATR14(5m) within the last 5760 rows, ≥ 500 valid) and the
+ * research 5m FVG / ATR5 history. Not a grade leg: capped wait like the hourly pull; a miss leaves atrpct null and config1 fails closed.
+ */
+const FIVE_CACHE_MS = 5 * 60_000;
+async function loadFive(symbol: IndexSymbol, t0: number): Promise<{ bars: OhlcBar[]; leg: BudgetLeg }> {
+  const r = await budgetedLeg(
+    `five:${symbol}`,
+    `five:${symbol}`,
+    async () => (await fetchYahooBars(symbol, "1mo", "5m", 7000))?.bars ?? null,
+    { waitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), coldWaitMs: Math.min(HOURLY_WAIT_MS, remaining(t0, DESK_BUDGET_MS)), ttlMs: FIVE_CACHE_MS, maxStaleMs: DAILY_MAX_STALE_MS, isGood: (b) => b.length > 0 },
     cloneBars,
   );
   return { bars: r.value ?? [], leg: r.leg };
@@ -641,7 +663,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // 1mo 15m: 5d left the prior trading week only partially covered, so
     // PWH/PWL (prior completed week, Sun 18:00 → Fri 17:00 ET) was wrong.
     // Yahoo caps 15m history around 60d; bars are trimmed to MAX_BARS.
-    const [lb, rb, dL, dR, mL, mR, lqIn, rqIn, spy, qqq, hL, hR] = await Promise.all([
+    const [lb, rb, dL, dR, mL, mR, lqIn, rqIn, spy, qqq, hL, hR, fL, fR] = await Promise.all([
       load(data.left, "1mo", "15m", t0),
       load(data.right, "1mo", "15m", t0),
       loadDaily(data.left, t0),
@@ -654,6 +676,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       loadSpot("QQQ", t0),
       loadHourly(data.left, t0),
       loadHourly(data.right, t0),
+      loadFive(data.left, t0),
+      loadFive(data.right, t0),
     ]);
     const left = lb.series;
     const right = rb.series;
@@ -689,6 +713,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         mR.leg,
         spy.leg,
         qqq.leg,
+        fL.leg,
+        fR.leg,
         hL.leg,
         hR.leg,
       ],
@@ -2113,6 +2139,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const bp = bk?.plan as { side?: "long" | "short"; t1: number | null; t2: number | null; rr2?: number | null } | null | undefined;
         if (bk && bp && orderTargets({ ...bp, side: (bp.side ?? bk.side) as "long" | "short" })) { bp.t2 = null; if ("rr2" in bp) bp.rr2 = null; }
       }
+      // combo1016 config1 LIVE (SMC #47 review (2)): evaluate config1 on EVERY book/side, not only where the scanner happened to build a card.
+      // A book/side with no scanner card gets a config1 shell row (watchOnly: never leads a normal path; desk-listen lets it lead only when its
+      // config1 read fires). It runs the same research-candidate scan + arms read below as any other card.
+      if (c16a.isLiveArm(String(c16a.ARMS_LIVE.arm ?? ""))) {
+        for (const sym of [left.symbol, right.symbol]) for (const sd of ["long", "short"] as const) {
+          if (payload.scan.candidates.some((c) => c.symbol === sym && c.side === sd)) continue;
+          payload.scan.candidates.push({ symbol: sym, side: sd, strategy: "combo1016 config1 shell", band: "C", pathBand: "C", q: 0, confluence: 0, actionable: false,
+            watchOnly: true, watchWhy: "combo1016 config1 shell: research-candidate scan on every book/side", config1Shell: true, plan: null, ltfArm: null,
+            components: [], reasons: ["combo1016 config1 shell row (no scanner card on this book/side)"], targets: "" } as unknown as (typeof payload.scan.candidates)[number]);
+        }
+      }
       // fix1016 (post-mortem 10/16) — every card carries the read of items 1/3/4/5/8 on card.fix1016 (wire strategy.fix1016).
       // shadow (default): reads only, nothing on the card's live fields moves. Item 4 live replaces q (old kept) and re-seals.
       for (const c of payload.scan.candidates) {
@@ -2137,6 +2174,100 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             pdHalf: null, rr1: pl?.rr1 ?? null, chaseAtr: chase.anchor?.distAtr ?? null, hasEntryArray: pl?.entryZone != null,
             t1IsPool: /pool|PDH|PDL|ON[HL]|Asia|London|EQ[HL]|swing/i.test(String(pl?.targetSrc ?? "")), dispStrength: c.dispStrength?.score ?? null });
           (c as { fix1016?: unknown }).fix1016 = { modes: fx16.fixModes(), reanchor: re, chase, ltfPromote: pr, score5: sc, runner };
+          // score1016 (shadow): event-driven five-layer score + probability grade + entry/exit/caps read. Never writes q/band/plan.
+          try {
+            const arm = c.ltfArm ?? null;
+            const ct = new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":").map(Number);
+            const legEq = arm ? (arm.sweep.level + (arm.side === "short" ? Math.min(arm.gap.lo, px ?? arm.gap.lo) : Math.max(arm.gap.hi, px ?? arm.gap.hi))) / 2 : null;
+            const inp = s16.inputFromCard({ side, bias1h: hb?.bias1h ?? null, bias4h: hb?.bias4h ?? null,
+              levels: rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price })),
+              ref: arm?.entryEdge ?? entry ?? px, arm, components: (c.components ?? []) as string[], minuteCt: (ct[0]! % 24) * 60 + ct[1]!,
+              nArrays: [c.ltfArm, (c as { ifvgFlip?: unknown }).ifvgFlip, pl?.entryZone].filter(Boolean).length, legEq });
+            const veto = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(isL ? closedL : closedR),
+              staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
+            const s5 = s16.score1016(inp, veto);
+            const ed = arm && px != null ? s16.entryDecision({ side, price: px, edge: arm.entryEdge, stop: arm.stop }) : null;
+            const ex = ed ? s16.exitPlan(side, ed.entry, ed.stop) : null;
+            (c as { score1016?: unknown }).score1016 = { modes: s16.scoreModes(), ...s5, input: inp, entry: ed, exit: ex,
+              wouldFire: s5.fire && ed != null, src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };
+          } catch (e) { (c as { score1016?: unknown }).score1016 = { error: String(e).slice(0, 160) }; }
+          // combo1016 (shadow): score1016.v2 S2 + exported GBM gbmP; fire = S2>=75 AND gbmP>=thr; A+ logged only. Never writes q/band/plan/size.
+          try {
+            const arm = c.ltfArm ?? null;
+            const s5c = (c as { score1016?: { input?: s16.Score1016Input; entry?: { chaseR?: number } | null } }).score1016;
+            const inp = s5c?.input;
+            if (!inp) throw new Error("no score1016 input");
+            const nowD = new Date(nowMs);
+            const dowCt = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(nowD.toLocaleString("en-US", { timeZone: "America/Chicago", weekday: "short" }));
+            const pc = arm && px != null ? c16.comboPlan({ side, price: px, edge: arm.entryEdge, stop: arm.stop }) : null;
+            // closed 1m (own + other book) for the 5m research features and ATR; closedL/closedR are 15m bars (session levels, 1h/4h trends)
+            const own1m = closed1mOf(isL ? minuteL : minuteR, nowMs), oth1m = closed1mOf(isL ? minuteR : minuteL, nowMs);
+            // research row convention: the decision is at the close of the last closed 1m bar; its label (close − 1m) floors to the 5m feature row
+            // decision bar = the LAST CLOSED own 1m bar (a lagging feed must not leave the decision bar missing; HEAD used now − 1m)
+            const own5m = closed5mOf(isL ? fL.bars : fR.bars, nowMs);
+            const tDec = own1m.length ? own1m[own1m.length - 1]!.t : Math.floor(nowMs / 60_000) * 60_000 - 60_000;
+            const bf = c16f.barFeatures({ own1m, other1m: oth1m, own15m: (isL ? closedL : closedR) as unknown as c16f.B[], own5m, tMs: tDec, side });
+            const ft = c16.featuresFromScore1016({ ...inp, poolTier: s16.poolTier, chaseR: pc?.chaseR ?? null, riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null,
+              atr5: bf.atr5 ?? closedAtr5(own1m), dow: (dowCt + 6) % 7, bar: bf });
+            const veto = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(own1m),
+              staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
+            const rd0 = c16.comboRead(ft.v2, ft.gbm, veto.vetoed);
+            // Accuracy nit: before 08:30 CT sw_with/pdpos_with cannot equal research (it used the whole overnight) → flag partial
+            const preP = bf.preRthLevels ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null;
+            const rd = { ...rd0, partial: [rd0.partial, preP].filter(Boolean).join("; ") || null };
+            (c as { combo1016?: unknown }).combo1016 = { ...rd, plan: pc, wouldFire: rd.fire && pc != null, feat: ft, barWhy: bf.why,
+              // never a clean would_fire while any input is defaulted or missing: the row carries the partial label (fire decision unchanged)
+              rows: [(rd.fire && pc != null ? (rd.partial ? "shadow:combo1016:would_fire_partial" : "shadow:combo1016:would_fire") : "shadow:combo1016:read") + (rd.partial ? ` (${rd.partial})` : ""), ...(rd.aPlus ? ["shadow:combo1016:a_plus"] : [])],
+              setupId: arm ? c16.setupIdOf(String(c.symbol ?? ""), side, arm.sweep.level, arm.sweep.t ?? null) : null,
+              caps: { perDay: c16.CB.caps?.perDay ?? 3, perSymbol: c16.CB.caps?.perSymbol ?? 2, haltAfterLosses: c16.CB.caps?.haltAfterLosses ?? 1, by: "watcher day ledger" },
+              src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };
+          } catch (e) { (c as { combo1016?: unknown }).combo1016 = { error: String(e).slice(0, 160) }; }
+          // combo1016 arms (shadow): SMC pnl-push finalists cfg1/cfg2/cfg3/p2 on the same S2/gbmP read; plan, legs, option-$ estimate, pd_cur/pd_ent. Never writes q/band/plan/size.
+          try {
+            const cb = (c as { combo1016?: { S2?: number; feat?: { v2: c16.V2Raw; gbm: Record<string, number | null> }; partial?: string | null; arms?: unknown } }).combo1016;
+            if (cb && typeof cb.S2 === "number" && cb.feat) {
+              const arm = c.ltfArm ?? null;
+              const ctA = new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":").map(Number);
+              const bars1 = closed1mOf(isL ? minuteL : minuteR, nowMs) as unknown as OhlcBar[];
+              const vetoA = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(bars1),
+                staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
+              // research-exact candidate inputs for the arms only (eng.py/score.py): b1/b4 EMA adjust=False on UTC bins, pd on the eng.py DR at the decision close,
+              // smt on the [raid−5, decision] window, chaseR over the market anchor's risk, tmin = decision bar label. The legacy combo1016 arm keeps its inputs.
+              const own15A = (isL ? closedL : closedR) as unknown as c16f.B[], oth1A = closed1mOf(isL ? minuteR : minuteL, nowMs);
+              const own5A = closed5mOf(isL ? fL.bars : fR.bars, nowMs);
+              const tDecA = bars1.length ? bars1[bars1.length - 1]!.t : Math.floor(nowMs / 60_000) * 60_000 - 60_000;
+              // config1 LIVE source: the research candidate generator (eng.py closed-bar port) on this book/side, decided at the close of the last
+              // closed 1m bar. It supplies the raid inputs (wtmax, nk, pd, arr_ifvg, chaseR, risk_atr, disp, mss, ifvg, eqhit, n_arr, stop, edge)
+              // that the desk ltfArm only had when an arm happened to be on the card. No research candidate → the ltfArm fallback (as before).
+              const rc = c16c.researchCandidates({ own1m: bars1 as unknown as c16f.B[], own15m: own15A, own5m: own5A, sym: String(c.symbol ?? "") }).find((x) => x.side === side) ?? null;
+              const edgeA = rc ? rc.edge : arm?.entryEdge ?? null, stopA = rc ? rc.stop : arm?.stop ?? null;
+              const cf = c16f.candFeatures({ own1m: bars1 as unknown as c16f.B[], other1m: oth1A, own15m: own15A,
+                tMs: tDecA, side, tRaidMs: rc ? rc.tRaid : arm?.sweep.t ?? null, price: px, edge: edgeA, stop: stopA });
+              const bfA = c16f.barFeatures({ own1m: bars1 as unknown as c16f.B[], other1m: oth1A, own15m: own15A, own5m: own5A, tMs: tDecA, side });
+              const ci = rc ? c16c.candInputs(rc, px) : null;
+              const v2A = rc
+                ? { ...cb.feat.v2, tr4h_with: bfA.tr4h_with, rng30: bfA.rng30, atrpct: bfA.atrpct, pd: rc.pd, wtmax: rc.wtmax, nk: rc.nk, smt: cf.smt, disp: rc.disp, mss: rc.mss, ifvg: rc.ifvg,
+                    risk_atr: ci!.risk_atr, chaseR: ci!.chaseR, arr_ifvg: rc.arr_ifvg, tmin: rc.tmin }
+                : { ...cb.feat.v2, pd: cf.pd, smt: cf.smt, chaseR: cf.chaseR, tmin: cf.tmin, risk_atr: cf.risk_atr, atrpct: bfA.atrpct };
+              const gA = rc
+                ? { ...cb.feat.gbm, b1: cf.b1, b4: cf.b4, pd: rc.pd, wtmax: rc.wtmax, smt: cf.smt == null ? null : cf.smt ? 1 : 0, nk: rc.nk, disp: rc.disp, mss: rc.mss ? 1 : 0, ifvg: rc.ifvg ? 1 : 0,
+                    arr_ifvg: rc.arr_ifvg, eqhit: rc.eqhit, n_arr: rc.n_arr, tmin: rc.tmin, chaseR: ci!.chaseR, risk_atr: ci!.risk_atr, atrpct: bfA.atrpct, dow: rc.dow,
+                    sw_with: bfA.sw_with, smt_with: bfA.smt_with, fail3_with: bfA.fail3_with, mss5_with: bfA.mss5_with, tr1h_with: bfA.tr1h_with, tr4h_with: bfA.tr4h_with,
+                    pdpos_with: bfA.pdpos_with, compress: bfA.compress, rng30: bfA.rng30, since_disp: bfA.since_disp }
+                : { ...cb.feat.gbm, b1: cf.b1, b4: cf.b4, pd: cf.pd, smt: cf.smt == null ? null : cf.smt ? 1 : 0, chaseR: cf.chaseR, tmin: cf.tmin, risk_atr: cf.risk_atr, atrpct: bfA.atrpct };
+              const reads = c16a.armsCardRead({ v2: v2A, gbm: gA, vetoed: vetoA.vetoed, research: rc != null, dow: new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Chicago", weekday: "short" }), partial: tod1m(nowMs) < 510 ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null, side, symbol: String(c.symbol ?? ""), price: px,
+                edge: edgeA, stop: stopA, a5: rc ? rc.a5 : cf.a5, minuteCt: (ctA[0]! % 24) * 60 + ctA[1]! });
+              const pdE = (() => { const pe = reads.find((r) => r.plan)?.plan?.entry ?? arm?.entryEdge ?? null; return pdLegRead({ side, poi: pe, price: px, closed1m: bars1, feedNowMs: nowMs, legacyFail: false }); })();
+              const w = bars1.slice(-1200); const hi = w.length ? Math.max(...w.map((b) => b.h)) : NaN, lo = w.length ? Math.min(...w.map((b) => b.l)) : NaN;
+              const zc = px != null ? pdZoneOf(px, hi, lo) : null;
+              (cb as { arms?: unknown }).arms = { mode: c16a.armsMode(), thr: c16a.ARMS_THR,
+                // research DayBook setup id: the raid's extreme level (research candidate) or the ltfArm sweep level (fallback)
+                setupId: c16a.armSetupId(String(c.symbol ?? ""), side, rc ? rc.lv : arm?.sweep.level ?? null, nowMs),
+                src: rc ? { kind: "research", raid: rc.kind, kinds: rc.kinds, tRaid: rc.tRaid, t: rc.t, edge: rc.edge, stop: rc.stop, a5: rc.a5 } : { kind: arm ? "ltfArm" : "none" }, atrpctWhy: bfA.why.atrpct ?? null, refitWeeks: c16a.AB.gbm.refitWeeks, liveRefit: false, reads,
+                pd: { book: String(c.symbol ?? ""), pd_cur: c16a.pdScore(zc?.zone ?? null, side), pd_ent: c16a.pdScore(pdE.atPoi?.zone ?? null, side), zoneCur: zc?.zone ?? null, zoneEnt: pdE.atPoi?.zone ?? null },
+                cand: cf, feat: { v2: v2A, gbm: gA }, live: { mode: c16a.ARMS_LIVE.mode ?? "shadow", arm: c16a.ARMS_LIVE.arm ?? null, bypass: c16a.ARMS_LIVE.bypass ?? [] }, partial: reads[0]?.partial ?? null, rows: reads.map((r) => r.row + (r.aPlus ? ` A+ $${r.usdPerR}/R` : "")) };
+            }
+          } catch (e) { const cb = (c as { combo1016?: { arms?: unknown } }).combo1016; if (cb && typeof cb === "object") cb.arms = { error: String(e).slice(0, 160) }; }
           const deadNow = Boolean((c as { invalidated?: boolean }).invalidated || (c as { staleTape?: boolean }).staleTape || (c as { playedOut?: boolean }).playedOut);
           if (sc.mode === "live" && !deadNow) {
             setQSource("fix1016:score5"); qWrite(c as never, "confluence" as never, sc.total as never, "fix1016:score5 (5 layers; old q kept on fix1016.score5.old)");
@@ -2210,4 +2341,32 @@ function fx16AnchorsOf(c: unknown): fx16.Anchor[] {
   const f = x.ifvgFlip;
   if (f && f.t1) out.push({ src: `iFVG flip ${f.tf}`, entry: f.entry, stop: f.stop, t1: f.t1.price, t2: f.t2?.price ?? null, t: f.gap.invertedT, zone: { top: f.gap.hi, bottom: f.gap.lo } });
   return out;
+}
+
+/** ATR14 of closed 1m bars (score1016 risk veto). */
+function closedAtr1m(bars: { h: number; l: number; c: number }[] | null | undefined): number | null {
+  const b = (bars ?? []).slice(-15);
+  if (b.length < 2) return null;
+  let s = 0;
+  for (let k = 1; k < b.length; k++) s += Math.max(b[k]!.h - b[k]!.l, Math.abs(b[k]!.h - b[k - 1]!.c), Math.abs(b[k]!.l - b[k - 1]!.c));
+  return s / (b.length - 1);
+}
+
+/** Closed 1m bars only (a bar counts once its minute has ended by nowMs). */
+/** CT minute of day of the decision bar label (last closed 1m) */
+function tod1m(nowMs: number): number { const m = Math.floor(nowMs / 60_000) * 60_000 - 60_000; const p = new Date(m).toLocaleString("en-US", { timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":").map(Number); return (p[0]! % 24) * 60 + p[1]!; }
+function closed1mOf(bars: OhlcBar[] | null | undefined, nowMs: number): c16f.B[] {
+  return (bars ?? []).filter((b) => b.t + 60_000 <= nowMs).map((b) => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c }));
+}
+
+/** Closed 5m bars (label left; a bar counts once its 5 minutes have ended by nowMs). */
+function closed5mOf(bars: OhlcBar[] | null | undefined, nowMs: number): c16f.B[] {
+  return (bars ?? []).filter((b) => b.t + 300_000 <= nowMs).map((b) => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c }));
+}
+
+/** ATR14 of 5m bars built from closed 1m bars (combo1016 risk/ATR5, research a5). */
+function closedAtr5(bars: { t?: number; h: number; l: number; c: number }[] | null | undefined): number | null {
+  const b = (bars ?? []).slice(-75); const g: { h: number; l: number; c: number }[] = [];
+  for (let k = b.length % 5; k + 5 <= b.length; k += 5) { const w = b.slice(k, k + 5); g.push({ h: Math.max(...w.map((x) => x.h)), l: Math.min(...w.map((x) => x.l)), c: w[4]!.c }); }
+  return closedAtr1m(g);
 }

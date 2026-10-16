@@ -1,0 +1,97 @@
+{
+ "backtest (config1, VAL, option $ at $250/$500 per R)": {
+  "n": 1177,
+  "usd_wk": 1521.0,
+  "wr": 0.777,
+  "worst_wk": -1184.0
+ },
+ "$650 debit cap": {
+  "n": 1177,
+  "usd_wk": 1104.5,
+  "wr": 0.777,
+  "worst_wk": -989.0,
+  "trades_cut_contracts": 583,
+  "trades_dropped": 0,
+  "A+_trades": 438,
+  "backtest_debit_over_650": 583
+ },
+ "daily stop $150": {
+  "n": 1177,
+  "usd_wk": 1521.0,
+  "wr": 0.777,
+  "worst_wk": -1184.0,
+  "dropped": {}
+ },
+ "weekly lock -$300": {
+  "n": 1000,
+  "usd_wk": 1302.0,
+  "wr": 0.773,
+  "worst_wk": -862.0,
+  "dropped": {
+   "week_lock": 177
+  }
+ },
+ "1 open position across ES+NQ (no_position)": {
+  "n": 1004,
+  "usd_wk": 1111.4,
+  "wr": 0.754,
+  "worst_wk": -1184.0,
+  "dropped": {
+   "one_open": 173
+  }
+ },
+ "flat/fills cut at 14:30 CT (FLAT_BY_ET 15:30 default)": {
+  "n": 1167,
+  "usd_wk": 1500.1,
+  "wr": 0.777,
+  "worst_wk": -1184.0,
+  "dropped": {
+   "after_flat": 10
+  },
+  "open_past_1430_not_resimmed": {
+   "n": 27,
+   "pnl": 6701.0
+  }
+ },
+ "limit fills (filled after the signal bar)": {
+  "n": 0,
+  "pnl_wk": 0.0
+ },
+ "ALL quantified rules combined": {
+  "n": 880,
+  "usd_wk": 692.8,
+  "wr": 0.75,
+  "worst_wk": -706.0,
+  "dropped": {
+   "week_lock": 132,
+   "one_open": 155,
+   "after_flat": 10
+  }
+ },
+ "REMAINING after Keaton 10/16 bypasses (no_position + 14:30 CT flat)": {
+  "n": 995,
+  "usd_wk": 1091.8,
+  "wr": 0.754,
+  "worst_wk": -1184.0,
+  "dropped": {
+   "one_open": 172,
+   "after_flat": 10
+  }
+ },
+ "re-sim check (14:55 CT, should equal backtest)": {
+  "n": 1177,
+  "usd_wk": 1521.0,
+  "wr": 0.777,
+  "worst_wk": -1184.0
+ },
+ "REMAINING (RH/session clocks): entry cutoff 14:40 CT, 0DTE flat 14:40 CT, flatByMaxEt 14:50 CT": {
+  "n": 1177,
+  "usd_wk": 1517.7,
+  "wr": 0.777,
+  "worst_wk": -1184.0
+ },
+ "_notes": {
+  "weeks": 145,
+  "daily stop 15% leg": "15% of equity binds before $150 only when equity < $1000 (not modelled)"
+ }
+}

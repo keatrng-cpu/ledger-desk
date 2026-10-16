@@ -1,0 +1,2218 @@
+{
+ "thr": 0.6487956668756266,
+ "golden": {
+  "n": 166,
+  "s2Max": 4.973799150320701e-14,
+  "gMax": 1.1102230246251565e-16,
+  "fireMis": [],
+  "usdMis": [],
+  "kindMis": [
+   {
+    "i": 108,
+    "chaseR": null,
+    "exp": "limit_newest_edge",
+    "got": "limit"
+   },
+   {
+    "i": 153,
+    "chaseR": null,
+    "exp": "limit_newest_edge",
+    "got": "limit"
+   }
+  ]
+ },
+ "exit": {
+  "n": 75,
+  "max": 0,
+  "mis": []
+ },
+ "opt": {
+  "n": 150,
+  "max": 2.1600499167107046e-10,
+  "ctMis": 0,
+  "nul": 0
+ },
+ "feat": {
+  "sw_with": {
+   "n": 7284,
+   "mis": 28,
+   "nullGot": 0,
+   "preRth": 28
+  },
+  "smt_with": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "fail3_with": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "mss5_with": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "tr1h_with": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "tr4h_with": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "pdpos_with": {
+   "n": 7284,
+   "mis": 206,
+   "nullGot": 0,
+   "preRth": 206
+  },
+  "rng30": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "compress": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "since_disp": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  },
+  "atr5": {
+   "n": 7284,
+   "mis": 0,
+   "nullGot": 0,
+   "preRth": 0
+  }
+ },
+ "featMis": [
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:00:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.043478260869565216,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:00:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9565217391304348,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:01:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.043478260869565216,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:01:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9565217391304348,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:02:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.043478260869565216,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:02:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9565217391304348,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:03:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.043478260869565216,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:03:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9565217391304348,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:04:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.043478260869565216,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:04:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9565217391304348,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:05:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.047619047619047616,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:05:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9523809523809523,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:06:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.047619047619047616,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:06:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9523809523809523,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:07:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.047619047619047616,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:07:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9523809523809523,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:08:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.047619047619047616,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:08:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9523809523809523,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:09:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.05982905982905983,
+   "got": 0.047619047619047616,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:09:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9401709401709402,
+   "got": 0.9523809523809523,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:10:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.11965811965811966,
+   "got": 0.10822510822510822,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:10:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8803418803418803,
+   "got": 0.8917748917748918,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:11:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.11965811965811966,
+   "got": 0.10822510822510822,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:11:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8803418803418803,
+   "got": 0.8917748917748918,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:12:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.11965811965811966,
+   "got": 0.10822510822510822,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:12:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8803418803418803,
+   "got": 0.8917748917748918,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:13:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.11965811965811966,
+   "got": 0.10822510822510822,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:13:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8803418803418803,
+   "got": 0.8917748917748918,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:14:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.11965811965811966,
+   "got": 0.10822510822510822,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:14:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8803418803418803,
+   "got": 0.8917748917748918,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:15:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.14957264957264957,
+   "got": 0.13852813852813853,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:15:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8504273504273504,
+   "got": 0.8614718614718615,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:16:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.14957264957264957,
+   "got": 0.13852813852813853,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:16:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8504273504273504,
+   "got": 0.8614718614718615,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:17:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.14957264957264957,
+   "got": 0.13852813852813853,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:17:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8504273504273504,
+   "got": 0.8614718614718615,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:18:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.14957264957264957,
+   "got": 0.13852813852813853,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:18:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8504273504273504,
+   "got": 0.8614718614718615,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:19:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.14957264957264957,
+   "got": 0.13852813852813853,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:19:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8504273504273504,
+   "got": 0.8614718614718615,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:20:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.01282051282051282,
+   "got": 0.004310344827586207,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:20:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9871794871794872,
+   "got": 0.9956896551724138,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:21:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.01282051282051282,
+   "got": 0.004310344827586207,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:21:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9871794871794872,
+   "got": 0.9956896551724138,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:22:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.01282051282051282,
+   "got": 0.004310344827586207,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:22:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9871794871794872,
+   "got": 0.9956896551724138,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:23:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.01282051282051282,
+   "got": 0.004310344827586207,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:23:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9871794871794872,
+   "got": 0.9956896551724138,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:24:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.01282051282051282,
+   "got": 0.004310344827586207,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-10-14T08:24:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.9871794871794872,
+   "got": 0.9956896551724138,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:00:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.3482142857142857,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:00:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6517857142857143,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:01:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.3482142857142857,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:01:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6517857142857143,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:02:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.3482142857142857,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:02:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6517857142857143,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:03:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.3482142857142857,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:03:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6517857142857143,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:04:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.3482142857142857,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:04:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6517857142857143,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:05:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.34375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:05:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.65625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:06:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.34375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:06:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.65625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:07:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.34375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:07:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.65625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:08:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.34375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:08:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.65625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:09:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.34375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:09:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.65625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:10:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35714285714285715,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:10:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6428571428571428,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:11:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35714285714285715,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:11:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6428571428571428,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:12:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35714285714285715,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:12:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6428571428571428,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:13:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35714285714285715,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:13:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6428571428571428,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:14:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35714285714285715,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:14:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6428571428571428,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:15:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35267857142857145,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:15:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6473214285714286,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:16:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35267857142857145,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:16:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6473214285714286,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:17:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35267857142857145,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:17:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6473214285714286,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:18:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35267857142857145,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:18:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6473214285714286,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:19:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.35267857142857145,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:19:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.6473214285714286,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:20:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:20:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:21:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:21:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:22:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:22:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:23:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:23:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:24:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.375,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:24:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:25:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.29910714285714285,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:25:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.7008928571428572,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:26:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.29910714285714285,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:26:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.7008928571428572,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:27:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.29910714285714285,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:27:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.7008928571428572,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:28:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.29910714285714285,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:28:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.7008928571428572,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:29:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.29910714285714285,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "ES",
+   "t": "2026-09-18T08:29:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.7008928571428572,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:00:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.061711079943899017,
+   "got": 0.040172166427546625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:00:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.938288920056101,
+   "got": 0.9598278335724534,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:01:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.061711079943899017,
+   "got": 0.040172166427546625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:01:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.938288920056101,
+   "got": 0.9598278335724534,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:02:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.061711079943899017,
+   "got": 0.040172166427546625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:02:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.938288920056101,
+   "got": 0.9598278335724534,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:03:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.061711079943899017,
+   "got": 0.040172166427546625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:03:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.938288920056101,
+   "got": 0.9598278335724534,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:04:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.061711079943899017,
+   "got": 0.040172166427546625,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:04:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.938288920056101,
+   "got": 0.9598278335724534,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:05:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.07643758765778401,
+   "got": 0.055236728837876614,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:05:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.923562412342216,
+   "got": 0.9447632711621234,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:06:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.07643758765778401,
+   "got": 0.055236728837876614,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:06:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.923562412342216,
+   "got": 0.9447632711621234,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:07:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.07643758765778401,
+   "got": 0.055236728837876614,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:07:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.923562412342216,
+   "got": 0.9447632711621234,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:08:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.07643758765778401,
+   "got": 0.055236728837876614,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:08:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.923562412342216,
+   "got": 0.9447632711621234,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:09:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.07643758765778401,
+   "got": 0.055236728837876614,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:09:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.923562412342216,
+   "got": 0.9447632711621234,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:10:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.10799438990182328,
+   "got": 0.08751793400286945,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:10:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8920056100981767,
+   "got": 0.9124820659971306,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:11:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.10799438990182328,
+   "got": 0.08751793400286945,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:11:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8920056100981767,
+   "got": 0.9124820659971306,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:12:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.10799438990182328,
+   "got": 0.08751793400286945,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:12:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8920056100981767,
+   "got": 0.9124820659971306,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:13:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.10799438990182328,
+   "got": 0.08751793400286945,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:13:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8920056100981767,
+   "got": 0.9124820659971306,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:14:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.10799438990182328,
+   "got": 0.08751793400286945,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:14:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8920056100981767,
+   "got": 0.9124820659971306,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:15:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.1479663394109397,
+   "got": 0.1284074605451937,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:15:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8520336605890603,
+   "got": 0.8715925394548063,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:16:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.1479663394109397,
+   "got": 0.1284074605451937,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:16:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8520336605890603,
+   "got": 0.8715925394548063,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:17:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.1479663394109397,
+   "got": 0.1284074605451937,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:17:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8520336605890603,
+   "got": 0.8715925394548063,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:18:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.1479663394109397,
+   "got": 0.1284074605451937,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:18:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8520336605890603,
+   "got": 0.8715925394548063,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:19:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": 0.1479663394109397,
+   "got": 0.1284074605451937,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-10-14T08:19:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": 0.8520336605890603,
+   "got": 0.8715925394548063,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:00:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:00:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.49403508771929827,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:00:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5059649122807017,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:01:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:01:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.49403508771929827,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:01:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5059649122807017,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:02:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:02:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.49403508771929827,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:02:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5059649122807017,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:03:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:03:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.49403508771929827,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:03:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5059649122807017,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:04:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:04:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.49403508771929827,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:04:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5059649122807017,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:05:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:05:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4849122807017544,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:05:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5150877192982456,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:06:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:06:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4849122807017544,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:06:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5150877192982456,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:07:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:07:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4849122807017544,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:07:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5150877192982456,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:08:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:08:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4849122807017544,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:08:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5150877192982456,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:09:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:09:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4849122807017544,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:09:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5150877192982456,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:10:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:10:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5143859649122807,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:10:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4856140350877193,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:11:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:11:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5143859649122807,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:11:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4856140350877193,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:13:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:13:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5143859649122807,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:13:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4856140350877193,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:15:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:15:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5171929824561403,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:15:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4828070175438597,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:16:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:16:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5171929824561403,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:16:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4828070175438597,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:17:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:17:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5171929824561403,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:17:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4828070175438597,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:18:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:18:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5171929824561403,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:18:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4828070175438597,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:19:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:19:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5171929824561403,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:19:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.4828070175438597,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:20:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:20:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5270175438596492,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:20:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.47298245614035084,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:21:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:21:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5270175438596492,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:21:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.47298245614035084,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:22:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:22:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5270175438596492,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:22:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.47298245614035084,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:23:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:23:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5270175438596492,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:23:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.47298245614035084,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:24:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:24:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5270175438596492,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:24:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.47298245614035084,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:25:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:25:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.46807017543859647,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:25:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5319298245614035,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:26:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:26:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.46807017543859647,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:26:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5319298245614035,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:27:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:27:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.46807017543859647,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:27:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5319298245614035,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:28:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:28:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.46807017543859647,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:28:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5319298245614035,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:29:00-05:00",
+   "side": "short",
+   "k": "sw_with",
+   "exp": 0,
+   "got": 1,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:29:00-05:00",
+   "side": "short",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.46807017543859647,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  },
+  {
+   "sym": "NQ",
+   "t": "2026-09-18T08:29:00-05:00",
+   "side": "long",
+   "k": "pdpos_with",
+   "exp": null,
+   "got": 0.5319298245614035,
+   "why": "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only"
+  }
+ ],
+ "cand": {
+  "n": 158,
+  "b1": 0,
+  "b4": 0,
+  "pd": 0,
+  "ex": []
+ }
+}

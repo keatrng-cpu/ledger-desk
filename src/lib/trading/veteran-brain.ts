@@ -6,6 +6,7 @@
 
 import type { DeskPayload } from "./build-desk";
 import type { SetupCandidate } from "./scanner";
+import { brainPdLive, brainPdRead, type BrainPdRead } from "@/lib/smc/seq/brain-pd";
 import {
   loadDeskMemory,
   memoryDigest,
@@ -84,6 +85,8 @@ export interface StrategyRead {
 }
 
 export interface VeteranBrief {
+  /** Brain step 8 at the ENTRY on the own book (brainPd; shadow = logged only, never gates). */
+  pdGrade?: BrainPdRead | null;
   name: string;
   posture: string;
   verdict: DiscretionVerdict;
@@ -907,7 +910,7 @@ export function runVeteranBrain(
   }
 
   // 8) Dealing range location
-  if (rawBest && bias.left.dealing) {
+  if (rawBest && bias.left.dealing && !brainPdLive()) {
     const zone = bias.left.dealing.zone;
     const aligned =
       (rawBest.side === "long" && zone === "discount") ||
@@ -923,6 +926,19 @@ export function runVeteranBrain(
       score -= 0.5;
     }
   }
+
+  // 8') brainPd (rules brainPd): premium/discount graded at the ENTRY via deskSeq.pdLeg on rawBest's OWN book (the legacy step 8 above
+  // reads the current price and always the LEFT book). NON-GATING: at most +nudgeMax, never a yellow/STAND reason. mode shadow (default):
+  // computed and logged on brief.pdGrade only, score untouched. mode live: the nudge would replace the legacy term (not enabled here).
+  let pdGrade: VeteranBrief["pdGrade"] = null;
+  try {
+    if (rawBest) {
+      const own = rawBest.symbol === bias.right.symbol ? "right" : "left";
+      const poi = (rawBest as { entryPx?: number | null }).entryPx ?? (rawBest.plan as { entry?: number | null } | null | undefined)?.entry ?? null;
+      pdGrade = brainPdRead({ desk, side: rawBest.side as "long" | "short", own, poi, zoneCur: bias[own].dealing?.zone ?? null, legacyBook: "left" });
+    }
+  } catch { pdGrade = null; }
+  if (brainPdLive() && pdGrade) score += pdGrade.applied;   // live only: ≤ +nudgeMax, never a reason
 
   // 8b) Canon stack — independent ICT/SMC/TJR/PB factors
   const book =
@@ -1403,6 +1419,7 @@ export function runVeteranBrain(
 
   return {
     name: "Veteran · SMC/ICT",
+    pdGrade,
     posture,
     verdict,
     confidence,
