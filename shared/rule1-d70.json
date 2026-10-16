@@ -1,0 +1,15 @@
+{
+  "_doc": "Rule 1 SHADOW option ticket at ~0.70 delta, 0DTE (audits/overnight-1016/report.md item 1: Rule1 $/wk -64 ATM -> +28 at d.7, Holm p 1.3e-11). NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. Desk computes it next to the current Rule 1 ticket; brain/Floor show it; the watcher logs it. live=false: nothing reads this to size or place an order.",
+  "version": 1,
+  "mode": "shadow",
+  "live": false,
+  "delta": 0.7,
+  "compareDelta": 0.5,
+  "dte": 0,
+  "debitCap": 650,
+  "maxContracts": 4,
+  "capBlockedIsNoTrade": true,
+  "spreadPct": 0.02,
+  "spreadMin": 0.01,
+  "feePerContractSide": 0.65
+}

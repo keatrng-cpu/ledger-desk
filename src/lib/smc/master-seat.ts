@@ -4,6 +4,8 @@
  * displacement, draws, exit plan, day governor), and one word: TAKE or PASS.
  * It never relaxes a gate: every check it lists must already pass upstream.
  */
+import { rule1D70Line } from "@/lib/trading/rule1-d70";
+
 export interface MasterInput {
   card: {
     symbol: string;
@@ -61,6 +63,7 @@ export function masterSeat(i: MasterInput): MasterSeat {
   if (i.smtLead) narrative.push(`SMT ${i.smtLead.tf} ${i.smtLead.kind}: ${i.smtLead.leader} swept, ${i.smtLead.failing} held`);
   narrative.push(`Card: ${c.symbol} ${c.side} ${c.band ?? "?"} q ${c.q}${c.chop ? " · chop" : ""}${c.dispScore != null ? ` · displacement ${c.dispScore}` : ""}`);
   narrative.push(`Brain on this book: ${i.brainWord ?? "?"}${i.brainBook ? ` (${i.brainBook.symbol} ${i.brainBook.side ?? "-"})` : ""}`);
+  for (const t of i.rule1 ?? []) if (t.ticketD70) narrative.push(rule1D70Line(t));   // shadow Δ0.7 ticket (overnight-1016 #1); display only, no check
   if (i.topDraw) narrative.push(`Draw: ${i.topDraw.name} ${i.topDraw.price}`);
   narrative.push(c.entry != null ? `Plan: entry ${c.entry}${c.entryResting ? " (resting)" : ""} · stop ${c.stopPx ?? "?"} · target ${c.target ?? "?"} · ${c.rr ?? "?"}R` : "Plan: no priced entry yet");
   const sameBook = i.brainBook?.symbol === c.symbol;

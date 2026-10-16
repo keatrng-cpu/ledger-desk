@@ -8,12 +8,15 @@
  */
 import CFG from "../../../shared/rule1.json";
 import type { OhlcBar } from "@/lib/market/types";
+import { rule1D70, type Rule1D70 } from "./rule1-d70";
 
 export type Rule1Ticket = {
   mode: "shadow"; version: number; symbol: string; side: "long" | "short"; at: number; dispAt: number;
   swept: "ONL" | "PDL" | "ONH" | "PDH"; level: number; bodyAtr: number; bonus: boolean;
   entry: number; stop: number; riskPts: number; target: number; runner: number | null; runnerR: number | null;
   option: { underlier: string; right: "call" | "put"; delta: number; strike: number | null; premium: number | null; contracts: number; dte: 0 | 1 } | null;
+  /** SHADOW Δ0.70 0DTE ticket next to `option` (shared/rule1-d70.json, overnight-1016 item 1). Display/log only; never sizes or fires. */
+  ticketD70?: Rule1D70 | null;
 };
 
 const MIN = 60_000;
@@ -106,6 +109,7 @@ export function rule1Ticket(symbol: string, m1: OhlcBar[], nowMs: number, underP
       bonus: Math.abs(body) >= CFG.bonusBodyAtr * rng, entry: r2(entry), stop: r2(stop), riskPts: r2(risk), target: r2(entry + s * CFG.targetR * risk),
       runner, runnerR: runner != null ? +((s * (runner - entry)) / risk).toFixed(2) : null,
       option: pickOption(symbol, side, entry, rng, ctParts(at).min, underPx),
+      ticketD70: rule1D70(symbol, side, entry, rng, ctParts(at).min, underPx),
     };
   }
   return null;
