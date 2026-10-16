@@ -1,0 +1,24 @@
+--- a/watcher/gates.py	2026-10-16 09:16:34.106009149 -0500
++++ b/watcher/gates.py	2026-10-16 09:16:34.118009149 -0500
+@@ -107,8 +107,10 @@
+         # deep-audit #1/#12/#13: the desk's own dead-card flags (alerts are withheld on them; hygiene.alert_allowed)
+         "invalidated": strat.get("invalidated") is True, "stale_tape": strat.get("staleTape") is True, "played_out": strat.get("playedOut") is True,
+         "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
++        "retest_reentry": strat.get("retestReentry") if isinstance(strat.get("retestReentry"), dict) else None,
+         "ltf_kill_cleared": strat.get("ltfKillCleared") is True,
+         "entry_state": strat.get("entryState") if isinstance(strat.get("entryState"), dict) else None,
++        "retest_reentry": strat.get("retestReentry") if isinstance(strat.get("retestReentry"), dict) else None,
+         "stop_px": _strict(strat.get("stopPx")),
+         "t2": _strict(strat.get("t2")),
+         "strategy_invalidated": strat.get("invalidated") is True,
+@@ -681,6 +683,10 @@
+     _es = snap.get("entry_state")
+     if _es:
+         add("shadow:timing", True, f"entryState {_es.get('state')} {_es.get('distAtr')}xATR15 (mtf {_es.get('stateMtf')}) — {_es.get('label')}")
++    # 10/16 retest re-entry (desk smc/retest-reentry.ts): SHADOW row only. Never passes/blocks a gate, never places.
++    _rt = snap.get("retest_reentry")
++    if _rt and _rt.get("state") != "void":
++        add("shadow:retest", True, f"WOULD {_rt.get('state')} {_rt.get('side')} @ {_rt.get('entry')} stop {_rt.get('stop')} tgt {_rt.get('target')} ({_rt.get('rr')}R) — {_rt.get('label')}")
+     # displacement strength scored against R:R (shared rules dispVsRr)
+     ds = snap.get("disp_strength"); rrc = snap.get("card_rr")
+     if ds is None:   # audit: a missing value must not silently demand R:R >= 2 — say it, fail closed

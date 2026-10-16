@@ -28,6 +28,7 @@ import { classifyGaps, fillMinuteSeries, findMinuteGaps, type MinuteGap } from "
 import { applyDiscipline, bandFromQ, capBand, sealBand, shockLeanLive } from "@/lib/smc/discipline";
 import { EVF, ltfSoftCap, stopCrossed, on as evOn } from "@/lib/desk/ev-fire";
 import { entryStateOf } from "@/lib/smc/entry-state";
+import { retestReentryOf } from "@/lib/smc/retest-reentry";
 import { buildMtfContext, KILL_CLEAR, htfBiasOf, LTF_BREAKS_FOR_REVERSAL, reversalSetupOf, smtFightsContinuation, type MtfContext } from "@/lib/smc/mtf-context";
 import { withBudget } from "@/lib/market/budget";
 import {
@@ -1511,6 +1512,15 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           sinceEntry: barsSinceEntry(isL ? minuteL : minuteR, entry),
         });
         (c as { entryState?: unknown }).entryState = es;
+        // 10/16 retest re-entry (SHADOW, smc/retest-reentry.ts): never touches q/band/actionable; a reason row + card field only.
+        try {
+          const mins = isL ? minuteL : minuteR;
+          const closed = (mins ?? []).slice(0, -1); // closed bars only: drop the forming 1m
+          const pools = (payload.levels ?? []).find((lv: { symbol: string }) => lv.symbol === c.symbol)?.items?.map((it: { price: number }) => it.price) ?? [];
+          const rr = retestReentryOf({ side: c.side as "long" | "short", minute: closed, pools, rows: mtfArrays(c.symbol, mins, cx.closed15) as never });
+          (c as { retestReentry?: unknown }).retestReentry = rr;
+          if (rr) c.reasons.push(`${rr.label} (no effect)`);
+        } catch { (c as { retestReentry?: unknown }).retestReentry = null; }
         const ch = (c as { chase?: { qFactor: number; qBefore: number; applied: boolean } }).chase;
         if (ch?.applied) {
           const qq = ch.qFactor > 0 ? Math.min(0.99, +(c.confluence / ch.qFactor).toFixed(4)) : ch.qBefore;

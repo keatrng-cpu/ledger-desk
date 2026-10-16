@@ -14,6 +14,12 @@ import { LTF_ARM, capBandAt } from "@/lib/smc/ltf-arm";
 const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
 /** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
 /** ltfArm: a card armed by LTF evidence never reads above ltfArm.capBand, whatever q says. */
+/** 10/16 retest re-entry: one shadow line for the brain seat and the Floor (same text both places). */
+function retestLine(top: unknown): string | null {
+  const r = (top as { retestReentry?: import("@/lib/smc/retest-reentry").RetestRead | null } | null)?.retestReentry;
+  return r && r.state !== "void" ? `${r.label} [shadow, no vote]` : null;
+}
+
 export function armedBand(c: { confluence: number; pathBand?: string | null; ltfArmed?: boolean }): string | null {
   const b = wireBand(c.confluence, c.pathBand ?? null);
   return c.ltfArmed ? capBandAt(b, LTF_ARM.capBand) : b;
@@ -152,6 +158,8 @@ export interface DeskWire {
     ltfKillCleared: boolean;
     /** Fix B: timing (at/near/late/missed + ATR distance 1m–4h + real-POI re-entry), separate from q/band. */
     entryState: unknown;
+    /** 10/16 retest re-entry SHADOW read (smc/retest-reentry.ts). Brain/Floor note it, the watcher shadow-logs it; never fires. */
+    retestReentry?: import("@/lib/smc/retest-reentry").RetestRead | null;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -218,6 +226,8 @@ export interface DeskWire {
     htfReleased: boolean;
     /** kzDisp item 49: Kill Zone seat note in the brain context (shadow: a note, never a vote). */
     kzSeat?: string;
+    /** 10/16 retest re-entry seat note (shadow: a note, never a vote). */
+    retestSeat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -232,6 +242,8 @@ export interface DeskWire {
     ev?: string | null;
     /** kzDisp item 49: Floor "Kill Zone" seat line (shadow note, never a vote). */
     kzSeat?: string;
+    /** 10/16 retest re-entry Floor line (shadow: a note, never a vote; the watcher shadow-logs it only). */
+    retest?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -363,6 +375,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           qV2: ((top as { q_v2?: unknown }).q_v2 as never) ?? null,
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
+          retestReentry: ((top as { retestReentry?: unknown }).retestReentry as never) ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -402,6 +415,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       : null,
     brain: {
       kzSeat: kzSeatNote(),
+      retestSeat: retestLine(top),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -434,6 +448,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     floor: {
       verdict,
       kzSeat: kzSeatNote(),
+      retest: retestLine(top),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
