@@ -8,12 +8,11 @@
  * FIX: near-complete models can path as B+ so the desk is not starved of entries.
  */
 
-import { APLUS_RULES, type RiskGrade } from "@/lib/aplus/config";
+import { APLUS_RULES, PROFIT_ACTION_FLOOR, type RiskGrade } from "@/lib/aplus/config";
 import { WEIGHTS, type ComponentKey } from "./engine-weights";
 import { ALWAYS_SCAN, type StrategyId } from "./strategies";
 import { MODEL_REQUIREMENTS, inModelWindow } from "./smc-canon";
 
-const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
 const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
 
 export type PathBand = "A+" | "A" | "A-" | "B+" | "B" | "C" | "skip";

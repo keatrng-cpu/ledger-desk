@@ -124,7 +124,7 @@ const LOSS_RULES = RULES_ALL.loss;
 
 export interface DeskPayload {
   ok: true;
-  /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
+  /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Carried on wire.rule1; only the watcher logs it (would-fire). Brain/Floor do not log it: they only show the Δ0.7 line (desk-read.ts rule1Shadow). Never fired. */
   rule1?: (import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane })[];
   fetchedAt: string;
   clock: SessionClock;
@@ -2035,7 +2035,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           if (c.actionable) c.actionable = false;
           qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
           setQSource("dead:card seal"); sealBand(c as never); setQSource(null);
-          qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
+          // graph-drift-1016 #4: the second capBand(…, "C") after sealBand was a provable no-op (sealBand on a ≤C card
+          // always leaves pathBand "C": bandFromQ never returns skip and BAND_CEIL.C < edge B). tests/dead-card-cap.test.ts.
           c.reasons.push(why);
         };
         if (inv.invalid) {

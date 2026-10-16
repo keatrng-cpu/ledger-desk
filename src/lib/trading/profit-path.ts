@@ -4,7 +4,7 @@
  * Math is deterministic. AI never decides trades.
  */
 
-import { APLUS_RULES } from "@/lib/aplus/config";
+import { APLUS_RULES, PROFIT_ACTION_FLOOR } from "@/lib/aplus/config";
 import type { ClosedTrade, Metrics } from "@/lib/aplus/analytics";
 import { computeMetrics } from "@/lib/aplus/analytics";
 import type { ComponentKey } from "./engine-weights";
@@ -23,7 +23,8 @@ import { promotePrimaryStrategy, goldStandardNote } from "./profit-rules";
 export const PROFIT_TARGET_WR = 0.7;
 export const PROFIT_TARGET_EXPECTANCY_R = 0.35;
 export const PROFIT_MIN_SAMPLE = 100;
-export const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
+/** Re-exported from the single source (aplus/config.ts) for existing importers. */
+export { PROFIT_ACTION_FLOOR };
 export const PROFIT_A_PLUS = APLUS_RULES.aPlusThreshold;
 
 export const INCOMPLETE_PATTERNS: {

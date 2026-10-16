@@ -1,0 +1,16 @@
+--- a/src/lib/trading/veteran-brain.ts	2026-10-16 13:02:20.858524082 -0500
++++ b/src/lib/trading/veteran-brain.ts	2026-10-16 13:02:20.870524082 -0500
+@@ -907,8 +907,11 @@
+   }
+ 
+   // 8) Dealing range location
+-  if (rawBest && bias.left.dealing) {
+-    const zone = bias.left.dealing.zone;
++  // PROPOSED (graph-drift-1016, not applied): grade the dealing range on rawBest's OWN book. This read bias.left
++  // for every card, so an ES card was scored premium/discount off MNQ's range.
++  const dealBook = rawBest && rawBest.symbol === bias.right.symbol ? bias.right : bias.left;
++  if (rawBest && dealBook.dealing) {
++    const zone = dealBook.dealing.zone;
+     const aligned =
+       (rawBest.side === "long" && zone === "discount") ||
+       (rawBest.side === "short" && zone === "premium");

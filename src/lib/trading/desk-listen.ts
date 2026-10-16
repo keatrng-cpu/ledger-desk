@@ -86,6 +86,19 @@ export interface DeskListenCard {
   wire: DeskWire;
 }
 
+export type WireGuards = { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] };
+export interface WireCardShadow { symbol: string; side: string; band: string | null; q: number; reasons: string[]; guards: WireGuards | null }
+/** graph-drift-1016 #1: wire reasons cap (last N, newest kept). */
+export const WIRE_REASONS_CAP = 20;
+export const capReasons = (r: unknown): string[] => (Array.isArray(r) ? r.filter((x): x is string => typeof x === "string").slice(-WIRE_REASONS_CAP) : []);
+/** graph-drift-1016 #1/#2: per-card reasons + guards for the wire (pure; same order as the scanner list). */
+export function wireCardsOf(cands: readonly unknown[]): WireCardShadow[] {
+  return cands.map((c0) => {
+    const c = c0 as { symbol: string; side: string; pathBand?: string | null; grade?: string | null; confluence: number; reasons?: unknown; guards?: WireGuards | null };
+    return { symbol: c.symbol, side: c.side, band: c.pathBand ?? c.grade ?? null, q: c.confluence, reasons: capReasons(c.reasons), guards: c.guards ?? null };
+  });
+}
+
 export interface DeskWire {
   /** sha256 (16 hex) of the shared rules this card was graded on — the watcher fails closed on mismatch. */
   rulesHash?: string;
@@ -126,6 +139,9 @@ export interface DeskWire {
   latency?: import("@/lib/desk/push-shadow").CardLatency | null;
   /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
   rule1: import("./rule1").Rule1Ticket[];
+  /** graph-drift-1016 #1/#2: EVERY card's reasons (last WIRE_REASONS_CAP) and guards, not just the top's. Additive, shadow/log only:
+   *  nothing gates on it; `strategy` stays the card the watcher fires on. */
+  cards?: WireCardShadow[];
   strategy: {
     symbol: string;
     side: string;
@@ -161,6 +177,8 @@ export interface DeskWire {
     loss: Record<string, unknown> | null;
     /** Per-rule guard outcomes: live = acted; shadow = would have acted (no effect). */
     guards: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } | null;
+    /** graph-drift-1016 #1: the card's reasons (incl. shadow:* lines build-desk pushes), last WIRE_REASONS_CAP. Additive; display/log only. */
+    reasons?: string[];
     regime: string | null;
     /** Fix 39: trend / reversal / range — the regime the card was graded in. */
     regimeLabel: string | null;
@@ -336,6 +354,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
     },
     rule1: (desk as { rule1?: import("./rule1").Rule1Ticket[] }).rule1 ?? [],
+    cards: wireCardsOf(desk.scan.candidates),
     strategy: top
       ? {
           symbol: top.symbol,
@@ -371,6 +390,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
           guards: (top as { guards?: { live: { rule: string; did: string }[]; shadow: { rule: string; would: string }[] } }).guards ?? null,
+          reasons: capReasons((top as { reasons?: unknown }).reasons),
           regime: top.setupRegime ?? null,
           regimeLabel: (top as { regimeLabel?: string }).regimeLabel ?? null,
           setups: (top as { setups?: string[] }).setups ?? [],

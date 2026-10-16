@@ -1,0 +1,26 @@
+--- a/watcher/gates.py	2026-10-16 13:00:48.358524082 -0500
++++ b/watcher/gates.py	2026-10-16 13:00:48.378524082 -0500
+@@ -118,6 +118,13 @@
+         "choch": (strat.get("choch") if isinstance(strat.get("choch"), bool) else strat.get("mss") if isinstance(strat.get("mss"), bool) else None),
+         "loss": strat.get("loss") if isinstance(strat.get("loss"), dict) else None,
+         "guards_shadow": [x for x in ((strat.get("guards") or {}).get("shadow") or []) if isinstance(x, dict)],
++        # graph-drift-1016 #2: every card's shadow guards (wire.cards[].guards.shadow), not just the top's. Logged only, never gate.
++        "guards_shadow_cards": [
++            {"symbol": c.get("symbol"), "side": c.get("side"), "band": c.get("band"),
++             "shadow": [x for x in ((c.get("guards") or {}).get("shadow") or []) if isinstance(x, dict)]}
++            for c in (wire.get("cards") or []) if isinstance(c, dict)
++            and not (c.get("symbol") == strat.get("symbol") and c.get("side") == strat.get("side"))   # top card: already guards_shadow
++        ],
+         # smcUnity (audit 2026-10-14): desk shadow reads, logged as shadow:smc:<rule>, never gate
+         "smc_unity_rows": [x for x in (((wire.get("smcUnity") or {}).get("rows")) or []) if isinstance(x, dict)],
+         "wire_arrays": [x for x in (wire.get("arrays") or []) if isinstance(x, dict)],
+@@ -659,6 +666,9 @@
+     # LTF kill: the desk re-arms only on sweep + IFVG + displacement (capped A-); a killed side never fires
+     for _sg in snap.get("guards_shadow") or []:      # desk-side shadow guards (wire.strategy.guards.shadow): logged, never gate
+         add(f"shadow:desk:{_sg.get('rule')}", True, f"desk WOULD: {_sg.get('would')}")
++    for _cg in snap.get("guards_shadow_cards") or []:   # graph-drift-1016 #2: non-top cards' shadow guards: logged (ok=True), never gate
++        for _sg in _cg.get("shadow") or []:
++            add(f"shadow:desk:card:{_cg.get('symbol')}/{_cg.get('side')}:{_sg.get('rule')}", True, f"desk WOULD ({_cg.get('band')}): {_sg.get('would')}")
+     for _su in snap.get("smc_unity_rows") or []:     # smcUnity shadow (desk wire.smcUnity.rows): logged, never gate
+         add(f"shadow:smc:{_su.get('rule')}", True, f"desk WOULD: {_su.get('would')}")
+     for _sq in snap.get("desk_seq_rows") or []:      # deskSeq shadow (desk wire.deskSeq.rows): logged, never gate

@@ -95,6 +95,9 @@ export const APLUS_RULES = {
   >,
 } as const;
 
+/** The ONE profit/path action floor (graph-drift-1016 #6). strategy-grade.ts and profit-path.ts import this; never redefine it. */
+export const PROFIT_ACTION_FLOOR = APLUS_RULES.confluenceFloorCalibration;
+
 /** Map confluence score → risk grade label for sizing. */
 export function riskGradeFromScore(score: number): RiskGrade {
   if (score >= APLUS_RULES.aPlusThreshold) return "A+";
