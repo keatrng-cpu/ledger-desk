@@ -157,6 +157,8 @@ export interface DeskWire {
     entryState: unknown;
     /** fix1016 (post-mortem 10/16): per-item reads (re-anchor, chase-from-anchor, ltfPromote, score5, runner) + modes. Shadow = no effect. */
     fix1016?: unknown;
+    /** score1016: event-driven five-layer score read (S, layers, p, grade, entry/exit, wouldFire) + modes. Shadow = no effect. */
+    score1016?: unknown;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -225,6 +227,8 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: the brain reads the same post-mortem line as the Floor (note only, never moves the word). */
     fix1016Seat?: string | null;
+    /** score1016: the brain reads the same five-layer score line as the Floor (note only, never moves the word). */
+    score1016Seat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -241,6 +245,8 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: Floor seat line for the post-mortem items (re-anchor / score5 / runner / ltfPromote) — a note, never a vote. */
     fix1016Seat?: string | null;
+    /** score1016: Floor seat line (S, p, grade, would-fire, entry kind) — a note, never a vote. */
+    score1016Seat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -374,6 +380,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
+          score1016: (top as { score1016?: unknown }).score1016 ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -414,6 +421,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     brain: {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -447,6 +455,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       verdict,
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -690,4 +699,12 @@ export function fix1016SeatNote(f: unknown): string | null {
   if (x.ltfPromote?.deskOk) parts.push(`LTF arm ${x.ltfPromote.promoted ? "promoted" : "would promote"} (needs Brain TAKE)`);
   if (x.runner?.runnerTarget != null) parts.push(`runner → ${x.runner.runnerTarget}${x.runner.mode === "live" ? "" : " (shadow)"}`);
   return parts.length ? `Post-mortem 10/16: ${parts.join(" · ")}` : null;
+}
+
+/** score1016: one seat line from the top card's five-layer read (Floor + Brain). Shadow is labelled; never a vote. */
+export function score1016SeatNote(f: unknown): string | null {
+  const x = f as { S?: number; p?: number; grade?: string; wouldFire?: boolean; mode?: string; entry?: { kind: string; entry: number } | null; src?: string } | null | undefined;
+  if (!x || typeof x !== "object" || typeof x.S !== "number") return null;
+  const tag = x.mode === "live" ? "" : " (shadow)";
+  return `Score1016 ${x.S} · p≈${Math.round((x.p ?? 0) * 100)}% · ${x.grade ?? "-"}${x.wouldFire ? ` · ${x.mode === "live" ? "FIRE" : "would fire"} ${x.entry ? `${x.entry.kind} ${x.entry.entry}` : ""}` : ""}${tag} — ${x.src ?? ""}`.trim();
 }

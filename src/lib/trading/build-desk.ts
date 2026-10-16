@@ -18,6 +18,7 @@ import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import * as fx16 from "@/lib/smc/fix1016";
+import * as s16 from "@/lib/smc/score1016";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
 import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
@@ -2137,6 +2138,23 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             pdHalf: null, rr1: pl?.rr1 ?? null, chaseAtr: chase.anchor?.distAtr ?? null, hasEntryArray: pl?.entryZone != null,
             t1IsPool: /pool|PDH|PDL|ON[HL]|Asia|London|EQ[HL]|swing/i.test(String(pl?.targetSrc ?? "")), dispStrength: c.dispStrength?.score ?? null });
           (c as { fix1016?: unknown }).fix1016 = { modes: fx16.fixModes(), reanchor: re, chase, ltfPromote: pr, score5: sc, runner };
+          // score1016 (shadow): event-driven five-layer score + probability grade + entry/exit/caps read. Never writes q/band/plan.
+          try {
+            const arm = c.ltfArm ?? null;
+            const ct = new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":").map(Number);
+            const legEq = arm ? (arm.sweep.level + (arm.side === "short" ? Math.min(arm.gap.lo, px ?? arm.gap.lo) : Math.max(arm.gap.hi, px ?? arm.gap.hi))) / 2 : null;
+            const inp = s16.inputFromCard({ side, bias1h: hb?.bias1h ?? null, bias4h: hb?.bias4h ?? null,
+              levels: rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => ({ name: d.name, price: d.price })),
+              ref: arm?.entryEdge ?? entry ?? px, arm, components: (c.components ?? []) as string[], minuteCt: (ct[0]! % 24) * 60 + ct[1]!,
+              nArrays: [c.ltfArm, (c as { ifvgFlip?: unknown }).ifvgFlip, pl?.entryZone].filter(Boolean).length, legEq });
+            const veto = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(isL ? closedL : closedR),
+              staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
+            const s5 = s16.score1016(inp, veto);
+            const ed = arm && px != null ? s16.entryDecision({ side, price: px, edge: arm.entryEdge, stop: arm.stop }) : null;
+            const ex = ed ? s16.exitPlan(side, ed.entry, ed.stop) : null;
+            (c as { score1016?: unknown }).score1016 = { modes: s16.scoreModes(), ...s5, input: inp, entry: ed, exit: ex,
+              wouldFire: s5.fire && ed != null, src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };
+          } catch (e) { (c as { score1016?: unknown }).score1016 = { error: String(e).slice(0, 160) }; }
           const deadNow = Boolean((c as { invalidated?: boolean }).invalidated || (c as { staleTape?: boolean }).staleTape || (c as { playedOut?: boolean }).playedOut);
           if (sc.mode === "live" && !deadNow) {
             setQSource("fix1016:score5"); qWrite(c as never, "confluence" as never, sc.total as never, "fix1016:score5 (5 layers; old q kept on fix1016.score5.old)");
@@ -2210,4 +2228,13 @@ function fx16AnchorsOf(c: unknown): fx16.Anchor[] {
   const f = x.ifvgFlip;
   if (f && f.t1) out.push({ src: `iFVG flip ${f.tf}`, entry: f.entry, stop: f.stop, t1: f.t1.price, t2: f.t2?.price ?? null, t: f.gap.invertedT, zone: { top: f.gap.hi, bottom: f.gap.lo } });
   return out;
+}
+
+/** ATR14 of closed 1m bars (score1016 risk veto). */
+function closedAtr1m(bars: { h: number; l: number; c: number }[] | null | undefined): number | null {
+  const b = (bars ?? []).slice(-15);
+  if (b.length < 2) return null;
+  let s = 0;
+  for (let k = 1; k < b.length; k++) s += Math.max(b[k]!.h - b[k]!.l, Math.abs(b[k]!.h - b[k - 1]!.c), Math.abs(b[k]!.l - b[k - 1]!.c));
+  return s / (b.length - 1);
 }

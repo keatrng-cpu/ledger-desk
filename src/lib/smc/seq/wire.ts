@@ -5,6 +5,7 @@ import { brainBooks, ticketWord, type BrainBooks, type TicketWord } from "./brai
 import type { Side } from "./rules";
 import { closedByFeed, feedClockRead } from "../smc-unity";
 import { pdLegRead, type PdLegRead } from "./pd-leg";
+import { poiHalfAtEntry } from "../score1016";
 import type { OhlcBar } from "@/lib/market/types";
 import { premarketMapCached, type PremarketMap } from "./premarket-map";
 import { amdRead, type AmdRead } from "./amd-state";
@@ -26,6 +27,8 @@ export interface DeskSeqWire {
   floor: TicketWord | null;
   /** F6: premium/discount at the top card's POI inside the dealing leg + EQ stack. */
   pdLeg: PdLegRead | null;
+  /** score1016.poiHalf: Brain "POI in correct half" graded at the ENTRY via pdLeg (narrow). Own flag, shadow by default. */
+  poiHalf?: ReturnType<typeof poiHalfAtEntry> | null;
   /** F1: the premarket map per book (frozen at 09:25 ET). */
   map: Record<string, PremarketMap>;
   /** F4: AMD state machine per book (09:30–11:00 ET, closed bars). */
@@ -113,7 +116,8 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     if (b.feedNowMs != null) respect[sym] = respectRead(sym, map[sym] ?? null, b.closed1m, b.feedNowMs);
   }
   const ladder = (i.desk as { twoSided?: LadderWire | null }).twoSided ?? buildLadderWire(i.desk);
-  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, map, amd, continuation, intraday, scenarios: scen, respect, ladder };
+  const poiHalf = pdLeg ? poiHalfAtEntry(pdLeg) : null;
+  const base = { v: 1 as const, brainBooks: bb, ticket, floor, pdLeg, poiHalf, map, amd, continuation, intraday, scenarios: scen, respect, ladder };
   return { ...base, rows: seqRows(base) };
 }
 
@@ -156,5 +160,6 @@ export function seqRows(w: Omit<DeskSeqWire, "rows">): { rule: string; would: st
   const p = w.pdLeg;
   if (p?.flipsLegacy) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} is ${p.atPoi!.zone} (${p.atPoi!.ratio}) of the leg ${p.leg!.lo}–${p.leg!.hi} — legacy pd_half fails at price, the leg read passes` });
   else if (p?.noEdge) rows.push({ rule: "pdLeg", would: `${p.side} POI ${p.poi} sits on the leg EQ ${p.leg!.eq} — no edge` });
+  if (w.poiHalf && w.poiHalf.pass != null) rows.push({ rule: "score1016:poiHalf", would: `Brain POI-in-correct-half at entry: ${w.poiHalf.pass ? "PASS" : "FAIL"} — ${w.poiHalf.why}${w.poiHalf.mode === "live" ? "" : " (shadow)"}` });
   return rows;
 }

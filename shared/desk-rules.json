@@ -1121,5 +1121,57 @@
       "minRunnerR": 2.0,
       "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
     }
+  },
+  "score1016": {
+    "_doc": "Event-driven five-layer score (audits/week1016-review, tested in audits/score-rebuild). S=(1.0 L1 HTF+PD, 1.5 L2 liquidity (+0.25 SMT, +0.1/extra pool, re-arm per event), 1.5 L3 displacement/MSS/iFVG, 1.0 L4 newest entry array, 0.5 L5 timing)/5.5x100. Probability grading from S (no band ceiling; A+ at S>=90 reachable). Only hard vetoes (risk, stale data, invalidation). Every item mode shadow: card.score1016 + watcher shadow:score1016:* would-fire rows; nothing moves q/band/plan/fire.",
+    "score": {
+      "mode": "shadow",
+      "fireAt": 83,
+      "smtBonus": true,
+      "weights": {
+        "L1": 1,
+        "L2": 1.5,
+        "L3": 1.5,
+        "L4": 1,
+        "L5": 0.5
+      }
+    },
+    "entry": {
+      "mode": "shadow",
+      "marketWithinR": 1,
+      "_doc": "market if within 1.0R of the newest array edge, else a resting limit at the edge"
+    },
+    "exit": {
+      "mode": "shadow",
+      "t1R": 1,
+      "t1PartialFrac": 0.5,
+      "beAfterT1": true,
+      "t2R": 2
+    },
+    "caps": {
+      "mode": "shadow",
+      "perDay": 2,
+      "perSymbol": 1
+    },
+    "veto": {
+      "minRiskAtr1m": 0.5,
+      "maxRiskAtr1m": 12
+    },
+    "poiHalf": {
+      "mode": "shadow",
+      "_doc": "Brain POI-in-correct-half graded at the ENTRY via seq pdLeg (narrow: atPoi zone only; EQ/no leg = no opinion). Backtest: not kept for live (cuts OOS frequency 6.6 to 0.5/wk at equal expectancy); shadow read only."
+    },
+    "altEntryIfvgCe": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 3: alternate entry at the 1m iFVG CE (survivor set {2,3,7,8,10}; needs fix1016.chaseFromAnchor)."
+    },
+    "setupPerSweep": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 7: setup id per sweep event (first-plan-wins scoped to the sweep, not the session side)."
+    },
+    "scopeCaps": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 8: LTF-reversal and Played-out caps scoped to the setup that triggered them."
+    }
   }
 }
