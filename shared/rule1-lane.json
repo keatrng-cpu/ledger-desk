@@ -1,0 +1,10 @@
+{
+  "_doc": "Rule 1 SHADOW fire lane (audits/overnight-1016/report.md: blocker #9 + latency cut (c)). Rule 1 cards are closed-5m-bar signals, so the fast:persist hold adds no information; the one live fire took ~124 s, ~96 s of it persist, and each minute costs ~0.03R. The lane is exempt from fast:persist and would decide on the first poll that sees the ticket. NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. live=false: the watcher logs would-fire + latency only; it never places an order and the live fast chain is unchanged.",
+  "version": 1,
+  "mode": "shadow",
+  "live": false,
+  "persistExempt": true,
+  "maxAgeS": 300,
+  "legacyPersistHoldS": 20,
+  "observedLivePersistS": 96
+}

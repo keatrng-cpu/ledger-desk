@@ -5,6 +5,7 @@ import { primaryTarget } from "./card-plan";
 import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
+import { withLane } from "./rule1-lane";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -124,7 +125,7 @@ const LOSS_RULES = RULES_ALL.loss;
 export interface DeskPayload {
   ok: true;
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
-  rule1?: import("./rule1").Rule1Ticket[];
+  rule1?: (import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane })[];
   fetchedAt: string;
   clock: SessionClock;
   left: SymbolSeries;
@@ -1146,7 +1147,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     }
     const payload = {
       ok: true as const,
-      rule1,
+      rule1: withLane(rule1, Date.now()),   // shadow Rule 1 lane read (overnight-1016 #2); logged, never fires
       fetchedAt: new Date().toISOString(),
       clock,
       left,
