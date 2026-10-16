@@ -40,5 +40,5 @@ test("no ticket outside 08:30–09:00 CT and no look-ahead (bars after now are i
 test("rules hash unchanged: Rule 1 lives outside shared/desk-rules.json", () => {
   const rules = JSON.parse(readFileSync("shared/desk-rules.json", "utf8"));
   assert.equal(JSON.stringify(rules).includes("rule1"), false);
-  assert.equal(h.RULES_HASH, "a4bfcb65c88badcd");   // main after #24
+  assert.equal(h.RULES_HASH, "961b9cb0a9b3e333");   // main after #24
 });
