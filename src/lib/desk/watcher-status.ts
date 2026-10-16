@@ -25,3 +25,13 @@ export function watcherAuthorized(header: string | null, env: Record<string, str
   let ok = false; for (const k of keys) ok = eq(got, k) || ok;
   return ok;
 }
+
+/**
+ * /api/desk/fills auth: Bearer WATCHER_STATUS_TOKEN ONLY. No CRON_SECRET fallback: that secret is shared with every
+ * cron route, and this endpoint writes live trade rows that feed the halt math.
+ */
+export function watcherFillsAuthorized(header: string | null, env: Record<string, string | undefined> = process.env): boolean {
+  const m = /^Bearer\s+(.+)$/i.exec((header ?? "").trim()); const got = m?.[1]?.trim() ?? "";
+  const key = env.WATCHER_STATUS_TOKEN?.trim();
+  return Boolean(got && key) && eq(got, key!);
+}

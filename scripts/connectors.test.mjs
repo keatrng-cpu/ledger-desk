@@ -187,4 +187,22 @@ test("audit: TLS is verified unless --insecure-tls is explicit", () => {
   assert.equal(ca.rejectUnauthorized, true); assert.ok(ca.ca.length > 0);
 });
 
+test("notify: a formatEvent/eventKey exception never leaves a key in-flight or throws", async () => {
+  const posts = [];
+  const x = n.createNotifier({ webhookUrl: "https://hooks.slack.com/x", fetch: async (_u, init) => { posts.push(init); return { ok: true, status: 200 }; }, now: () => 1 });
+  const bad = { type: "order_rejected", symbol: "SPY", reason: undefined }; // reason.slice throws in eventKey/formatEvent
+  assert.deepEqual(await x.notify(bad), { sent: false, why: "error" });
+  const badFmt = { type: "card_fire", symbol: "ES", grade: "A", side: "long", entry: 1, stop: 0, t1: 2, signal: "sig-bad" };
+  let calls = 0;
+  const y = n.createNotifier({ webhookUrl: "https://hooks.slack.com/x", fetch: async () => { calls++; return { ok: true, status: 200 }; }, now: () => 1 });
+  const orig = n.formatEvent;
+  // a getter that throws once when formatEvent reads it, then behaves
+  let thrown = false;
+  const evil = { ...badFmt, get grade() { if (!thrown) { thrown = true; throw new Error("boom"); } return "A"; } };
+  assert.equal((await y.notify(evil)).why, "error");
+  assert.equal((await y.notify(evil)).sent, true); // not stuck as "duplicate"
+  assert.equal(calls, 1); assert.ok(orig);
+  assert.equal(posts.length, 0);
+});
+
 test("desk-rules hash unchanged", () => assert.equal(h.RULES_HASH, "a4bfcb65c88badcd"));

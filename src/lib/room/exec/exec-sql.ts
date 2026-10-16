@@ -174,7 +174,7 @@ export class PgExecStore implements ExecStore {
   }
 
   async recent(limit: number): Promise<AuditRow[]> {
-    const rows = await this.q(`select ${COLS} from room_orders where user_id = $1 order by id desc limit $2`, [this.userId, limit]);
+    const rows = await this.q(`select ${COLS} from room_orders where user_id = $1 and phase <> 'watcher' order by id desc limit $2`, [this.userId, limit]);
     return rows.map(rowOf);
   }
 
