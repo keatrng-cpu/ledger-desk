@@ -62,6 +62,7 @@ import {
   SetupScanner,
   type CardTape,
 } from "@/components/desk/setup-scanner";
+import { ShadowDesk } from "@/components/desk/shadow-panel";
 import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
@@ -2071,6 +2072,15 @@ function MasterplacePage() {
                     n="1"
                     title="PATH"
                     sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · rest the limit at CE or skip`}
+                  />
+                  <ShadowDesk
+                    lead={desk.scan.candidates[0] ?? null}
+                    rule1={desk.rule1 ?? []}
+                    nowMs={Date.parse(desk.fetchedAt) || Date.now()}
+                    minuteBySymbol={{
+                      [desk.left.symbol]: desk.mtf?.left?.minute ?? [],
+                      [desk.right.symbol]: desk.mtf?.right?.minute ?? [],
+                    }}
                   />
                   <SetupScanner
                     scan={desk.scan}

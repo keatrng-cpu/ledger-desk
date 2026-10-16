@@ -200,7 +200,7 @@ function GradeBadge({ g }: { g: string }) {
             : "Not an execute grade"
       }
       className={cn(
-        "rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase",
+        "inline-flex min-h-6 items-center rounded-full border px-2.5 py-1 font-mono text-[14px] font-bold uppercase leading-none",
         execute &&
           "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
         g === "B+" &&

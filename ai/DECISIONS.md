@@ -180,6 +180,13 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **Decision:** restamp agents make targeted edits, never whole-file rewrites; every clone runs `git config core.hooksPath scripts/hooks` so typecheck + `verify-all --baseline` run before push.
 - Why: the whole-file rewrite produced a stub, and a clone without the hook pushed it clean.
 
+### 2026-10-16 — Shadow panel and approved desk/Floor UI, display only
+- ADOPTED · Keaton (UI spec approval, this draft) · rules hash stays `a4bfcb65c88badcd`
+- One Shadow panel on the Now tab, beside the Rule 1 ticket. It reads the lead card's existing `q_v2` and shows only that single delta. It does not call `computeQV2` and it does not gate, size, or fire. After 09:00 CT the day's ticket stays dimmed with its shadow R until the next weekday 08:30 CT.
+- Approved with it: T1 heavier than T2, ladder labels wrap at 360px, one `--level-target` green, grade badge 14px/700, Floor tap targets 44px, phone canvas 40vh, Floor plan card on tokens. State words stay WAIT / STALKING / ARMED / ENTER / IN TRADE.
+- Refused in the same pass: grade-palette change, ENTER-green unification, Floor sticky plan bar, PeopleCards grid, WireLog height, state tokens, motion tokens, and any edit to `shared/desk-rules.json` or the order path.
+- Why: the shadow book is a display of rules that already exist. The hash and the gates stay put.
+
 ### 2026-10-15: intraday option tickets are 0DTE ATM; 1DTE+ is swing-only; late day blocks
 - ADOPTED · Keaton (owner rule, chat 2026-10-15) · PR #19 · rulesHash 47c62fe3d2355d3d → 7d151e5fed7fe3eb (main e7338987cbc7eea5)
 - Intraday tickets (path/continuation, Judas/killzone) on QQQ/SPY are 0DTE ATM, with 1 OTM only when the cap needs it, and never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans).

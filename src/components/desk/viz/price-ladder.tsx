@@ -57,14 +57,15 @@ export function PriceLadder({
   hi += pad;
   const y = (p: number) => ((hi - p) / (hi - lo)) * height;
 
-  type Rung = { key: string; p: number; label: string; color: string; strong?: boolean };
+  type Rung = { key: string; p: number; name: string; r: string | null; color: string; strong?: boolean };
   const rungs: Rung[] = [
-    { key: "stop", p: plan.stop, label: "STOP", color: "var(--color-down)", strong: true },
+    { key: "stop", p: plan.stop, name: "STOP", r: null, color: "var(--level-stop)", strong: true },
     {
       key: "entry",
       p: plan.entry,
-      label: "ENTRY · CE",
-      color: "var(--color-primary)",
+      name: "ENTRY · CE",
+      r: null,
+      color: "var(--level-entry)",
       strong: true,
     },
   ];
@@ -72,21 +73,23 @@ export function PriceLadder({
     rungs.push({
       key: "t1",
       p: plan.t1,
-      label: `${t1Label}${plan.rr1 != null ? ` · ${plan.rr1.toFixed(1)}R` : ""}`,
-      color: "var(--color-up)",
+      name: t1Label,
+      r: plan.rr1 != null ? `${plan.rr1.toFixed(1)}R` : null,
+      color: "var(--level-target)",
       strong: true,
     });
   if (plan.t2 != null)
     rungs.push({
       key: "t2",
       p: plan.t2,
-      label: `T2${plan.rr2 != null ? ` · ${plan.rr2.toFixed(1)}R` : ""}`,
-      color: "var(--color-up)",
+      name: "T2",
+      r: plan.rr2 != null ? `${plan.rr2.toFixed(1)}R` : null,
+      color: "var(--level-target)",
     });
-  // Labels never overlap: walk top→bottom, push each at least 16px below the last.
+  // Two-line labels (name, then R) need a taller gap so they do not collide.
   const placed = [...rungs].sort((a, b) => y(a.p) - y(b.p)).map((r) => ({ ...r, ly: y(r.p) }));
   for (let i = 1; i < placed.length; i++)
-    placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 16);
+    placed[i]!.ly = Math.max(placed[i]!.ly, placed[i - 1]!.ly + 22);
   const overflow = Math.max(0, (placed.at(-1)?.ly ?? 0) - (height - 6));
   if (overflow) for (const r of placed) r.ly -= overflow;
 
@@ -106,29 +109,29 @@ export function PriceLadder({
         aria-label={`Plan ladder: ${plan.side} entry ${fx(plan.entry)}, stop ${fx(plan.stop)}${plan.t1 != null ? `, T1 ${fx(plan.t1)}` : ""}${plan.t2 != null ? `, T2 ${fx(plan.t2)}` : ""}`}
       >
         {/* The rail. */}
-        <div className="absolute inset-y-0 left-[34%] w-[18%] rounded bg-[var(--color-surface-2)]" />
+        <div className="absolute inset-y-0 left-[40%] w-[12%] rounded bg-[var(--color-surface-2)]" />
         {/* Risk and reward zones, to scale. */}
         <div
-          className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-down)_40%,transparent)]"
+          className="absolute left-[40%] w-[12%] bg-[color-mix(in_oklab,var(--color-down)_40%,transparent)]"
           style={{ top: risk.top, height: Math.max(2, risk.h) }}
           title={`Risk ${plan.riskPts != null ? `${plan.riskPts.toFixed(2)}pt` : fx(Math.abs(plan.entry - plan.stop))}`}
         />
         {reward && (
           <div
-            className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_38%,transparent)]"
+            className="absolute left-[40%] w-[12%] bg-[color-mix(in_oklab,var(--color-up)_38%,transparent)]"
             style={{ top: reward.top, height: Math.max(2, reward.h) }}
             title={`Reward to T1${plan.rr1 != null ? ` ${plan.rr1.toFixed(2)}R` : ""}`}
           />
         )}
         {toT2 && (
           <div
-            className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)]"
+            className="absolute left-[40%] w-[12%] bg-[color-mix(in_oklab,var(--color-up)_14%,transparent)]"
             style={{ top: toT2.top, height: Math.max(2, toT2.h) }}
           />
         )}
         {plan.zone && (
           <div
-            className="absolute left-[32%] w-[22%] border-y border-dashed border-[var(--color-primary)]/60"
+            className="absolute left-[38%] w-[16%] border-y border-dashed border-[var(--color-primary)]/60"
             style={{
               top: Math.min(y(plan.zone.top), y(plan.zone.bottom)),
               height: Math.max(2, Math.abs(y(plan.zone.top) - y(plan.zone.bottom))),
@@ -140,22 +143,29 @@ export function PriceLadder({
         {placed.map((r) => (
           <div key={r.key}>
             <div
-              className="absolute left-[30%] w-[26%]"
+              className="absolute left-[38%] w-[16%]"
               style={{
                 top: y(r.p),
                 height: r.strong ? 2 : 1,
                 background: r.color,
-                opacity: r.strong ? 1 : 0.7,
+                opacity: r.strong ? 1 : 0.75,
               }}
             />
             <div
-              className="absolute left-0 w-[29%] -translate-y-1/2 truncate pr-1 text-right text-[11px] font-semibold"
+              className={cn(
+                "absolute left-0 w-[36%] -translate-y-1/2 pr-1 text-right leading-tight",
+                r.strong ? "text-[12px] font-bold" : "text-[12px] font-medium opacity-75",
+              )}
               style={{ top: r.ly, color: r.color }}
             >
-              {r.label}
+              <div>{r.name}</div>
+              {r.r && <div className="text-[11px] font-medium">{r.r}</div>}
             </div>
             <div
-              className="absolute left-[58%] -translate-y-1/2 font-mono text-[13px] font-semibold tabular-nums"
+              className={cn(
+                "absolute left-[68%] -translate-y-1/2 font-mono text-[13px] tabular-nums",
+                r.strong ? "font-bold" : "font-medium opacity-75",
+              )}
               style={{ top: r.ly, color: r.color }}
             >
               {fx(r.p)}
@@ -165,7 +175,7 @@ export function PriceLadder({
         {/* Live price marker. */}
         {priceY != null && price != null && (
           <div
-            className="absolute left-[24%] -translate-y-1/2"
+            className="absolute left-[54%] -translate-y-1/2"
             style={{ top: priceY, transition: "top 500ms ease-out" }}
             title={`Live ${fx(price)}`}
           >

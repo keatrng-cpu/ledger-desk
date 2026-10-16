@@ -20,8 +20,9 @@ Precedence already set by the repo: `AGENTS.md` defers to `CLAUDE.md`; if `CLAUD
 
 ---
 
-## Current state (2026-10-15)
+## Current state (2026-10-16)
 
+- **Desk card / Floor UI draft** (`cursor/desk-card-shadow-panel-83ef`, not merged): one read-only Shadow panel on the Now tab beside the Rule 1 ticket, plus the approved ladder, grade-badge, and Floor tap/canvas/plan-token fixes. Rules hash stays `a4bfcb65c88badcd`. No fire, gate, or order change. State words stay WAIT / STALKING / ARMED / ENTER / IN TRADE.
 - **Desk-sequence deployed:** main merge `5fa7e30e`, watcher `0bcf2f7`, rulesHash `e7338987cbc7eea5`. All 12 new modes are **shadow**. Watcher daemon PID 1241488 alive. Release Watch PASS, Accuracy PASS.
 - **week-ahead.ts:** restamp stub emptied it at `5aafe4d6`; restored in `cebd9c4d` (Accuracy APPROVE); restamp `78aef9fe` passed. Restamps edit, never rewrite; every clone sets `git config core.hooksPath scripts/hooks`.
 - **Paper futures** (box `/workspace/paper-futures`, 24/7 under a watchdog): $100k start, cash $93,896 raw. Opens only when the live gates pass (options-only gates excepted), stale-entry 0.5×ATR guard, 2% risk from the fill. 10-14 14:33 CT −$8,540 trade VOID (stale fill). Legacy loose-rule NQ long filled 15:23 CT, −$1,850. Gaps: `PAPER_JOURNAL_TOKEN` missing; no reboot persistence.
