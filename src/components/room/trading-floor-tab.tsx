@@ -10,7 +10,7 @@
 
 import { kzSeatNote } from "@/lib/desk/kz-disp";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Copy, Expand, Footprints, RotateCcw, Users, Volume2, VolumeX, X } from "lucide-react";
+import { Camera, Copy, Expand, Footprints, RotateCcw, Shrink, Users, Volume2, VolumeX, X } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
 import { TALK } from "@/lib/room/live-types";
 import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
@@ -1436,6 +1436,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useMeadFloorFeed(sceneRef, env);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const [floorFull, setFloorFull] = useState(false);
   // The room's lighting follows the desk's entry state (the same word as the Now hero).
   const auto = useAutomation();
   // An open position (RH automation or a paper MANAGE) lights the room green, like ENTER.
@@ -1540,6 +1541,12 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
     if (document.fullscreenElement) void document.exitFullscreen();
     else void el.requestFullscreen?.();
   };
+  // The fullscreen element is the stage (chips, cameras, exit, canvas). Esc and the button both leave it.
+  useEffect(() => {
+    const sync = () => setFloorFull(document.fullscreenElement === wrap.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
 
   const json = frame ? JSON.stringify(frame.output, null, 2) : "";
   const urgency = frame?.output.room_state.market_urgency ?? "LOW";
@@ -1622,7 +1629,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </p>
       )}
 
-      <div className="flex flex-col gap-1">
+      <div ref={wrap} className="floor-stage flex flex-col gap-3">
+      <div className="flex shrink-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-1">
           {frame?.trace.meeting && (
             <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-warn)]">MEETING · {frame.trace.meeting.title}</span>
@@ -1648,14 +1656,15 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               {c.label}
             </button>
           ))}
-          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 text-[11px] text-[var(--color-fg)]" aria-label="Full screen">
-            <Expand className="inline h-3 w-3" />
+          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 text-[11px] text-[var(--color-fg)]" aria-label={floorFull ? "Exit full screen" : "Full screen"}>
+            {floorFull ? <Shrink className="inline h-3 w-3" /> : <Expand className="inline h-3 w-3" />}
+            {floorFull ? <span className="ml-1">Exit</span> : null}
           </button>
           </div>
         </div>
       </div>
 
-      <div ref={wrap} className="relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--floor-canvas)] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
+      <div className="floor-view relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--floor-canvas)] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
         <FloorCanvas
           frame={frame}
           camera={camera}
@@ -1754,6 +1763,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           )}
         </div>
         <TickerCrawl desk={desk} frame={frame} entry={entry} />
+      </div>
       </div>
 
       <PlanOverlay frame={frame} className="sm:hidden" />

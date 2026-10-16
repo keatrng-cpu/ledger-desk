@@ -188,6 +188,11 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - Why: the shadow book is a display of rules that already exist. The hash and the gates stay put.
 - 360px (Release Watch NO-GO, same draft): the status row keeps Synapse and Session on screen. Fit tick numbers sit in a line under the bar so they do not cover the liquidity-sweep note. Floor cameras are one sideways-scrolling row. The category pill paints before the panel: `setNavCat` runs now and `setCatState` runs in `setTimeout(0)` (`src/routes/index.tsx`). `useTransition` was tried and starved the Floor canvas, so it is not the code. At a 345px layout width the status row wraps: the clock takes the first line, and the Flash switch (a bordered chip), Synapse, and Session take the next, so WAIT stays on the Synapse chip. Floor camera buttons and the beat / office chips sit above the canvas. The Options "other reads" line truncates so it does not widen that page. The session still opens on Options (`swing`, short label Opt). That default is on main (`useState("swing")`, trader's call 2026-10-09); this draft did not add it. No gate or hash change.
 
+### 2026-10-16 — Floor full screen includes the camera row
+- ADOPTED · Accuracy Review blocker on draft PR #33 · display only · rules hash stays `a4bfcb65c88badcd`
+- `requestFullscreen` targets the stage that holds the beat/office chips, the camera row, the full-screen button, and the canvas. The button stays on that row, so in full screen it is the exit control (Esc exits too). `.floor-stage:fullscreen .floor-view` gives the canvas the leftover height only while that element is full screen, so leaving (button or Esc) does not collapse it, and outside full screen the cameras stay above the sized canvas.
+- Why: the old target was the canvas box alone, which left the cameras and the exit button outside the fullscreen element.
+
 ### 2026-10-15: intraday option tickets are 0DTE ATM; 1DTE+ is swing-only; late day blocks
 - ADOPTED · Keaton (owner rule, chat 2026-10-15) · PR #19 · rulesHash 47c62fe3d2355d3d → 7d151e5fed7fe3eb (main e7338987cbc7eea5)
 - Intraday tickets (path/continuation, Judas/killzone) on QQQ/SPY are 0DTE ATM, with 1 OTM only when the cap needs it, and never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans).
