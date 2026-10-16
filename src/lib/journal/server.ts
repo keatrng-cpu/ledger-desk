@@ -16,7 +16,9 @@ import { authMiddleware } from "@/lib/auth/middleware";
 import { APLUS_RULES, CONTRACTS, type ContractKey } from "@/lib/aplus/config";
 import { computeTradePnl, isKnownSymbol } from "./pnl";
 import { appendAttestation } from "./attest-server";
-import { EXIT_REASON_IDS, MISTAKE_IDS } from "./discipline";
+import { closeTradeSchema, realFillSchema } from "./fill-schemas";
+
+export { closeTradeSchema, realFillSchema };
 import { getSessionClock } from "@/lib/trading/sessions";
 import { sendAlert, haltHitAlert } from "@/lib/alerts/send-server";
 import {
@@ -277,7 +279,7 @@ export const updateEquity = createServerFn({ method: "POST" })
  * active. (Was previously unscoped — both aggregates summed live+paper
  * together, which could both mask a real halt and fire a false one.)
  */
-async function computeLiveRiskState(
+export async function computeLiveRiskState(
   sql: Sql,
   userId: string,
 ): Promise<RiskState> {
@@ -791,21 +793,28 @@ export const openTrade = createServerFn({ method: "POST" })
     return mapTrade(rows[0]!);
   });
 
-const closeTradeSchema = z.object({
-  id: z.string().min(1).max(64),
-  exit: price,
-  slippage: z.number().finite().min(0).max(100_000).default(0),
-  reason: z.string().max(500).optional(),
-  /** journal/discipline.ts EXIT_REASONS — why it ended, in the fixed vocabulary. */
-  exitReason: z.enum(EXIT_REASON_IDS).optional(),
-  /** journal/discipline.ts MISTAKE_TAGS — added to any already on the row. */
-  mistakes: z.array(z.enum(MISTAKE_IDS)).max(10).optional(),
-});
+
+/**
+ * Server-only options for the *For bodies (NOT in the client schemas, so the UI cannot set them).
+ * `realizedPnl`: the desk-watcher trades OPTIONS on the card's underlier; desk_trades keeps the underlier plan terms
+ * (entry/stop/exit, so R stays the plan R), but `pnl` must be the real option-premium dollars, because pnl feeds
+ * computeLiveRiskState (daily/weekly halt) and cron-stats live_net. Commission is then 0 (RH options).
+ */
+export type LiveFillOpts = { realizedPnl?: number };
+export function withRealizedPnl<T extends { pnl: number; commission: number; r: number | null }>(m: T, opts: LiveFillOpts): T {
+  if (opts.realizedPnl == null || !Number.isFinite(opts.realizedPnl)) return m;
+  return { ...m, pnl: Math.round(opts.realizedPnl * 100) / 100, commission: 0 };
+}
 
 export type CloseTradeInput = z.input<typeof closeTradeSchema>;
 
 /** Body of `closeTrade`, callable server-side with an explicit user (the watcher fill endpoint uses it). */
-export async function closeTradeFor(sql: Sql, userId: string, data: z.output<typeof closeTradeSchema>): Promise<JournalTrade> {
+export async function closeTradeFor(
+  sql: Sql,
+  userId: string,
+  data: z.output<typeof closeTradeSchema>,
+  opts: LiveFillOpts = {},
+): Promise<JournalTrade> {
   const open = await sql.query<TradeRow>(
     `select ${TRADE_COLUMNS} from desk_trades
      where id = $1 and user_id = $2 and status = 'open'`,
@@ -819,15 +828,18 @@ export async function closeTradeFor(sql: Sql, userId: string, data: z.output<typ
   }
 
   // Shared money math — paper uses the exact same function (see pnl.ts).
-  const { pnl, commission, r } = computeTradePnl({
-    symbol: trade.symbol,
-    side: trade.side,
-    entry: trade.entry,
-    exit: data.exit,
-    stop: trade.stop,
-    contracts: trade.contracts,
-    slippage: data.slippage,
-  });
+  const { pnl, commission, r } = withRealizedPnl(
+    computeTradePnl({
+      symbol: trade.symbol,
+      side: trade.side,
+      entry: trade.entry,
+      exit: data.exit,
+      stop: trade.stop,
+      contracts: trade.contracts,
+      slippage: data.slippage,
+    }),
+    opts,
+  );
 
   const now = new Date();
   const rows = await sql.query<TradeRow>(
@@ -922,44 +934,6 @@ export const getBookCounters = createServerFn({ method: "GET" })
 /* Real fills — recorded, never refused                                */
 /* ------------------------------------------------------------------ */
 
-const isoTime = z.string().datetime({ offset: true });
-
-const realFillSchema = z
-  .object({
-    symbol: symbolSchema,
-    side: sideSchema,
-    /** The ACTUAL fill — not the plan's CE. The two are kept apart below. */
-    entry: price,
-    stop: price.optional(),
-    target: price.optional(),
-    contracts: z.number().int().min(1).max(1000),
-    filledAt: isoTime.optional(),
-    /** Optional: record a finished trade in one go. */
-    exit: price.optional(),
-    exitedAt: isoTime.optional(),
-    exitReason: z.enum(EXIT_REASON_IDS).optional(),
-    slippage: z.number().finite().min(0).max(100_000).default(0),
-    /* --- the decision, as the desk saw it --- */
-    deskWord: z.enum(["TAKE", "WAIT", "STAND"]).optional(),
-    missingLayers: z.array(z.string().max(64)).max(16).optional(),
-    pathBand: z.enum(["A+", "A", "A-", "B+", "B", "C", "skip"]).optional(),
-    planEntry: price.optional(),
-    planStop: price.optional(),
-    why: z.string().max(500).optional(),
-    whyPre: z.boolean().optional(),
-    stateRating: z.number().int().min(1).max(5).optional(),
-    mistakes: z.array(z.enum(MISTAKE_IDS)).max(10).optional(),
-    prescore: z.number().min(0).max(1).optional(),
-    killzone: z.string().max(32).optional(),
-    strategyPrimary: z.string().max(64).optional(),
-    regime: z.string().max(32).optional(),
-    reason: z.string().max(500).optional(),
-  })
-  .superRefine((v, ctx) => {
-    if (v.stop != null && !(v.side === "long" ? v.stop < v.entry : v.stop > v.entry)) {
-      ctx.addIssue({ code: "custom", path: ["stop"], message: `Stop must be ${v.side === "long" ? "below" : "above"} the fill for a ${v.side}` });
-    }
-  });
 
 export type RealFillInput = z.input<typeof realFillSchema>;
 
@@ -976,7 +950,12 @@ export type RealFillInput = z.input<typeof realFillSchema>;
  * Live only. Paper keeps `openTrade`, where refusing is the point.
  */
 /** Body of `recordRealFill`, callable server-side with an explicit user (the watcher fill endpoint uses it). */
-export async function recordRealFillFor(sql: Sql, userId: string, data: z.output<typeof realFillSchema>): Promise<JournalTrade> {
+export async function recordRealFillFor(
+  sql: Sql,
+  userId: string,
+  data: z.output<typeof realFillSchema>,
+  opts: LiveFillOpts = {},
+): Promise<JournalTrade> {
   if (!isKnownSymbol(data.symbol)) throw new Error(`Unknown contract symbol: ${data.symbol}`);
 
   // What the gates WOULD have said — recorded, never enforced here.
@@ -1009,15 +988,18 @@ export async function recordRealFillFor(sql: Sql, userId: string, data: z.output
   const closing = data.exit != null;
   const closedAt = closing ? (data.exitedAt ? new Date(data.exitedAt) : new Date()) : null;
   const money = closing
-    ? computeTradePnl({
-        symbol: data.symbol,
-        side: data.side,
-        entry: data.entry,
-        exit: data.exit!,
-        stop: data.stop ?? null,
-        contracts: data.contracts,
-        slippage: data.slippage,
-      })
+    ? withRealizedPnl(
+        computeTradePnl({
+          symbol: data.symbol,
+          side: data.side,
+          entry: data.entry,
+          exit: data.exit!,
+          stop: data.stop ?? null,
+          contracts: data.contracts,
+          slippage: data.slippage,
+        }),
+        opts,
+      )
     : null;
 
   if (!closing) {

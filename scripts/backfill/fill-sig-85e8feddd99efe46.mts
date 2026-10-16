@@ -11,7 +11,7 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { scrubText } from "../../src/lib/notify/scrub.ts";
+import { scrubText, scrubValue } from "../../src/lib/notify/scrub.ts";
 
 export const SIGNAL = "sig-85e8feddd99efe46";
 type Rec = { ts?: string; kind?: string; text?: string; signal?: string; result?: { id?: string } | null };
@@ -43,7 +43,7 @@ async function main() {
   const a = process.argv.slice(2); const arg = (k: string) => { const i = a.indexOf(`--${k}`); return i >= 0 ? a[i + 1] : undefined; };
   const dir = arg("watcher-dir") ?? "/workspace/desk-watcher";
   const payloads = buildBackfill(readFileSync(join(dir, "watcher.log"), "utf8").split("\n").filter(Boolean));
-  if (!a.includes("--apply")) { console.log(scrubText(JSON.stringify(payloads, null, 1))); console.log("dry run: nothing sent (pass --apply --url ...)"); return; }
+  if (!a.includes("--apply")) { console.log(JSON.stringify(scrubValue(payloads), null, 1)); /* scrubValue: strings scrubbed, numbers (atMs) kept */ console.log("dry run: nothing sent (pass --apply --url ...)"); return; }
   const url = arg("url"); const tok = process.env.WATCHER_STATUS_TOKEN?.trim();
   if (!url || !tok) throw new Error("--apply needs --url and env WATCHER_STATUS_TOKEN");
   for (const p of payloads) {
