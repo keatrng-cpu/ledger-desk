@@ -17,6 +17,7 @@ import { loadMacro } from "@/lib/market/macro";
 import { loadOvernight5m } from "@/lib/market/overnight";
 import { rollingAtr as rollAtr, fractalSwings as fractalSwings5 } from "@/lib/trading/detectors";
 import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
+import * as fx16 from "@/lib/smc/fix1016";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
 import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
@@ -1570,6 +1571,36 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       const sdFor = (isL: boolean) => sdDraws((isL ? dctx?.left : dctx?.right)?.or?.sd ?? null, (isL ? lq : rq)?.price ?? null);
       const latePlanned = new Set<object>();
       const nowCtxPlan = Date.now();
+      // fix1016 #1 (post-mortem 10/16, first-plan-wins): a dead entry (> reanchor.atrMult × ATR15 away, or through its stop)
+      // is re-anchored to the NEWEST same-side array that carries a stop (LTF arm / iFVG flip); with none, the dead plan is
+      // released so fix 33 / fix 34 / flip can write a new one. LIVE ONLY here — shadow is read (no writes) at the end.
+      if (fx16.fixMode("reanchor") === "live") {
+        for (const c of payload.scan.candidates) {
+          if (c.scannerSkip || (c.plan == null && c.entryPx == null)) continue;
+          const isL = c.symbol === left.symbol;
+          const d = fx16.reanchorDecision({ side: c.side as "long" | "short", price: (isL ? lq : rq)?.price ?? null, entry: c.entryPx ?? c.plan?.entry ?? null,
+            stop: c.plan?.stop ?? null, atr15: atr15Of(isL ? closedL : closedR), nowMs: nowCtxPlan, anchors: fx16AnchorsOf(c) });
+          if (!d.trigger) continue;
+          (c as { fix1016?: Record<string, unknown> }).fix1016 = { ...((c as { fix1016?: Record<string, unknown> }).fix1016 ?? {}), reanchor: { ...d, applied: true } };
+          const a = d.to;
+          if (a && a.t1 != null) {
+            const risk = Math.abs(a.entry - a.stop);
+            const rr = (t: number | null | undefined) => (t == null ? null : +(Math.abs(t - a.entry) / risk).toFixed(2));
+            c.entryPx = a.entry;
+            c.plan = { ...(c.plan ?? {}), entry: a.entry, entryZone: a.zone ?? null, stop: a.stop, stopWhy: `re-anchored (${a.src})`, riskPts: +risk.toFixed(2), t1: a.t1, t2: a.t2 ?? null,
+              rr1: rr(a.t1), rr2: rr(a.t2), resting: true, why: `re-anchor: ${d.why}`, entrySrc: a.src } as never;
+            c.invalidation = `Stop ${a.stop.toFixed(2)} — re-anchored (${a.src})`;
+            latePlanned.add(c);
+            // desk/brain/Floor unity: the brain's book on this symbol+side prices the same re-anchored plan.
+            for (const bk of [smcMaster.left, smcMaster.right]) {
+              if (bk?.symbol === c.symbol && bk.side === c.side && bk.plan) bk.plan = { ...(bk.plan as object), entry: a.entry, stop: a.stop, t1: a.t1, t2: a.t2 ?? null } as never;
+            }
+          } else if (fx16.fixItem<boolean>("reanchor", "replaceDeadPlan") !== false) {
+            c.plan = null as never; c.entryPx = null as never;
+          }
+          c.reasons.push(`Re-anchor (fix1016 #1, live): ${d.why}`);
+        }
+      }
       // Fix 33/36: reversal entry at the FIRST side-direction IFVG after the
       // CHoCH, stop beyond the swept extreme; the second gap is the add-on.
       for (const c of payload.scan.candidates) {
@@ -1648,6 +1679,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // T1/T2 the next real pools. No real pool >= 1R ahead → no plan here (the fallback chain / watch row).
       for (const c of payload.scan.candidates) {
         const a = c.ltfArm;
+        // fix1016 #3: ltfPromote LIVE promotes a shadow arm when band >= minBand and 1h/4h agree (the watcher adds Brain TAKE).
+        if (!c.ltfArmed && a && a.t1 && fx16.fixMode("ltfPromote") === "live") {
+          const hb = htfBiasOf(mtfContext, c.symbol);
+          const pr = fx16.ltfPromote({ side: c.side as "long" | "short", band: c.pathBand ?? null, htf: { "1h": hb?.bias1h ?? null, "4h": hb?.bias4h ?? null }, arm: a });
+          if (pr.deskOk) {
+            c.ltfArmed = true;
+            (c as { fix1016?: Record<string, unknown> }).fix1016 = { ...((c as { fix1016?: Record<string, unknown> }).fix1016 ?? {}), ltfPromote: { ...pr, promoted: true } };
+            c.reasons.push(`LTF arm promoted (fix1016 #3, live): ${pr.why.join("; ")} — watcher needs Brain TAKE`);
+          }
+        }
         if (!c.ltfArmed || !a || !a.t1) continue;
         const risk = Math.abs(a.entry - a.stop);
         const rr = (t: number | null) => (t == null ? null : +(Math.abs(t - a.entry) / risk).toFixed(2));
@@ -2072,6 +2113,38 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const bp = bk?.plan as { side?: "long" | "short"; t1: number | null; t2: number | null; rr2?: number | null } | null | undefined;
         if (bk && bp && orderTargets({ ...bp, side: (bp.side ?? bk.side) as "long" | "short" })) { bp.t2 = null; if ("rr2" in bp) bp.rr2 = null; }
       }
+      // fix1016 (post-mortem 10/16) — every card carries the read of items 1/3/4/5/8 on card.fix1016 (wire strategy.fix1016).
+      // shadow (default): reads only, nothing on the card's live fields moves. Item 4 live replaces q (old kept) and re-seals.
+      for (const c of payload.scan.candidates) {
+        try {
+          const isL = c.symbol === left.symbol;
+          const side = c.side as "long" | "short";
+          const px = (isL ? lq : rq)?.price ?? null;
+          const atr = atr15Of(isL ? closedL : closedR);
+          const prev = ((c as { fix1016?: Record<string, unknown> }).fix1016 ?? {}) as Record<string, unknown>;
+          const entry = c.entryPx ?? c.plan?.entry ?? null;
+          const re = (prev.reanchor as fx16.ReanchorRead | undefined) ?? fx16.reanchorDecision({ side, price: px, entry, stop: c.plan?.stop ?? null, atr15: atr,
+            invalidated: (c as { invalidated?: boolean }).invalidated === true, nowMs: nowMs, anchors: fx16AnchorsOf(c) });
+          const anchorEntry = re.applied ? entry : (re.to?.entry ?? entry);
+          const chase = { live: fx16.chaseFrom(side, px, entry, atr), anchor: fx16.chaseFrom(side, px, anchorEntry, atr), mode: fx16.fixMode("chaseFromAnchor") };
+          const hb = htfBiasOf(mtfContext, c.symbol);
+          const pr = (prev.ltfPromote as fx16.LtfPromote | undefined) ?? fx16.ltfPromote({ side, band: c.pathBand ?? null, htf: { "1h": hb?.bias1h ?? null, "4h": hb?.bias4h ?? null }, arm: c.ltfArm });
+          const pl = c.plan as { entry?: number; stop?: number; t1?: number | null; t2?: number | null; rr1?: number | null; entryZone?: unknown; targetSrc?: string } | null | undefined;
+          const draws = rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR).map((d) => d.price);
+          const runner = pl?.entry != null && pl?.stop != null ? fx16.runnerPlan({ side, entry: pl.entry, stop: pl.stop, t1: pl.t1 ?? null,
+            pools: [pl.t2, c.ltfArm?.t1?.price, c.ltfArm?.t2?.price, ...draws] }) : null;
+          const sc = fx16.score5({ side, confluence: c.confluence, components: (c.components ?? []) as string[], htfOk: c.htfOk, gapSide: (c.gapSide ?? null) as never,
+            pdHalf: null, rr1: pl?.rr1 ?? null, chaseAtr: chase.anchor?.distAtr ?? null, hasEntryArray: pl?.entryZone != null,
+            t1IsPool: /pool|PDH|PDL|ON[HL]|Asia|London|EQ[HL]|swing/i.test(String(pl?.targetSrc ?? "")), dispStrength: c.dispStrength?.score ?? null });
+          (c as { fix1016?: unknown }).fix1016 = { modes: fx16.fixModes(), reanchor: re, chase, ltfPromote: pr, score5: sc, runner };
+          const deadNow = Boolean((c as { invalidated?: boolean }).invalidated || (c as { staleTape?: boolean }).staleTape || (c as { playedOut?: boolean }).playedOut);
+          if (sc.mode === "live" && !deadNow) {
+            setQSource("fix1016:score5"); qWrite(c as never, "confluence" as never, sc.total as never, "fix1016:score5 (5 layers; old q kept on fix1016.score5.old)");
+            c.pathBand = bandFromQ(c.confluence) as never; sealBand(c as never); setQSource(null);
+          }
+          if (re.trigger && !re.applied) c.reasons.push(`shadow:fix1016:reanchor (no effect): ${re.why}`);
+        } catch (e) { (c as { fix1016?: unknown }).fix1016 = { error: String(e).slice(0, 160) }; }
+      }
       // A dead lead must not keep the brain's book alive: invalidated, stale, played out (C-capped) or price-unknown → brain STAND (desk/brain/Floor unity).
       const isDead = (c: unknown) => { const x = c as { invalidated?: boolean; staleTape?: boolean; playedOut?: boolean; priceUnknown?: boolean }; return Boolean(x.invalidated || x.staleTape || x.playedOut || x.priceUnknown); };
       // qv2-1015 × #19: q_v2 is computed before this seal, so a card killed here (invalidated / played out / stale
@@ -2126,4 +2199,15 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       error: e instanceof Error ? e.message : "Desk build failed",
     };
   }
+}
+
+/** fix1016 #1: the same-side anchors that carry a stop and T1 (newest wins in reanchorDecision). */
+function fx16AnchorsOf(c: unknown): fx16.Anchor[] {
+  const x = c as { ltfArm?: import("@/lib/smc/ltf-arm").LtfArm | null; ifvgFlip?: import("@/lib/smc/ifvg-flip").IfvgFlip | null };
+  const out: fx16.Anchor[] = [];
+  const a = x.ltfArm;
+  if (a && a.t1) out.push({ src: `ltfArm ${a.tf} ${a.gap.kind}`, entry: a.entry, stop: a.stop, t1: a.t1.price, t2: a.t2?.price ?? null, t: a.gap.t ?? a.sweep.t, zone: { top: a.gap.hi, bottom: a.gap.lo } });
+  const f = x.ifvgFlip;
+  if (f && f.t1) out.push({ src: `iFVG flip ${f.tf}`, entry: f.entry, stop: f.stop, t1: f.t1.price, t2: f.t2?.price ?? null, t: f.gap.invertedT, zone: { top: f.gap.hi, bottom: f.gap.lo } });
+  return out;
 }

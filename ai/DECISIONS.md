@@ -204,3 +204,9 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **Decision:** Shadow-only. `GET /api/desk/card-stream` SSE is off unless `DESK_PUSH_SHADOW=1` (404 otherwise). `wire.latency` is stamped on every card. Watcher patch logs push/poll latency to `push_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Never feeds gates or firing.** Config in `shared/push-shadow.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
 - **Why:** Measure bar-close→decision latency (poll vs modelled push) without changing the live decision path; R gain from push alone is under 0.001R/trade.
 - **File scope:** does not overlap Δ0.7 (#37) or lane (#38) feature files.
+## 2026-10-16 — fix1016: short post-mortem fixes 1–8 + exit-safety rev2 (Grok Bot)
+Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy item ships mode shadow in the new
+`fix1016` rules block (RULES_HASH a4bfcb65c88badcd → 9eeed9b4083700cb; no existing key changed) so the running backtests
+set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
+live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
+was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).

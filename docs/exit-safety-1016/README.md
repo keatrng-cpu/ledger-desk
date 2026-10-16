@@ -1,5 +1,15 @@
 # Exit safety — 2026-10-16
 
+**Rev 2 (fix1016 item 10, Accuracy + Release Watch):**
+- must-fix: a **resting-stop fill** now books like the ladder's losing exit — `d['lost']=True` (no B+ rest of day) and fireFix.dayLoss
+  pnl, via one `_book_close` path; qty/price from the stop ORDER (`Broker.order_fill`: processed qty, processed_premium), fallback
+  stop qty / stop-limit price; booked once per order id (both the `_check_resting_stop` filled branch and the "position gone" branch).
+- `_check_resting_stop`: a non-refusal cancel error (timeout / RH 5xx) on resize is caught, logged `resting_stop_cancel_error`, alerted; stop left as is.
+- a **re-placed** stop at/above the bid is clamped one tick under the bid (`resting_stop_clamped`).
+- should-fixes: closes are booked at the **filled qty from the orders** (not the lagged RH position) and the ladder books the
+  **VWAP of its rung fills** (`CloseGuard.history` + `fills_vwap`) — the trim PnL undercount (last rung price × qty) is gone.
+- Flags unchanged: `EXIT_SAFE` / `EXIT_SAFE_RESTING_STOP` default OFF. Tests: `tests/test_exitsafe.py` 44 (was 34).
+
 Why: a discretionary QQQ put exit ran with LIVE=0 (Broker dry-run refused the sell) while the entry went out live;
 a -$30 stop became -$96 as bid slid 1.47 -> 1.14.
 
