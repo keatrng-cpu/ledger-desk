@@ -1,0 +1,233 @@
+diff --git a/tests/test_push_shadow.py b/tests/test_push_shadow.py
+new file mode 100644
+index 0000000..4470a83
+--- /dev/null
++++ b/tests/test_push_shadow.py
+@@ -0,0 +1,68 @@
++import json, threading
++from watcher import push_shadow as P
++
++LAT = {"mode": "shadow", "barCloseAt": 1_000_000, "builtAt": 1_002_900, "buildMs": 2900, "targetS": 10}
++
++
++def test_off_by_default_and_url():
++    assert P.enabled({}) is False and P.enabled({"DESK_PUSH_SHADOW": "0"}) is False and P.enabled({"DESK_PUSH_SHADOW": "1"}) is True
++    assert P.stream_url("https://x.app/api/desk/card", {}) == "https://x.app/api/desk/card-stream"
++    assert P.stream_url("https://x.app/api/desk/card", {"DESK_PUSH_URL": "u"}) == "u"
++
++
++def test_parse_sse_cards_only():
++    body = {"at": "a1", "latency": LAT, "rule1": []}
++    lines = [": hello", "", "retry: 500", "event: card", "id: a1", "data: " + json.dumps(body), "", "event: other", "data: {}", "", "event: card", "data: {bad", ""]
++    assert list(P.parse_sse(lines)) == [body]
++
++
++def test_row_latency_and_rule1_target(tmp_path):
++    lg = P.Logger(str(tmp_path))
++    r = lg.note("push", "a1", LAT, [{"symbol": "ES", "side": "long", "at": 1_000_000}], 1_004_000)
++    assert r["build_s"] == 2.9 and r["transit_s"] == 1.1 and r["bar_to_decision_s"] == 4.0 and r["under_target"]
++    assert r["rule1"][0]["would_decide_s"] == 4.0 and r["rule1"][0]["under_target"]
++    assert r["broker"] is False and r["orders"] == 0 and r["live"] is False
++    assert lg.note("push", "a1", LAT, [], 1_005_000) is None              # first sighting only
++    p = lg.note_poll({"at": "a1", "wire": {"latency": LAT}}, 1_006_000)    # same card on the poll path is its own row
++    assert p["path"] == "poll" and p["bar_to_decision_s"] == 6.0
++    assert len(open(tmp_path / P.FILE).read().splitlines()) == 2
++
++
++def test_listen_logs_push_rows_and_survives_errors(tmp_path):
++    body = {"at": "a2", "latency": LAT, "rule1": []}
++    stop = threading.Event()
++
++    class R:
++        status_code = 200
++        def __enter__(self): return self
++        def __exit__(self, *a): return False
++        def iter_lines(self, decode_unicode=True):
++            yield from ["event: card", "data: " + json.dumps(body), ""]
++            stop.set()
++
++    calls = {"n": 0}
++    class S:
++        def get(self, *a, **k):
++            calls["n"] += 1
++            if calls["n"] == 1: raise OSError("boom")
++            return R()
++    lg = P.Logger(str(tmp_path)); errs = []
++    P.listen(S(), "u", lg, stop, log=lambda ev, **k: errs.append(ev), now_ms=lambda: 1_003_000)
++    assert errs == ["push_shadow_error"]
++    assert json.loads(open(tmp_path / P.FILE).read())["kind"] == "push_card"
++
++
++def test_no_order_code():
++    src = open(P.__file__).read().split('"""')[2]
++    for bad in ("broker.", "import broker", "optexec", "gates", "place_"):
++        assert bad not in src
++
++
++def test_daemon_poll_note_noop_when_off(tmp_path):
++    from watcher import daemon
++    class D: pass
++    d = D(); d.log = lambda *a, **k: None
++    daemon.Watcher._push_note(d, {"at": "x"}, 1)   # no logger -> no file, no error
++    d._push_logger = P.Logger(str(tmp_path))
++    daemon.Watcher._push_note(d, {"at": "x", "wire": {"latency": LAT}}, 1_004_000)
++    assert json.loads(open(tmp_path / P.FILE).read())["path"] == "poll"
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 96af02c..0f97922 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -72,6 +72,7 @@ class Watcher:
+             self.log("desk_unavailable", body=str(card)[:300]); return mode
+         key = gates.signal_key(snap, et_date)
+         nm = now_ms(); snap["_now_ms"] = nm
++        self._push_note(card, nm)
+         self._rule1_shadow(card, nm)
+         self._fast(snap)
+         prev = self.state.get("band_streak")
+@@ -474,6 +475,16 @@ class Watcher:
+         except Exception as e:
+             self.log("kz_shadow_error", error=str(e))
+ 
++    def _push_note(self, card, now):
++        """Push shadow (ledger-desk shared/push-shadow.json): poll-path receipt per card, for the push vs poll latency log."""
++        lg = self.__dict__.get("_push_logger")
++        if lg is None:
++            return
++        try:
++            lg.note_poll(card, now)
++        except Exception as e:
++            self.log("push_shadow_error", error=str(e))
++
+     def _rule1_shadow(self, card, now):
+         """Rule 1 (ledger-desk shared/rule1.json): log what would have fired. Shadow only: no broker, no order, no gate."""
+         try:
+@@ -520,6 +531,11 @@ class Watcher:
+         signal.signal(signal.SIGTERM, lambda *a: setattr(self, "running", False))
+         self.log("start", live=self.cfg.live, fire_enabled=self.cfg.fire_enabled, fire_bands=self.cfg.fire_bands, brain_veto=self.cfg.brain_veto, brain_wait_aplus=self.cfg.brain_wait_aplus, require_armed=self.cfg.require_armed, debit=[self.cfg.min_debit, self.cfg.max_debit], contracts=[self.cfg.min_contracts, self.cfg.max_contracts], bplus_cutoff_et=gates.BPLUS_CUTOFF_ET, band_size={b: list(gates.band_caps(self.cfg, b)) for b in self.cfg.fire_bands}, q_min=self.cfg.q_min, q_edges=dict(gates.Q_EDGES), card_fresh_s=gates.CARD_FRESH_S, max_entries_day=self.cfg.max_entries_day, flat_by=self.cfg.flat_by, last_entry=self.cfg.last_entry_et, brain_soft=self.cfg.brain_soft, dte=[self.cfg.dte_min, self.cfg.dte_max], stop_file=os.path.exists(self.cfg.path("STOP")), desk=self.cfg.desk_url,
+                  windows=[self.cfg.fast_window, self.cfg.slow_window], account=self.cfg.account)
++        try:   # push shadow listener: OFF unless DESK_PUSH_SHADOW=1; logs latency only
++            from . import push_shadow
++            self._push_logger, self._push_stop = push_shadow.start(self.cfg, self.log)
++        except Exception as e:
++            self.log("push_shadow_error", error=str(e))
+         if self.cfg.live and self.cfg.fire_enabled:
+             if self.ensure_broker():
+                 self.log("rh_session", detail=getattr(self.broker, "login_detail", None))
+diff --git a/watcher/push_shadow.py b/watcher/push_shadow.py
+new file mode 100644
+index 0000000..f979c9f
+--- /dev/null
++++ b/watcher/push_shadow.py
+@@ -0,0 +1,112 @@
++"""Push-path SHADOW for desk-watcher (ledger-desk shared/push-shadow.json, audits/overnight-1016 #3).
++
++OFF unless DESK_PUSH_SHADOW=1. A background thread reads the desk's SSE stream (/api/desk/card-stream) and logs, per new
++card, the bar close -> desk build -> push receipt -> decision latency; the poll path logs the same card's poll receipt.
++push_shadow.jsonl lets the two be compared per card `at`. Rule 1 tickets get `would_decide_s` (bar close -> decision on
++the push path, persist exempt) against the 10 s target. It never imports the order code, never reaches gates or
++firing, and never changes the rules hash. A stream failure only logs and backs off.
++"""
++import json, os, threading, time
++
++FILE = "push_shadow.jsonl"
++TARGET_S = 10.0
++
++
++def enabled(env=None):
++    return (env if env is not None else os.environ).get("DESK_PUSH_SHADOW") == "1"
++
++
++def stream_url(desk_url, env=None):
++    e = env if env is not None else os.environ
++    return e.get("DESK_PUSH_URL") or desk_url.rstrip("/").rsplit("/", 1)[0] + "/card-stream"
++
++
++def parse_sse(lines):
++    """Yield the JSON body of each `card` event from an iterable of decoded SSE lines."""
++    ev, data = None, []
++    for ln in lines:
++        if ln == "":
++            if ev == "card" and data:
++                try:
++                    yield json.loads("\n".join(data))
++                except ValueError:
++                    pass
++            ev, data = None, []
++        elif ln.startswith(":"):
++            continue
++        elif ln.startswith("event:"):
++            ev = ln[6:].strip()
++        elif ln.startswith("data:"):
++            data.append(ln[5:].lstrip())
++
++
++def row(path, at, latency, rule1, recv_ms, decide_ms=None):
++    decide_ms = decide_ms if decide_ms is not None else recv_ms
++    lat = latency if isinstance(latency, dict) else {}
++    bc, built = lat.get("barCloseAt"), lat.get("builtAt")
++    r = {"ts": recv_ms, "kind": f"{path}_card", "path": path, "broker": False, "orders": 0, "live": False, "at": at,
++         "bar_close_ms": bc, "built_ms": built, "recv_ms": recv_ms,
++         "build_s": round((built - bc) / 1000, 2) if isinstance(bc, (int, float)) and isinstance(built, (int, float)) else None,
++         "transit_s": round((recv_ms - built) / 1000, 2) if isinstance(built, (int, float)) else None,
++         "bar_to_decision_s": round((decide_ms - bc) / 1000, 2) if isinstance(bc, (int, float)) else None, "rule1": []}
++    for tk in rule1 or []:
++        if isinstance(tk, dict) and isinstance(tk.get("at"), (int, float)):
++            s = round((decide_ms - tk["at"]) / 1000, 2)
++            r["rule1"].append({"symbol": tk.get("symbol"), "side": tk.get("side"), "at": tk["at"], "would_decide_s": s, "under_target": s <= TARGET_S})
++    r["under_target"] = r["bar_to_decision_s"] is not None and r["bar_to_decision_s"] <= TARGET_S
++    return r
++
++
++class Logger:
++    """Append rows, first sighting per (path, card at) only."""
++    def __init__(self, path_dir):
++        self.path_dir, self.seen, self.lock = path_dir, set(), threading.Lock()
++
++    def note(self, path, at, latency, rule1, recv_ms, decide_ms=None):
++        if not at:
++            return None
++        with self.lock:
++            if (path, at) in self.seen:
++                return None
++            self.seen.add((path, at))
++            if len(self.seen) > 5000:
++                self.seen = set(list(self.seen)[-2000:])
++            r = row(path, at, latency, rule1, recv_ms, decide_ms)
++            with open(os.path.join(self.path_dir, FILE), "a") as f:
++                f.write(json.dumps(r) + "\n")
++            return r
++
++    def note_poll(self, card, recv_ms):
++        c = card or {}
++        w = c.get("wire") or {}
++        return self.note("poll", c.get("at"), w.get("latency"), c.get("rule1") or w.get("rule1"), recv_ms)
++
++
++def listen(session, url, logger, stop, log=lambda *a, **k: None, now_ms=lambda: int(time.time() * 1000)):
++    """Blocking SSE loop (run in a daemon thread). Reconnects with back-off; never raises."""
++    back = 0.5
++    while not stop.is_set():
++        try:
++            with session.get(url, stream=True, timeout=(5, 35), headers={"accept": "text/event-stream", "cache-control": "no-cache"}) as r:
++                if r.status_code != 200:
++                    log("push_shadow_off", status=r.status_code); stop.wait(60); continue
++                back = 0.5
++                for body in parse_sse(r.iter_lines(decode_unicode=True)):
++                    t = now_ms()
++                    logger.note("push", body.get("at"), body.get("latency"), body.get("rule1"), t)
++                    if stop.is_set():
++                        break
++        except Exception as e:   # network / parse: log, back off, retry
++            log("push_shadow_error", error=str(e)[:200])
++            stop.wait(back); back = min(back * 2, 30)
++
++
++def start(cfg, log):
++    """Start the listener thread when DESK_PUSH_SHADOW=1; returns (logger, stop_event) or (None, None)."""
++    if not enabled():
++        return None, None
++    import requests
++    lg, stop = Logger(cfg.path("")), threading.Event()
++    threading.Thread(target=listen, args=(requests.Session(), stream_url(cfg.desk_url), lg, stop, log), daemon=True, name="push-shadow").start()
++    log("push_shadow_start", url=stream_url(cfg.desk_url))
++    return lg, stop

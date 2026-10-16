@@ -29,6 +29,7 @@ import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { closedBuckets, mappedTargets, pickT1, type PremarketMap } from "./premarket-map";
 import { eqPoolsOn, TICK } from "./eq-pools";
 import { etOf, r2, seqItem, seqMode, seqNum, type Mode, type Side } from "./rules";
+import { amdRetest, fixMode } from "@/lib/smc/fix1016";
 
 export type AmdStage = "WATCH" | "MANIP" | "CONFIRM" | "ARMED" | "ENTERED" | "MISSED" | "EXPIRED" | "DONE";
 export interface AmdSetup {
@@ -59,6 +60,8 @@ export interface AmdRead {
   /** #19/#22: the 1m series has a Globex hole (desk minuteFeed, or a >5 min gap pre-open) — no map/setups built. */
   gapped?: boolean;
   gapReason?: string;
+  /** fix1016 #2: lower-high / higher-low retests inside an HTF gap's premium/discount half (shadow: would re-arm, no state change). */
+  retest?: { mode: Mode; t: number; side: Side; why: string; applied: boolean }[];
 }
 
 const P = {
@@ -113,6 +116,7 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
   const cur: Record<Side, AmdSetup> = { long: fresh("long"), short: fresh("short") };
   const count: Record<Side, number> = { long: 0, short: 0 };
   const lastExt: Record<Side, number | null> = { long: null, short: null };
+  const retests: Record<Side, number> = { long: 0, short: 0 };
   const close = (side: Side, s: AmdSetup) => { done.push(s); if (s.stage === "ENTERED") count[side]++; lastExt[side] = s.ext; cur[side] = fresh(side); };
   const targetsAll = (side: Side) => {
     // real liquidity only: the map's levels/pools/array edges + this session's RTH extremes printed so far
@@ -136,7 +140,24 @@ export function amdRead(symbol: string, map: PremarketMap | null, bars: OhlcBar[
       // ---- WATCH → MANIP: wick takes a mapped buyside (short) / sellside (long) target above/below the open
       if (s.stage === "WATCH") {
         if (hm > P.endEt() || count[side] >= P.maxPerSide()) continue;
-        if (lastExt[side] != null && !(up ? b.h > lastExt[side]! : b.l < lastExt[side]!)) continue; // a new raid needs a new extreme
+        if (lastExt[side] != null && !(up ? b.h > lastExt[side]! : b.l < lastExt[side]!)) {
+          // a new raid needs a new extreme — except (fix1016 #2) a LH/HL retest into an HTF gap's premium/discount half
+          // HTF gaps = the frozen premarket map's + the 15m/30m/1h gaps this session printed on CLOSED bars before this bar
+          const intraGaps = (up ? b.h < lastExt[side]! : b.l > lastExt[side]!) ? ([["5m", 5], ["15m", 15], ["30m", 30], ["1h", 60]] as const).flatMap(([tf, mins]) =>
+            detectFvgs(closedBuckets(closed.slice(Math.max(0, i - 600), i), mins * 60_000, b.t)).filter((g) => g.fill !== "full" && !g.inverted)
+              .map((g) => ({ tf, dir: g.kind, lo: r2(g.bottom), hi: r2(g.top), live: true }))) : [];
+          const rt = amdRetest({ side, bar: b, lastExt: lastExt[side], gaps: [...map.arrays.filter((a) => a.kind === "fvg" || a.kind === "sponsored"), ...intraGaps], used: retests[side] });
+          if (!rt.ok) continue;
+          const live = fixMode("amdRetest") === "live";
+          retests[side]++;
+          (out.retest ??= []).push({ mode: live ? "live" : "shadow", t: tEnd, side, why: rt.why, applied: live });
+          if (!live) continue;
+          const g = rt.gap!;
+          s.raid = { name: `${g.tf} ${g.dir} gap ${g.lo}–${g.hi} retest`, price: r2((g.lo + g.hi) / 2), t: b.t };
+          s.ext = up ? b.h : b.l;
+          go(s, "MANIP", tEnd, `retest: ${rt.why}`);
+          continue;
+        }
         // + intraday EQH/EQL (1m/5m, closed bars up to the PREVIOUS bar, unswept before this bar): a sweep of equal highs/lows is a raid
         const intra = seqItem<boolean>("eqPools", "intradayRaids") === false ? [] : (["1m", "5m"] as const).flatMap((tf) => eqPoolsOn(tf === "1m" ? closed.slice(Math.max(0, i - 120), i) : closedBuckets(closed.slice(Math.max(0, i - 300), i), 300_000, b.t), tf, TICK[symbol] ?? 0.25, b.t))
           .filter((p) => !p.used && p.side === (up ? "buyside" : "sellside") && (up ? p.price > open : p.price < open)).map((p) => ({ name: `${p.name} (intraday)`, price: p.price }));

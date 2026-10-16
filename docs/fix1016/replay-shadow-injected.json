@@ -1,0 +1,24 @@
+{
+ "cards": 7718,
+ "dry_would_fire_v5": 13,
+ "dry_would_fire_new": 13,
+ "fire_decision_changed": [],
+ "n_fire_changed": 0,
+ "v5_rows_changed": 0,
+ "new_rows": {
+  "market_open": 7718,
+  "shadow:fix1016:ltf_promote": 7718,
+  "shadow:fix1016:reanchor": 7718,
+  "shadow:fix1016:chase": 7718,
+  "shadow:fix1016:score5": 7718,
+  "shadow:fix1016:runner": 7718
+ },
+ "market_open_false": 0,
+ "earliest_card_et": "2026-10-13 14:42:40.378000-04:00",
+ "days": [
+  "2026-10-13",
+  "2026-10-14",
+  "2026-10-15",
+  "2026-10-16"
+ ]
+}

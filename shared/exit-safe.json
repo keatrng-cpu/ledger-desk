@@ -1,0 +1,12 @@
+{
+  "_note": "Exit safety (Keaton 2026-10-16). Deliberately NOT in desk-rules.json so RULES_HASH is unchanged. Mirrors watcher/exitsafe.py PARAMS. Flag EXIT_SAFE default off.",
+  "enabledDefault": false,
+  "restingStopDefault": false,
+  "repriceS": 2.5,
+  "crossAfterS": 6,
+  "maxLadderS": 20,
+  "tick": 0.01,
+  "stopLimitOffsetPct": 0.15,
+  "stopLimitOffsetMin": 0.05,
+  "flatConfirmTries": 5
+}

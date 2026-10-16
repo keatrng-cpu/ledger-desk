@@ -1,0 +1,9 @@
+{
+  "_doc": "Push path SHADOW (audits/overnight-1016/report.md latency cuts (a)+(b)): the desk streams card updates (SSE, /api/desk/card-stream) and the watcher measures signal -> decision latency on the push path next to its poll path. Target < 10 s from the 1m/5m bar close to the decision. NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. The stream is OFF unless DESK_PUSH_SHADOW=1 on the site; the watcher listener is OFF unless DESK_PUSH_SHADOW=1 on the box. live=false: push events never reach gates or firing.",
+  "version": 1,
+  "mode": "shadow",
+  "live": false,
+  "streamMaxS": 25,
+  "checkMs": 500,
+  "targetS": 10
+}

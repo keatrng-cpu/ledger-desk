@@ -204,3 +204,15 @@ Keaton approved a Grok "shadow reader" only if it adds no blocking layer, latenc
 
 ## 2026-10-16 — Grok suggestion cards + proposals (follow-up on #45, shadow; GROK_SUGGEST_FIRE default off)
 Grok still cannot fire or change rules. Strict-JSON suggestions (malformed dropped) get a deterministic desk review (existing rr/zone/minStop values, closed-bar re-check, structural stop/T1; A- or better → normal gates, B+ → Brain TAKE q≥0.60 no veto). The watcher patch re-checks the same risk limits and shadow-logs would_fire. The live hand-off is not wired. Proposals are logged for backtest. Trading Stand reviews async. RULES_HASH a4bfcb65c88badcd unchanged. Replay 10/12–10/16: 122 suggestions, 0 would-fire as specified, 41 with Brain TAKE assumed (+8.69R). See docs/grok-suggest-1016/README.md.
+
+### 2026-10-16 — SHADOW PR #39: push path card-stream + latency logging (overnight-1016 #3)
+- **Status:** PROPOSED · **Decided by:** Dual Desk / overnight-1016 build queue · **Source:** `audits/overnight-1016/report.md` latency (a)+(b); validation in `docs/shadow-1016/push/`
+- **Decision:** Shadow-only. `GET /api/desk/card-stream` SSE is off unless `DESK_PUSH_SHADOW=1` (404 otherwise). `wire.latency` is stamped on every card. Watcher patch logs push/poll latency to `push_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Never feeds gates or firing.** Config in `shared/push-shadow.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
+- **Why:** Measure bar-close→decision latency (poll vs modelled push) without changing the live decision path; R gain from push alone is under 0.001R/trade.
+- **File scope:** does not overlap Δ0.7 (#37) or lane (#38) feature files.
+## 2026-10-16 — fix1016: short post-mortem fixes 1–8 + exit-safety rev2 (Grok Bot)
+Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy item ships mode shadow in the new
+`fix1016` rules block (RULES_HASH a4bfcb65c88badcd → 9eeed9b4083700cb; no existing key changed) so the running backtests
+set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
+live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
+was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).
