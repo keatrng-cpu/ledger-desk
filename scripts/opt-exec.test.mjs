@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { register } from "tsx/esm/api";
+import { resolveWatcherDir } from "./lib/watcher-dir.mjs";
 register();
 const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", import.meta.url)));
 const ox = await import("../src/lib/execution/opt-exec.ts");
@@ -30,8 +31,7 @@ test("weekly lock: $900 locks A+ 1ct/$250; 30% giveback blocks; -$300 blocks", (
   assert.equal(wk.weeklyAllows(null, "A+"), false);
 });
 test("watcher (Python) mirrors opt-exec + weekly lock on the same inputs", () => {
-  const dirs = [process.env.WATCHER_DIR, "/workspace/desk-watcher", "/workspace/dw-optpnl", "/workspace/desk-watcher-next"].filter(Boolean);
-  const dir = dirs.find((d) => existsSync(`${d}/watcher/optexec.py`) && existsSync(`${d}/watcher/weekly.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/optexec.py", "watcher/weekly.py"] });
   if (!dir) return;
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import optexec as o, weekly as w\nC=${JSON.stringify(CANDS)}\nout={"pick":o.pick_by_delta(C)["contract"]["strike"],"walk":[o.walk_limit(1,1.1,i) for i in range(6)],"tod":[o.tod_mult(__import__("datetime").datetime(2026,10,13,h,m,tzinfo=w.ET)) for h,m in ((10,0),(14,5))],"week":[w.lock_state(p,k)["state"] for p,k in ${JSON.stringify(WEEK)}],"rules":[o.OX,w.W]}\nprint(json.dumps(out))`;
   const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());

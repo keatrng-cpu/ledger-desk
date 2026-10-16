@@ -603,8 +603,9 @@ console.log("\nlatePnlPending (lateEntry.modelPricePending): refuse unless lateP
   check("fixture: only TAKE is full size", FX.brainFull, ["TAKE"]);
   {
     const fs = await import("node:fs");
-    const cands = [process.env.WATCHER_GATES_PY, "/workspace/dw-fire/watcher/gates.py", "/workspace/desk-watcher/watcher/gates.py"].filter(Boolean);
-    const wp = cands.find((p) => fs.existsSync(p));
+    const { resolveWatcherDir } = await import("./lib/watcher-dir.mjs");
+    const wdir = process.env.WATCHER_GATES_PY ? null : resolveWatcherDir({ contains: { "watcher/gates.py": "GATE_HAND_CUT_TRIGGERS" } });
+    const wp = process.env.WATCHER_GATES_PY ? (fs.existsSync(process.env.WATCHER_GATES_PY) ? process.env.WATCHER_GATES_PY : null) : wdir && `${wdir}/watcher/gates.py`;
     if (process.env.WATCHER_GATES_PY && !fs.existsSync(process.env.WATCHER_GATES_PY)) check("WATCHER_GATES_PY points at a file", false, true);
     if (wp) {
       const py = fs.readFileSync(wp, "utf8");

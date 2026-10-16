@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { register } from "tsx/esm/api";
+import { resolveWatcherDir } from "./lib/watcher-dir.mjs";
 register();
 const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", import.meta.url)));
 const g = await import("../src/lib/smc/loss-guards.ts");
@@ -65,8 +66,7 @@ test("7) option net at T1 after theta and spread", () => {
   assert.equal(g.optionNetAtT1("XYZ", 1, 2, 10).net, null);
 });
 test("watcher (Python) mirrors the TS guards on the same inputs", () => {
-  const dirs = [process.env.WATCHER_DIR, "/workspace/desk-watcher", "/workspace/dw-fire", "/workspace/desk-watcher-next"].filter(Boolean);
-  const dir = dirs.find((d) => existsSync(`${d}/watcher/gates.py`) && readFileSync(`${d}/watcher/gates.py`, "utf8").includes("def loss_htf"));
+  const dir = resolveWatcherDir({ contains: { "watcher/gates.py": "def loss_htf" } });
   if (!dir) return; // watcher checkout not on this box / not yet on the loss guards
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import gates\nout={}\nfor band in ["A+","A","A-","B+"]:\n  for sw in (True,False):\n    out[band+str(sw)]=list(gates.loss_htf("long",[("1h","bear"),("4h","bear")],band,sw,sw)[:2])\nout["rules"]=gates.RULES["loss"]\nprint(json.dumps(out))`;
   const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());
@@ -89,8 +89,7 @@ test("desk build: shadow rules are recorded, never applied (source guard)", () =
   assert.match(src, /isLive\(LOSS_RULES\.target\.mode\)/);
 });
 test("watcher (Python) reads the same modes and keeps shadow rules out of the fire", () => {
-  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher", "/workspace/desk-watcher-next"].filter(Boolean)
-    .find((d) => existsSync(`${d}/watcher/gates.py`) && readFileSync(`${d}/watcher/gates.py`, "utf8").includes("def loss_mode"));
+  const dir = resolveWatcherDir({ contains: { "watcher/gates.py": "def loss_mode" } });
   if (!dir) return;
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import gates\nprint(json.dumps({k: gates.loss_mode(k) for k in ["htf","early","velocity","stop","late","chop","target","option"]} | {"be": gates.loss_mode("target","beMode")}))`;
   const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());
@@ -104,7 +103,7 @@ test("full late rule, option half: latePnlCheck = watcher entry_distance_check P
   assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 1000 / (min * 100) }).ok, true);
   assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 1000 / (min * 100) + 0.01 }).ok, false);
   for (const k of ["px", "t1", "spot", "delta", "askEach"]) assert.equal(g.latePnlCheck({ px: 100, t1: 104, spot: 500, delta: 0.5, askEach: 2, [k]: null }).ok, false, k);
-  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/gates.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/gates.py"] });
   if (!dir) return;
   const cases = [[100, 104, 500, 0.5, 13.3], [100, 104, 500, 0.5, 13.4], [7000, 7010, 600, 0.42, 0.5], [7000, 7010, 600, 0.42, 1.2]];
   for (const [px, t1, spot, delta, ask] of cases) {
