@@ -51,15 +51,23 @@ test("slow fetch serves last-good flagged stale; the in-flight result lands for 
 
 test("TTL hit is 'cached' (not stale) and does not fetch", async () => {
   __resetDeskBudgetCache();
-  const first = await budgetedLeg("d", "k:d", () => sleep(1, "x"), { waitMs: 100, maxStaleMs: 60_000, ttlMs: 10_000 });
+  // Injected clock: every read returns the same instant, so the cache-hit
+  // fetch time cannot drift from the first fetch's by a millisecond (CI flake).
+  let nowMs = 1_760_000_000_000;
+  const now = () => nowMs;
+  const opts = { waitMs: 100, maxStaleMs: 60_000, ttlMs: 10_000, now };
+  const first = await budgetedLeg("d", "k:d", async () => "x", opts);
+  assert.equal(first.leg.status, "fresh");
+  assert.equal(first.fetchedAtMs, nowMs);
+  nowMs += 5_000; // still inside the 10s TTL
   let calls = 0;
-  const r = await budgetedLeg("d", "k:d", () => { calls++; return sleep(1, "y"); }, { waitMs: 100, maxStaleMs: 60_000, ttlMs: 10_000 });
+  const r = await budgetedLeg("d", "k:d", async () => { calls++; return "y"; }, opts);
   assert.equal(r.value, "x");
   assert.equal(r.leg.status, "cached");
+  assert.equal(r.leg.ageSec, 5);
   assert.equal(calls, 0);
   // (1) cache hit reuses the original fetch time, not serve time
   assert.equal(r.fetchedAtMs, first.fetchedAtMs);
-  assert.ok(typeof r.fetchedAtMs === "number");
 });
 
 test("last-good older than maxStale is not served", async () => {

@@ -109,6 +109,8 @@ export interface LegOptions<T> {
   maxStaleMs: number;
   /** Values that count as a successful fetch (default: non-null). */
   isGood?: (v: T) => boolean;
+  /** Clock (epoch ms). Defaults to Date.now; tests inject a fixed clock for determinism. */
+  now?: () => number;
 }
 
 export interface LegResult<T> {
@@ -118,14 +120,19 @@ export interface LegResult<T> {
   fetchedAtMs: number | null;
 }
 
-function startFetch<T>(key: string, fetcher: () => Promise<T | null>, isGood: (v: T) => boolean): Promise<T | null> {
-  const now = Date.now();
+function startFetch<T>(
+  key: string,
+  fetcher: () => Promise<T | null>,
+  isGood: (v: T) => boolean,
+  clock: () => number = Date.now,
+): Promise<T | null> {
+  const now = clock();
   const running = inflight.get(key);
   if (running && now - running.at < INFLIGHT_MAX_MS) return running.p as Promise<T | null>;
   const p = (async () => {
     try {
       const v = await fetcher();
-      if (v != null && isGood(v)) setLastGood(key, { at: Date.now(), value: v });
+      if (v != null && isGood(v)) setLastGood(key, { at: clock(), value: v });
       return v;
     } catch {
       return null;
@@ -149,7 +156,8 @@ export async function budgetedLeg<T>(
   opts: LegOptions<T>,
   clone: (v: T) => T = (v) => v,
 ): Promise<LegResult<T>> {
-  const t0 = Date.now();
+  const clock = opts.now ?? Date.now;
+  const t0 = clock();
   const isGood = opts.isGood ?? ((v: T) => v != null);
   const hit = lastGood.get(key) as Entry<T> | undefined;
 
@@ -166,22 +174,22 @@ export async function budgetedLeg<T>(
   const TIMEOUT = Symbol("timeout");
   let timer: ReturnType<typeof setTimeout> | undefined;
   const raced = await Promise.race<T | null | typeof TIMEOUT>([
-    startFetch(key, fetcher, isGood),
+    startFetch(key, fetcher, isGood, clock),
     new Promise<typeof TIMEOUT>((resolve) => {
       timer = setTimeout(() => resolve(TIMEOUT), waitMs);
     }),
   ]);
   if (timer) clearTimeout(timer);
-  const ms = Date.now() - t0;
+  const ms = clock() - t0;
 
   if (raced !== TIMEOUT && raced != null && isGood(raced)) {
-    return { value: clone(raced), fetchedAtMs: Date.now(), leg: { id, status: "fresh", ms, ageSec: 0 } };
+    return { value: clone(raced), fetchedAtMs: clock(), leg: { id, status: "fresh", ms, ageSec: 0 } };
   }
   const note = raced === TIMEOUT ? `missed ${Math.round(waitMs / 100) / 10}s wait` : "upstream empty/failed";
   // Re-read: a concurrent build may have landed a value while we waited.
   const latest = (lastGood.get(key) as Entry<T> | undefined) ?? usable;
-  if (latest && Date.now() - latest.at <= opts.maxStaleMs) {
-    const ageSec = Math.round((Date.now() - latest.at) / 1000);
+  if (latest && clock() - latest.at <= opts.maxStaleMs) {
+    const ageSec = Math.round((clock() - latest.at) / 1000);
     return { value: clone(latest.value), fetchedAtMs: latest.at, leg: { id, status: "stale", ms, ageSec, note } };
   }
   return { value: null, fetchedAtMs: null, leg: { id, status: "missing", ms, ageSec: null, note } };
