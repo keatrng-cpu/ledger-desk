@@ -74,9 +74,9 @@ function BookCard({
             Draw on liquidity
           </p>
           <p className="mt-0.5 font-mono text-[11px] text-[var(--color-fg)]">
-            {n.dol.direction.toUpperCase()} → {n.dol.target}
+            {n.dol?.direction?.toUpperCase() ?? "—"} → {n.dol?.target ?? "—"}
           </p>
-          <p className="text-[10px] text-[var(--color-subtle)]">{n.dol.reason}</p>
+          <p className="text-[10px] text-[var(--color-subtle)]">{n.dol?.reason}</p>
         </div>
       </div>
 

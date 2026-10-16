@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { PanelBoundary } from "@/components/desk/panel-boundary";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Landmark,
@@ -556,7 +557,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     (c) => c.symbol === o.symbol && c.side === o.side,
   );
   if (!card) {
-    return `Limit at ${o.limit.toFixed(2)} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
+    return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched, but the ${o.symbol} ${o.side} card is gone — not booked. Re-grade before entering by hand.`;
   }
   // One position per book. A resting order on a book that already holds a
   // paper trade would be a second entry on the same idea.
@@ -565,7 +566,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
   );
   if (open) {
     releasePending(o.id, `already holding ${open.displaySymbol} ${open.side} — one position per book`, Date.now());
-    return `Limit at ${o.limit.toFixed(2)} touched, but ${open.displaySymbol} ${open.side} is already open — not booked.`;
+    return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched, but ${open.displaySymbol} ${open.side} is already open — not booked.`;
   }
   // The ORDER's levels, not whatever the card says now. The toast promises
   // the order's stop and T1, and a card re-graded since the order rested can
@@ -597,7 +598,7 @@ function fillRestingLimits(desk: DeskPayload): string | null {
     return pendingFillToast(o);
   }
   releasePending(o.id, `paper book refused: ${res.error}`, Date.now());
-  return `Limit at ${o.limit.toFixed(2)} touched but the paper book refused it: ${res.error}. The order is still resting.`;
+  return `Limit at ${o.limit?.toFixed(2) ?? "—"} touched but the paper book refused it: ${res.error}. The order is still resting.`;
 }
 
 /**
@@ -1598,7 +1599,7 @@ function MasterplacePage() {
           if (!res.already) markTakeAction(c.symbol, c.side === "short" ? "short" : "long", "rested");
           const o = res.order;
           setPaperToast(
-            `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side.toUpperCase()} @ ${o.limit.toFixed(2)} (CE) · SL ${o.stop.toFixed(2)}` +
+            `${res.already ? "PAPER LIMIT ALREADY RESTING" : "PAPER LIMIT RESTING"} · ${c.symbol} ${c.side?.toUpperCase() ?? "—"} @ ${o.limit?.toFixed(2) ?? "—"} (CE) · SL ${o.stop?.toFixed(2) ?? "—"}` +
               (o.t1 != null ? ` · T1 ${o.t1.toFixed(2)}` : "") +
               ` · fills on the touch, expires in ${Math.round((o.expiresAt - Date.now()) / 60_000)}m` +
               (disc.factor !== 1.0
@@ -2045,16 +2046,26 @@ function MasterplacePage() {
                       then the option underneath — Now is the futures card the
                       option expresses, read from one reader so the two tabs
                       cannot disagree about the entry. */}
+                  <PanelBoundary name="FourFactsBoard">
                   <FourFactsBoard desk={desk} />
+                  </PanelBoundary>
+                  <PanelBoundary name="EntryHero">
                   <EntryHero desk={desk} />
+                  </PanelBoundary>
+                  <PanelBoundary name="TwoSidedLadderPanel">
                   <TwoSidedLadderPanel desk={desk} />
+                  </PanelBoundary>
+                  <PanelBoundary name="PricePathBoard">
                   <PricePathBoard desk={desk} />
+                  </PanelBoundary>
                   {/* 15:00–15:55 ET: the overnight decision is due, and the
                       trader is looking at the Now tab, not the Options tab. */}
                   {desk.clock.isWeekday &&
                     desk.clock.etHour * 60 + desk.clock.etMinute >= DECIDE_START_MIN &&
                     desk.clock.etHour * 60 + desk.clock.etMinute <= DECIDE_END_MIN && (
+                      <PanelBoundary name="OvernightBoard">
                       <OvernightBoard desk={desk} />
+                      </PanelBoundary>
                     )}
                   {/*
                     PATH ABOVE THE CHART (trader's call 2026-09-25).
@@ -2072,6 +2083,7 @@ function MasterplacePage() {
                     title="PATH"
                     sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · rest the limit at CE or skip`}
                   />
+                  <PanelBoundary name="SetupScanner">
                   <SetupScanner
                     scan={desk.scan}
                     onLog={onLog}
@@ -2095,15 +2107,19 @@ function MasterplacePage() {
                     discretion={discretion}
                     tape={scannerTape}
                   />
+                  </PanelBoundary>
                   {/* The destination board says WHERE price is going in words;
                       this says it in a picture, from the same plan object. It
                       now sits UNDER the cards: verdict, decide, then look. */}
+                  <PanelBoundary name="SetupChartPanel">
                   <SetupChartPanel desk={desk} />
+                  </PanelBoundary>
                   <SectionHead
                     n="2"
                     title="Paper"
                     sub="Live-managed · scale-outs, BE, time stops · auto paper NY AM"
                   />
+                  <PanelBoundary name="PaperBookPanel">
                   <PaperBookPanel
                     lastClosed={lastPaperClosed}
                     liveMarks={{
@@ -2136,6 +2152,7 @@ function MasterplacePage() {
                       window.setTimeout(() => setPaperToast(null), 8000);
                     }}
                   />
+                  </PanelBoundary>
                   {/* Everything below is context, evidence and hindsight.
                       It is all still here and all one click away — it is just
                       no longer between the trader and the click. The order
@@ -2145,33 +2162,50 @@ function MasterplacePage() {
                     title="Timeframe ladder"
                     sub="Q → 1m in four tiers, closed candles only — the higher tier wins"
                   >
+                    <PanelBoundary name="TfLadderPanel">
                     <TfLadderPanel desk={desk} />
+                    </PanelBoundary>
                   </DeskFold>
                   <DeskFold
                     title="Shadow book"
                     sub="today's refusals, paper-traded both ways — evidence about the gates, never a fill"
                   >
+                    <PanelBoundary name="ShadowBookPanel">
                     <ShadowBookPanel mode="compact" />
+                    </PanelBoundary>
                   </DeskFold>
                   <DeskFold title="Last trade debrief" sub="hindsight — it cannot change the next click">
+                    <PanelBoundary name="TradeDebriefPanel">
                     <TradeDebriefPanel lastPaper={lastPaperClosed?.debrief} />
+                    </PanelBoundary>
                   </DeskFold>
                   <DeskFold
                     title="Context"
                     sub="HTF · live · week/month · prop · narrative"
                   >
+                    <PanelBoundary name="HtfBiasBoard">
                     <HtfBiasBoard
                       left={desk.bias.left}
                       right={desk.bias.right}
                     />
+                    </PanelBoundary>
+                    <PanelBoundary name="LiveSaysPanel">
                     <LiveSaysPanel says={desk.liveSays} />
+                    </PanelBoundary>
+                    <PanelBoundary name="PremarketPanel">
                     <PremarketPanel desk={desk} />
+                    </PanelBoundary>
+                    <PanelBoundary name="LiveSessionCard">
                     <LiveSessionCard />
+                    </PanelBoundary>
+                    <PanelBoundary name="PropFirmPanel">
                     <PropFirmPanel
                       candidates={desk.scan.candidates}
                       equity={equity}
                     />
+                    </PanelBoundary>
                     {desk.narrative && (
+                      <PanelBoundary name="MarketNarrativePanel">
                       <MarketNarrativePanel
                         left={desk.narrative.left}
                         right={desk.narrative.right}
@@ -2179,6 +2213,7 @@ function MasterplacePage() {
                         rightLabel={desk.right.symbol}
                         summary={desk.narrative.summary}
                       />
+                      </PanelBoundary>
                     )}
                   </DeskFold>
                 </div>

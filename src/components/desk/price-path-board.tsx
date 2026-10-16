@@ -233,7 +233,7 @@ export function pricePathVerdict(
     const draw = book ? desk.draws[book].primary : null;
     return {
       word: "MANAGE",
-      line: `${t.displaySymbol} ${t.side.toUpperCase()} in play · stop ${px(t.workingStop)} · tp ${px(t.tp1)}${draw ? ` · draw ${draw.name} ${px(draw.price)}` : ""} · one book`,
+      line: `${t.displaySymbol} ${t.side?.toUpperCase() ?? "—"} in play · stop ${px(t.workingStop)} · tp ${px(t.tp1)}${draw ? ` · draw ${draw.name} ${px(draw.price)}` : ""} · one book`,
       book,
     };
   }
@@ -327,20 +327,20 @@ export function pricePathVerdict(
       if (staleQuote) {
         return {
           word: "STAND",
-          line: `${cand.symbol} ${cand.side.toUpperCase()} sequence complete — quote ${Math.round(worstLag)}s old, no fill on a stale print`,
+          line: `${cand.symbol} ${cand.side?.toUpperCase() ?? "—"} sequence complete — quote ${Math.round(worstLag)}s old, no fill on a stale print`,
           book,
         };
       }
       if (taken && taken.book !== cand.symbol.replace(/^M/, "")) {
         return {
           word: "STAND",
-          line: `${cand.symbol} ${cand.side.toUpperCase()} sequence complete — one book: ${taken.symbol} already traded today`,
+          line: `${cand.symbol} ${cand.side?.toUpperCase() ?? "—"} sequence complete — one book: ${taken.symbol} already traded today`,
           book,
         };
       }
       return {
         word: "TAKE",
-        line: `${cand.symbol} ${cand.side.toUpperCase()} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
+        line: `${cand.symbol} ${cand.side?.toUpperCase() ?? "—"} ${cand.pathBand || cand.grade} → ${draw ? `${draw.name} ${px(draw.price)}` : cand.targets?.[0] ?? "structure"} · SMC ${seq.mustPass}/${seq.mustNeed} · one book`,
         book,
       };
     }

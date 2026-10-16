@@ -320,7 +320,7 @@ export function PropFirmPanel({
             >
               <div className="flex items-baseline justify-between gap-2">
                 <p className="truncate text-xs font-semibold text-[var(--color-fg)]">
-                  {candidate.symbol} {candidate.side.toUpperCase()}{" "}
+                  {candidate.symbol} {(candidate.side?.toUpperCase() ?? "—")}{" "}
                   <span className="font-normal text-[var(--color-subtle)]">
                     {candidate.grade} · {(candidate.confluence * 100).toFixed(0)}%
                   </span>
