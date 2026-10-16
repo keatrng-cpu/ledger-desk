@@ -11,12 +11,14 @@ import CFG from "../../../shared/grok-reader.json";
 import { SMC_PACK } from "./knowledge";
 import { parseGrokJson, reviewSuggestion, toProposals, detectorProposal, type BrainView, type SuggestionCard, type GrokProposal } from "./suggest";
 
-export type Bar = { t: number; o: number; h: number; l: number; c: number };
+export type Bar = { t: number; o: number; h: number; l: number; c: number; v?: number };
 export type ArrayLite = { tf: string; kind: string; dir: "bull" | "bear"; lo: number; hi: number; ce: number; mitigated?: boolean; ageBars?: number };
 export type CardLite = {
   id: string; symbol: string; side: string; pathBand?: string; actionable?: boolean;
   plan?: { entry?: number | null; stop?: number | null; t1?: number | null; t2?: number | null } | null;
   entryPx?: number | null; strategyPrimary?: string; reasons?: string[]; q?: number | null; vetoed?: boolean;
+  /** Advisor context (shadow): the card's named blockers (missing[]), vetoes[] and cap reasons, verbatim. */
+  missing?: string[]; vetoes?: string[]; caps?: string[];
 };
 export type BookInput = { symbol: string; minute: Bar[]; bars15: Bar[]; arrays?: ArrayLite[] };
 export type MissedFlag = { symbol: string; side: "long" | "short"; kind: "mss" | "htfGapTap" | "lowerHigh" | "higherLow"; at: number; level: number; detail: string };
@@ -40,6 +42,9 @@ const hasKey = (env: Env) => Boolean(env.XAI_API_KEY?.trim());
 const budget = { day: "", calls: 0, spendUsd: 0 };
 const ctDay = (ms: number) => new Date(ms - 5 * 3600_000).toISOString().slice(0, 10);
 export function estCostUsd(inTok: number, outTok: number) { return (inTok * CFG.pricePerMTokIn + outTok * CFG.pricePerMTokOut) / 1e6; }
+/** Shared daily call/spend cap (reader + advisor draw from one budget). */
+export function reserveBudget(nowMs: number, est: number) { return reserve(nowMs, est); }
+export function settleBudget(delta: number) { budget.spendUsd += delta; }
 function reserve(nowMs: number, est: number): boolean {
   const d = ctDay(nowMs);
   if (budget.day !== d) { budget.day = d; budget.calls = 0; budget.spendUsd = 0; }
@@ -78,9 +83,10 @@ export function mtfSummary(b: BookInput, nowMs: number): string {
   lines.push(`levels: day hi/lo ${lv(day)} · pre-RTH hi/lo ${lv(pre)} · last ${m1[m1.length - 1]?.c ?? "-"}`);
   // grok-vs-desk-1016 §6: was slice(0, 14) in mtfArrays order = the OLDEST 1m rows, ~8x ATR15 from price, never 15m-4h.
   // Now: unmitigated rows nearest the last price, at most 3 per timeframe (so 15m/30m/1h/4h rungs are represented).
-  const lastPx = m1[m1.length - 1]?.c ?? 0; const perTf = new Map<string, number>();
-  const pick = [...(b.arrays ?? [])].filter((a) => !a.mitigated).sort((x, y) => Math.abs(x.ce - lastPx) - Math.abs(y.ce - lastPx))
-    .filter((a) => { const n = perTf.get(a.tf) ?? 0; if (n >= 3) return false; perTf.set(a.tf, n + 1); return true; }).slice(0, 14);
+  // Now: per timeframe, the 2 unmitigated rows nearest the last price, every rung 1m..4h represented (HTF first).
+  const lastPx = m1[m1.length - 1]?.c ?? 0; const TF_ORDER = ["4h", "1h", "30m", "15m", "5m", "4m", "3m", "2m", "1m"];
+  const open_ = (b.arrays ?? []).filter((a) => !a.mitigated).sort((x, y) => Math.abs(x.ce - lastPx) - Math.abs(y.ce - lastPx));
+  const pick = TF_ORDER.flatMap((tf) => open_.filter((a) => a.tf === tf).slice(0, 2)).slice(0, 14);
   const arr = pick.map((a) => `${a.tf} ${a.dir} ${a.kind} ${a.lo}-${a.hi} ce ${a.ce}${a.mitigated ? " mit" : ""}`);
   if (arr.length) lines.push(`arrays: ${arr.join(" | ")}`);
   return `${b.symbol}\n${lines.join("\n")}`;
@@ -155,7 +161,7 @@ export function missedVsDesk(flags: MissedFlag[], cards: CardLite[]): MissedFlag
 
 // ---------- xAI call ----------
 type Fetch = typeof fetch;
-export async function callXai(user: string, opts: { env?: Env; fetchImpl?: Fetch; timeoutMs?: number } = {}): Promise<{ status: GrokRead["status"]; text: string | null; inTok: number; outTok: number }> {
+export async function callXai(user: string, opts: { env?: Env; fetchImpl?: Fetch; timeoutMs?: number; system?: string; maxTokens?: number } = {}): Promise<{ status: GrokRead["status"]; text: string | null; inTok: number; outTok: number }> {
   const env = opts.env ?? process.env; const key = env.XAI_API_KEY?.trim();
   if (!key) return { status: "nokey", text: null, inTok: 0, outTok: 0 };
   const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), opts.timeoutMs ?? CFG.timeoutMs);
@@ -163,7 +169,7 @@ export async function callXai(user: string, opts: { env?: Env; fetchImpl?: Fetch
     const res = await (opts.fetchImpl ?? fetch)(CFG.endpoint, {
       method: "POST", signal: ac.signal,
       headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: CFG.model, max_tokens: CFG.maxOutputTokens, temperature: 0.2, response_format: { type: "json_object" }, messages: [{ role: "system", content: SMC_PACK }, { role: "user", content: user }] }),
+      body: JSON.stringify({ model: CFG.model, max_tokens: opts.maxTokens ?? CFG.maxOutputTokens, temperature: 0.2, response_format: { type: "json_object" }, messages: [{ role: "system", content: opts.system ?? SMC_PACK }, { role: "user", content: user }] }),
     });
     if (!res.ok) return { status: "error", text: `http ${res.status}`, inTok: 0, outTok: 0 };
     const j = (await res.json()) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
@@ -285,5 +291,7 @@ export function kickGrokReader(inp: KickInput): void {
 /** Cheap sync snapshot of the desk's cards (the reader never holds a reference to live card objects). */
 export function cardsLite(cands: readonly unknown[]): CardLite[] {
   return cands.map((x) => { const c = x as CardLite; return { id: c.id, symbol: c.symbol, side: c.side, pathBand: c.pathBand, actionable: c.actionable, entryPx: c.entryPx ?? null,
-    plan: c.plan ? { entry: c.plan.entry ?? null, stop: c.plan.stop ?? null, t1: c.plan.t1 ?? null, t2: c.plan.t2 ?? null } : null, strategyPrimary: c.strategyPrimary, reasons: (c.reasons ?? []).slice(-5), q: (c as { confluence?: number }).confluence ?? null, vetoed: Boolean((c as { vetoes?: unknown[] }).vetoes?.length) }; });
+    plan: c.plan ? { entry: c.plan.entry ?? null, stop: c.plan.stop ?? null, t1: c.plan.t1 ?? null, t2: c.plan.t2 ?? null } : null, strategyPrimary: c.strategyPrimary, reasons: (c.reasons ?? []).slice(-5), q: (c as { confluence?: number }).confluence ?? null, vetoed: Boolean((c as { vetoes?: unknown[] }).vetoes?.length),
+    missing: ((c as { missing?: string[] }).missing ?? []).slice(0, 8).map(String), vetoes: ((c as { vetoes?: string[] }).vetoes ?? []).slice(0, 6).map(String),
+    caps: ((c as { capReasons?: { field: string; kind: string; why?: string | null }[] }).capReasons ?? []).slice(-4).map((r) => `${r.kind}:${r.field}${r.why ? ` (${r.why})` : ""}`) }; });
 }

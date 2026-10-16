@@ -6,6 +6,7 @@ import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
+import { kickGrokAdvisor, advisorEnabled, advisorSnapshot } from "@/lib/grok-reader/advisor";
 import { kickGrokReader, readerEnabled, grokReadsSnapshot, grokSuggestSnapshot, grokProposalsSnapshot, cardsLite, type GrokRead } from "@/lib/grok-reader/reader";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
@@ -128,6 +129,8 @@ export interface DeskPayload {
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
   /** Grok SHADOW reads (shared/grok-reader.json). Display only; present only when GROK_READER is on. Nothing gates on it. */
   grokReads?: GrokRead[];
+  /** Grok SHADOW ADVISOR rows (display/log only; GROK_ADVISOR). Never fires, blocks or changes rules. */
+  grokAdvice?: import("@/lib/grok-reader/advisor").AdviceRow[];
   /** Grok SUGGESTION cards (strict JSON + deterministic desk review). The watcher shadow-logs / (GROK_SUGGEST_FIRE) reviews them. */
   grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
   /** Grok / detector improvement proposals, to be proven by backtest before any implementation. */
@@ -2130,7 +2133,22 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         });
       } catch { /* shadow: never into the desk path */ }
     }
+    // Grok SHADOW ADVISOR (prompt v2; MISGRADED / WRONGLY_BLOCKED / NEW_SETUP). Off unless GROK_ADVISOR=1. Same contract:
+    // fire-and-forget, a copy of the cards, nothing read back into this build except the previous rows (display only).
+    const advOn = advisorEnabled();
+    if (advOn) {
+      try {
+        const bk = [smcMaster.left, smcMaster.right].find((b) => b?.word === "TAKE") ?? smcMaster.left ?? null;
+        kickGrokAdvisor({
+          brain: bk ? { word: bk.word ?? null, symbol: bk.symbol ?? null, side: bk.side ?? null, q: null, vetoed: false } : null,
+          cards: cardsLite(payload.scan.candidates), nowMs: Date.now(),
+          books: [{ symbol: left.symbol, minute: minuteL ?? [], bars15: closedL }, { symbol: right.symbol, minute: minuteR ?? [], bars15: closedR }],
+          arraysOf: (b) => mtfArrays(b.symbol, b.minute as never, b.bars15 as never) as never,
+        });
+      } catch { /* shadow */ }
+    }
     return {
+      ...(advOn ? { grokAdvice: advisorSnapshot() } : {}),
       ...(grokOn ? { grokReads: grokReadsSnapshot(), grokSuggest: grokSuggestSnapshot(), grokProposals: grokProposalsSnapshot() } : {}),
       ...payload,
       smcMaster,

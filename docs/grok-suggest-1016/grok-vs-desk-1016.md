@@ -302,3 +302,25 @@ Also missing from the prompt (proven by construction): PDH/PDL/ONH/ONL, the othe
 | 119 | ES | short | 10-16 10:10 | +0.03 | reject |  | late entry post 10:05 displacement, price already 10pts below scan entry, no displacement after sweep, against 15m/1h bullish bias |
 | 120 | ES | short | 10-16 10:15 | +0.91 | ACCEPT | 0.72 | Valid NY killzone short; displacement present; near entry; HTF discount. |
 | 121 ★ | ES | short | 10-16 11:20 | -0.33 | reject |  | late post-killzone, no recent MSS/displacement, price already 10pts below scan entry in discount half |
+
+
+## §7 Advisor prompt v2 — offline backtest on the same 122 moments (2026-10-16, $0.41)
+
+Setup: prompt v2 (`src/lib/grok-reader/advisor.ts`). The desk card state comes only from logged cards.log/gates.log rows (60 moments). The other 62 had no logged card, so they got the NEW_SETUP check. Graded with `grade.ts` on Grok's OWN levels: closed 1m bars after the decision, a 30-min fill window, same-bar stop counted first, marked at 15:00 CT.
+
+Replies: 109 valid, 9 dropped by the strict parser (all 9 answered NEW_SETUP when a card existed), 4 timeouts.
+
+| Type | n | filled | W | WR | net R |
+|---|---|---|---|---|---|
+| MISGRADED | 38 | 19 | 9 | 47% | +2.53 |
+| WRONGLY_BLOCKED | 12 | 7 | 4 | 57% | +2.69 |
+| NEW_SETUP | 59 | 56 | 31 | 55% | +4.92 |
+| **All** | 109 | 82 | 44 | 54% | **+10.13** |
+
+By reason: MSS_DISPLACEMENT 31 filled, 61% WR, +4.50R · HTF_ARRAY_TAP 33, 48%, +4.65R · LIQ_SWEEP_REVERSAL 17, 47%, +0.16R · RETEST_LH_HL 1, +0.82R.
+By blocker: 10 different blockers named, each 1–2 cases. None is close to the ≥15 OOS cases a promotion needs.
+
+**Findings (proven on this sample):**
+1. **v2 swung from rejecting to accepting: 109/109 valid replies were suggestions, 0 AGREE.** No reply cited time (0 'late' notes), so the 'late' filter is gone. But Grok still doesn't discriminate. v1 rejected 62; v2 rejected none.
+2. **Grok's own levels did worse than the mechanical scan's levels on the same moments.** Grok: 54% WR, +10.13R on 82 fills. Scan levels on the same 109 moments: 75W/34L, 69% WR, +19.43R. Grok's re-pricing has cost R so far, not added it.
+3. **Sample bias:** all 122 moments are scan-flagged setups (66% base WR), so whether Grok can pass correctly (AGREE) can't be tested here. That needs live shadow rows on ordinary polls. UNPROVEN.

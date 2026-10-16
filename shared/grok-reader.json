@@ -26,5 +26,61 @@
     "_doc": "Grok suggestion cards: strict JSON {symbol,side,entry,stop,t1,setup,confidence}; malformed dropped. Desk runs the deterministic review (src/lib/grok-reader/suggest.ts) on arrival; the watcher re-checks risk limits on its next poll. GROK_SUGGEST_FIRE (watcher env, default off) = live; otherwise shadow-logged would-fire. Trading Stand reviews async, not in the fire path.",
     "fireFlag": "GROK_SUGGEST_FIRE",
     "dedupe": "one call per (symbol, side, kind, level, CT day)"
+  },
+  "advisor": {
+    "_doc": "Grok SHADOW ADVISOR (Keaton 2026-10-16): prompt v2 from audits grok-vs-desk-1016 §6. Types MISGRADED / WRONGLY_BLOCKED / NEW_SETUP (+AGREE, logged only). Never fires, blocks or changes rules; not in shared/desk-rules.json. Off unless env GROK_ADVISOR=1 + XAI_API_KEY. Shares the reader's daily call/spend caps.",
+    "envFlag": "GROK_ADVISOR",
+    "promptVersion": "v2-1016",
+    "maxOutputTokens": 260,
+    "startMinCt": 480,
+    "endMinCt": 900,
+    "maxJobsPerPoll": 4,
+    "dir": "/workspace/audits/grok-suggest",
+    "supabaseFlag": "GROK_ADVISOR_SUPABASE",
+    "supabaseTable": "grok_advisor_suggestions",
+    "grading": {
+      "fillWindowMin": 30,
+      "sessionEndCt": 900,
+      "minCasesToPromote": 15,
+      "_doc": "promotion needs >=15 graded OOS cases beating the desk on BOTH R and WR"
+    },
+    "xPulse": {
+      "envFlag": "X_PULSE",
+      "table": "x_pulse",
+      "windowMin": 15,
+      "pollEverySec": 60,
+      "accounts": [
+        "FirstSquawk",
+        "DeItaone",
+        "financialjuice",
+        "LiveSquawk"
+      ],
+      "highImpact": [
+        "CPI",
+        "PPI",
+        "FOMC",
+        "Powell",
+        "rate decision",
+        "nonfarm",
+        "NFP",
+        "payrolls",
+        "jobless claims",
+        "GDP",
+        "PCE",
+        "retail sales",
+        "ISM",
+        "tariff",
+        "emergency"
+      ],
+      "mediumImpact": [
+        "Fed's",
+        "Treasury",
+        "yields",
+        "OPEC",
+        "earnings",
+        "guidance",
+        "downgrade"
+      ]
+    }
   }
 }

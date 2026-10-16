@@ -131,6 +131,6 @@ test("prompt arrays: nearest unmitigated per timeframe, not the oldest rows (gro
   const line = txt.split("\n").find((l) => l.startsWith("arrays:"));
   assert.match(line, /^arrays: 15m bear fvg|^arrays: 1h bear fvg/);
   assert.ok(line.includes("15m bear fvg") && line.includes("1h bear fvg"));
-  assert.equal((line.match(/1m bear ifvg/g) ?? []).length, 3);
+  assert.equal((line.match(/1m bear ifvg/g) ?? []).length, 2);
   assert.equal(line.includes("29900-29910"), false);
 });
