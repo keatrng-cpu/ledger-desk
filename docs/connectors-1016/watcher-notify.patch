@@ -1,0 +1,372 @@
+diff -ruN '--exclude=data' '--exclude=tools' a/requirements.lock b/requirements.lock
+--- a/requirements.lock	2026-10-16 00:21:56.242990825 -0500
++++ b/requirements.lock	2026-10-16 00:22:16.982990825 -0500
+@@ -13,4 +13,5 @@
+ python-dotenv==1.2.4
+ requests==2.34.2
+ robin-stocks==3.4.0
++sentry-sdk==2.72.0
+ urllib3==2.8.0
+diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_notify.py b/tests/test_notify.py
+--- a/tests/test_notify.py	1969-12-31 18:00:00.000000000 -0600
++++ b/tests/test_notify.py	2026-10-16 00:58:42.685196876 -0500
+@@ -0,0 +1,107 @@
++"""watcher/notify.py + watcher/monitoring.py: no-op without env, dedupe, rate limit, scrubbing, record mapping."""
++from watcher import notify, monitoring
++
++class Clock:
++    def __init__(self): self.t = 1000.0
++    def __call__(self): return self.t
++
++def mk(**kw):
++    sent = []
++    c = Clock()
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/services/T/B/x", post=lambda url, body: sent.append(body) or True, clock=c, **kw)
++    return n, sent, c
++
++FIRE = dict(type="card_fire", grade="A", symbol="ES", side="long", entry=7782.63, stop=7775.0, t1=7792.25, signal="sig-1")
++
++def test_noop_when_unset(monkeypatch):
++    monkeypatch.delenv("SLACK_DESK_WEBHOOK_URL", raising=False)
++    n = notify.Notifier()
++    assert not n.enabled and n.notify(FIRE) == (False, "disabled")
++    assert notify.on_record({"kind": "stop"}, n) == []
++
++def test_format_and_dedupe():
++    n, sent, c = mk()
++    assert n.notify(FIRE) == (True, None)
++    assert sent[0]["text"] == ":rotating_light: FIRE A ES long · entry 7782.63 · stop 7775 · T1 7792.25"
++    assert n.notify(FIRE) == (False, "duplicate")
++    c.t += notify.DEDUPE_S + 1
++    assert n.notify(FIRE)[0] is True
++
++def test_rate_limit_counts_suppressed():
++    n, sent, c = mk(rate_max=2, window_s=60)
++    for i in range(4): n.notify(dict(FIRE, signal=f"s{i}"))
++    assert len(sent) == 2
++    c.t += 61
++    n.notify(dict(FIRE, signal="s9"))
++    assert "+2 suppressed" in sent[-1]["text"]
++
++def test_scrub_secrets_and_account(monkeypatch):
++    monkeypatch.setenv("DATABENTO_API_KEY", "db-ABCDEFGHIJKLMNOPQRSTUVWXYZ")
++    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "supersecretservicerolevalue")
++    s = notify.scrub_text("acct 995386158 key db-ABCDEFGHIJKLMNOPQRSTUVWXYZ svc supersecretservicerolevalue Bearer abc.def.ghijklmnop "
++                          "hook https://hooks.slack.com/services/T0/B0/zzz token=abc123456 px 7782.63 jwt eyJhbGciOiJIUzI1.eyJyb2xlIjoic2Vy.c2lnbmF0dXJl")
++    for bad in ("995386158", "db-ABC", "supersecret", "abc.def", "hooks.slack.com", "abc123456", "eyJhbGci"): assert bad not in s
++    assert "7782.63" in s
++
++def test_rejected_send_never_raises():
++    n = notify.Notifier(webhook_url="https://x.invalid", post=lambda *a: (_ for _ in ()).throw(RuntimeError("boom")))
++    assert n.notify(FIRE) == (False, "error")
++
++def test_events_from_records():
++    ev = notify.events_from_record
++    f = ev({"ts": "2026-10-15T14:02:04-04:00", "kind": "alert", "text": "FIRE B+ ES long q=0.6499 entry=7782.63 stop=7775.0 tgt=7792.25 rr=1.26"})
++    assert f[0]["type"] == "card_fire" and f[0]["t1"] == 7792.25 and f[0]["grade"] == "B+"
++    assert ev({"ts": "x", "kind": "alert", "text": "FILLED 1 @ 2.96 (filled)"})[0] == dict(type="order_filled", qty=1, price=2.96, signal=None)
++    arm = ev({"ts": "x", "kind": "alert", "text": "DESK A- ES short q=0.67", "signal": "sig-2", "snap": {"actionable": True, "entry": 7770.0, "strategy_stop": 7780.0, "targets": [7750.0]}})
++    assert arm[0]["type"] == "card_arm" and arm[0]["t1"] == 7750.0
++    assert ev({"ts": "x", "kind": "alert", "text": "DESK A- ES short", "snap": {"actionable": False}}) == []
++    assert ev({"kind": "fire_blocked", "ts": "x", "reason": "RH refused"})[0]["type"] == "order_rejected"
++    r = ev({"ts": "2026-10-15T10:00:00-04:00", "kind": "fire_refused_desk", "failing": [["day_loss", "day -300"], ["weekly_lock", "week locked"], ["rules_parity", "card rules aaa vs watcher bbb — MISMATCH, fail closed"]]})
++    assert [e["type"] for e in r] == ["daily_stop", "weekly_lock", "rules_hash_mismatch"] and r[2]["expected"] == "aaa"
++    r1 = ev({"ts": "2026-10-16T08:35:00-05:00", "kind": "rule1_would_fire", "symbol": "MNQ", "side": "long", "entry": 1.0, "stop": 0.5, "target": 2.0})
++    assert r1[0]["type"] == "rule1_shadow" and r1[0]["day"] == "2026-10-16"
++    assert ev({"kind": "stop", "ts": "x"})[0]["type"] == "watcher_down"
++    assert ev({"kind": "tick", "ts": "x"}) == []
++
++def test_preopen_and_mismatch_format():
++    assert "FAIL" in notify.format_event(dict(type="preopen_check", ok=False, day="2026-10-16", failures=["stale"]))
++    assert "MISMATCH" in notify.format_event(dict(type="rules_hash_mismatch", expected="a", got="b"))
++
++class FakeSdk:
++    def __init__(self): self.kw = None; self.caught = []
++    def init(self, **kw): self.kw = kw
++    def capture_exception(self, e): self.caught.append(e)
++
++def test_sentry_noop_without_dsn(monkeypatch):
++    monkeypatch.delenv("SENTRY_DSN", raising=False); monkeypatch.setattr(monitoring, "_on", False)
++    sdk = FakeSdk()
++    assert monitoring.init(sdk) is False and sdk.kw is None
++    assert monitoring.capture(RuntimeError("x"), sdk) is False
++
++def test_sentry_init_and_scrub(monkeypatch):
++    monkeypatch.setenv("SENTRY_DSN", "https://pub@o1.ingest.sentry.io/1")
++    monkeypatch.setenv("RH_PASSWORD", "hunter2hunter2")
++    sdk = FakeSdk()
++    assert monitoring.init(sdk) is True and sdk.kw["send_default_pii"] is False
++    ev = sdk.kw["before_send"]({"message": "login failed pw hunter2hunter2 acct 995386158", "extra": {"account_number": "995386158", "DATABENTO_API_KEY": "x"},
++                                "request": {"headers": {"Authorization": "Bearer zzzzzzzzzz"}, "url": "u"}})
++    assert "hunter2" not in str(ev) and "995386158" not in str(ev) and "headers" not in ev["request"]
++    assert monitoring.capture(RuntimeError("boom"), sdk) is True and sdk.caught
++    monkeypatch.setattr(monitoring, "_on", False)
++
++def test_dedupe_recorded_only_after_success():
++    calls = []; ok = [False]
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/services/T/B/x", post=lambda u, b: calls.append(b) or ok[0], clock=Clock())
++    assert n.notify(FIRE) == (False, "error")          # Slack down: not marked seen
++    assert n.notify(FIRE) == (False, "error")          # so the same event is retried
++    ok[0] = True
++    assert n.notify(FIRE) == (True, None)
++    assert n.notify(FIRE) == (False, "duplicate")      # delivered once -> deduped
++    assert len(calls) == 3 and not n.inflight
++
++def test_raising_post_is_not_deduped():
++    def boom(u, b): raise RuntimeError("timeout")
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/x", post=boom, clock=Clock())
++    assert n.notify(FIRE) == (False, "error") and FIRE_KEY_NOT_SEEN(n)
++
++def FIRE_KEY_NOT_SEEN(n): return notify.event_key(FIRE) not in n.seen and not n.inflight
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-16 00:21:56.222990825 -0500
++++ b/watcher/daemon.py	2026-10-16 00:22:30.866990825 -0500
+@@ -4,7 +4,7 @@
+ from . import status
+ from datetime import datetime
+ import requests
+-from . import gates, ticks
++from . import gates, ticks, notify, monitoring
+ from .config import Config
+ from .broker import Broker, BrokerRefused
+ 
+@@ -37,6 +37,8 @@
+         print(line, flush=True)
+         with open(self.cfg.path("watcher.log"), "a") as f: f.write(line + "\n")
+         if kind not in ("tick",): self.state["events"].append(rec)
++        try: notify.on_record(rec)   # Slack side channel (SLACK_DESK_WEBHOOK_URL); no-op when unset, never raises
++        except Exception: pass
+         return rec
+ 
+     def alert(self, text, **kw):
+@@ -525,7 +527,7 @@
+                 self.broker_health_bg()
+             except Exception as e:
+                 errs += 1
+-                if errs <= 3 or errs % 60 == 0: self.log("error", error=str(e), trace=traceback.format_exc()[-600:])
++                if errs <= 3 or errs % 60 == 0: self.log("error", error=str(e), trace=traceback.format_exc()[-600:]); monitoring.capture(e)
+             self.state["heartbeat"] = {"ts": datetime.now(gates.ET).isoformat(timespec="seconds"), "mode": mode,
+                                        "live": self.cfg.live, "stop_file": self.stopped()}
+             self.save()
+@@ -536,7 +538,12 @@
+         self.log("stop")
+ 
+ def main():
+-    Watcher(Config()).run()
++    monitoring.init()   # Sentry (SENTRY_DSN); no-op when unset
++    try:
++        Watcher(Config()).run()
++    except BaseException as e:
++        if not isinstance(e, (KeyboardInterrupt, SystemExit)): monitoring.capture(e)
++        raise
+ 
+ if __name__ == "__main__":
+     main()
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/monitoring.py b/watcher/monitoring.py
+--- a/watcher/monitoring.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/monitoring.py	2026-10-16 00:22:16.954990825 -0500
+@@ -0,0 +1,47 @@
++"""Sentry error capture for the watcher. DSN from env SENTRY_DSN; unset (or sentry-sdk missing) -> no-op.
++Every event is scrubbed (RH / Databento / Supabase keys, tokens, webhook URLs, account numbers) before it leaves."""
++import os
++from .notify import scrub_text, SECRET_ENV
++
++_ACCOUNT_KEYS = ("account", "account_number", "account_number_rhs", "cookies", "headers", "authorization")
++_on = False
++
++def scrub_value(v, depth=0):
++    if depth > 8: return "[deep]"
++    if isinstance(v, str): return scrub_text(v)
++    if isinstance(v, (list, tuple)): return [scrub_value(x, depth + 1) for x in v]
++    if isinstance(v, dict):
++        return {k: ("[redacted]" if SECRET_ENV.search(str(k)) or str(k).lower() in _ACCOUNT_KEYS else scrub_value(x, depth + 1)) for k, x in v.items()}
++    return v
++
++def before_send(event, hint=None):
++    ev = scrub_value(event)
++    req = ev.get("request") if isinstance(ev, dict) else None
++    if isinstance(req, dict):
++        for k in ("cookies", "headers", "data", "env"): req.pop(k, None)
++    return ev
++
++def init(sdk=None):
++    """-> True if Sentry is live. Safe to call more than once."""
++    global _on
++    dsn = os.environ.get("SENTRY_DSN", "").strip()
++    if not dsn: return False
++    try:
++        if sdk is None:
++            import sentry_sdk as sdk
++        sdk.init(dsn=dsn, send_default_pii=False, traces_sample_rate=0, include_local_variables=False,
++                 environment=os.environ.get("WATCHER_ENV", "live"), before_send=before_send,
++                 before_breadcrumb=lambda b, h=None: scrub_value(b))
++        _on = True
++    except Exception:
++        _on = False
++    return _on
++
++def capture(exc, sdk=None):
++    if not _on: return False
++    try:
++        if sdk is None:
++            import sentry_sdk as sdk
++        sdk.capture_exception(exc); return True
++    except Exception:
++        return False
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notify.py
+--- a/watcher/notify.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/notify.py	2026-10-16 00:58:42.681196876 -0500
+@@ -0,0 +1,153 @@
++"""Desk -> Slack alerts for the watcher. Python twin of ledger-desk src/lib/notify/desk-alert.ts.
++
++Env SLACK_DESK_WEBHOOK_URL (incoming webhook). Unset -> every call is a no-op. Never raises into the
++caller, never decides/gates/orders anything: it only reads records the daemon already logged.
++Dedupe (same key inside DEDUPE_S sends once; recorded only after a 2xx, so failed posts can retry) + rate limit (RATE_MAX per RATE_WINDOW_S, overflow dropped and
++counted). Every outgoing line goes through scrub_text: no keys, tokens, webhook URLs or account numbers.
++"""
++import json, os, re, threading, time
++
++DEDUPE_S = 600
++RATE_WINDOW_S = 60
++RATE_MAX = 6
++SECRET_ENV = re.compile(r"(KEY|SECRET|TOKEN|PASSWORD|PASS|DSN|WEBHOOK|MFA|TOTP|COOKIE|SESSION|DATABASE_URL|DB_URL|POSTGRES_URL|AUTH)", re.I)
++_PATTERNS = [
++    (re.compile(r"https://hooks\.slack\.com/[^\s\"'<>]+", re.I), "[slack-webhook]"),
++    (re.compile(r"https?://[^\s\"'<>@]*@[^\s\"'<>]*sentry[^\s\"'<>]*", re.I), "[sentry-dsn]"),
++    (re.compile(r"postgres(?:ql)?://[^\s\"'<>]+", re.I), "[db-url]"),
++    (re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{4,}"), "[jwt]"),
++    (re.compile(r"\bsb_(?:secret|publishable)_[A-Za-z0-9_-]{8,}"), "[supabase-key]"),
++    (re.compile(r"\bdb-[A-Za-z0-9]{20,}\b"), "[databento-key]"),
++    (re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{8,}"), "[slack-token]"),
++    (re.compile(r"\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}", re.I), r"\1 [redacted]"),
++    (re.compile(r"(\"?(?:access_token|refresh_token|id_token|api[_-]?key|apikey|secret|password|passwd|token|mfa_code|totp|device_token|client_secret|authorization|cookie|dsn)\"?\s*[:=]\s*)(\"[^\"]*\"|'[^']*'|[^\s,}&]+)", re.I), r"\1[redacted]"),
++    (re.compile(r"(?<![\d.])\d{8,}(?![\d.]*\d)"), "[num]"),   # broker account numbers
++]
++
++def scrub_text(s, env=None):
++    out = str(s)
++    env = os.environ if env is None else env
++    vals = sorted({v.strip() for k, v in env.items() if SECRET_ENV.search(k) and isinstance(v, str) and len(v.strip()) >= 8}, key=len, reverse=True)
++    for v in vals: out = out.replace(v, "[redacted]")
++    for rx, rep in _PATTERNS: out = rx.sub(rep, out)
++    return out
++
++def _px(n):
++    try: s = str(round(float(n), 2)); return s[:-2] if s.endswith(".0") else s
++    except (TypeError, ValueError): return "?"
++
++def event_key(e):
++    t = e["type"]
++    if t in ("card_fire", "card_arm"): return f"{t}:{e.get('signal') or e.get('symbol')}:{e.get('side')}:{_px(e.get('entry'))}"
++    if t == "order_filled": return f"fill:{e.get('signal') or e.get('symbol')}:{e.get('qty')}@{_px(e.get('price'))}"
++    if t == "order_rejected": return f"reject:{e.get('signal') or e.get('symbol')}:{str(e.get('reason'))[:60]}"
++    if t in ("daily_stop", "weekly_lock"): return f"{t}:{e.get('day', '')}"
++    if t == "preopen_check": return f"preopen:{e.get('day')}:{e.get('ok')}"
++    if t == "watcher_down": return "watcher_down"
++    if t == "rules_hash_mismatch": return f"rules:{e.get('expected')}:{e.get('got')}"
++    if t == "rule1_shadow": return f"rule1:{e.get('day', '')}:{e.get('symbol')}:{e.get('side')}:{_px(e.get('entry'))}"
++    return f"{t}:{json.dumps(e, sort_keys=True, default=str)[:80]}"
++
++def format_event(e):
++    t = e["type"]
++    if t in ("card_fire", "card_arm"):
++        head = ":rotating_light: FIRE" if t == "card_fire" else ":large_yellow_circle: ARM"
++        return f"{head} {e.get('grade')} {e.get('symbol')} {e.get('side')} · entry {_px(e.get('entry'))} · stop {_px(e.get('stop'))} · T1 {_px(e.get('t1'))}"
++    if t == "order_filled": return f":white_check_mark: FILLED {e.get('symbol') or ''} {e.get('qty')} @ {_px(e.get('price'))}".replace("  ", " ")
++    if t == "order_rejected": return f":x: ORDER REJECTED {e.get('symbol') or ''}: {str(e.get('reason'))[:200]}"
++    if t == "daily_stop": return f":octagonal_sign: DAILY STOP hit — no more entries today ({str(e.get('why', ''))[:160]})"
++    if t == "weekly_lock": return f":lock: WEEKLY LOCK hit — {str(e.get('why', ''))[:160]}"
++    if t == "preopen_check": return f":sunrise: 8:20 CT pre-open check {'PASS' if e.get('ok') else 'FAIL'} ({e.get('day')})" + ("" if e.get("ok") else ": " + "; ".join(e.get("failures") or [])[:400])
++    if t == "watcher_down": return f":skull: desk-watcher DOWN — {e.get('why', 'daemon stopped')}"
++    if t == "rules_hash_mismatch": return f":no_entry: rules hash MISMATCH — desk {e.get('expected')}, watcher {e.get('got')} (watcher fails closed)"
++    if t == "rule1_shadow": return f":ghost: Rule1 shadow {e.get('symbol')} {e.get('side')} · entry {_px(e.get('entry'))} · stop {_px(e.get('stop'))} · T1 {_px(e.get('t1'))} (shadow, no order)"
++    return f"{t}"
++
++class Notifier:
++    def __init__(self, webhook_url=None, post=None, clock=time.time, dedupe_s=DEDUPE_S, rate_max=RATE_MAX, window_s=RATE_WINDOW_S):
++        self.url = (webhook_url if webhook_url is not None else os.environ.get("SLACK_DESK_WEBHOOK_URL", "")).strip()
++        self._post = post; self.clock = clock; self.dedupe_s = dedupe_s; self.rate_max = rate_max; self.window_s = window_s
++        self.seen = {}; self.inflight = set(); self.sent_at = []; self.suppressed = 0; self._lock = threading.Lock()
++
++    @property
++    def enabled(self): return self.url.startswith("https://")
++
++    def notify(self, e):
++        """-> (sent: bool, why: str|None). Never raises."""
++        try:
++            if not self.enabled: return False, "disabled"
++            with self._lock:
++                t = self.clock()
++                self.seen = {k: a for k, a in self.seen.items() if t - a < self.dedupe_s}
++                key = event_key(e)
++                if key in self.seen or key in self.inflight: return False, "duplicate"
++                self.sent_at = [x for x in self.sent_at if t - x < self.window_s]
++                if len(self.sent_at) >= self.rate_max: self.suppressed += 1; return False, "rate_limited"
++                self.inflight.add(key); self.sent_at.append(t)
++                text = format_event(e)
++                carried = self.suppressed
++                if carried: text += f" _(+{carried} suppressed by rate limit)_"; self.suppressed = 0
++            ok = False
++            try:
++                body = {"text": scrub_text(text)}
++                if self._post: ok = bool(self._post(self.url, body))
++                else:
++                    import requests
++                    ok = requests.post(self.url, json=body, timeout=5).ok
++            except Exception:
++                ok = False
++            with self._lock:
++                self.inflight.discard(key)
++                if ok: self.seen[key] = t          # dedupe only what Slack accepted; a failed post can be retried
++                else: self.suppressed += carried
++            return (True, None) if ok else (False, "error")
++        except Exception:
++            return False, "error"
++
++_FIRE = re.compile(r"^FIRE (\S+) (\S+) (long|short).*?entry=([\d.]+) stop=([\d.]+) tgt=([\d.]+)")
++_FILL = re.compile(r"^FILLED (\d+) @ ([\d.]+)")
++_DESK = re.compile(r"^DESK (\S+) (\S+) (long|short)")
++
++def events_from_record(rec):
++    """Map one daemon log record (already written to watcher.log) to zero or more alert events. Pure."""
++    k = rec.get("kind"); ts = str(rec.get("ts", "")); day = ts[:10]; out = []
++    if k == "alert":
++        text = str(rec.get("text", ""))
++        m = _FIRE.match(text)
++        if m: out.append(dict(type="card_fire", grade=m[1], symbol=m[2], side=m[3], entry=float(m[4]), stop=float(m[5]), t1=float(m[6]), signal=rec.get("signal")))
++        m = _FILL.match(text)
++        if m: out.append(dict(type="order_filled", qty=int(m[1]), price=float(m[2]), signal=rec.get("signal")))
++        m = _DESK.match(text); snap = rec.get("snap") or {}
++        if m and snap.get("actionable") and snap.get("entry") is not None:
++            tg = snap.get("targets") or []
++            t1 = tg[0].get("price") if tg and isinstance(tg[0], dict) else (tg[0] if tg else None)
++            out.append(dict(type="card_arm", grade=m[1], symbol=m[2], side=m[3], entry=snap.get("entry"), stop=snap.get("strategy_stop") or snap.get("ticket_stop"), t1=t1, signal=rec.get("signal")))
++    elif k in ("fire_blocked", "order_rejected", "manage_blocked"):
++        out.append(dict(type="order_rejected", symbol=rec.get("symbol") or "", reason=str(rec.get("reason") or rec.get("error") or k), signal=rec.get("signal")))
++    elif k in ("fire_refused_desk", "fire_refused"):
++        for row in rec.get("failing") or []:
++            name, why = (list(row) + ["", ""])[:2]
++            if name == "day_loss": out.append(dict(type="daily_stop", day=day, why=why))
++            elif name == "weekly_lock": out.append(dict(type="weekly_lock", day=day, why=why))
++            elif name in ("rules_parity", "rules_pin") and "MISMATCH" in str(why).upper():
++                m = re.search(r"card rules (\S+) vs watcher (\S+)", str(why))
++                out.append(dict(type="rules_hash_mismatch", expected=m[1] if m else "?", got=m[2] if m else None))
++    elif k == "rule1_would_fire":
++        out.append(dict(type="rule1_shadow", day=day, symbol=rec.get("symbol"), side=rec.get("side"), entry=rec.get("entry"), stop=rec.get("stop"), t1=rec.get("target")))
++    elif k == "stop":
++        out.append(dict(type="watcher_down", why="daemon stopped (STOP file or signal)"))
++    return out
++
++_default = None
++def default():
++    global _default
++    if _default is None: _default = Notifier()
++    return _default
++
++def on_record(rec, notifier=None):
++    """Daemon hook: called after a record is logged. Fire-and-forget on a thread so Slack latency never slows a step."""
++    n = notifier or default()
++    if not n.enabled: return []
++    evs = events_from_record(rec)
++    for e in evs: threading.Thread(target=n.notify, args=(e,), daemon=True).start()
++    return evs

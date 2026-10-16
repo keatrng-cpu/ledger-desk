@@ -3,10 +3,15 @@
  * GET: latest desk-watcher status (public-safe: account masked ••••6158, no balances, no credentials). Read only.
  * POST: the watcher pushes its status with `Authorization: Bearer <WATCHER_STATUS_TOKEN>` (CRON_SECRET fallback); payload is re-checked server side.
  * No order endpoints here — the tab is read-only.
+ * `preopen` (additive) is the same verdict the 08:20 CT pre-open check posts to Slack: heartbeat fresh + rules hash == desk.
+ * Read/write failures go to Sentry when SENTRY_DSN is set (no-op otherwise).
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/lib/alerts/cron";
 import { safeWatcherStatus, watcherAuthorized, WATCHER_STALE_S } from "@/lib/desk/watcher-status";
+import { evaluatePreopen } from "@/lib/notify/preopen";
+import { captureError } from "@/lib/notify/sentry";
+import { RULES_HASH } from "@/lib/desk/rules-hash";
 
 async function get(): Promise<Response> {
   try {
@@ -17,9 +22,11 @@ async function get(): Promise<Response> {
     const r = rows[0];
     const hb = Number((r.body as { heartbeat?: number }).heartbeat ?? 0) * 1000;
     const ageS = hb ? (Date.now() - hb) / 1000 : null;
-    return jsonResponse({ ok: true, status: r.body, receivedMs: Number(r.received_ms), heartbeatAgeS: ageS, stale: ageS == null || ageS > WATCHER_STALE_S }, 200, { "cache-control": "no-store" });
+    const pre = evaluatePreopen({ ok: true, status: r.body as { rules_hash?: string | null }, heartbeatAgeS: ageS }, RULES_HASH, Date.now());
+    return jsonResponse({ ok: true, status: r.body, receivedMs: Number(r.received_ms), heartbeatAgeS: ageS, stale: ageS == null || ageS > WATCHER_STALE_S, preopen: { ok: pre.ok, failures: pre.failures } }, 200, { "cache-control": "no-store" });
   } catch (err) {
     console.error("[desk] watcher status read failed:", err);
+    void captureError(err, { route: "desk/watcher", op: "read" });
     return jsonResponse({ ok: false, error: "watcher status unavailable" }, 503);
   }
 }
@@ -40,6 +47,7 @@ async function post({ request }: { request: Request }): Promise<Response> {
     return jsonResponse({ ok: true }, 200);
   } catch (err) {
     console.error("[desk] watcher status write failed:", err);
+    void captureError(err, { route: "desk/watcher", op: "write" });
     return jsonResponse({ ok: false, error: "store failed" }, 503);
   }
 }
