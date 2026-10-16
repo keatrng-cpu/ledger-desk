@@ -19,6 +19,9 @@
 # Serverless functions timeout — desk fetches Databento/Yahoo can be slow
 [functions]
   node_bundler = "esbuild"
+  # @sentry/node (+ OpenTelemetry) is loaded lazily and only when SENTRY_DSN is set; keep it out of the
+  # function bundles (room-step went 874 B -> 2.2 MB when it was inlined). Netlify ships it from node_modules.
+  external_node_modules = ["@sentry/node"]
   # Free: 10s · Pro: up to 26s (or 900s background). Raise if desk load times out.
   # directory is produced by Nitro into .netlify/functions-internal
 

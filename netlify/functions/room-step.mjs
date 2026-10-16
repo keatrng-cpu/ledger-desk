@@ -10,7 +10,10 @@
  * A site with no CRON_SECRET returns 200. A schedule must not fail every
  * weekday before the secret exists. This file only rings the route. The
  * route is the sender.
+ *
+ * Errors (a thrown fetch, a non-503 failure) go to Sentry when SENTRY_DSN is set; a no-op otherwise.
  */
+import { captureError } from "../../src/lib/notify/sentry.ts";
 
 export default async () => {
   const secret = process.env.CRON_SECRET;
@@ -19,12 +22,19 @@ export default async () => {
     console.log("room-step skipped: CRON_SECRET or URL is unset");
     return new Response("skipped", { status: 200 });
   }
-  const res = await fetch(`${base}/api/cron/room-step`, {
-    headers: { Authorization: `Bearer ${secret}` },
-  });
+  let res;
+  try {
+    res = await fetch(`${base}/api/cron/room-step`, {
+      headers: { Authorization: `Bearer ${secret}` },
+    });
+  } catch (err) {
+    await captureError(err, { fn: "room-step" });
+    throw err;
+  }
   const body = await res.text();
   if (!res.ok && res.status !== 503) {
     console.error("room-step", res.status, body.slice(0, 400));
+    await captureError(new Error(`room-step HTTP ${res.status}`), { fn: "room-step" });
     return new Response(body, { status: 500 });
   }
   console.log("room-step", res.status, body.slice(0, 400));
