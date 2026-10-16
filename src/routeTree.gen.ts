@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCronActualsRouteImport } from './routes/api/cron/actuals'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
 import { Route as ApiCronNewsCalendarRouteImport } from './routes/api/cron/news-calendar'
@@ -52,6 +53,11 @@ const ApiMcpRoute = ApiMcpRouteImport.update({
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronActualsRoute = ApiCronActualsRouteImport.update({
+  id: '/api/cron/actuals',
+  path: '/api/cron/actuals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronChecklistRoute = ApiCronChecklistRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
@@ -320,6 +332,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiMcpRoute: typeof ApiMcpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronActualsRoute: typeof ApiCronActualsRoute
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
   ApiCronNewsCalendarRoute: typeof ApiCronNewsCalendarRoute
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/actuals': {
+      id: '/api/cron/actuals'
+      path: '/api/cron/actuals'
+      fullPath: '/api/cron/actuals'
+      preLoaderRoute: typeof ApiCronActualsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/checklist': {
@@ -520,6 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiMcpRoute: ApiMcpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronActualsRoute: ApiCronActualsRoute,
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
   ApiCronNewsCalendarRoute: ApiCronNewsCalendarRoute,

@@ -48,7 +48,7 @@ npx tsx scripts/stamp-actuals.mjs --date 2026-11-10 --write --grok   # Grok writ
 - GDP / PCE come from the BEA API (needs `BEA_API_KEY`; without it they're skipped and reported).
 - A Grok note carrying any number the code didn't compute is replaced by the deterministic note.
 - The rows feed `week-ahead.ts` → `live-world.ts` calendar TVs and `session-brief.ts` with no code change.
-- It's a script, not a cron, because a serverless function can't write a committed data file.
+- `GET /api/cron/actuals` (weekdays 08:45 ET) computes and logs the ready-to-stamp rows. The write itself is the script, because a serverless function can't write a committed data file.
 
 ## 3. Shock explainer
 
