@@ -3,7 +3,7 @@
 Source findings: `/workspace/audits/deep-audit-1015/report.md` (19 items). Nothing here is deployed. The live watcher
 (PID 1496884), `/workspace/paper-futures`, orders and paper pending orders were not touched.
 Watcher and paper-futures are not in this repo, so their changes ship as patches here:
-`watcher.patch` (built and tested in a copy at /workspace/dw-deepfix, never started) and `paper-futures.patch`
+`watcher.patch` (built and tested in a scratch copy of /workspace/desk-watcher, never started) and `paper-futures.patch`
 (built in /workspace/pf-deepfix). Apply them only after review.
 
 ## Per item

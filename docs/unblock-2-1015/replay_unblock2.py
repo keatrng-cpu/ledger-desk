@@ -8,7 +8,7 @@ Also reported: #22's method (no ladder) for comparison."""
 import sys, re, json, bisect, collections, datetime as D
 sys.path.insert(0, '../fire-bugs-1015'); sys.path.insert(0, '/workspace/audits/fire-fail-1015')
 import replay_live as L
-sys.path.insert(0, '/workspace/dw-unblock2'); from watcher import fastchain as FCW   # ifvg_against twin
+import os; sys.path.insert(0, os.environ.get('WATCHER_DIR', '/workspace/desk-watcher')); from watcher import fastchain as FCW   # ifvg_against twin
 RP = L.RP
 LAD = {'A+': 4, 'A': 2, 'A-': 1, 'B+': 1}
 RANK = {b: i for i, b in enumerate(['C', 'B', 'B+', 'A-', 'A', 'A+'])}

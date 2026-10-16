@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { register } from "tsx/esm/api";
+import { resolveWatcherDir } from "./lib/watcher-dir.mjs";
 register();
 const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", import.meta.url)));
 const CAL = JSON.parse(readFileSync(new URL("../shared/ev-calibration.json", import.meta.url)));
@@ -41,7 +42,7 @@ test("golden: today's 08:30 / 08:40 / 08:55 (CT) MNQ shorts", () => {
   assert.equal(c.sizeUsd, 325);
 });
 test("watcher (Python) evfire matches the TS p/EV within 1e-6", () => {
-  const dir = [process.env.WATCHER_DIR, "/workspace/dw-evfire"].filter(Boolean).find((d) => existsSync(`${d}/watcher/evfire.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/evfire.py"] });
   if (!dir) return;
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import evfire as e\nout=[]\nfor q,r,h in json.loads(${JSON.stringify(JSON.stringify(CASES))}):\n  p=e.p_of(q,r,h); out.append([p, e.ev_r(p,2.5), e.ev_r(p,8.4)])\nprint(json.dumps(out))`;
   const r = JSON.parse(execFileSync("python3", ["-c", py]).toString());

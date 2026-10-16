@@ -1,5 +1,5 @@
 # 10/15 PM: flip T1 from the full pool list, desk T1 freeze, persist + STAND fixes (on #24)
-rulesHash **c40b5555966491f3** unchanged (desk `shared/desk-rules.json` and watcher copy `/workspace/dw-unblock2`): every new number is a code constant.
+rulesHash **c40b5555966491f3** unchanged (desk `shared/desk-rules.json` and watcher copy (now merged into `/workspace/desk-watcher`)): every new number is a code constant.
 
 ## 1. Read-priority flip T1 (`src/lib/smc/ifvg-flip.ts` `scannerPools` + `flipTargets`, wired in `scanner.ts`)
 Flip target selection now gets the session pools **plus** unswept 1m/5m swing lows/highs, EQL/EQH clusters (>= 2 pivots within max(0.5, 0.1xATR5m)) and unmitigated, not-closed-through opposite 5m/15m FVGs. Side-aware: shorts draw on lows/EQL/bull-FVG tops, longs on highs/EQH/bear-FVG bottoms.

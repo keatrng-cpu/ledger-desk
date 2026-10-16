@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { register } from "tsx/esm/api";
+import { resolveWatcherDir } from "./lib/watcher-dir.mjs";
 register();
 const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", import.meta.url)));
 const fc = await import("../src/lib/execution/fast-chain.ts");
@@ -33,8 +34,7 @@ test("fastChain from shared rules: B+ / no hold timer: 2 consecutive polls, 90 s
   assert.ok(fc.fastSetupRows(BASE).every(([, ok]) => ok));
 });
 test("watcher (Python) fastchain.setup_rows matches the TS chain on the same cases", () => {
-  const dirs = [process.env.WATCHER_DIR, "/workspace/dw-unblock2", "/workspace/desk-watcher", "/workspace/dw-optpnl"].filter(Boolean);
-  const dir = dirs.find((d) => existsSync(`${d}/watcher/fastchain.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/fastchain.py"] });
   if (!dir) return;
   const snaps = CASES.map((c) => ({ ...BASE, ...c }));
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nout=[]\nfor s in json.loads(${JSON.stringify(JSON.stringify(snaps))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[]); s["et_min"]=s.pop("etMin",None)\n  out.append([[n,ok] for n,ok,_ in f.setup_rows(s)])\nprint(json.dumps({"rows":out,"rules":f.FC}))`;
@@ -68,7 +68,7 @@ test("persist: invalidation and side change reset the setup", () => {
   assert.equal(fc.streakNext(fl, { ...BASE, at: "a3" }, 200_000).firstMs, 200_000);
 });
 test("persist: watcher streak_next agrees with the TS twin on a poll sequence", () => {
-  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/fastchain.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/fastchain.py"] });
   if (!dir) return;
   const seq = [[{ at: "a1" }, 0], [SIB, 4000], [{ at: "a3" }, 8000], [{ at: "a3" }, 9000], [{ at: "a4" }, 12000], [{ at: "a5", band: "B" }, 16000], [{ at: "a6" }, 20000], [{ at: "a7" }, 95000], [{ at: "c1", px: 7847 }, 96000], [{ at: "p1" }, 100000], [{ at: "p2" }, 104000]].map(([c, t]) => [{ ...BASE, ...c }, t]);
   const py = `import json,sys\nsys.path.insert(0, ${JSON.stringify(dir)})\nfrom watcher import fastchain as f\nst=None;out=[]\nfor s,t in json.loads(${JSON.stringify(JSON.stringify(seq))}):\n  s=dict(s); s["tape_prices"]={s["symbol"]:s.pop("px")}; s["htf_bias"]=[("1h",s.pop("bias1h")),("4h",s.pop("bias4h"))]; s["loss"]={"velocity":{"expMin":s.pop("expMin")}}; s["band_hist"]=s.pop("bandHist",[]); s["wire_arrays"]=s.pop("arrays",[]); s["et_min"]=s.pop("etMin",None)\n  st=f.streak_next(st,s,t); out.append(f.persist_check(st,t)[0])\nprint(json.dumps(out))`;
@@ -146,7 +146,7 @@ test("velocity cut is applied BEFORE sizing: $ cap and min_debit still hold, min
   assert.equal(fc.velocitySizedContracts(7.0, 1, 4, 650, 50, 40), null);   // 1ct $700 > $650 cap
 });
 test("spent: watcher streak_next/mark_spent agree with the TS twin (stop, T1, fire+re-arm)", () => {
-  const dir = [process.env.WATCHER_DIR, "/workspace/desk-watcher"].filter(Boolean).find((d) => existsSync(`${d}/watcher/fastchain.py`));
+  const dir = resolveWatcherDir({ files: ["watcher/fastchain.py"] });
   if (!dir) return;
   const seq = [[{ at: "a1" }, 0], [{ at: "a2" }, 4000], ["FIRE", 4000], [{ at: "o", px: 7848 }, 6000], [{ at: "b1" }, 10000], [{ at: "b2" }, 14000],
     [{ at: "e1", entry: 7852.25 }, 20000], [{ at: "e2", entry: 7852.25 }, 24000], [{ at: "e3", entry: 7852.25, px: 7857 }, 25000], [{ at: "e4", entry: 7852.25 }, 30000], [{ at: "e5", entry: 7852.25 }, 34000]]
