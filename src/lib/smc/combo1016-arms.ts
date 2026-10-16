@@ -178,13 +178,15 @@ function bs(S: number, K: number, tau: number, sig: number, cp: number): number 
   return cp * (S * ncdf(cp * d1) - K * ncdf(cp * d2));
 }
 const pyRound = (x: number) => { const f = Math.floor(x), d = x - f; return d > 0.5 ? f + 1 : d < 0.5 ? f : f % 2 === 0 ? f : f + 1; };
-export interface OptEst { etf: string; strike: number; contracts: number; premium: number; lossPerContract: number; pnl: number; legs: { frac: number; usd: number }[] }
+export interface OptEst { etf: string; strike: number; contracts: number; premium: number; lossPerContract: number; pnl: number; legs: { frac: number; usd: number }[]; dte?: number; dte1?: OptEst | null }
 /** legs: (frac, futures px, minutes after fill). fillMinCt = minute-of-day CT of the fill. Returns null when the model refuses (loss per contract ≤ 0). */
-export function optEstimate(i: { sym: string; side: Side; entry: number; risk: number; a5: number; fillMinCt: number; legs: { frac: number; px: number; dm: number }[]; riskUsd: number }): OptEst | null {
+/** extraMin: calendar minutes added to the 0DTE time-to-expiry (SMC #47 review (5): a 1DTE ticket after 13:30 CT is sized with the 1DTE model,
+ *  expiry = next session's 15:00 CT; 0 = the reference 0DTE model, unchanged). */
+export function optEstimate(i: { sym: string; side: Side; entry: number; risk: number; a5: number; fillMinCt: number; legs: { frac: number; px: number; dm: number }[]; riskUsd: number; extraMin?: number }): OptEst | null {
   const O = AB.option; const etf = O.etf[i.sym] ?? (i.sym.includes("NQ") ? "QQQ" : "SPY"); const m = O.mult[etf]!, sp = O.spread[etf]!, fee = O.feePerContract;
   const s = i.side === "long" ? 1 : -1; const S0 = i.entry / m; const K = pyRound(S0);
   const sig = Math.max(O.sigmaFloor, Math.min(O.sigmaCap, (i.a5 / i.entry) * Math.sqrt(78 * 252) * O.sigmaAdj));
-  const minsLeft = Math.max(5, 15 * 60 - i.fillMinCt); const Y = 525600;
+  const minsLeft = Math.max(5, 15 * 60 - i.fillMinCt) + (i.extraMin ?? 0); const Y = 525600;
   const V0 = bs(S0, K, minsLeft / Y, sig, s) + sp;
   const Vst = bs((i.entry - s * i.risk) / m, K, minsLeft / Y, sig, s) - sp;
   const lossc = (V0 - Vst) * 100 + 2 * fee;
@@ -203,7 +205,7 @@ export function pdScore(zone: PdZone | null | undefined, side: Side): number | n
 
 // ---------------------------------------------------------------- card read (all arms)
 export interface ArmCardRead { S2: number; gbmP: number; label: "would_fire" | "would_fire_partial" | "read"; arm: string; name: string; fire: boolean; wouldFire: boolean; aPlus: boolean; usdPerR: number; plan: ArmPlan | null; opt: OptEst | null; why: string; row: string; partial: string | null }
-export function armsCardRead(i: { v2: V2Raw; gbm: Record<string, number | null | undefined>; vetoed: boolean; partial: string | null; side: Side; symbol: string; price: number | null; edge: number | null; stop: number | null; a5: number | null; minuteCt: number }): ArmCardRead[] {
+export function armsCardRead(i: { v2: V2Raw; gbm: Record<string, number | null | undefined>; vetoed: boolean; partial: string | null; side: Side; symbol: string; price: number | null; edge: number | null; stop: number | null; a5: number | null; minuteCt: number; research?: boolean; dow?: string }): ArmCardRead[] {
   const s2r = armsS2(i.v2), S2 = s2r.S2, gp = armsGbmP(i.gbm);
   // fail closed to partial: any defaulted S2 subfactor or null GBM input. atrpct needs ≥20 days of 24h 5m bars (5760; SMC warmup) which the
   // desk does not keep yet, so every arms row is labelled partial until that feed exists (fire decision unchanged; shadow only).
@@ -214,11 +216,16 @@ export function armsCardRead(i: { v2: V2Raw; gbm: Record<string, number | null |
   return ARM_KEYS.map((k) => {
     const f = armFire(k, S2, gp, i.vetoed);
     const plan = fin(i.price) && fin(i.edge) && fin(i.stop) ? armPlan(k, { side: i.side, price: i.price, edge: i.edge, stop: i.stop }) : null;
-    const opt = plan && fin(i.a5) && i.a5 > 0 ? optEstimate({ sym: i.symbol, side: i.side, entry: plan.entry, risk: plan.risk, a5: i.a5, fillMinCt: i.minuteCt, legs: plan.legs.map((l) => ({ frac: l.frac, px: l.px, dm: 0 })), riskUsd: f.usdPerR }) : null;
-    const wf = f.fire && plan != null;
+    const oi = plan && fin(i.a5) && i.a5 > 0 ? { sym: i.symbol, side: i.side, entry: plan.entry, risk: plan.risk, a5: i.a5, fillMinCt: i.minuteCt, legs: plan.legs.map((l) => ({ frac: l.frac, px: l.px, dm: 0 })), riskUsd: f.usdPerR } : null;
+    const opt0 = oi ? optEstimate(oi) : null;
+    // 1DTE sizing model (SMC #47 review (5)): the watcher sizes by the ticket's DTE; 1DTE = next session 15:00 CT (Fri -> Mon).
+    const opt = opt0 ? { ...opt0, dte: 0, dte1: optEstimate({ ...oi!, extraMin: (i.dow === "Fri" ? 3 : 1) * 1440 }) } : null;
+    // config1 LIVE fires only on a research candidate (eng.py port); an ltfArm fallback read is logged but never fires live (not the reference universe)
+    const srcOk = !isLiveArm(k) || i.research !== false;
+    const wf = f.fire && plan != null && srcOk;
     // SMC integration log schema: tag shadow:combo1016:<config>; the label keeps the partial labelling (never a clean would_fire while partial)
     const label = wf ? (i.partial ? "would_fire_partial" : "would_fire") : "read";
-    return { S2: Math.round(S2 * 10) / 10, gbmP: Math.round(gp * 1e4) / 1e4, arm: k, name: ARMS[k]!.name, fire: f.fire, wouldFire: wf, aPlus: f.aPlus, usdPerR: f.usdPerR, plan, opt, why: f.why, label,
+    return { S2: Math.round(S2 * 10) / 10, gbmP: Math.round(gp * 1e4) / 1e4, arm: k, name: ARMS[k]!.name, fire: f.fire && srcOk, wouldFire: wf, aPlus: f.aPlus, usdPerR: f.usdPerR, plan, opt, why: srcOk ? f.why : `${f.why} · no research candidate (ltfArm fallback never fires config1 live)`, label,
       row: `${isLiveArm(k) ? "live" : "shadow"}:combo1016:${k} ${label}` + (i.partial ? ` (${i.partial})` : ""), partial: i.partial };
   });
 }

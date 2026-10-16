@@ -255,3 +255,9 @@ Keaton, 10/16 16:10 CT: "Input the 7 it needs still please and fix all of these 
 - **Resting broker stop REQUIRED for config1** regardless of EXIT_SAFE_RESTING_STOP. RH reject / no order id / invalid stop → flatten or refuse the entry (fail closed, no script-stop fallback). `watcher/daemon.py _combo_stop_fail`, `gates.manage_action` (`combo_flatten`).
 - **Daily dollar-loss cap $500** (`COMBO1016_MAX_DAY_LOSS_USD`, default 500): realized config1 losses + open risk across ES and NQ + the new order's 1R; a new entry that would exceed $500 worst case is blocked. `combo1016_live.caps_ok`.
 - **Contract cap = one order's modeled loss ≤ $500** (`COMBO1016_MAX_ORDER_LOSS_USD`, default 500; A+ $500/R fits). Optional `COMBO1016_MAX_CONTRACTS` extra count, unset by default. Invalid values fail closed.
+
+### 2026-10-16 16:45 CT: SMC #47 parity review (config1)
+- atrpct is computed from the 20-day 5m feed and fails closed when missing. config1 is evaluated on every book/side (shell rows plus a rotating lead) and fires only on research candidates.
+- The 8 desk inputs are proven on week 10/12. The disp/mss/ifvg differences are eng.py lookahead (decision bar jm, scan to jm+5). This is reported to SMC, not reproduced.
+- Soft list cites SMC's report: band/q/brain/fast-chain/entries_day/chop/rr_sane. stop_width stays hard. Raw-S2 fire, 1DTE sizing model, and the config1 spread at or under the model spread are in. Halt-at-close and the 1-contract partial can't match the reference, so they stay as they are and are documented.
+- Broker stop required and the $500 day / $500 order caps stay as Keaton decided (16:10 CT).

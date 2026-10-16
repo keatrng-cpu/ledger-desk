@@ -2139,6 +2139,17 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const bp = bk?.plan as { side?: "long" | "short"; t1: number | null; t2: number | null; rr2?: number | null } | null | undefined;
         if (bk && bp && orderTargets({ ...bp, side: (bp.side ?? bk.side) as "long" | "short" })) { bp.t2 = null; if ("rr2" in bp) bp.rr2 = null; }
       }
+      // combo1016 config1 LIVE (SMC #47 review (2)): evaluate config1 on EVERY book/side, not only where the scanner happened to build a card.
+      // A book/side with no scanner card gets a config1 shell row (watchOnly: never leads a normal path; desk-listen lets it lead only when its
+      // config1 read fires). It runs the same research-candidate scan + arms read below as any other card.
+      if (c16a.isLiveArm(String(c16a.ARMS_LIVE.arm ?? ""))) {
+        for (const sym of [left.symbol, right.symbol]) for (const sd of ["long", "short"] as const) {
+          if (payload.scan.candidates.some((c) => c.symbol === sym && c.side === sd)) continue;
+          payload.scan.candidates.push({ symbol: sym, side: sd, strategy: "combo1016 config1 shell", band: "C", pathBand: "C", q: 0, confluence: 0, actionable: false,
+            watchOnly: true, watchWhy: "combo1016 config1 shell: research-candidate scan on every book/side", config1Shell: true, plan: null, ltfArm: null,
+            components: [], reasons: ["combo1016 config1 shell row (no scanner card on this book/side)"], targets: "" } as unknown as (typeof payload.scan.candidates)[number]);
+        }
+      }
       // fix1016 (post-mortem 10/16) — every card carries the read of items 1/3/4/5/8 on card.fix1016 (wire strategy.fix1016).
       // shadow (default): reads only, nothing on the card's live fields moves. Item 4 live replaces q (old kept) and re-seals.
       for (const c of payload.scan.candidates) {
@@ -2244,7 +2255,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
                     sw_with: bfA.sw_with, smt_with: bfA.smt_with, fail3_with: bfA.fail3_with, mss5_with: bfA.mss5_with, tr1h_with: bfA.tr1h_with, tr4h_with: bfA.tr4h_with,
                     pdpos_with: bfA.pdpos_with, compress: bfA.compress, rng30: bfA.rng30, since_disp: bfA.since_disp }
                 : { ...cb.feat.gbm, b1: cf.b1, b4: cf.b4, pd: cf.pd, smt: cf.smt == null ? null : cf.smt ? 1 : 0, chaseR: cf.chaseR, tmin: cf.tmin, risk_atr: cf.risk_atr, atrpct: bfA.atrpct };
-              const reads = c16a.armsCardRead({ v2: v2A, gbm: gA, vetoed: vetoA.vetoed, partial: tod1m(nowMs) < 510 ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null, side, symbol: String(c.symbol ?? ""), price: px,
+              const reads = c16a.armsCardRead({ v2: v2A, gbm: gA, vetoed: vetoA.vetoed, research: rc != null, dow: new Date(nowMs).toLocaleString("en-US", { timeZone: "America/Chicago", weekday: "short" }), partial: tod1m(nowMs) < 510 ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null, side, symbol: String(c.symbol ?? ""), price: px,
                 edge: edgeA, stop: stopA, a5: rc ? rc.a5 : cf.a5, minuteCt: (ctA[0]! % 24) * 60 + ctA[1]! });
               const pdE = (() => { const pe = reads.find((r) => r.plan)?.plan?.entry ?? arm?.entryEdge ?? null; return pdLegRead({ side, poi: pe, price: px, closed1m: bars1, feedNowMs: nowMs, legacyFail: false }); })();
               const w = bars1.slice(-1200); const hi = w.length ? Math.max(...w.map((b) => b.h)) : NaN, lo = w.length ? Math.min(...w.map((b) => b.l)) : NaN;

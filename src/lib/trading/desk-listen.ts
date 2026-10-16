@@ -161,6 +161,8 @@ export interface DeskWire {
     score1016?: unknown;
     /** combo1016: SMC research combo read (S2 v2, gbmP, fire = S2>=75 AND gbmP>=thr, A+ logged only, hybrid plan, setup id). Shadow = no effect. */
     combo1016?: unknown;
+    /** combo1016 config1 LIVE: every book/side whose config1 read fires this poll (the lead rotates among them every 15 s). */
+    combo1016Fires?: { symbol: string; side: string; shell: boolean }[];
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -319,7 +321,10 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     const a = (c as { combo1016?: { arms?: { reads?: { arm?: string; fire?: boolean; plan?: unknown; opt?: { contracts?: number } | null }[]; live?: { mode?: string; arm?: string } } } }).combo1016?.arms;
     return a?.live?.mode === "live" && Boolean(a.reads?.some((r) => r.arm === a.live?.arm && r.fire === true && r.plan && (r.opt?.contracts ?? 0) >= 1));
   };
-  const c1Lead = desk.scan.candidates.find((c) => config1Fires(c) && !(c as { invalidated?: boolean }).invalidated && !(c as { staleTape?: boolean }).staleTape) ?? null;
+  // SMC #47 review (2): config1 is read on EVERY book/side (build-desk adds config1 shell rows). When more than one fires, the lead rotates every
+  // 15 s so the watcher (one card per poll) evaluates each firing book/side inside the 60 s decision window.
+  const c1All = desk.scan.candidates.filter((c) => config1Fires(c) && !(c as { invalidated?: boolean }).invalidated && !(c as { staleTape?: boolean }).staleTape);
+  const c1Lead = c1All.length ? c1All[Math.floor(Date.now() / 15_000) % c1All.length]! : null;
   const top = c1Lead ?? top0;
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = !tapeStale([desk.quotes.left.lagSec, desk.quotes.right.lagSec]); // one boundary with build-desk (stale only when lag > STALE_TAPE_SEC)
@@ -400,6 +405,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
           score1016: (top as { score1016?: unknown }).score1016 ?? null,
           combo1016: (top as { combo1016?: unknown }).combo1016 ?? null,
+          combo1016Fires: c1All.map((c) => ({ symbol: c.symbol, side: c.side, shell: Boolean((c as { config1Shell?: boolean }).config1Shell) })),
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,

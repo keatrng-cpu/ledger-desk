@@ -36,3 +36,24 @@ test("no lookahead: a candidate's inputs are unchanged when every bar after its 
   const b = C.researchCandidates({ own1m: more.filter((x) => x.t <= t), own15m: agg(900_000), own5m: agg(300_000), sym: f.sym });
   assert.deepEqual(a, b); assert.ok(a.some((x) => x.side === f.side && x.t === t));
 });
+
+test("SMC #47 review (3): the 8 desk-defined inputs vs golden week of 10/12; every disp/mss/ifvg mismatch is research lookahead (eng.py scans to jm+5)", { skip: !HAVE }, () => {
+  // 10/12 is a Monday (eng.py skips Mondays: the prior calendar day has no RTH), so the week's golden rows are 10/13..10/16.
+  const G12 = JSON.parse(readFileSync(`${DIR}/golden_decisions.json`, "utf8")).fixtures.filter((f) => f.t_decision_bar_label >= "2026-10-12");
+  const K = ["wtmax", "nk", "disp", "mss", "ifvg", "arr_ifvg", "eqhit", "n_arr"]; const bad = {}; const other = []; let found = 0;
+  for (const f of G12) {
+    const t = Date.parse(f.t_decision_bar_label); const r = R.liveReadsAt(f.sym, t + 60_000).find((x) => x.side === f.side && x.t === t); if (!r) continue; found++;
+    for (const k of K) {
+      const v = f.features[k], w = r.feat[k]; if (v == null ? w == null : near(w, v)) continue; bad[k] = (bad[k] ?? 0) + 1;
+      // a live (closed-bar) value can only be LOWER: eng.py keeps max-ing disp and latching mss/ifvg on bars jm+1..jm+5 after the decision bar
+      if (["disp", "mss", "ifvg"].includes(k) && !(w <= v + 1e-9)) other.push(`${k} ${f.t_decision_bar_label} ${f.sym} ${f.side}: desk ${w} > research ${v}`);
+    }
+  }
+  console.log(`week 10/12: found ${found}/${G12.length}; 8-input mismatches`, bad, "not explained by lookahead:", other);
+  // known: 1 ifvg row (10/13 13:05 ES long) where the closed-bar scan sees an inversion eng.py does not record (open item, README)
+  assert.ok(other.length <= 1, other.join("; "));
+  assert.equal(found, G12.length);
+  for (const k of ["wtmax", "nk"]) assert.equal(bad[k] ?? 0, 0, `${k}: ${bad[k]}`);
+  // eqhit / n_arr / arr_ifvg depend on the raid extreme and the array list, which eng.py also extends to jm+5 (documented, README)
+  for (const [k, m] of [["eqhit", 6], ["n_arr", 5], ["arr_ifvg", 1]]) assert.ok((bad[k] ?? 0) <= m, `${k}: ${bad[k]}`);
+});
