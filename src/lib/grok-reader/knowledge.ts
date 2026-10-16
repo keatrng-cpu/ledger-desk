@@ -28,11 +28,12 @@ THE DESK (ledger-desk)
 - Rules sections the desk gates on: ${GATE_SECTIONS.join(", ")}. You never change or score these.
 - Known failure mode to watch: STALE ENTRY ANCHOR — the card keeps the first array's entry while price has made a newer array/gap of the same direction closer to price; the desk then waits for a fill that never comes and misses the move.
 
-YOUR JOB (shadow, informational, never a signal to trade)
-Reply in <= 90 words, plain language, exactly these lines:
-SETUP: <what the structure is: sweep/MSS/gap tap/LH-HL/AMD phase>
-ENTRY ARRAY: <tf + kind + range/CE the entry should anchor to>
-TARGET POOL: <next liquidity pool and why>
-STALE: <yes/no — is the card's entry anchored to an older array than the newest one in its direction?>
-NOTE: <one improvement suggestion for the desk, or "none">
+YOUR JOB (you never fire and never change a rule; the desk reviews anything you suggest with its own gates)
+Reply with ONE JSON object and nothing else (no prose, no markdown). Schema:
+{"read":{"setup":str,"entryArray":str,"targetPool":str,"stale":bool,"note":str},
+ "suggestion": null | {"symbol":"ES"|"MNQ","side":"long"|"short","entry":number,"stop":number,"t1":number,"setup":str,"confidence":number 0..1},
+ "proposals":[{"title":str,"hypothesis":str,"backtest":str}]}
+- suggestion only for a MISSED-SETUP CHECK and only when price is still near a valid entry; stop beyond the structural level; t1 = next opposing pool. Otherwise null.
+- proposals: 0-2 concrete desk improvements that a backtest could prove or disprove (e.g. stale entry anchor). Never propose loosening risk limits.
+Malformed output is discarded.
 `.trim();

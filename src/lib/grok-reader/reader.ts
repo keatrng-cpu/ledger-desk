@@ -9,19 +9,20 @@
  */
 import CFG from "../../../shared/grok-reader.json";
 import { SMC_PACK } from "./knowledge";
+import { parseGrokJson, reviewSuggestion, toProposals, detectorProposal, type BrainView, type SuggestionCard, type GrokProposal } from "./suggest";
 
 export type Bar = { t: number; o: number; h: number; l: number; c: number };
 export type ArrayLite = { tf: string; kind: string; dir: "bull" | "bear"; lo: number; hi: number; ce: number; mitigated?: boolean; ageBars?: number };
 export type CardLite = {
   id: string; symbol: string; side: string; pathBand?: string; actionable?: boolean;
   plan?: { entry?: number | null; stop?: number | null; t1?: number | null; t2?: number | null } | null;
-  entryPx?: number | null; strategyPrimary?: string; reasons?: string[];
+  entryPx?: number | null; strategyPrimary?: string; reasons?: string[]; q?: number | null; vetoed?: boolean;
 };
 export type BookInput = { symbol: string; minute: Bar[]; bars15: Bar[]; arrays?: ArrayLite[] };
 export type MissedFlag = { symbol: string; side: "long" | "short"; kind: "mss" | "htfGapTap" | "lowerHigh" | "higherLow"; at: number; level: number; detail: string };
 export type GrokRead = {
   key: string; kind: "card" | "missed"; symbol: string; side: string; cardId?: string; at: number;
-  status: "ok" | "timeout" | "error" | "capped" | "nokey";
+  status: "ok" | "timeout" | "error" | "capped" | "nokey" | "malformed";
   text: string | null; staleEntry: boolean | null; flag?: MissedFlag; suggestions: string[]; latencyMs: number; costUsd: number;
 };
 
@@ -172,17 +173,34 @@ const reads: GrokRead[] = [];
 const seen = new Set<string>();
 const last5m = new Map<string, number>();
 const pending = new Set<Promise<void>>();
+const suggestions: SuggestionCard[] = [];
+const proposals: GrokProposal[] = [];
 export function grokReadsSnapshot(): GrokRead[] { return reads.map((r) => ({ ...r })); }
+export function grokSuggestSnapshot(): SuggestionCard[] { return suggestions.map((r) => ({ ...r })); }
+export function grokProposalsSnapshot(): GrokProposal[] { return proposals.map((r) => ({ ...r })); }
+export function suggestFireFlag(env: Env = process.env) { const f = String(env.GROK_SUGGEST_FIRE ?? "").trim().toLowerCase(); return f === "1" || f === "true" || f === "on"; }
+function logLine(tag: string, o: object) { try { console.log(JSON.stringify({ tag, ...o })); } catch { /* never */ } }
+function addProposal(p: GrokProposal) {
+  if (proposals.some((x) => x.title === p.title && x.hypothesis === p.hypothesis)) return;
+  proposals.unshift(p); if (proposals.length > CFG.keepReads) proposals.length = CFG.keepReads;
+  logLine("grok-proposal", p);
+}
+function addSuggestion(c: SuggestionCard) {
+  suggestions.unshift(c); if (suggestions.length > CFG.keepReads) suggestions.length = CFG.keepReads;
+  logLine("grok-suggest", c);
+  // Trading Stand async review line (not in the fire path; the watcher's notify sink picks this tag up).
+  logLine("grok-suggest-stand", { id: c.id, line: `Grok suggestion ${c.symbol} ${c.side} @${c.entry} stop ${c.review.stop} T1 ${c.review.t1} (${c.setup}, conf ${c.confidence}) → desk review ${c.review.decision} [${c.review.route}] — Trading Stand please review`, standReview: "pending" });
+}
 /** Test hook: wait for in-flight reads. The desk never calls this. */
 export async function drainGrokReader() { while (pending.size) await Promise.allSettled([...pending]); }
-export function resetGrokReader() { reads.length = 0; seen.clear(); last5m.clear(); budget.day = ""; budget.calls = 0; budget.spendUsd = 0; }
+export function resetGrokReader() { suggestions.length = 0; proposals.length = 0; reads.length = 0; seen.clear(); last5m.clear(); budget.day = ""; budget.calls = 0; budget.spendUsd = 0; }
 function store(r: GrokRead) {
   reads.unshift(r); if (reads.length > CFG.keepReads) reads.length = CFG.keepReads;
   try { console.log(JSON.stringify({ tag: "grok-reader", mode: "shadow", ...r })); } catch { /* never */ }
 }
 
-export type KickInput = { cards: CardLite[]; books: BookInput[]; nowMs: number; env?: Env; fetchImpl?: Fetch; arraysOf?: (b: BookInput) => ArrayLite[] };
-type Job = { key: string; kind: GrokRead["kind"]; symbol: string; side: string; cardId?: string; prompt: string; staleEntry: boolean | null; flag?: MissedFlag; suggestions: string[] };
+export type KickInput = { clock?: () => number; brain?: BrainView | null; cards: CardLite[]; books: BookInput[]; nowMs: number; env?: Env; fetchImpl?: Fetch; arraysOf?: (b: BookInput) => ArrayLite[] };
+type Job = { book?: BookInput; key: string; kind: GrokRead["kind"]; symbol: string; side: string; cardId?: string; prompt: string; staleEntry: boolean | null; flag?: MissedFlag; suggestions: string[] };
 
 /** Pure job planning (sync, cheap). Exported for tests. Dedup keys: card id + entry + newest array (re-anchor => new read). */
 export function planJobs(inp: KickInput): Job[] {
@@ -205,10 +223,11 @@ export function planJobs(inp: KickInput): Job[] {
         if (last5m.get(b.symbol) === bucket) continue;
         const flags = missedVsDesk(missedScan(b, nowMs), inp.cards);
         for (const f of flags) {
-          const key = `missed:${f.symbol}:${f.side}:${f.kind}:${f.at}`;
+          const key = `missed:${f.symbol}:${f.side}:${f.kind}:${f.level}:${ctDay(f.at)}`;   // one call per setup per day (#22 setup-spent)
           if (seen.has(key)) continue;
+          addProposal(detectorProposal(f, nowMs));
           const sug = [`desk had no actionable ${f.side} card on ${f.symbol} at ${hhmm(f.at)} CT for a ${f.kind} (${f.detail})`];
-          jobs.push({ key, kind: "missed", symbol: f.symbol, side: f.side, flag: f, staleEntry: null, suggestions: sug, prompt: `MISSED-SETUP CHECK: ${f.detail}. The desk shows NO actionable ${f.side} card. Explain the setup and what the desk should change.\n\n${mtfSummary(b, nowMs)}` });
+          jobs.push({ book: b, key, kind: "missed", symbol: f.symbol, side: f.side, flag: f, staleEntry: null, suggestions: sug, prompt: `MISSED-SETUP CHECK: ${f.detail}. The desk shows NO actionable ${f.side} card. Explain the setup and what the desk should change.\n\n${mtfSummary(b, nowMs)}` });
         }
       }
     }
@@ -237,9 +256,19 @@ export function kickGrokReader(inp: KickInput): void {
             const r = await callXai(j.prompt, { env, fetchImpl: inp.fetchImpl });
             const cost = r.status === "ok" && r.inTok ? estCostUsd(r.inTok, r.outTok) : r.status === "ok" ? est : 0;
             budget.spendUsd += cost - est;
-            const stale = r.text && /STALE:\s*yes/i.test(r.text) ? true : r.text && /STALE:\s*no/i.test(r.text) ? false : j.staleEntry;
-            const note = r.text?.match(/NOTE:\s*(.+)/i)?.[1]?.trim();
-            store({ ...base, status: r.status, text: r.text, staleEntry: stale, suggestions: note && !/^none/i.test(note) ? [...j.suggestions, note] : j.suggestions, latencyMs: Date.now() - t0, costUsd: +cost.toFixed(6) });
+            const parsed = r.status === "ok" ? parseGrokJson(r.text) : null;
+            const rd = parsed?.read ?? null;
+            const stale = typeof rd?.stale === "boolean" ? rd.stale : j.staleEntry;
+            const note = typeof rd?.note === "string" ? rd.note.trim() : "";
+            const text = rd ? ["setup", "entryArray", "targetPool"].map((k) => `${k.toUpperCase()}: ${String(rd[k] ?? "-")}`).join("\n") : null;
+            const readAt = inp.clock ? inp.clock() : Date.now();
+            store({ ...base, status: r.status === "ok" && !parsed ? "malformed" : r.status, text: r.status === "ok" ? text : r.text, staleEntry: stale, suggestions: note && !/^none/i.test(note) ? [...j.suggestions, note] : j.suggestions, latencyMs: readAt - t0, costUsd: +cost.toFixed(6) });
+            if (parsed) for (const p of toProposals(parsed.proposals, bucketMs)) addProposal(p);
+            if (parsed?.suggestion && j.kind === "missed" && j.book) {
+              const sg = parsed.suggestion;
+              const review = reviewSuggestion(sg, { minute: j.book.minute, bars15: j.book.bars15, nowMs: readAt, readAt, flag: j.flag, deskCards: inp.cards, brain: inp.brain ?? null });
+              addSuggestion({ ...sg, id: `grok:${sg.symbol}:${sg.side}:${bucketMs}`, at: bucketMs, readAt, source: "grok", mode: suggestFireFlag(env) ? "live" : "shadow", flagKind: j.flag?.kind, review, standReview: "pending" });
+            }
           } catch { /* never escapes */ }
         }
       })().catch(() => {});
@@ -251,5 +280,5 @@ export function kickGrokReader(inp: KickInput): void {
 /** Cheap sync snapshot of the desk's cards (the reader never holds a reference to live card objects). */
 export function cardsLite(cands: readonly unknown[]): CardLite[] {
   return cands.map((x) => { const c = x as CardLite; return { id: c.id, symbol: c.symbol, side: c.side, pathBand: c.pathBand, actionable: c.actionable, entryPx: c.entryPx ?? null,
-    plan: c.plan ? { entry: c.plan.entry ?? null, stop: c.plan.stop ?? null, t1: c.plan.t1 ?? null, t2: c.plan.t2 ?? null } : null, strategyPrimary: c.strategyPrimary, reasons: (c.reasons ?? []).slice(-5) }; });
+    plan: c.plan ? { entry: c.plan.entry ?? null, stop: c.plan.stop ?? null, t1: c.plan.t1 ?? null, t2: c.plan.t2 ?? null } : null, strategyPrimary: c.strategyPrimary, reasons: (c.reasons ?? []).slice(-5), q: (c as { confluence?: number }).confluence ?? null, vetoed: Boolean((c as { vetoes?: unknown[] }).vetoes?.length) }; });
 }

@@ -1,0 +1,168 @@
+diff --git a/watcher/grok_suggest.py b/watcher/grok_suggest.py
+new file mode 100644
+index 0000000..20aac1b
+--- /dev/null
++++ b/watcher/grok_suggest.py
+@@ -0,0 +1,95 @@
++"""Grok SUGGESTION fast review for desk-watcher (ledger-desk shared/grok-reader.json, PR #45 follow-up).
++
++The desk attaches `wire.grokSuggest[]`: strict-JSON Grok suggestions already reviewed deterministically by the desk
++(rr from structure, closed-bar at-entry / stop / T1 re-check, B+ needs Brain TAKE q>=0.60 no veto, A- or better uses
++the normal gates). On the first poll that sees a suggestion, this module re-checks only what the watcher owns:
++the same risk limits as every card ($650 debit cap, $150 daily loss cap, weekly lock, Agentic account only, STOP file)
++plus freshness (fast.maxActionableAgeS). It adds no new strictness. Default: SHADOW (writes would_fire rows).
++GROK_SUGGEST_FIRE=1 only marks the row `live_ready`; the hand-off to the existing fire path is left to the watcher
++owner and is NOT wired in this patch. It never imports order code. One row per suggestion id; the dedupe survives
++restarts. A `grok_suggest_stand` notify line goes to Trading Stand (async review, not in the fire path).
++"""
++import json, os, time
++from datetime import datetime
++from zoneinfo import ZoneInfo
++
++CT = ZoneInfo("America/Chicago")
++FILE = "grok_suggest_shadow.jsonl"
++KIND = "grok_suggest_review"
++MAX_DEBIT = 650.0          # shared/desk-rules.json optExec maxDebit (same envelope as every card)
++DAY_LOSS_CAP = 150.0       # fireFix.dayLoss
++MAX_AGE_S = 90             # fast.maxActionableAgeS
++
++
++def fire_flag(env=None):
++    return str((env or os.environ).get("GROK_SUGGEST_FIRE", "")).strip().lower() in ("1", "true", "on")
++
++
++def review(sg, risk, now_ms, stop_file=False, env=None):
++    """Pure. risk = {account, day_pnl, week_locked, debit} from the watcher's existing state."""
++    checks = []
++    def ck(i, ok, d):
++        checks.append({"id": i, "pass": bool(ok), "detail": d})
++        return ok
++    dr = sg.get("review") if isinstance(sg.get("review"), dict) else {}
++    ck("desk_review", dr.get("decision") == "would-fire", f"desk {dr.get('decision')} [{dr.get('route')}]")
++    age = round((now_ms - (sg.get("readAt") or 0)) / 1000, 1)
++    ck("fresh", age <= MAX_AGE_S, f"read {age}s ago (<= {MAX_AGE_S}s)")
++    ck("agentic", risk.get("account") == "agentic", f"account {risk.get('account')}")
++    ck("day_loss", (risk.get("day_pnl") or 0) > -DAY_LOSS_CAP, f"day pnl {risk.get('day_pnl')} vs -{DAY_LOSS_CAP}")
++    ck("weekly", not risk.get("week_locked"), "weekly lock" if risk.get("week_locked") else "week open")
++    ck("debit", (risk.get("debit") or 0) <= MAX_DEBIT, f"debit {risk.get('debit')} <= {MAX_DEBIT}")
++    ck("stop_file", not stop_file, "STOP file" if stop_file else "no STOP")
++    ok = all(c["pass"] for c in checks)
++    return {"would_fire": ok, "live_ready": ok and fire_flag(env), "checks": checks, "age_s": age}
++
++
++def rows_from_feed(card, seen, risk, now_ms=None, stop_file=False, env=None):
++    now_ms = now_ms or int(time.time() * 1000)
++    c = card if isinstance(card, dict) else {}
++    w = c.get("wire") if isinstance(c.get("wire"), dict) else {}
++    out = []
++    for sg in c.get("grokSuggest") or w.get("grokSuggest") or []:
++        if not isinstance(sg, dict) or not isinstance(sg.get("id"), str) or sg.get("source") != "grok":
++            continue
++        if sg["id"] in seen:
++            continue
++        seen.add(sg["id"])
++        t0 = time.perf_counter()
++        r = review(sg, risk or {}, now_ms, stop_file, env)
++        dr = sg.get("review") or {}
++        out.append({
++            "ts": now_ms, "kind": KIND, "broker": False, "orders": 0, "id": sg["id"], "mode": "live" if fire_flag(env) else "shadow",
++            "symbol": sg.get("symbol"), "side": sg.get("side"), "entry": sg.get("entry"), "stop": dr.get("stop"), "t1": dr.get("t1"),
++            "setup": sg.get("setup"), "confidence": sg.get("confidence"), "band": dr.get("band"), "route": dr.get("route"),
++            "would_fire": r["would_fire"], "live_ready": r["live_ready"], "checks": r["checks"],
++            "read_to_decision_s": r["age_s"], "review_ms": round((time.perf_counter() - t0) * 1000, 3), "desk_review_us": dr.get("reviewUs"),
++            "stand_line": f"Grok {sg.get('symbol')} {sg.get('side')} @{sg.get('entry')} -> watcher {'WOULD FIRE' if r['would_fire'] else 'no fire'} — Trading Stand review (async)",
++        })
++    return out
++
++
++def log(path_dir, card, seen, risk, now_ms=None, stop_file=False, env=None):
++    rows = rows_from_feed(card, seen, risk, now_ms, stop_file, env)
++    if rows:
++        with open(os.path.join(path_dir, FILE), "a") as f:
++            for r in rows:
++                f.write(json.dumps(r) + "\n")
++    return rows
++
++
++def load_seen(path_dir, now_ms=None):
++    seen = set()
++    today = datetime.fromtimestamp((now_ms or int(time.time() * 1000)) / 1000, CT).date()
++    try:
++        with open(os.path.join(path_dir, FILE), encoding="utf-8", errors="replace") as f:
++            for line in f:
++                try:
++                    r = json.loads(line)
++                except ValueError:
++                    continue
++                if isinstance(r, dict) and r.get("kind") == KIND and isinstance(r.get("ts"), (int, float)) and datetime.fromtimestamp(r["ts"] / 1000, CT).date() == today:
++                    seen.add(r.get("id"))
++    except OSError:
++        pass
++    return seen
+diff --git a/tests/test_grok_suggest.py b/tests/test_grok_suggest.py
+new file mode 100644
+index 0000000..2a1cc7b
+--- /dev/null
++++ b/tests/test_grok_suggest.py
+@@ -0,0 +1,40 @@
++from watcher import grok_suggest as g
++
++NOW = 1_792_162_560_000
++SG = {"id": "grok:MNQ:short:1", "source": "grok", "symbol": "MNQ", "side": "short", "entry": 29940.0, "stop": 29990.0, "t1": 29840.0,
++      "setup": "15m bear gap tap", "confidence": 0.7, "readAt": NOW - 900, "review": {"decision": "would-fire", "route": "brain-take", "band": "B+", "stop": 29990.0, "t1": 29840.0, "reviewUs": 40}}
++RISK = {"account": "agentic", "day_pnl": -20, "week_locked": False, "debit": 300}
++
++
++def test_shadow_would_fire_once_no_orders(tmp_path):
++    seen = set()
++    rows = g.log(str(tmp_path), {"wire": {"grokSuggest": [SG]}}, seen, RISK, NOW, env={})
++    r = rows[0]
++    assert r["would_fire"] and not r["live_ready"] and r["mode"] == "shadow" and r["orders"] == 0 and r["broker"] is False
++    assert r["read_to_decision_s"] < 1.0 and r["review_ms"] < 5
++    assert g.log(str(tmp_path), {"wire": {"grokSuggest": [SG]}}, seen, RISK, NOW + 1000, env={}) == []
++    assert SG["id"] in g.load_seen(str(tmp_path), NOW)
++
++
++def test_same_risk_limits_no_new_strictness():
++    for bad in ({"account": "main"}, {"day_pnl": -150}, {"week_locked": True}, {"debit": 651}):
++        assert not g.review(SG, dict(RISK, **bad), NOW, env={})["would_fire"]
++    assert not g.review(SG, RISK, NOW, stop_file=True, env={})["would_fire"]
++    assert not g.review(dict(SG, review=dict(SG["review"], decision="no-fire")), RISK, NOW, env={})["would_fire"]
++    assert not g.review(dict(SG, readAt=NOW - 91_000), RISK, NOW, env={})["would_fire"]
++    assert g.review(SG, RISK, NOW, env={})["would_fire"]
++
++
++def test_flag_marks_live_ready_only():
++    assert g.review(SG, RISK, NOW, env={"GROK_SUGGEST_FIRE": "1"})["live_ready"] is True
++    assert g.review(SG, RISK, NOW, env={})["live_ready"] is False
++
++
++def test_malformed_ignored(tmp_path):
++    assert g.log(str(tmp_path), {"grokSuggest": [{"id": 3}, "x", dict(SG, source="desk")]}, set(), RISK, NOW, env={}) == []
++
++
++def test_no_order_code_imported():
++    src = open(g.__file__).read().split('"""')[2]
++    for bad in ("broker.", "import broker", "optexec", "place_", "fire("):
++        assert bad not in src
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -494,6 +494,17 @@ class Watcher:
+                 self.log("rule1_lane_would_fire", **{k: r[k] for k in ("symbol", "side", "would_fire", "latency_s", "legacy_min_latency_s")})
+         except Exception as e:
+             self.log("rule1_lane_error", error=str(e))
++        try:   # Grok suggestion fast review (ledger-desk PR #45): same risk limits, shadow unless GROK_SUGGEST_FIRE; no order here
++            from . import grok_suggest
++            gs = self.__dict__.get("_grok_seen")
++            if gs is None:
++                gs = self._grok_seen = grok_suggest.load_seen(self.cfg.path(""), now)
++            risk = self._grok_risk() if hasattr(self, "_grok_risk") else {}   # adapter: account/day_pnl/week_locked/debit from existing state
++            for r in grok_suggest.log(self.cfg.path(""), card, gs, risk, now, self.stopped()):
++                self.log("grok_suggest_review", **{k: r[k] for k in ("id", "symbol", "side", "would_fire", "live_ready", "read_to_decision_s", "mode")})
++                self.log("grok_suggest_stand", line=r["stand_line"])   # notify sink → Trading Stand (async)
++        except Exception as e:
++            self.log("grok_suggest_error", error=str(e))
+ 
+     def _gate_log(self, key, snap, g, dayst, broker=False):
+         from . import hygiene

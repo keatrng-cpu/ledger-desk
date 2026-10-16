@@ -6,7 +6,7 @@ import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
-import { kickGrokReader, readerEnabled, grokReadsSnapshot, cardsLite, type GrokRead } from "@/lib/grok-reader/reader";
+import { kickGrokReader, readerEnabled, grokReadsSnapshot, grokSuggestSnapshot, grokProposalsSnapshot, cardsLite, type GrokRead } from "@/lib/grok-reader/reader";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -128,6 +128,10 @@ export interface DeskPayload {
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
   /** Grok SHADOW reads (shared/grok-reader.json). Display only; present only when GROK_READER is on. Nothing gates on it. */
   grokReads?: GrokRead[];
+  /** Grok SUGGESTION cards (strict JSON + deterministic desk review). The watcher shadow-logs / (GROK_SUGGEST_FIRE) reviews them. */
+  grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
+  /** Grok / detector improvement proposals, to be proven by backtest before any implementation. */
+  grokProposals?: import("@/lib/grok-reader/suggest").GrokProposal[];
   rule1?: (import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane })[];
   fetchedAt: string;
   clock: SessionClock;
@@ -2115,15 +2119,19 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     const grokOn = readerEnabled();
     if (grokOn) {
       try {
+        const takeBk = [smcMaster.left, smcMaster.right].find((b) => b?.word === "TAKE") ?? null;
+        const lite = cardsLite(payload.scan.candidates);
+        const bc = takeBk ? lite.filter((c) => c.symbol === takeBk.symbol && c.side === takeBk.side).sort((a, b) => (b.q ?? 0) - (a.q ?? 0))[0] : undefined;
         kickGrokReader({
-          cards: cardsLite(payload.scan.candidates), nowMs: Date.now(),
+          brain: takeBk ? { word: takeBk.word, symbol: takeBk.symbol, side: takeBk.side, q: bc?.q ?? null, vetoed: Boolean(bc?.vetoed) } : null,
+          cards: lite, nowMs: Date.now(),
           books: [{ symbol: left.symbol, minute: minuteL ?? [], bars15: closedL }, { symbol: right.symbol, minute: minuteR ?? [], bars15: closedR }],
           arraysOf: (b) => mtfArrays(b.symbol, b.minute as never, b.bars15 as never) as never,
         });
       } catch { /* shadow: never into the desk path */ }
     }
     return {
-      ...(grokOn ? { grokReads: grokReadsSnapshot() } : {}),
+      ...(grokOn ? { grokReads: grokReadsSnapshot(), grokSuggest: grokSuggestSnapshot(), grokProposals: grokProposalsSnapshot() } : {}),
       ...payload,
       smcMaster,
       mtfContext,

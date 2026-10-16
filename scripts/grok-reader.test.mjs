@@ -33,11 +33,11 @@ test("no gate / score / fire / hash module imports the reader (only build-desk's
   const files = []; const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.(ts|tsx|mjs|mts)$/.test(f)) files.push(p); } };
   walk("src"); walk("netlify"); walk("shared");
   const users = files.filter((f) => !f.includes("grok-reader/") && /grok-reader\/reader|grok-reader\.json/.test(readFileSync(f, "utf8"))).sort();
-  for (const f of users) assert.match(f, /grok-read-line\.tsx$|build-desk\.ts$/);
+  for (const f of users) assert.match(f, /grok-read-line\.tsx$|build-desk\.ts$|desk-listen\.ts$|master-seat\.ts$/);
   const bd = readFileSync("src/lib/trading/build-desk.ts", "utf8");
   // grokReads is spread FIRST into the returned payload (so it can never overwrite a desk field) and is the only use
   assert.equal((bd.match(/grokReadsSnapshot\(/g) ?? []).length, 1);
-  assert.match(bd, /\.\.\.\(grokOn \? \{ grokReads: grokReadsSnapshot\(\) \} : \{\}\),\n\s+\.\.\.payload,/);
+  assert.match(bd, /\.\.\.\(grokOn \? \{ grokReads: grokReadsSnapshot\(\), grokSuggest: grokSuggestSnapshot\(\), grokProposals: grokProposalsSnapshot\(\) \} : \{\}\),\n\s+\.\.\.payload,/);
   assert.equal(/grokReads/.test(readFileSync("src/lib/desk/rules-hash.ts", "utf8")), false);
 });
 

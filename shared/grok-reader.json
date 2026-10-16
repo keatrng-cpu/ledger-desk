@@ -14,6 +14,17 @@
   "pricePerMTokOut": 2.5,
   "pricingSource": "https://docs.x.ai/docs/models (fetched 2026-10-16)",
   "minBand": "B+",
-  "missedCheck": { "everyClosed5m": true, "rthStartMinCt": 510, "rthEndMinCt": 900, "fvgTapTolAtr15": 0.15, "dispBodyAtr5": 1.2 },
-  "keepReads": 60
+  "missedCheck": {
+    "everyClosed5m": true,
+    "rthStartMinCt": 510,
+    "rthEndMinCt": 900,
+    "fvgTapTolAtr15": 0.15,
+    "dispBodyAtr5": 1.2
+  },
+  "keepReads": 60,
+  "suggest": {
+    "_doc": "Grok suggestion cards: strict JSON {symbol,side,entry,stop,t1,setup,confidence}; malformed dropped. Desk runs the deterministic review (src/lib/grok-reader/suggest.ts) on arrival; the watcher re-checks risk limits on its next poll. GROK_SUGGEST_FIRE (watcher env, default off) = live; otherwise shadow-logged would-fire. Trading Stand reviews async, not in the fire path.",
+    "fireFlag": "GROK_SUGGEST_FIRE",
+    "dedupe": "one call per (symbol, side, kind, level, CT day)"
+  }
 }
