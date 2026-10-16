@@ -18,7 +18,8 @@ const SIZE = {
 } as const;
 
 export function GradeBadge({ g, size = "md", vetoed = false, shadow = false }: GradeBadgeProps) {
-  const execute = g === "A+" || g === "A" || g === "A-" || g === "A−";
+  const aPlus = g === "A+";
+  const execute = aPlus || g === "A" || g === "A-" || g === "A−";
   return (
     <span
       title={
@@ -36,9 +37,10 @@ export function GradeBadge({ g, size = "md", vetoed = false, shadow = false }: G
         shadow && "border-dashed opacity-70",
         vetoed && "border-[var(--color-down)] text-[var(--color-down)] line-through",
         !vetoed && !shadow && execute && "border-[color-mix(in_oklab,var(--color-primary)_45%,var(--color-border))] text-[var(--color-primary)]",
+        !vetoed && !shadow && aPlus && "font-extrabold ring-1 ring-[color-mix(in_oklab,var(--color-primary)_45%,transparent)]",
         !vetoed && !shadow && g === "B+" && "border-[color-mix(in_oklab,var(--color-warn)_45%,var(--color-border))] text-[var(--color-warn)]",
         !vetoed && !shadow && !execute && g !== "B+" && "border-[var(--color-border)] text-[var(--color-subtle)]",
-        !vetoed && shadow && "border-[var(--shadow-border)] text-[var(--shadow-fg)]",
+        !vetoed && shadow && "border-dashed border-[var(--shadow-border)] bg-transparent text-[var(--shadow-fg)]",
       )}
     >
       {shadow && <span className="text-[11px] font-semibold tracking-wide">v2</span>}

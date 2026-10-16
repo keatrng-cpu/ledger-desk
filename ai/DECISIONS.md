@@ -193,6 +193,11 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - `requestFullscreen` targets the stage that holds the beat/office chips, the camera row, the full-screen button, and the canvas. The button stays on that row, so in full screen it is the exit control (Esc exits too). `.floor-stage:fullscreen .floor-view` gives the canvas the leftover height only while that element is full screen, so leaving (button or Esc) does not collapse it, and outside full screen the cameras stay above the sized canvas.
 - Why: the old target was the canvas box alone, which left the cameras and the exit button outside the fullscreen element.
 
+### 2026-10-16 — Shadow brand: no purple, A+ is weight and a ring
+- ADOPTED · Design Atelier brand decisions on draft PR #33 · display only · rules hash stays `a4bfcb65c88badcd`
+- Shadow tokens are steel: `--shadow-fg` is `--color-muted`, `--shadow-bg` is `--color-surface-2`, `--shadow-border` is `--color-border-strong`. The border stays dashed. The panel label is uppercase SHADOW. A+ uses the same teal as A, at weight 800 with a 1px ring. `.pulse-enter` is `animation: none` under `prefers-reduced-motion`.
+- Why: the shadow book was using the purple accent. The brand separates it by the dashed edge and the label, not by a new hue.
+
 ### 2026-10-15: intraday option tickets are 0DTE ATM; 1DTE+ is swing-only; late day blocks
 - ADOPTED · Keaton (owner rule, chat 2026-10-15) · PR #19 · rulesHash 47c62fe3d2355d3d → 7d151e5fed7fe3eb (main e7338987cbc7eea5)
 - Intraday tickets (path/continuation, Judas/killzone) on QQQ/SPY are 0DTE ATM, with 1 OTM only when the cap needs it, and never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans).

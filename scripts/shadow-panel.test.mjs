@@ -29,6 +29,18 @@ test("rules hash unchanged", () => {
 
 test("q_v2 is read off the card, not recomputed", () => {
   const src = readFileSync("src/components/desk/shadow-panel.tsx", "utf8") + readFileSync("src/components/desk/shadow-view.ts", "utf8");
+  assert.equal(src.includes(">SHADOW<"), true);
+  assert.equal(src.includes("Shadow — not traded"), false);
+  const css = readFileSync("src/styles.css", "utf8");
+  assert.equal(css.includes("--shadow-fg: var(--color-muted)"), true);
+  assert.equal(css.includes("--shadow-bg: var(--color-surface-2)"), true);
+  assert.equal(css.includes("--shadow-border: var(--color-border-strong)"), true);
+  assert.equal(css.includes(".pulse-enter {\n      animation: none;\n    }"), true);
+  const badge = readFileSync("src/components/desk/grade-badge.tsx", "utf8");
+  assert.equal(badge.includes('const aPlus = g === "A+"'), true);
+  assert.equal(badge.includes("font-extrabold ring-1"), true);
+  assert.equal(badge.includes("border-[var(--shadow-border)]"), true);
+  assert.equal(badge.includes("var(--color-accent)"), false);
   assert.equal(src.includes("computeQV2"), false);
   assert.equal(src.includes("ticket.symbol === live.symbol") || src.includes("t.symbol === leadSymbol"), true);
   const es = { symbol: "ES" };

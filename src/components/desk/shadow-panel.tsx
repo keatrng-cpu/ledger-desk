@@ -142,7 +142,7 @@ export function ShadowPanel({ live, qV2, rule1, defaultOpen, density = "card", n
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="min-w-0 truncate text-[11px] font-bold tracking-[0.14em] text-[var(--shadow-fg)]">Shadow — not traded</span>
+        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--shadow-fg)]">SHADOW</span>
         {versions.length > 0 && <span className="min-w-0 truncate font-mono text-[12px] text-[var(--color-subtle)]">{versions.join(" · ")}</span>}
         <ChevronDown className={cn("ml-auto h-4 w-4 shrink-0 text-[var(--shadow-fg)]", open && "rotate-180")} />
       </button>

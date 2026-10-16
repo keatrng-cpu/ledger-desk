@@ -37,9 +37,9 @@
   --level-entry: var(--color-primary);
   --level-stop: var(--color-down);
   --level-target: var(--color-up);
-  --shadow-fg: var(--color-accent);
-  --shadow-bg: color-mix(in oklab, var(--color-accent) 6%, var(--color-surface));
-  --shadow-border: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  --shadow-fg: var(--color-muted);
+  --shadow-bg: var(--color-surface-2);
+  --shadow-border: var(--color-border-strong);
   --overlay-bg: color-mix(in oklab, #000 80%, transparent);
   --floor-canvas: #0b1220;
 
@@ -299,6 +299,9 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+    .pulse-enter {
+      animation: none;
     }
   }
 }
