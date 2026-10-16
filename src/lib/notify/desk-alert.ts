@@ -6,7 +6,8 @@
  *
  * Contract:
  *  - No webhook configured → no-op (returns { sent: false, why: "disabled" }), never throws.
- *  - Dedupe: the same event key inside DEDUPE_MS is sent once (a card re-armed every poll is ONE alert).
+ *  - Dedupe: the same event key inside DEDUPE_MS is sent once (a card re-armed every poll is ONE alert). A key is
+ *    recorded only after Slack answers 2xx, so a failed/timed-out post (5 s AbortSignal) can be retried.
  *  - Rate limit: at most RATE_MAX posts per RATE_WINDOW_MS per process; overflow is dropped and counted,
  *    and the next post that gets through says how many were suppressed.
  *  - Every outgoing string goes through scrubText: no keys, tokens, webhook URLs or account numbers.
@@ -29,6 +30,7 @@ export type DeskEvent =
 export const DEDUPE_MS = 10 * 60_000;
 export const RATE_WINDOW_MS = 60_000;
 export const RATE_MAX = 6;
+export const SLACK_TIMEOUT_MS = 5_000;
 
 const px = (n: number | undefined) => (typeof n === "number" && Number.isFinite(n) ? String(Math.round(n * 100) / 100) : "?");
 
@@ -62,7 +64,7 @@ export function formatEvent(e: DeskEvent): string {
 }
 
 export type SendResult = { sent: boolean; why?: "disabled" | "duplicate" | "rate_limited" | "error"; status?: number };
-type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string }) => Promise<{ ok: boolean; status: number }>;
+type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ ok: boolean; status: number }>;
 
 export function createNotifier(opts: { webhookUrl?: string | null; fetch?: FetchLike; now?: () => number; dedupeMs?: number; rateMax?: number; rateWindowMs?: number } = {}) {
   const url = (opts.webhookUrl ?? "").trim();
@@ -70,6 +72,7 @@ export function createNotifier(opts: { webhookUrl?: string | null; fetch?: Fetch
   const doFetch: FetchLike | undefined = opts.fetch ?? (typeof fetch === "function" ? (fetch as unknown as FetchLike) : undefined);
   const dedupeMs = opts.dedupeMs ?? DEDUPE_MS, rateMax = opts.rateMax ?? RATE_MAX, windowMs = opts.rateWindowMs ?? RATE_WINDOW_MS;
   const seen = new Map<string, number>();
+  const inflight = new Set<string>(); // a post in progress counts as a duplicate, but is only "seen" once Slack says ok
   let sentAt: number[] = [];
   let suppressed = 0;
 
@@ -80,18 +83,24 @@ export function createNotifier(opts: { webhookUrl?: string | null; fetch?: Fetch
       const t = now();
       for (const [k, at] of seen) if (t - at >= dedupeMs) seen.delete(k);
       const key = eventKey(e);
-      if (seen.has(key)) return { sent: false, why: "duplicate" };
+      if (seen.has(key) || inflight.has(key)) return { sent: false, why: "duplicate" };
       sentAt = sentAt.filter((x) => t - x < windowMs);
       if (sentAt.length >= rateMax) { suppressed++; return { sent: false, why: "rate_limited" }; }
-      seen.set(key, t); sentAt.push(t);
+      inflight.add(key); sentAt.push(t);
       let text = formatEvent(e);
-      if (suppressed) { text += ` _(+${suppressed} suppressed by rate limit)_`; suppressed = 0; }
+      const carried = suppressed;
+      if (carried) { text += ` _(+${carried} suppressed by rate limit)_`; suppressed = 0; }
       try {
-        const res = await doFetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: scrubText(text) }) });
-        return res.ok ? { sent: true, status: res.status } : { sent: false, why: "error", status: res.status };
+        const res = await doFetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: scrubText(text) }), signal: AbortSignal.timeout(SLACK_TIMEOUT_MS) });
+        if (res.ok) { seen.set(key, t); return { sent: true, status: res.status }; }
+        suppressed += carried; // not delivered: keep the count for the next post; the event itself may be retried
+        return { sent: false, why: "error", status: res.status };
       } catch (err) {
+        suppressed += carried;
         console.warn("[notify] slack post failed:", scrubText(String(err)));
         return { sent: false, why: "error" };
+      } finally {
+        inflight.delete(key);
       }
     },
   };

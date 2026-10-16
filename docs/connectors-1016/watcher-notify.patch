@@ -9,8 +9,8 @@ diff -ruN '--exclude=data' '--exclude=tools' a/requirements.lock b/requirements.
  urllib3==2.8.0
 diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_notify.py b/tests/test_notify.py
 --- a/tests/test_notify.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/test_notify.py	2026-10-16 00:22:30.870990825 -0500
-@@ -0,0 +1,90 @@
++++ b/tests/test_notify.py	2026-10-16 00:58:42.685196876 -0500
+@@ -0,0 +1,107 @@
 +"""watcher/notify.py + watcher/monitoring.py: no-op without env, dedupe, rate limit, scrubbing, record mapping."""
 +from watcher import notify, monitoring
 +
@@ -101,6 +101,23 @@ diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_notify.py b/tests/test
 +    assert "hunter2" not in str(ev) and "995386158" not in str(ev) and "headers" not in ev["request"]
 +    assert monitoring.capture(RuntimeError("boom"), sdk) is True and sdk.caught
 +    monkeypatch.setattr(monitoring, "_on", False)
++
++def test_dedupe_recorded_only_after_success():
++    calls = []; ok = [False]
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/services/T/B/x", post=lambda u, b: calls.append(b) or ok[0], clock=Clock())
++    assert n.notify(FIRE) == (False, "error")          # Slack down: not marked seen
++    assert n.notify(FIRE) == (False, "error")          # so the same event is retried
++    ok[0] = True
++    assert n.notify(FIRE) == (True, None)
++    assert n.notify(FIRE) == (False, "duplicate")      # delivered once -> deduped
++    assert len(calls) == 3 and not n.inflight
++
++def test_raising_post_is_not_deduped():
++    def boom(u, b): raise RuntimeError("timeout")
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/x", post=boom, clock=Clock())
++    assert n.notify(FIRE) == (False, "error") and FIRE_KEY_NOT_SEEN(n)
++
++def FIRE_KEY_NOT_SEEN(n): return notify.event_key(FIRE) not in n.seen and not n.inflight
 diff -ruN '--exclude=data' '--exclude=tools' a/watcher/daemon.py b/watcher/daemon.py
 --- a/watcher/daemon.py	2026-10-16 00:21:56.222990825 -0500
 +++ b/watcher/daemon.py	2026-10-16 00:22:30.866990825 -0500
@@ -198,13 +215,13 @@ diff -ruN '--exclude=data' '--exclude=tools' a/watcher/monitoring.py b/watcher/m
 +        return False
 diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notify.py
 --- a/watcher/notify.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/watcher/notify.py	2026-10-16 00:22:30.866990825 -0500
-@@ -0,0 +1,144 @@
++++ b/watcher/notify.py	2026-10-16 00:58:42.681196876 -0500
+@@ -0,0 +1,153 @@
 +"""Desk -> Slack alerts for the watcher. Python twin of ledger-desk src/lib/notify/desk-alert.ts.
 +
 +Env SLACK_DESK_WEBHOOK_URL (incoming webhook). Unset -> every call is a no-op. Never raises into the
 +caller, never decides/gates/orders anything: it only reads records the daemon already logged.
-+Dedupe (same key inside DEDUPE_S sends once) + rate limit (RATE_MAX per RATE_WINDOW_S, overflow dropped and
++Dedupe (same key inside DEDUPE_S sends once; recorded only after a 2xx, so failed posts can retry) + rate limit (RATE_MAX per RATE_WINDOW_S, overflow dropped and
 +counted). Every outgoing line goes through scrub_text: no keys, tokens, webhook URLs or account numbers.
 +"""
 +import json, os, re, threading, time
@@ -269,7 +286,7 @@ diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notif
 +    def __init__(self, webhook_url=None, post=None, clock=time.time, dedupe_s=DEDUPE_S, rate_max=RATE_MAX, window_s=RATE_WINDOW_S):
 +        self.url = (webhook_url if webhook_url is not None else os.environ.get("SLACK_DESK_WEBHOOK_URL", "")).strip()
 +        self._post = post; self.clock = clock; self.dedupe_s = dedupe_s; self.rate_max = rate_max; self.window_s = window_s
-+        self.seen = {}; self.sent_at = []; self.suppressed = 0; self._lock = threading.Lock()
++        self.seen = {}; self.inflight = set(); self.sent_at = []; self.suppressed = 0; self._lock = threading.Lock()
 +
 +    @property
 +    def enabled(self): return self.url.startswith("https://")
@@ -282,17 +299,26 @@ diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notif
 +                t = self.clock()
 +                self.seen = {k: a for k, a in self.seen.items() if t - a < self.dedupe_s}
 +                key = event_key(e)
-+                if key in self.seen: return False, "duplicate"
++                if key in self.seen or key in self.inflight: return False, "duplicate"
 +                self.sent_at = [x for x in self.sent_at if t - x < self.window_s]
 +                if len(self.sent_at) >= self.rate_max: self.suppressed += 1; return False, "rate_limited"
-+                self.seen[key] = t; self.sent_at.append(t)
++                self.inflight.add(key); self.sent_at.append(t)
 +                text = format_event(e)
-+                if self.suppressed: text += f" _(+{self.suppressed} suppressed by rate limit)_"; self.suppressed = 0
-+            body = {"text": scrub_text(text)}
-+            if self._post: ok = self._post(self.url, body)
-+            else:
-+                import requests
-+                ok = requests.post(self.url, json=body, timeout=5).ok
++                carried = self.suppressed
++                if carried: text += f" _(+{carried} suppressed by rate limit)_"; self.suppressed = 0
++            ok = False
++            try:
++                body = {"text": scrub_text(text)}
++                if self._post: ok = bool(self._post(self.url, body))
++                else:
++                    import requests
++                    ok = requests.post(self.url, json=body, timeout=5).ok
++            except Exception:
++                ok = False
++            with self._lock:
++                self.inflight.discard(key)
++                if ok: self.seen[key] = t          # dedupe only what Slack accepted; a failed post can be retried
++                else: self.suppressed += carried
 +            return (True, None) if ok else (False, "error")
 +        except Exception:
 +            return False, "error"

@@ -15,7 +15,7 @@ export default async () => {
   let feed = null;
   try {
     if (base) {
-      const res = await fetch(`${base}/api/desk/watcher`, { headers: { accept: "application/json" } });
+      const res = await fetch(`${base}/api/desk/watcher`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(5000) });
       feed = res.ok ? await res.json() : { ok: false };
     }
   } catch (err) {

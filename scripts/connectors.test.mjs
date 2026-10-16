@@ -121,4 +121,70 @@ test("audit: finds fire/fill/day/hash gaps from fixture logs", () => {
   assert.ok(!md.includes("995386158"));
 });
 
+test("notify: dedupe is recorded only after a successful post; 5 s abort signal is passed", async () => {
+  let ok = false; const calls = [];
+  const x = n.createNotifier({ webhookUrl: "https://hooks.slack.com/x", fetch: async (_u, init) => { calls.push(init); return { ok, status: ok ? 200 : 500 }; }, now: () => 1 });
+  assert.deepEqual(await x.notify(FIRE), { sent: false, why: "error", status: 500 });
+  assert.equal((await x.notify(FIRE)).why, "error"); // retried, not "duplicate"
+  ok = true;
+  assert.equal((await x.notify(FIRE)).sent, true);
+  assert.equal((await x.notify(FIRE)).why, "duplicate");
+  assert.equal(calls.length, 3);
+  assert.ok(calls[0].signal instanceof AbortSignal);
+  const thrower = n.createNotifier({ webhookUrl: "https://hooks.slack.com/x", fetch: async () => { throw new Error("TimeoutError"); }, now: () => 1 });
+  await thrower.notify(FIRE);
+  assert.equal((await thrower.notify(FIRE)).why, "error"); // a timed-out post is not deduped
+});
+
+test("notify: concurrent identical events post once", async () => {
+  let release; const gate = new Promise((r) => (release = r)); let posts = 0;
+  const x = n.createNotifier({ webhookUrl: "https://hooks.slack.com/x", fetch: async () => { posts++; await gate; return { ok: true, status: 200 }; } });
+  const a = x.notify(FIRE); const b = await x.notify(FIRE);
+  assert.equal(b.why, "duplicate"); release(); assert.equal((await a).sent, true); assert.equal(posts, 1);
+});
+
+test("audit: fills match by signal / RH order id first, then day/symbol/side/entry", () => {
+  const f = { ts: "2026-10-15T14:02:10-04:00", day: "2026-10-15", qty: 1, price: 2.96, signal: "sig-85e8feddd99efe46", orderId: "6ad1151c-8bc9-4446-a02f-9223be78a8f9", symbol: "ES", side: "long", entry: 7782.63 };
+  const empty = { cards: [], trades: [], orders: [], watcher_status_ms: null, watcher_rules: null };
+  const ord = (o) => ({ symbol: "SPY", side: "buy", status: "filled", filled_qty: 1, at_ms: Date.parse("2026-10-15T18:02:10Z"), ...o });
+  assert.deepEqual(au.matchFill(f, { ...empty, orders: [ord({ client_order_id: "sig-85e8feddd99efe46", at_ms: 0 })] }), { how: "id", table: "room_orders" });
+  assert.deepEqual(au.matchFill(f, { ...empty, orders: [ord({ client_order_id: "x", broker_order_id: "6ad1151c-8bc9-4446-a02f-9223be78a8f9", at_ms: 0 })] }), { how: "id", table: "room_orders" });
+  assert.deepEqual(au.matchFill(f, { ...empty, trades: [{ id: 7, reason: "rh 6ad1151c-8bc9-4446-a02f-9223be78a8f9", filled_at: "2020-01-01T00:00:00Z" }] }), { how: "id", table: "desk_trades" });
+  // id beats a fallback candidate in the other table
+  assert.equal(au.matchFill(f, { ...empty, orders: [ord({ client_order_id: "other" })], trades: [{ id: "sig-85e8feddd99efe46" }] }).how, "id");
+  // fallback: same ET day, proxy symbol, buy side
+  assert.deepEqual(au.matchFill(f, { ...empty, orders: [ord({ client_order_id: "other" })] }), { how: "fallback", table: "room_orders" });
+  assert.deepEqual(au.matchFill(f, { ...empty, trades: [{ symbol: "ES", side: "long", filled_at: "2026-10-15T18:02:10Z", plan_entry: 7782.5 }] }), { how: "fallback", table: "desk_trades" });
+  // wrong day / wrong side / entry too far => none
+  assert.equal(au.matchFill(f, { ...empty, orders: [ord({ client_order_id: "o", at_ms: Date.parse("2026-10-14T18:00:00Z") })] }).how, "none");
+  assert.equal(au.matchFill(f, { ...empty, trades: [{ symbol: "ES", side: "short", filled_at: "2026-10-15T18:02:10Z", plan_entry: 7782.63 }] }).how, "none");
+  assert.equal(au.matchFill(f, { ...empty, trades: [{ symbol: "ES", side: "long", filled_at: "2026-10-15T18:02:10Z", plan_entry: 7800 }] }).how, "none");
+  // fallback match is reported as a WARN, not a GAP
+  const w = { deskCards: [], fires: [], fills: [f], rejects: [], refused: 0, days: ["2026-10-15"], statusRules: "a4bfcb65c88badcd", heartbeat: null };
+  const fr = au.audit({ ...empty, cards: [{ id: "c", day_key: "2026-10-15", symbol: "ES", side: "long", band: "A", entry: 1, stop: 0, target: 2, opened_ms: 0, filled: false, status: "x" }], orders: [ord({ client_order_id: "other" })] }, w, "a4bfcb65c88badcd", Date.now());
+  assert.ok(fr.some((x) => x.level === "WARN" && /only by day\/symbol\/side\/entry/.test(x.what)));
+  assert.ok(!fr.some((x) => x.level === "GAP" && /FILLED/.test(x.what)));
+});
+
+test("audit: parser carries the RH order id onto the fill", () => {
+  const lines = [
+    // real order in watcher.log: PLACED (entry order id) is logged before FIRE; EXIT carries the closing order id
+    { ts: "2026-10-15T14:02:04-04:00", kind: "alert", text: "PLACED 1x SPY key=sig-85e8feddd99efe46", result: { id: "6ad1151c-8bc9-4446-a02f-9223be78a8f9" } },
+    { ts: "2026-10-15T14:02:04-04:00", kind: "alert", text: "FIRE B+ ES long q=0.6 entry=7782.63 stop=7775.0 tgt=7792.25" },
+    { ts: "2026-10-15T14:02:10-04:00", kind: "alert", text: "FILLED 1 @ 2.96 (filled)" },
+    { ts: "2026-10-15T14:04:55-04:00", kind: "alert", text: "EXIT 1 @ 2.6: ticket stop", result: { id: "6ad115c6-72e9-4303-ad11-ab83fd3726ba" } },
+  ].map((x) => JSON.stringify(x));
+  const p = au.parseWatcherLines(lines);
+  assert.equal(p.fills[0].orderId, "6ad1151c-8bc9-4446-a02f-9223be78a8f9");
+  assert.equal(p.fills[0].signal, "sig-85e8feddd99efe46");
+  assert.equal(p.fills[0].symbol, "ES"); assert.equal(p.fills[0].entry, 7782.63);
+});
+
+test("audit: TLS is verified unless --insecure-tls is explicit", () => {
+  assert.deepEqual(au.auditTls({}, {}), { rejectUnauthorized: true });
+  assert.deepEqual(au.auditTls({ "insecure-tls": "1" }, {}), { rejectUnauthorized: false });
+  const ca = au.auditTls({}, { SUPABASE_CA_CERT: "package.json" });
+  assert.equal(ca.rejectUnauthorized, true); assert.ok(ca.ca.length > 0);
+});
+
 test("desk-rules hash unchanged", () => assert.equal(h.RULES_HASH, "a4bfcb65c88badcd"));

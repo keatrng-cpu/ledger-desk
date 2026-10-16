@@ -35,3 +35,10 @@ cd /workspace/desk-watcher && patch -p1 --dry-run < <repo>/docs/connectors-1016/
 ## Supabase audit
 `npx tsx scripts/audit/trade-log-audit.mts --watcher-dir /workspace/desk-watcher [--supabase-json export.json] --out report.md`
 Read-only (`BEGIN READ ONLY`, SELECTs only) on `desk_card_journal`, `desk_trades`, `room_orders`, `desk_watcher_status`. Exit 2 when gaps exist.
+
+### Review fixes (Accuracy Review on #32)
+- Slack POST and the pre-open feed fetch carry `AbortSignal.timeout(5000)`; the watcher uses `requests` `timeout=5`.
+- Dedupe keys are recorded only after Slack returns 2xx (an in-flight set stops concurrent duplicates), so a failed or timed-out post is retried.
+- The audit matches fills by signal / RH order id first, then by ET day + symbol (ES→SPY, MNQ→QQQ) + side + entry. A fallback match is reported as WARN, not GAP.
+- `@sentry/node` is marked external in `netlify.toml`. esbuild size of room-step is 4.8 KB external vs 2.2 MB inlined.
+- Audit DB TLS is verified by default. Supabase certs chain to Supabase's own root CA, so pass `--ca prod-ca-2021.crt` or `SUPABASE_CA_CERT` (Dashboard → Database → SSL Configuration). `--insecure-tls` is an explicit, labelled opt-out.
