@@ -38,7 +38,7 @@ test("ladder timing / re-price / cross", () => {
 test("flag defaults off; note reflects it", () => {
   assert.equal(X.exitSafeEnabled({}), false); assert.match(X.exitSafetyNote(false), /OFF/);
 });
-test("one unit: params match watcher patch PARAMS; desk-rules.json untouched (hash a4bfcb65c88badcd)", () => {
+test("one unit: params match watcher patch PARAMS; params live in shared/exit-safe.json, not desk-rules.json", () => {
   const patch = readFileSync(new URL("../docs/exit-safety-1016/watcher-exit-safety.patch", import.meta.url), "utf8");
   for (const [k, v] of [["reprice_s", X.EXIT_SAFE_PARAMS.repriceS], ["cross_after_s", X.EXIT_SAFE_PARAMS.crossAfterS], ["tick", X.EXIT_SAFE_PARAMS.tick], ["stop_limit_offset_pct", X.EXIT_SAFE_PARAMS.stopLimitOffsetPct]])
     assert.match(patch, new RegExp(`"${k}": ${Number(v).toFixed(String(v).includes(".") ? String(v).split(".")[1].length : 1)}`));
@@ -60,4 +60,15 @@ test("parity: watcher fixture tests/fixtures/exit-safe.json inside the patch == 
   const body = sec.split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++")).map((l) => l.slice(1)).join("\n");
   assert.deepEqual(JSON.parse(body), JSON.parse(readFileSync(new URL("../shared/exit-safe.json", import.meta.url), "utf8")));
   for (const k of ["max_ladder_s", "stop_limit_offset_min", "flat_confirm_tries"]) assert.match(patch, new RegExp(`"${k}": `));
+});
+
+test("rev2 (Accuracy/Release Watch 10/16): re-placed stop clamped under bid; VWAP per order; resting-stop fill books lost + dayLoss", () => {
+  assert.deepEqual(X.clampStopBelowBid(1.0, 0.9), { stop: 0.89, clamped: true });
+  assert.deepEqual(X.clampStopBelowBid(1.0, 1.2), { stop: 1, clamped: false });
+  assert.deepEqual(X.clampStopBelowBid(1.0, 0), { stop: 1, clamped: false });
+  assert.deepEqual(X.fillsVwap([{ qty: 1, avg: 1.5 }, { qty: 1, avg: 1.4 }, { qty: 0, avg: null }]), { qty: 2, vwap: 1.45 });
+  assert.deepEqual(X.bookClose(2.0, 0.95, 2, "exit"), { lost: true, pnl: -210 });
+  assert.equal(X.bookClose(1.0, 1.5, 1, "trim").lost, false);
+  const patch = readFileSync(new URL("../docs/exit-safety-1016/watcher-exit-safety.patch", import.meta.url), "utf8");
+  for (const s of ["_book_resting_stop_fill", "clamp_stop_below_bid", "fills_vwap", "resting_stop_cancel_error", "def order_fill"]) assert.ok(patch.includes(s), s);
 });

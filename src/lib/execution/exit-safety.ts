@@ -38,6 +38,24 @@ export function stopLimitPrice(stop: number): number {
   return Math.round(Math.max(0.01, stop - off) * 100) / 100;
 }
 
+/** Release Watch 10/16 (twin of exitsafe.clamp_stop_below_bid): a RE-placed sell stop at/above the bid is clamped one tick under it. */
+export function clampStopBelowBid(stop: number, bid: number | null | undefined): { stop: number; clamped: boolean } {
+  if (bid != null && bid > 0 && stop >= bid) return { stop: Math.round(Math.max(0.01, bid - P.tick) * 100) / 100, clamped: true };
+  return { stop: Math.round(stop * 100) / 100, clamped: false };
+}
+
+/** Accuracy should-fix 10/16 (twin of exitsafe.fills_vwap): book close fills per ORDER (filled qty, avg), never the last rung price × requested qty. */
+export function fillsVwap(fills: { qty: number; avg: number | null }[]): { qty: number; vwap: number | null } {
+  let q = 0, v = 0;
+  for (const f of fills) if (f.qty > 0 && f.avg != null && f.avg > 0) { q += f.qty; v += f.qty * f.avg; }
+  return { qty: q, vwap: q ? Math.round((v / q) * 10_000) / 10_000 : null };
+}
+
+/** Accuracy must-fix 10/16: a resting-stop fill is a losing exit — books the day lost + dayLoss like the ladder's losing exit. */
+export function bookClose(entry: number, px: number, qty: number, act: "exit" | "trim"): { lost: boolean; pnl: number } {
+  return { lost: act === "exit" && px < entry, pnl: Math.round((px - entry) * 100 * qty * 100) / 100 };
+}
+
 /** 2. Ladder rung price at elapsed t (s): bid until crossAfterS, then bid - tick (marketable). */
 export function ladderPrice(tS: number, bid: number): { px: number; crossed: boolean } {
   const crossed = tS >= P.crossAfterS;

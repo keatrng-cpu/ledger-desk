@@ -18,10 +18,10 @@ index 0000000..5ded5d7
 +}
 diff --git a/tests/test_exitsafe.py b/tests/test_exitsafe.py
 new file mode 100644
-index 0000000..768f2fd
+index 0000000..1fafe35
 --- /dev/null
 +++ b/tests/test_exitsafe.py
-@@ -0,0 +1,266 @@
+@@ -0,0 +1,355 @@
 +import json, os, pytest
 +from types import SimpleNamespace as NS
 +from watcher import exitsafe as ex
@@ -189,6 +189,10 @@ index 0000000..768f2fd
 +    me._stop_px = lambda pos: dm.Watcher._stop_px(me, pos)
 +    me._close_guard = lambda pos: dm.Watcher._close_guard(me, pos)
 +    me._place_resting_stop = lambda pos, qty=None, force=False: dm.Watcher._place_resting_stop(me, pos, qty, force)
++    me.state = {"days": {}}
++    me.day = lambda d: dm.Watcher.day(me, d)
++    me._book_close = lambda pos, et, act, px, qty: dm.Watcher._book_close(me, pos, et, act, px, qty)
++    me._book_resting_stop_fill = lambda pos, oid, et: dm.Watcher._book_resting_stop_fill(me, pos, oid, et)
 +    return dm, me, alerts, logs
 +
 +def test_post_fill_reentry_keeps_resting_stop(monkeypatch):
@@ -288,11 +292,112 @@ index 0000000..768f2fd
 +def test_preflight_runs_before_signal_marked_fired():
 +    src = open(os.path.join(os.path.dirname(__file__), "..", "watcher", "daemon.py")).read()
 +    assert src.index("exit_path_preflight") < src.index('sig["fired"] = time.time()') < src.index("fastchain.mark_spent")
++
++
++# ---- Accuracy / Release Watch 10/16 (revision 2) ----
++import datetime as _dt
++ET0 = _dt.datetime(2026, 10, 16, 10, 5)
++
++def test_resting_stop_fill_sets_lost_and_books_dayloss(monkeypatch):
++    """must-fix: a resting-stop fill books like the ladder losing exit (d['lost'], dayLoss pnl), from the ORDER fill."""
++    b = FakeBroker(held=2); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    monkeypatch.setattr(dm.gates, "past_flat", lambda cfg, et: False)
++    pos = {"contract": C, "qty": 2, "entry": 2.0, "filled": True, "signal": "sig-x"}
++    dm.Watcher._check_resting_stop(me, pos, 2, ET0); oid = pos["resting_stop_id"]
++    b.states[oid] = "filled"; b.order_fill = lambda o: (2, 0.95)
++    dm.Watcher._check_resting_stop(me, pos, 2, ET0)
++    d = me.state["days"]["2026-10-16"]
++    assert d["lost"] is True and d["pnl"] == round((0.95 - 2.0) * 100 * 2, 2) and pos["resting_stop_id"] is None
++    assert any(a[0] == ("day_loss_recorded",) for a in logs)
++    dm.Watcher._book_resting_stop_fill(me, pos, oid, ET0)          # booked once per order id
++    assert me.state["days"]["2026-10-16"]["pnl"] == round((0.95 - 2.0) * 200, 2)
++
++def test_resting_stop_fill_uses_order_qty_not_lagged_position(monkeypatch):
++    b = FakeBroker(held=3); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    pos = {"contract": C, "qty": 3, "entry": 2.0, "resting_stop_qty": 3, "resting_stop_px": 1.0}
++    b.order_fill = lambda o: (1, 0.9)                                # only 1 of 3 filled at the order; RH still shows 3
++    dm.Watcher._book_resting_stop_fill(me, pos, "s1", ET0)
++    assert me.state["days"]["2026-10-16"]["pnl"] == -110.0
++
++def test_resting_stop_fill_fallback_when_order_unreadable(monkeypatch):
++    b = FakeBroker(held=1); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    pos = {"contract": C, "qty": 1, "entry": 2.0, "resting_stop_qty": 1, "resting_stop_px": 1.0}
++    b.order_fill = lambda o: (_ for _ in ()).throw(RuntimeError("timeout"))
++    dm.Watcher._book_resting_stop_fill(me, pos, "s1", ET0)
++    assert me.state["days"]["2026-10-16"]["lost"] is True and me.state["days"]["2026-10-16"]["pnl"] == round((0.85 - 2.0) * 100, 2)
++
++def test_check_resting_stop_catches_non_refused_cancel_error(monkeypatch):
++    b = FakeBroker(held=1); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    monkeypatch.setattr(dm.gates, "past_flat", lambda cfg, et: False)
++    pos = {"contract": C, "qty": 1, "entry": 2.0, "filled": True}
++    dm.Watcher._check_resting_stop(me, pos, 1, ET0); first = pos["resting_stop_id"]
++    b.cancel = lambda oid: (_ for _ in ()).throw(ConnectionError("RH 503"))
++    dm.Watcher._check_resting_stop(me, pos, 2, ET0)                 # resize -> cancel raises a non-refusal error
++    assert pos["resting_stop_id"] == first and any("cancel error" in a for a in alerts) and len(b.sends("stop")) == 1
++
++def test_replaced_stop_clamped_below_bid(monkeypatch):
++    b = FakeBroker(held=1); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    b.mark = lambda _id: (0.9, {"bid_price": "0.90"})
++    pos = {"contract": C, "qty": 1, "entry": 2.0}                   # stop 1.00 >= bid 0.90
++    me._place_resting_stop(pos, force=True)
++    assert pos["resting_stop_px"] == 0.89 and any(a[0] == ("resting_stop_clamped",) for a in logs)
++    pos2 = {"contract": C, "qty": 1, "entry": 2.0}; b2 = FakeBroker(held=1); dm, me2, _, _ = _daemon_stub(b2, monkeypatch)
++    me2._place_resting_stop(pos2)                                    # first placement (not force): unchanged
++    assert pos2["resting_stop_px"] == 1.0
++
++def test_clamp_helper():
++    assert ex.clamp_stop_below_bid(1.0, 1.2) == (1.0, False)
++    assert ex.clamp_stop_below_bid(1.0, 0.5) == (0.49, True)
++    assert ex.clamp_stop_below_bid(1.0, 0) == (1.0, False)
++
++def test_ladder_trim_books_vwap_and_filled_qty(monkeypatch):
++    """should-fix: trim PnL used the LAST rung price for every fill (undercount); now VWAP + filled qty from the orders."""
++    b = FakeBroker(held=4); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    pos = {"contract": C, "qty": 4, "entry": 1.0}
++    fills = {"o1": (1, 1.50), "o2": (1, 1.40)}
++    b.order_fill = lambda o: fills.get(o, (0, None))
++    def fake_ladder(g, qty, fresh_bid, **k):
++        g.history += [("ladder", "o1"), ("ladder", "o2")]; return "filled", [(0, 1.5, False, 2), (2.5, 1.39, True, 1)]
++    monkeypatch.setattr(ex, "run_ladder", fake_ladder)
++    px, res, act = dm.Watcher._ladder_close(me, pos, 2, {}, "trim")
++    assert px == 1.45 and res["filled_qty"] == 2 and pos["qty"] == 2
++
++def test_fills_vwap_skips_unreadable():
++    class B:
++        def order_fill(self, o):
++            if o == "bad": raise RuntimeError("x")
++            return {"a": (2, 1.0), "b": (1, 2.0)}.get(o, (0, None))
++    assert ex.fills_vwap(B(), ["a", "bad", "b", "c"]) == (3, round(4 / 3, 4))
++    assert ex.fills_vwap(B(), []) == (0, None)
++
++def test_guard_history_records_sends():
++    b, clk, g = mk(); g.place_resting_stop(1, 1.0); g.clear(); g.send("ladder", b.sell, C, 1, 1.0)
++    assert [k for k, _ in g.history] == ["stop", "ladder"]
++
++def test_flags_stay_off_by_default(monkeypatch):
++    monkeypatch.delenv("EXIT_SAFE", raising=False); monkeypatch.delenv("EXIT_SAFE_RESTING_STOP", raising=False)
++    assert ex.enabled() is False and ex.resting_stop_enabled() is False
 diff --git a/watcher/broker.py b/watcher/broker.py
-index 5224af3..1827b47 100644
+index 5224af3..09f2c88 100644
 --- a/watcher/broker.py
 +++ b/watcher/broker.py
-@@ -267,3 +267,33 @@ class Broker:
+@@ -241,6 +241,15 @@ class Broker:
+     def order_state(self, order_id):
+         return (self.rs.orders.get_option_order_info(order_id) or {}).get("state")
+ 
++    def order_fill(self, order_id):
++        """(filled_qty, avg_price_per_share|None) from the ORDER itself (Accuracy 10/16: the RH position read lags a fill).
++        avg = processed_premium / (qty x 100) when RH reports it, else the order's limit price. Read-only."""
++        o = self.rs.orders.get_option_order_info(order_id) or {}
++        q = int(float(o.get("processed_quantity") or 0))
++        prem = float(o.get("processed_premium") or 0)
++        avg = round(prem / (q * 100), 4) if q > 0 and prem > 0 else (float(o["price"]) if o.get("price") else None)
++        return q, avg
++
+     def cancel(self, order_id):
+         # cancelling our own unfilled entry reduces exposure; still honours STOP / LIVE / account
+         self._guard()
+@@ -267,3 +276,33 @@ class Broker:
                                                        account_number=AGENTIC_ACCOUNT, timeInForce="gfd")
          return self.rs.orders.order_sell_option_limit("close", "credit", price, c["symbol"], qty, c["exp"], c["strike"],
                                                        optionType=c["type"], account_number=AGENTIC_ACCOUNT, timeInForce="gfd")
@@ -327,7 +432,7 @@ index 5224af3..1827b47 100644
 +                   "ref_id": str(uuid.uuid4())}
 +        return helper.request_post(urls.option_orders_url(), payload, json=True)
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index e8fd93e..9089234 100644
+index e8fd93e..0b0a81a 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
 @@ -372,6 +372,11 @@ class Watcher:
@@ -342,7 +447,7 @@ index e8fd93e..9089234 100644
          sig = self.state["signals"].setdefault(key, {}); sig["fired"] = time.time()
          from . import fastchain
          if fastchain.live(): self.state["fast_streak"] = fastchain.mark_spent(self.state.get("fast_streak"), fastchain.setup_id(snap), "fired", int(time.time() * 1000))   # setup spent for the session
-@@ -403,6 +408,96 @@ class Watcher:
+@@ -403,6 +408,135 @@ class Watcher:
                                               "ordered": n, "limit": lim, "debit": round(n * lim * 100, 2), "gates": [[a, b, w] for a, b, w in g]})
          self.save()
  
@@ -368,6 +473,12 @@ index e8fd93e..9089234 100644
 +        if self.stopped(): self.log("kill_switch", note="STOP present — resting stop not placed"); return
 +        stop, q = self._stop_px(pos), int(qty or pos.get("qty") or 0)
 +        if stop <= 0.01 or q <= 0: return
++        if force:   # Release Watch 10/16: a RE-placed stop is clamped under the current bid (never an instant market-out)
++            try:
++                _m, _md = self.broker.mark(pos["contract"]["id"]); _bid = float((_md or {}).get("bid_price") or 0)
++            except Exception: _bid = 0.0
++            stop, _cl = exitsafe.clamp_stop_below_bid(stop, _bid)
++            if _cl: self.log("resting_stop_clamped", stop=stop, bid=_bid, was=self._stop_px(pos))
 +        pos["resting_stop_id"] = None if force else pos.get("resting_stop_id")
 +        try:
 +            res = exitsafe.CloseGuard(self.broker, pos["contract"], log=self.log).place_resting_stop(q, stop)
@@ -391,7 +502,8 @@ index e8fd93e..9089234 100644
 +            try: st = self.broker.order_state(oid)
 +            except Exception as e: self.log("resting_stop_state_failed", reason=str(e)); return
 +            if st == "filled":
-+                self.log("exit_by_resting_stop", order_id=oid, stop=pos.get("resting_stop_px")); pos["resting_stop_id"] = None; return
++                self.log("exit_by_resting_stop", order_id=oid, stop=pos.get("resting_stop_px")); self._book_resting_stop_fill(pos, oid, et)
++                pos["resting_stop_id"] = None; return
 +            if st in exitsafe.TERMINAL:
 +                self.log("resting_stop_gone", order_id=oid, state=st); pos["resting_stop_id"] = None
 +                if gates.past_flat(self.cfg, et): return
@@ -400,6 +512,9 @@ index e8fd93e..9089234 100644
 +                g = self._close_guard(pos)
 +                try: st2 = g.clear()
 +                except exitsafe.ExitPathRefused as e: self.alert(f"RESTING STOP won't cancel for resize ({e}) — manage manually"); return
++                except Exception as e:   # Release Watch 10/16: a non-refusal cancel error (timeout, RH 5xx) must not crash manage()
++                    self.log("resting_stop_cancel_error", order_id=oid, reason=str(e)[:200]); self.alert(f"RESTING STOP cancel error ({e}) — stop left as is; check RH"); return
++                if st2 == "filled": self._book_resting_stop_fill(pos, oid, et)
 +                pos["resting_stop_id"] = None
 +                if st2 != "filled": self._place_resting_stop(pos, qty, force=True)
 +            return
@@ -432,14 +547,43 @@ index e8fd93e..9089234 100644
 +        if status not in ("filled", "filled_not_flat") or not rungs:
 +            return None, None, act
 +        if status == "filled_not_flat" and act == "exit": self.alert("EXIT filled but RH still shows a position — check")
++        fq, vwap = exitsafe.fills_vwap(self.broker, [o for k, o in g.history if k == "ladder"])
 +        if act == "trim":
-+            pos["qty"] = max(0, pos["qty"] - qty); self._place_resting_stop(pos, force=True)
-+        return rungs[-1][1], {"id": None, "ladder": rungs}, act
++            pos["qty"] = max(0, pos["qty"] - (fq or qty)); self._place_resting_stop(pos, force=True)
++        return (vwap or rungs[-1][1]), {"id": None, "ladder": rungs, "filled_qty": fq or None, "vwap": vwap}, act
++
++    def _book_close(self, pos, et, act, px, qty):
++        """One booking path for every close (script sell, exit ladder, resting-stop fill): losing exit -> day lost (no B+
++        for the rest of the day), fireFix.dayLoss pnl, fix 20 option PnL on the fire row."""
++        if act == "exit" and pos.get("entry") and px < pos["entry"]:      # losing exit -> no B+ for the rest of the day
++            d = self.day(et.strftime("%Y-%m-%d")); d["lost"] = True
++            self.log("day_loss_recorded", signal=pos.get("signal"), exit_px=px, entry=pos["entry"])
++        _dd = self.day(et.strftime("%Y-%m-%d")); _dd["pnl"] = round(_dd.get("pnl", 0.0) + (px - (pos.get("entry") or 0)) * 100 * qty, 2)   # fireFix.dayLoss
++        pos["trimmed"] = pos.get("trimmed") or act == "trim"
++        # fix 20: the learning loop grades on OPTION PnL ($), not futures R
++        pos.setdefault("option_pnl", 0.0); pos["option_pnl"] = round(pos["option_pnl"] + (px - (pos.get("entry") or 0)) * 100 * qty, 2)
++        for f in self.day(et.strftime("%Y-%m-%d")).get("fires", []):
++            if f.get("signal") == pos.get("signal"): f["option_pnl"] = pos["option_pnl"]; f["grade_on"] = "optionPnl"
++
++    def _book_resting_stop_fill(self, pos, oid, et):
++        """Accuracy must-fix 10/16: a resting-stop fill is a losing exit like the ladder's — set the day lost and book
++        dayLoss. Qty/price come from the stop ORDER (filled qty, avg); fallback = last known stop qty / stop-limit px.
++        Booked once per order id."""
++        if not oid or pos.get("resting_stop_booked") == oid: return
++        from . import exitsafe
++        try: fq, avg = self.broker.order_fill(oid)
++        except Exception as e: fq, avg = 0, None; self.log("resting_stop_fill_read_failed", order_id=oid, reason=str(e)[:160])
++        q = int(fq or pos.get("resting_stop_qty") or pos.get("qty") or 0)
++        px = float(avg or exitsafe.stop_limit_price(pos.get("resting_stop_px") or self._stop_px(pos)))
++        if q <= 0: return
++        pos["resting_stop_booked"] = oid
++        self._book_close(pos, et, "exit", round(px, 4), q)
++        self.save()
 +
      def manage(self, et):
          pos = self.state["position"]
          if not self.cfg.live:
-@@ -413,6 +508,7 @@ class Watcher:
+@@ -413,6 +547,7 @@ class Watcher:
              st = self.broker.order_state(pos["order_id"])
              if qty > 0:
                  pos.update(filled=True, qty=qty, entry=pos["entry"] if pos["contract"].get("spread_short") else (avg or pos["entry"])); self.alert(f"FILLED {qty} @ {pos['entry']} ({st})")
@@ -447,19 +591,21 @@ index e8fd93e..9089234 100644
                  for f in self.day(et.strftime("%Y-%m-%d")).get("fires", []):
                      if f.get("signal") == pos.get("signal"): f.update(fill=avg, filled_qty=qty, filled_at=time.time())
                  self.save(); self._status(mode="manage")
-@@ -453,8 +549,10 @@ class Watcher:
+@@ -453,8 +588,12 @@ class Watcher:
                      except BrokerRefused as e: self.log("cancel_blocked", reason=str(e))
                  return
          if qty <= 0:
 -            self.alert("position no longer open on RH — clearing state"); self.state["position"] = None; return
-+            if pos.get("resting_stop_id"): self.log("exit_by_resting_stop", signal=pos.get("signal"), order_id=pos["resting_stop_id"], stop=pos.get("resting_stop_px"))
++            if pos.get("resting_stop_id"):
++                self.log("exit_by_resting_stop", signal=pos.get("signal"), order_id=pos["resting_stop_id"], stop=pos.get("resting_stop_px"))
++                self._book_resting_stop_fill(pos, pos["resting_stop_id"], et)
 +            self.alert("position no longer open on RH — clearing state" + (" (resting stop filled)" if pos.get("resting_stop_id") else "")); self.state["position"] = None; return
          pos["qty"] = qty
 +        self._check_resting_stop(pos, qty, et)
          mark, md = self.broker.spread_mark(pos["contract"]) if pos["contract"].get("spread_short") else self.broker.mark(pos["contract"]["id"])
          fut_px = None
          try: fut_px = gates.snapshot(self.fetch())["tape_prices"].get(pos.get("fut_symbol"))
-@@ -475,8 +573,14 @@ class Watcher:
+@@ -475,18 +614,17 @@ class Watcher:
              self.log("kill_switch", note=f"STOP present — NOT sending {act} {qty} ({why}); manage manually"); return
          bid = float((md or {}).get("bid_price") or 0)
          px = round(max(0.01, mark if act == "trim" else (bid or mark or 0.01)), 2)   # trim at mark, exits at bid
@@ -473,15 +619,27 @@ index e8fd93e..9089234 100644
 +        else:
 +          try: res = self.broker.sell(pos["contract"], qty, px)
 +          except BrokerRefused as e: self.log("manage_blocked", reason=str(e)); return
++        if isinstance(res, dict) and res.get("filled_qty"): qty = int(res["filled_qty"])   # book what the ORDERS filled, not the lagged RH qty
          self.alert(f"{act.upper()} {qty} @ {px}: {why}", result=res)
-         if act == "exit" and pos.get("entry") and px < pos["entry"]:      # losing exit -> no B+ for the rest of the day
-             d = self.day(et.strftime("%Y-%m-%d")); d["lost"] = True
+-        if act == "exit" and pos.get("entry") and px < pos["entry"]:      # losing exit -> no B+ for the rest of the day
+-            d = self.day(et.strftime("%Y-%m-%d")); d["lost"] = True
+-            self.log("day_loss_recorded", signal=pos.get("signal"), exit_px=px, entry=pos["entry"])
+-        _dd = self.day(et.strftime("%Y-%m-%d")); _dd["pnl"] = round(_dd.get("pnl", 0.0) + (px - (pos.get("entry") or 0)) * 100 * qty, 2)   # fireFix.dayLoss
+-        pos["trimmed"] = pos["trimmed"] or act == "trim"
+-        # fix 20: the learning loop grades on OPTION PnL ($), not futures R
+-        pos.setdefault("option_pnl", 0.0); pos["option_pnl"] = round(pos["option_pnl"] + (px - (pos.get("entry") or 0)) * 100 * qty, 2)
+-        for f in self.day(et.strftime("%Y-%m-%d")).get("fires", []):
+-            if f.get("signal") == pos.get("signal"): f["option_pnl"] = pos["option_pnl"]; f["grade_on"] = "optionPnl"
++        self._book_close(pos, et, act, px, qty)
+         pos.setdefault("exit_orders", []).append((res or {}).get("id") if isinstance(res, dict) else None)
+         pos["last_manage_order"] = time.time()
+         if act == "exit":   # after the sell is sent and booked: chart + learning row, detached (never blocks / never raises)
 diff --git a/watcher/exitsafe.py b/watcher/exitsafe.py
 new file mode 100644
-index 0000000..5205dd4
+index 0000000..abb8277
 --- /dev/null
 +++ b/watcher/exitsafe.py
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,259 @@
 +"""Exit safety (Keaton 2026-10-16, after the QQQ put: entry went out LIVE, exit script ran LIVE=0, -$30 stop became -$96).
 +
 +Three pieces, all behind EXIT_SAFE=1 (default OFF -> behaviour unchanged, desk rules hash unchanged):
@@ -566,6 +724,7 @@ index 0000000..5205dd4
 +        self.b, self.c, self.log, self.sleep = broker, contract, log, sleep
 +        self.working = None          # (kind, order_id)
 +        self.closed = False
++        self.history = []            # every (kind, order_id) this guard sent: fills are booked per ORDER (filled qty / avg)
 +
 +    def _wait_terminal(self, oid, tries=10):
 +        st = None
@@ -604,6 +763,7 @@ index 0000000..5205dd4
 +        if not oid:
 +            raise NoOrderId(f"{kind} returned no order id ({str(res)[:120]}); not re-sending — manage manually")
 +        self.working = (kind, oid)
++        self.history.append((kind, oid))
 +        return res
 +
 +    def place_resting_stop(self, qty, stop):
@@ -719,3 +879,23 @@ index 0000000..5205dd4
 +            return True
 +        sleep(0.4)
 +    return False
++
++
++def fills_vwap(broker, oids):
++    """(filled_qty, vwap) over the given close orders, read from each ORDER (not the lagged RH position).
++    Accuracy should-fix 10/16: booking every ladder fill at the LAST rung price undercounted a trim whose early rungs
++    filled higher. Orders whose fill cannot be read are skipped (qty 0). Never raises."""
++    tq, tv = 0, 0.0
++    for oid in oids:
++        try: q, avg = broker.order_fill(oid)
++        except Exception: continue
++        if q and avg: tq += int(q); tv += int(q) * float(avg)
++    return tq, (round(tv / tq, 4) if tq else None)
++
++
++def clamp_stop_below_bid(stop, bid, p=PARAMS):
++    """A re-placed sell stop at/above the current bid triggers (or is rejected) on arrival. Clamp it one tick under the
++    bid so a re-place never becomes an instant market-out; returns (stop, clamped)."""
++    if bid and bid > 0 and stop >= bid:
++        return round(max(0.01, bid - p["tick"]), 2), True
++    return round(stop, 2), False
