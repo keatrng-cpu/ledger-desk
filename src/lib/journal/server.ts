@@ -804,75 +804,77 @@ const closeTradeSchema = z.object({
 
 export type CloseTradeInput = z.input<typeof closeTradeSchema>;
 
+/** Body of `closeTrade`, callable server-side with an explicit user (the watcher fill endpoint uses it). */
+export async function closeTradeFor(sql: Sql, userId: string, data: z.output<typeof closeTradeSchema>): Promise<JournalTrade> {
+  const open = await sql.query<TradeRow>(
+    `select ${TRADE_COLUMNS} from desk_trades
+     where id = $1 and user_id = $2 and status = 'open'`,
+    [data.id, userId],
+  );
+  const trade = open[0];
+  if (!trade) throw new Error("Open trade not found");
+
+  if (!isKnownSymbol(trade.symbol)) {
+    throw new Error(`Unknown contract symbol: ${trade.symbol}`);
+  }
+
+  // Shared money math — paper uses the exact same function (see pnl.ts).
+  const { pnl, commission, r } = computeTradePnl({
+    symbol: trade.symbol,
+    side: trade.side,
+    entry: trade.entry,
+    exit: data.exit,
+    stop: trade.stop,
+    contracts: trade.contracts,
+    slippage: data.slippage,
+  });
+
+  const now = new Date();
+  const rows = await sql.query<TradeRow>(
+    `update desk_trades
+     set status = 'closed', closed_at = $1, exit = $2, pnl = $3, r = $4,
+         commission = $5, slippage = $6,
+         reason = coalesce($7, reason),
+         exit_reason = coalesce($10, exit_reason),
+         mistakes = case when $11::jsonb is null then mistakes
+                         else coalesce(mistakes, '[]'::jsonb) || $11::jsonb end
+     where id = $8 and user_id = $9 and status = 'open'
+     returning ${TRADE_COLUMNS}`,
+    [
+      now,
+      data.exit,
+      pnl,
+      r,
+      commission,
+      data.slippage,
+      data.reason ?? null,
+      data.id,
+      userId,
+      data.exitReason ?? null,
+      data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
+    ],
+  );
+  if (!rows[0]) throw new Error("Open trade not found");
+
+  await sql`
+    insert into desk_events (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
+    values (${userId}, ${now}, 'EXIT', ${trade.symbol},
+            ${trade.prescore}, ${data.reason ?? `exit @ ${data.exit}`},
+            ${pnl}, ${r}, ${trade.source},
+            ${JSON.stringify({ tradeId: trade.id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
+
+  // Seal the realised outcome — exit, pnl and R as they actually printed.
+  // This is the link that matters: it is the losers that a record has to be
+  // able to prove it did not quietly drop.
+  await appendAttestation(sql, { ...rows[0], user_id: userId }, "close");
+
+  return mapTrade(rows[0]);
+}
+
 export const closeTrade = createServerFn({ method: "POST" })
   .validator((input: unknown) => closeTradeSchema.parse(input))
   .middleware([authMiddleware])
-  .handler(async ({ data, context }): Promise<JournalTrade> => {
-    const sql = await getSql();
-    const open = await sql.query<TradeRow>(
-      `select ${TRADE_COLUMNS} from desk_trades
-       where id = $1 and user_id = $2 and status = 'open'`,
-      [data.id, context.userId],
-    );
-    const trade = open[0];
-    if (!trade) throw new Error("Open trade not found");
-
-    if (!isKnownSymbol(trade.symbol)) {
-      throw new Error(`Unknown contract symbol: ${trade.symbol}`);
-    }
-
-    // Shared money math — paper uses the exact same function (see pnl.ts).
-    const { pnl, commission, r } = computeTradePnl({
-      symbol: trade.symbol,
-      side: trade.side,
-      entry: trade.entry,
-      exit: data.exit,
-      stop: trade.stop,
-      contracts: trade.contracts,
-      slippage: data.slippage,
-    });
-
-    const now = new Date();
-    const rows = await sql.query<TradeRow>(
-      `update desk_trades
-       set status = 'closed', closed_at = $1, exit = $2, pnl = $3, r = $4,
-           commission = $5, slippage = $6,
-           reason = coalesce($7, reason),
-           exit_reason = coalesce($10, exit_reason),
-           mistakes = case when $11::jsonb is null then mistakes
-                           else coalesce(mistakes, '[]'::jsonb) || $11::jsonb end
-       where id = $8 and user_id = $9 and status = 'open'
-       returning ${TRADE_COLUMNS}`,
-      [
-        now,
-        data.exit,
-        pnl,
-        r,
-        commission,
-        data.slippage,
-        data.reason ?? null,
-        data.id,
-        context.userId,
-        data.exitReason ?? null,
-        data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
-      ],
-    );
-    if (!rows[0]) throw new Error("Open trade not found");
-
-    await sql`
-      insert into desk_events (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
-      values (${context.userId}, ${now}, 'EXIT', ${trade.symbol},
-              ${trade.prescore}, ${data.reason ?? `exit @ ${data.exit}`},
-              ${pnl}, ${r}, ${trade.source},
-              ${JSON.stringify({ tradeId: trade.id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
-
-    // Seal the realised outcome — exit, pnl and R as they actually printed.
-    // This is the link that matters: it is the losers that a record has to be
-    // able to prove it did not quietly drop.
-    await appendAttestation(sql, { ...rows[0], user_id: context.userId }, "close");
-
-    return mapTrade(rows[0]);
-  });
+  .handler(async ({ data, context }): Promise<JournalTrade> => closeTradeFor(await getSql(), context.userId, data));
 
 /* ------------------------------------------------------------------ */
 /* Book counters — the profit-rule state, visible                      */
@@ -973,142 +975,144 @@ export type RealFillInput = z.input<typeof realFillSchema>;
  *
  * Live only. Paper keeps `openTrade`, where refusing is the point.
  */
+/** Body of `recordRealFill`, callable server-side with an explicit user (the watcher fill endpoint uses it). */
+export async function recordRealFillFor(sql: Sql, userId: string, data: z.output<typeof realFillSchema>): Promise<JournalTrade> {
+  if (!isKnownSymbol(data.symbol)) throw new Error(`Unknown contract symbol: ${data.symbol}`);
+
+  // What the gates WOULD have said — recorded, never enforced here.
+  let gate: string | null = null;
+  try {
+    const risk = await computeLiveRiskState(sql, userId);
+    if (risk.dailyHaltHit) gate = `Daily halt: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}`;
+    else if (risk.weeklyHaltHit) gate = `Weekly halt: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}`;
+    if (!gate) {
+      await assertOpenAllowed(sql, userId, {
+        symbol: data.symbol,
+        side: data.side,
+        entry: data.entry,
+        stop: data.stop,
+        contracts: data.contracts,
+        mode: "live",
+        source: "desk",
+        pathBand: data.pathBand,
+        strategyPrimary: data.strategyPrimary,
+        prescore: data.prescore,
+        reason: data.reason,
+      } as Parameters<typeof assertOpenAllowed>[2]);
+    }
+  } catch (e) {
+    gate = e instanceof Error ? e.message : String(e);
+  }
+  const override = gate != null || (data.deskWord != null && data.deskWord !== "TAKE");
+
+  const openedAt = data.filledAt ? new Date(data.filledAt) : new Date();
+  const closing = data.exit != null;
+  const closedAt = closing ? (data.exitedAt ? new Date(data.exitedAt) : new Date()) : null;
+  const money = closing
+    ? computeTradePnl({
+        symbol: data.symbol,
+        side: data.side,
+        entry: data.entry,
+        exit: data.exit!,
+        stop: data.stop ?? null,
+        contracts: data.contracts,
+        slippage: data.slippage,
+      })
+    : null;
+
+  if (!closing) {
+    const existing = await sql.query<{ id: string }>(
+      `select id from desk_trades
+        where user_id = $1 and mode = 'live' and symbol = $2 and side = $3 and status = 'open'`,
+      [userId, data.symbol, data.side],
+    );
+    if (existing.length) {
+      throw new Error(
+        `An open live ${data.side} in ${data.symbol} is already recorded. Close it (Book › Journal) first, or record this one with its exit.`,
+      );
+    }
+  }
+
+  const id = crypto.randomUUID();
+  const rows = await sql.query<TradeRow>(
+    `insert into desk_trades (
+       id, user_id, mode, source, symbol, side, status, opened_at, closed_at,
+       entry, stop, target, exit, contracts, pnl, r, commission, slippage,
+       reason, prescore, grade, killzone, strategy, regime,
+       desk_word, missing_layers, override, override_gate, path_band, why,
+       why_pre, plan_entry, plan_stop, filled_at, state_rating, mistakes, exit_reason
+     ) values (
+       $1, $2, 'live', 'desk', $3, $4, $5, $6, $7,
+       $8, $9, $10, $11, $12, $13, $14, $15, $16,
+       $17, $18, $19, $20, $21, $22,
+       $23, $24::jsonb, $25, $26, $27, $28,
+       $29, $30, $31, $32, $33, $34::jsonb, $35
+     )
+     returning ${TRADE_COLUMNS}`,
+    [
+      id,
+      userId,
+      data.symbol,
+      data.side,
+      closing ? "closed" : "open",
+      openedAt,
+      closedAt,
+      data.entry,
+      data.stop ?? null,
+      data.target ?? null,
+      data.exit ?? null,
+      data.contracts,
+      money?.pnl ?? null,
+      money?.r ?? null,
+      money?.commission ?? 0,
+      data.slippage,
+      data.reason ?? null,
+      data.prescore ?? null,
+      // `grade` keeps the path band's coarse form for the legacy counters.
+      data.pathBand === "A" ? "A-" : data.pathBand === "C" ? "skip" : (data.pathBand ?? null),
+      data.killzone ?? null,
+      data.strategyPrimary?.toLowerCase() ?? strategyFromReason(data.reason) ?? null,
+      data.regime ?? null,
+      data.deskWord ?? null,
+      data.missingLayers ? JSON.stringify(data.missingLayers) : null,
+      override,
+      gate,
+      data.pathBand ?? null,
+      data.why ?? null,
+      data.whyPre ?? null,
+      data.planEntry ?? null,
+      data.planStop ?? null,
+      openedAt,
+      data.stateRating ?? null,
+      data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
+      data.exitReason ?? null,
+    ],
+  );
+
+  await sql`
+    insert into desk_events (user_id, ts, event, symbol, prescore, reason, source, payload)
+    values (${userId}, ${openedAt}, 'ENTRY', ${data.symbol},
+            ${data.prescore ?? null},
+            ${`REAL FILL ${data.side} ${data.contracts}x @ ${data.entry}${override ? " · OVERRIDE" : ""}`},
+            'desk',
+            ${JSON.stringify({ tradeId: id, side: data.side, entry: data.entry, stop: data.stop ?? null, deskWord: data.deskWord ?? null, override, gate })}::jsonb)`;
+  await appendAttestation(sql, { ...rows[0]!, user_id: userId }, "open");
+  if (closing) {
+    await sql`
+      insert into desk_events (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
+      values (${userId}, ${closedAt}, 'EXIT', ${data.symbol},
+              ${data.prescore ?? null}, ${data.exitReason ?? `exit @ ${data.exit}`},
+              ${money!.pnl}, ${money!.r}, 'desk',
+              ${JSON.stringify({ tradeId: id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
+    await appendAttestation(sql, { ...rows[0]!, user_id: userId }, "close");
+  }
+  return mapTrade(rows[0]!);
+}
+
 export const recordRealFill = createServerFn({ method: "POST" })
   .validator((input: unknown) => realFillSchema.parse(input))
   .middleware([authMiddleware])
-  .handler(async ({ data, context }): Promise<JournalTrade> => {
-    const sql = await getSql();
-    if (!isKnownSymbol(data.symbol)) throw new Error(`Unknown contract symbol: ${data.symbol}`);
-
-    // What the gates WOULD have said — recorded, never enforced here.
-    let gate: string | null = null;
-    try {
-      const risk = await computeLiveRiskState(sql, context.userId);
-      if (risk.dailyHaltHit) gate = `Daily halt: day PnL ${risk.dayPnl.toFixed(2)} <= -${risk.dailyLimit.toFixed(2)}`;
-      else if (risk.weeklyHaltHit) gate = `Weekly halt: week PnL ${risk.weekPnl.toFixed(2)} <= -${risk.weeklyLimit.toFixed(2)}`;
-      if (!gate) {
-        await assertOpenAllowed(sql, context.userId, {
-          symbol: data.symbol,
-          side: data.side,
-          entry: data.entry,
-          stop: data.stop,
-          contracts: data.contracts,
-          mode: "live",
-          source: "desk",
-          pathBand: data.pathBand,
-          strategyPrimary: data.strategyPrimary,
-          prescore: data.prescore,
-          reason: data.reason,
-        } as Parameters<typeof assertOpenAllowed>[2]);
-      }
-    } catch (e) {
-      gate = e instanceof Error ? e.message : String(e);
-    }
-    const override = gate != null || (data.deskWord != null && data.deskWord !== "TAKE");
-
-    const openedAt = data.filledAt ? new Date(data.filledAt) : new Date();
-    const closing = data.exit != null;
-    const closedAt = closing ? (data.exitedAt ? new Date(data.exitedAt) : new Date()) : null;
-    const money = closing
-      ? computeTradePnl({
-          symbol: data.symbol,
-          side: data.side,
-          entry: data.entry,
-          exit: data.exit!,
-          stop: data.stop ?? null,
-          contracts: data.contracts,
-          slippage: data.slippage,
-        })
-      : null;
-
-    if (!closing) {
-      const existing = await sql.query<{ id: string }>(
-        `select id from desk_trades
-          where user_id = $1 and mode = 'live' and symbol = $2 and side = $3 and status = 'open'`,
-        [context.userId, data.symbol, data.side],
-      );
-      if (existing.length) {
-        throw new Error(
-          `An open live ${data.side} in ${data.symbol} is already recorded. Close it (Book › Journal) first, or record this one with its exit.`,
-        );
-      }
-    }
-
-    const id = crypto.randomUUID();
-    const rows = await sql.query<TradeRow>(
-      `insert into desk_trades (
-         id, user_id, mode, source, symbol, side, status, opened_at, closed_at,
-         entry, stop, target, exit, contracts, pnl, r, commission, slippage,
-         reason, prescore, grade, killzone, strategy, regime,
-         desk_word, missing_layers, override, override_gate, path_band, why,
-         why_pre, plan_entry, plan_stop, filled_at, state_rating, mistakes, exit_reason
-       ) values (
-         $1, $2, 'live', 'desk', $3, $4, $5, $6, $7,
-         $8, $9, $10, $11, $12, $13, $14, $15, $16,
-         $17, $18, $19, $20, $21, $22,
-         $23, $24::jsonb, $25, $26, $27, $28,
-         $29, $30, $31, $32, $33, $34::jsonb, $35
-       )
-       returning ${TRADE_COLUMNS}`,
-      [
-        id,
-        context.userId,
-        data.symbol,
-        data.side,
-        closing ? "closed" : "open",
-        openedAt,
-        closedAt,
-        data.entry,
-        data.stop ?? null,
-        data.target ?? null,
-        data.exit ?? null,
-        data.contracts,
-        money?.pnl ?? null,
-        money?.r ?? null,
-        money?.commission ?? 0,
-        data.slippage,
-        data.reason ?? null,
-        data.prescore ?? null,
-        // `grade` keeps the path band's coarse form for the legacy counters.
-        data.pathBand === "A" ? "A-" : data.pathBand === "C" ? "skip" : (data.pathBand ?? null),
-        data.killzone ?? null,
-        data.strategyPrimary?.toLowerCase() ?? strategyFromReason(data.reason) ?? null,
-        data.regime ?? null,
-        data.deskWord ?? null,
-        data.missingLayers ? JSON.stringify(data.missingLayers) : null,
-        override,
-        gate,
-        data.pathBand ?? null,
-        data.why ?? null,
-        data.whyPre ?? null,
-        data.planEntry ?? null,
-        data.planStop ?? null,
-        openedAt,
-        data.stateRating ?? null,
-        data.mistakes?.length ? JSON.stringify(data.mistakes) : null,
-        data.exitReason ?? null,
-      ],
-    );
-
-    await sql`
-      insert into desk_events (user_id, ts, event, symbol, prescore, reason, source, payload)
-      values (${context.userId}, ${openedAt}, 'ENTRY', ${data.symbol},
-              ${data.prescore ?? null},
-              ${`REAL FILL ${data.side} ${data.contracts}x @ ${data.entry}${override ? " · OVERRIDE" : ""}`},
-              'desk',
-              ${JSON.stringify({ tradeId: id, side: data.side, entry: data.entry, stop: data.stop ?? null, deskWord: data.deskWord ?? null, override, gate })}::jsonb)`;
-    await appendAttestation(sql, { ...rows[0]!, user_id: context.userId }, "open");
-    if (closing) {
-      await sql`
-        insert into desk_events (user_id, ts, event, symbol, prescore, reason, pnl, r, source, payload)
-        values (${context.userId}, ${closedAt}, 'EXIT', ${data.symbol},
-                ${data.prescore ?? null}, ${data.exitReason ?? `exit @ ${data.exit}`},
-                ${money!.pnl}, ${money!.r}, 'desk',
-                ${JSON.stringify({ tradeId: id, exit: data.exit, slippage: data.slippage })}::jsonb)`;
-      await appendAttestation(sql, { ...rows[0]!, user_id: context.userId }, "close");
-    }
-    return mapTrade(rows[0]!);
-  });
+  .handler(async ({ data, context }): Promise<JournalTrade> => recordRealFillFor(await getSql(), context.userId, data));
 
 /* ------------------------------------------------------------------ */
 /* Listing                                                            */

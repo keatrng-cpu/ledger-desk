@@ -1,0 +1,250 @@
+diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_fills_sink.py b/tests/test_fills_sink.py
+--- a/tests/test_fills_sink.py	1969-12-31 18:00:00.000000000 -0600
++++ b/tests/test_fills_sink.py	2026-10-16 01:20:48.857196876 -0500
+@@ -0,0 +1,51 @@
++"""watcher/fills_sink.py: payloads from logged records, outbox retry, dry-run/shadow skip."""
++import json
++from types import SimpleNamespace
++from watcher import fills_sink as fs
++
++POS = {"signal": "sig-85e8feddd99efe46", "fut_symbol": "ES", "fut_side": "long", "fut_stop": 7775.0, "fut_t1": 7792.25, "order_id": "6ad1151c-8bc9-4446-a02f-9223be78a8f9",
++       "ordered": 1, "qty": 0, "entry": 2.98, "contract": {"symbol": "SPY", "exp": "2026-10-16", "strike": 770.0, "type": "call"},
++       "card": {"symbol": "ES", "side": "long", "band": "B+", "entry": 7782.63, "stop_px": 7775.0, "first_target": 7792.25}}
++ST = {"position": POS}
++
++def test_payloads_from_records():
++    p = fs.payload_for({"kind": "alert", "text": "FIRE B+ ES long q=0.6 entry=7782.63", "signal": POS["signal"]}, ST)
++    assert p["event"] == "placed" and p["orderId"] == POS["order_id"] and p["plan"] == {"entry": 7782.63, "stop": 7775.0, "t1": 7792.25}
++    assert p["option"] == {"underlier": "SPY", "right": "call", "strike": 770.0, "expiry": "2026-10-16"}
++    f = fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96 (filled)"}, {"position": {**POS, "qty": 1, "entry": 2.96}})
++    assert f["event"] == "filled" and f["fillPx"] == 2.96 and f["qty"] == 1 and f["orderId"] == POS["order_id"]
++    x = fs.payload_for({"kind": "alert", "text": "EXIT 1 @ 2.6: ticket stop 7775.0 hit (px 7775.0)", "result": {"id": "6ad115c6-72e9-4303-ad11-ab83fd3726ba", "account_number": "995386158"}},
++                       {"position": {**POS, "qty": 1, "entry": 2.96}})
++    assert x["event"] == "exit" and x["exitPx"] == 2.6 and x["exitUnderlierPx"] == 7775.0 and x["optionPnl"] == -36.0
++    assert x["orderId"].startswith("6ad115c6") and "995386158" not in json.dumps(x)
++    assert fs.payload_for({"kind": "alert", "text": "DESK A ES long"}, ST) is None
++    assert fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96", "shadow": True}, ST) is None
++    assert fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96"}, {"position": None}) is None
++
++def test_outbox_retry_and_order(tmp_path):
++    status = [503]; seen = []
++    s = fs.Sink(str(tmp_path / "outbox.jsonl"), url="https://desk/api/desk/fills", token="t", post=lambda u, p, t: seen.append(p["event"]) or status[0])
++    s.enqueue({"event": "placed"}); s.enqueue({"event": "filled"})
++    assert s.flush() == 0 and len(s._read()) == 2          # desk down: both kept, order preserved
++    status[0] = 200
++    assert s.flush() == 2 and s._read() == []
++    assert seen == ["placed", "placed", "filled"]
++    status[0] = 422; s.enqueue({"event": "exit"})
++    assert s.flush() == 1 and s._read() == []                # permanently refused rows are dropped, not retried forever
++
++def test_unconfigured_keeps_outbox(tmp_path):
++    s = fs.Sink(str(tmp_path / "o.jsonl"), url="", token="")
++    s.enqueue({"event": "filled"}); assert s.flush() == 0 and len(s._read()) == 1
++
++def test_dry_run_and_fire_disabled_skip(tmp_path):
++    rec = {"kind": "alert", "text": "FILLED 1 @ 2.96"}
++    cfg = SimpleNamespace(live=False, fire_enabled=True, path=lambda n: str(tmp_path / n))
++    assert fs.on_record(rec, ST, cfg) is None
++    cfg.live, cfg.fire_enabled = True, False
++    assert fs.on_record(rec, ST, cfg) is None
++    assert not (tmp_path / "outbox.jsonl").exists()
++
++def test_url_derivation():
++    assert fs.fills_url({"WATCHER_STATUS_URL": "https://x.app/api/desk/watcher"}) == "https://x.app/api/desk/fills"
++    assert fs.fills_url({"WATCHER_FILLS_URL": "https://y/f", "WATCHER_STATUS_URL": "https://x/a/b"}) == "https://y/f"
++    assert fs.fills_url({}) == ""
+diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_notify.py b/tests/test_notify.py
+--- a/tests/test_notify.py	2026-10-16 01:20:41.505196876 -0500
++++ b/tests/test_notify.py	2026-10-16 01:20:48.853196876 -0500
+@@ -105,3 +105,16 @@
+     assert n.notify(FIRE) == (False, "error") and FIRE_KEY_NOT_SEEN(n)
+ 
+ def FIRE_KEY_NOT_SEEN(n): return notify.event_key(FIRE) not in n.seen and not n.inflight
++
++def test_format_exception_never_sticks_in_flight(monkeypatch):
++    sent = []
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/x", post=lambda u, b: sent.append(b) or True, clock=Clock())
++    real = notify.format_event; calls = [0]
++    def flaky(e):
++        calls[0] += 1
++        if calls[0] == 1: raise ValueError("bad field")
++        return real(e)
++    monkeypatch.setattr(notify, "format_event", flaky)
++    assert n.notify(FIRE) == (False, "error")
++    assert not n.inflight and notify.event_key(FIRE) not in n.seen
++    assert n.notify(FIRE) == (True, None) and len(sent) == 1
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-16 01:20:41.501196876 -0500
++++ b/watcher/daemon.py	2026-10-16 01:20:41.529196876 -0500
+@@ -4,7 +4,7 @@
+ from . import status
+ from datetime import datetime
+ import requests
+-from . import gates, ticks, notify, monitoring
++from . import gates, ticks, notify, monitoring, fills_sink
+ from .config import Config
+ from .broker import Broker, BrokerRefused
+ 
+@@ -39,6 +39,8 @@
+         if kind not in ("tick",): self.state["events"].append(rec)
+         try: notify.on_record(rec)   # Slack side channel (SLACK_DESK_WEBHOOK_URL); no-op when unset, never raises
+         except Exception: pass
++        try: fills_sink.on_record(rec, self.state, self.cfg)   # live order events -> /api/desk/fills via outbox thread; never raises
++        except Exception: pass
+         return rec
+ 
+     def alert(self, text, **kw):
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/fills_sink.py b/watcher/fills_sink.py
+--- a/watcher/fills_sink.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/fills_sink.py	2026-10-16 01:20:41.517196876 -0500
+@@ -0,0 +1,132 @@
++"""Live order events -> desk /api/desk/fills (room_orders + desk_trades). Spec: ledger-desk docs/watcher-fills-1016.
++
++Off the order path: on_record() only builds a payload from a record the daemon ALREADY logged plus state["position"],
++appends it to outbox.jsonl and wakes a background thread that POSTs it (WATCHER_STATUS_TOKEN bearer, 5 s timeout).
++Anything not acknowledged stays in the outbox and is retried (at most every RETRY_S). Never raises into the daemon,
++never places/cancels/gates anything. Skipped entirely for dry-run (cfg.live False or fire disabled) and shadow records.
++URL: WATCHER_FILLS_URL, else WATCHER_STATUS_URL with its last path segment replaced by "fills".
++"""
++import json, os, re, threading, time
++
++RETRY_S = 60
++MAX_OUTBOX = 500
++_FILL = re.compile(r"^FILLED (\d+) @ ([\d.]+)")
++_EXIT = re.compile(r"^EXIT (\d+) @ ([\d.]+)(?::\s*(.*?))?(?:\(px ([\d.]+)\))?\s*$")
++
++def fills_url(env=None):
++    env = os.environ if env is None else env
++    u = (env.get("WATCHER_FILLS_URL") or "").strip()
++    if u: return u
++    s = (env.get("WATCHER_STATUS_URL") or "").strip()
++    return s.rsplit("/", 1)[0] + "/fills" if s else ""
++
++def _plan(pos):
++    card = pos.get("card") or {}
++    entry = card.get("entry"); stop = pos.get("fut_stop") or card.get("stop_px"); t1 = pos.get("fut_t1") or card.get("first_target")
++    if entry is None or stop is None: return None
++    p = {"entry": float(entry), "stop": float(stop)}
++    if t1 is not None:
++        try: p["t1"] = float(t1)
++        except (TypeError, ValueError): pass
++    return p
++
++def _option(pos):
++    c = pos.get("contract") or {}
++    if not c.get("symbol"): return None
++    o = {"underlier": str(c["symbol"]), "right": "call" if str(c.get("type", "")).lower().startswith("c") else "put",
++         "strike": float(c.get("strike") or 0), "expiry": str(c.get("exp") or "")[:10]}
++    return o
++
++def payload_for(rec, state):
++    """-> dict for POST /api/desk/fills, or None. Pure."""
++    if rec.get("shadow") or rec.get("kind") != "alert": return None
++    text = str(rec.get("text", "")); pos = (state or {}).get("position") or {}
++    if not pos.get("signal") or pos.get("fut_symbol") not in ("ES", "MNQ") or pos.get("fut_side") not in ("long", "short"): return None
++    base = {"signal": pos["signal"], "atMs": int(time.time() * 1000), "symbol": pos["fut_symbol"], "side": pos["fut_side"],
++            "band": (pos.get("card") or {}).get("band"), "option": _option(pos), "qty": int(pos.get("qty") or pos.get("ordered") or 1)}
++    if base["option"] is None: base.pop("option")
++    if base["band"] is None: base.pop("band")
++    plan = _plan(pos)
++    if plan is None: return None
++    base["plan"] = plan
++    if text.startswith("FIRE ") and rec.get("signal") == pos["signal"]:      # logged right after PLACED, once pos["card"] exists
++        return {**base, "event": "placed", "orderId": pos.get("order_id")}
++    m = _FILL.match(text)
++    if m: return {**base, "event": "filled", "orderId": pos.get("order_id"), "qty": int(m[1]), "fillPx": float(m[2])}
++    m = _EXIT.match(text)
++    if m:
++        res = rec.get("result") if isinstance(rec.get("result"), dict) else {}
++        out = {**base, "event": "exit", "qty": int(m[1]), "exitPx": float(m[2]), "reason": (m[3] or "exit").strip()[:300]}
++        if res.get("id"): out["orderId"] = str(res["id"])
++        if m[4]: out["exitUnderlierPx"] = float(m[4])
++        try: out["optionPnl"] = round((float(m[2]) - float(pos.get("entry"))) * int(m[1]) * 100, 2)
++        except (TypeError, ValueError): pass
++        return out
++    return None
++
++class Sink:
++    def __init__(self, outbox_path, url=None, token=None, post=None, clock=time.time):
++        self.path = outbox_path; self.url = fills_url() if url is None else url
++        self.token = os.environ.get("WATCHER_STATUS_TOKEN", "") if token is None else token
++        self._post = post; self.clock = clock; self.last_try = 0.0
++        self._lock = threading.Lock(); self._wake = threading.Event(); self._thread = None
++
++    def enqueue(self, p):
++        with self._lock:
++            with open(self.path, "a") as f: f.write(json.dumps(p, default=str) + "\n")
++        self._wake.set()
++
++    def _read(self):
++        try:
++            with open(self.path) as f: return [json.loads(l) for l in f if l.strip()]
++        except FileNotFoundError: return []
++        except Exception: return []
++
++    def flush(self):
++        """POST every outbox row in order; keep the ones not acknowledged (2xx, or 422 = permanently refused, dropped)."""
++        if not self.url or not self.token: return 0
++        with self._lock:
++            rows = self._read(); keep = []; sent = 0
++            for i, p in enumerate(rows):
++                try:
++                    status = self._send(p)
++                except Exception:
++                    status = None
++                if status is not None and (200 <= status < 300 or status == 422): sent += 1
++                else: keep = rows[i:]; break
++            keep = keep[-MAX_OUTBOX:]
++            tmp = self.path + ".tmp"
++            with open(tmp, "w") as f:
++                for p in keep: f.write(json.dumps(p, default=str) + "\n")
++            os.replace(tmp, self.path)
++            self.last_try = self.clock()
++            return sent
++
++    def _send(self, p):
++        if self._post: return self._post(self.url, p, self.token)
++        import requests
++        return requests.post(self.url, json=p, timeout=5, headers={"authorization": f"Bearer {self.token}"}).status_code
++
++    def start(self):
++        if self._thread: return
++        def loop():
++            while True:
++                self._wake.wait(RETRY_S); self._wake.clear()
++                try: self.flush()
++                except Exception: pass
++        self._thread = threading.Thread(target=loop, name="fills_sink", daemon=True); self._thread.start()
++
++_default = None
++def on_record(rec, state, cfg):
++    """Daemon hook. Dry-run / fire-disabled / shadow -> nothing. Never raises."""
++    global _default
++    try:
++        if not getattr(cfg, "live", False) or not getattr(cfg, "fire_enabled", False): return None
++        p = payload_for(rec, state)
++        if p is None: return None
++        if _default is None:
++            _default = Sink(cfg.path("outbox.jsonl")); _default.start()
++        _default.enqueue(p)
++        return p
++    except Exception:
++        return None
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notify.py
+--- a/watcher/notify.py	2026-10-16 01:20:41.501196876 -0500
++++ b/watcher/notify.py	2026-10-16 01:20:41.529196876 -0500
+@@ -84,11 +84,11 @@
+                 self.sent_at = [x for x in self.sent_at if t - x < self.window_s]
+                 if len(self.sent_at) >= self.rate_max: self.suppressed += 1; return False, "rate_limited"
+                 self.inflight.add(key); self.sent_at.append(t)
+-                text = format_event(e)
+-                carried = self.suppressed
+-                if carried: text += f" _(+{carried} suppressed by rate limit)_"; self.suppressed = 0
++                carried = self.suppressed; self.suppressed = 0
+             ok = False
+             try:
++                text = format_event(e)   # inside the try: a malformed event can never leave its key stuck in-flight
++                if carried: text += f" _(+{carried} suppressed by rate limit)_"
+                 body = {"text": scrub_text(text)}
+                 if self._post: ok = bool(self._post(self.url, body))
+                 else:
