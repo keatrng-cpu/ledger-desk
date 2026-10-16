@@ -17,6 +17,7 @@ import { ticketManageLines } from "@/lib/execution/opt-exec";
 
 import { isPathFire } from "@/lib/alerts/path-alarm";
 import RULES_DESK from "../../../shared/desk-rules.json";
+import { bplusBrainGate } from "@/lib/execution/bplus-brain";
 import { latePnlCheck, latePnlPendingOk } from "@/lib/smc/loss-guards";
 const RULES_FIRE = RULES_DESK.fire;
 import { etfFromFuture } from "@/lib/market/spot-cross";
@@ -2312,6 +2313,26 @@ export function cutCapHold(card: RhStrategyCard): string | null {
 
 export function gateHand(desk: DeskPayload, card: RhStrategyCard): RhStrategyCard {
   const holds = ticketHolds(desk, card);
+  // fire.bplusBrainTake (Keaton 2026-10-16): B+, or A- cut to B+ size by the one-step HTF cap, fires only on Brain TAKE
+  // on the same symbol + side. Hard (never a soft gateHand hold): the card goes WATCH with the reason line.
+  if (card.verdict === "ARMED" && card.ticket) {
+    const t = card.ticket;
+    const bk = desk.smcMaster?.oneBook as { symbol?: string; side?: string; word?: unknown } | undefined;
+    const g = bplusBrainGate({
+      // The gated card's own band and q (Accuracy NO-GO 2026-10-16): ES and NQ PATH cards can coexist, so never the top scan row.
+      band: card.pathBand,
+      htfCapped: holds.some((h) => gateHandCutTrigger(h) === "htf_against"),
+      symbol: t.underlier,
+      side: t.side === "call" ? "long" : "short",
+      brainWord: bk?.word == null ? null : String(bk.word),
+      brainSymbol: bk?.symbol ?? null,
+      brainSide: bk?.side ?? null,
+      q: Number.isFinite(card.score) ? card.score : null,
+      floorBlocks: card.blocks,
+      ...(desk.bplusDay ? { bplusEntriesToday: desk.bplusDay.entries, lostToday: desk.bplusDay.lost } : {}),
+    });
+    if (!g.fireable && g.reason) return { ...card, verdict: "WATCH", blocks: [...card.blocks, g.reason, ...holds].slice(0, 6), holds: [g.reason, ...holds] };
+  }
   if (!holds.length) return card;
   // Bug 2026-10-13 (gate-funnel audit): the server never has a live chain, so EVERY armed card got this hold, the Floor
   // read WATCH and execution.phase never became "hand" (19 replay days + today: 0 ARMED / 0 hand). When the model-price
