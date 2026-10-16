@@ -26,6 +26,7 @@ import type { DeskPayload } from "@/lib/trading/build-desk";
 import { evaluateOptionsDesk } from "@/lib/trading/options-desk";
 import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { getNewsFeed, getPulse } from "@/lib/news/news-server";
+import { getShockExplain } from "@/lib/news/shock-explain-server";
 import { predictLiteFromBoard } from "@/lib/room/hall-lite";
 import { getHall, subscribeHall } from "@/lib/room/hall-store";
 import { pullHall } from "./hall-read";
@@ -42,7 +43,7 @@ import { computeRace, type Race } from "@/lib/room/race";
 import { asSeatBook, ensureSeats } from "@/lib/room/seats";
 import { freshTalkState, restoreTalkState, talkTick } from "@/lib/room/live-talk";
 import { floorProps, propsSignature, type FloorProps } from "@/lib/room/floor-props";
-import { TALK, type FeedRead, type NewsLite, type PredictLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
+import { TALK, type FeedRead, type NewsLite, type PredictLite, type PulseTermLite, type ShockNoteLite, type TalkItem, type TalkKind, type TalkState, type TalkWorld, type Urgency } from "@/lib/room/live-types";
 import { atrOf, brainSources, emptyRings, feedOf, goalLite, labLite, newsLiteFrom, ringsAfter, rndLite, scannerCards, seatsLite, worldFromDesk, type Rings } from "@/lib/room/live-world";
 import { readInvestOffice } from "@/lib/room/invest-sources";
 import { deskAudit } from "@/lib/room/audit";
@@ -299,7 +300,9 @@ interface RoomState {
   frame: FloorFrame | null;
   frameSeq: number;
   lastFetchedAt: string | null;
-  pulse: { vix: number | null; tenYear: number | null; at: number | null };
+  pulse: { vix: number | null; tenYear: number | null; at: number | null; term?: PulseTermLite | null };
+  /** A cited headline for the latest unscheduled shock (shock-explain.ts). Null: the tape line stands alone. */
+  shockNote: ShockNoteLite | null;
   news: FloorScreens["news"];
   /** The headlines as the talk reads them (tagged, tiered), newest first. */
   newsLite: NewsLite[];
@@ -348,6 +351,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   frameSeq: 0,
   lastFetchedAt: null,
   pulse: { vix: null, tenYear: null, at: null },
+  shockNote: null,
   news: [],
   newsLite: [],
   predict: null,
@@ -742,6 +746,34 @@ let rings: Rings = emptyRings();
 let lastTickMs = 0;
 
 /**
+ * An unscheduled shock on the desk → ask the server once for a cited headline (shock-explain.ts). The server
+ * re-checks the candle and the calendar and caches one answer per shock. No headline (no key, timeout, no
+ * citations, an invented figure): nothing is stored and the room's existing tape lines stand alone.
+ */
+let shockAsked = "";
+function askShockExplain(desk: DeskPayload) {
+  const e = desk.shock?.event;
+  if (!e) return;
+  const key = `${e.symbol}|${e.at}`;
+  if (key === shockAsked) return;
+  shockAsked = key;
+  void getShockExplain({ data: e })
+    .then((r) => {
+      if (!r?.headline || !r.sources[0]) return;
+      let host = "the wire";
+      try {
+        host = new URL(r.sources[0].url).hostname.replace(/^www\./, "");
+      } catch {
+        // keep "the wire"
+      }
+      useRoomStore.setState({ shockNote: { key: r.key, symbol: r.symbol, tape: { side: e.side, pts: e.pts, atrX: e.atrMult }, headline: r.headline, sourceHost: host } });
+    })
+    .catch(() => {
+      // Narration only: a failed ask changes nothing.
+    });
+}
+
+/**
  * One look at the live desk, at most once a second. Pure talk (live-talk.ts) decides; this only feeds it the desk and
  * files what it says: the scene's queue while the floor is open, the wire log always.
  */
@@ -755,6 +787,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     nowMs,
     rings,
     pulse: st.pulse,
+    shockNote: st.shockNote,
     news: st.newsLite,
     book: st.book,
     beat: st.frame?.trace.beat ?? null,
@@ -769,6 +802,7 @@ export function liveTick(desk: DeskPayload, nowMs = Date.now()) {
     const patch = (window as unknown as { __roomDev?: RoomDev }).__roomDev?.patchWorld;
     if (patch) world = patch(world);
   }
+  askShockExplain(desk);
   const { item, state } = talkTick(world, st.talkState);
   if (item) {
     const speakers = item.lines.map((l) => l.character);
@@ -828,7 +862,9 @@ export function useRoomEngine(desk: DeskPayload | null) {
         if (!alive) return;
         const vix = r.pulse.find((p) => p.label === "VIX")?.last ?? null;
         const tenYear = r.pulse.find((p) => p.label === "10y yield")?.last ?? null;
-        useRoomStore.setState({ pulse: { vix, tenYear, at: Date.now() } });
+        const g = r.regime;
+        const term: PulseTermLite | null = g ? { ivts: g.ivts, vvix: g.vvix, t10y2y: g.t10y2y?.value ?? null, gdpNow: g.gdpNow?.value ?? null } : null;
+        useRoomStore.setState({ pulse: { vix, tenYear, at: Date.now(), term } });
       } catch {
         // No pulse: the room prices with the desk's fixed IVs and says so.
       }

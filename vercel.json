@@ -32,6 +32,30 @@
     {
       "path": "/api/cron/weekly",
       "schedule": "0 23 * * 0"
+    },
+    {
+      "path": "/api/cron/news-calendar",
+      "schedule": "0 12 * * 1-5"
+    },
+    {
+      "path": "/api/cron/news-calendar",
+      "schedule": "0 13 * * 1-5"
+    },
+    {
+      "path": "/api/cron/weekly-cost",
+      "schedule": "30 22 * * 0"
+    },
+    {
+      "path": "/api/cron/weekly-cost",
+      "schedule": "30 23 * * 0"
+    },
+    {
+      "path": "/api/cron/actuals",
+      "schedule": "45 12 * * 1-5"
+    },
+    {
+      "path": "/api/cron/actuals",
+      "schedule": "45 13 * * 1-5"
     }
   ],
   "headers": [

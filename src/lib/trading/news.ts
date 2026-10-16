@@ -58,7 +58,8 @@ export const COVERAGE_MIN_DAYS = 3;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}$/;
 
-function isNewsEvent(x: unknown): x is NewsEvent {
+/** The one row validator: the bundled file, setLiveCalendar and the live calendar job all use it. */
+export function isNewsEvent(x: unknown): x is NewsEvent {
   if (typeof x !== "object" || x === null) return false;
   const e = x as Record<string, unknown>;
   return (

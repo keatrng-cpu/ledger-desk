@@ -13,12 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCronActualsRouteImport } from './routes/api/cron/actuals'
 import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklist'
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
+import { Route as ApiCronNewsCalendarRouteImport } from './routes/api/cron/news-calendar'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
 import { Route as ApiCronRhManageRouteImport } from './routes/api/cron/rh-manage'
 import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
+import { Route as ApiCronWeeklyCostRouteImport } from './routes/api/cron/weekly-cost'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
 import { Route as ApiDeskCardStreamRouteImport } from './routes/api/desk/card-stream'
 import { Route as ApiDeskFastRouteImport } from './routes/api/desk/fast'
@@ -52,6 +55,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronActualsRoute = ApiCronActualsRouteImport.update({
+  id: '/api/cron/actuals',
+  path: '/api/cron/actuals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCronChecklistRoute = ApiCronChecklistRouteImport.update({
   id: '/api/cron/checklist',
   path: '/api/cron/checklist',
@@ -60,6 +68,11 @@ const ApiCronChecklistRoute = ApiCronChecklistRouteImport.update({
 const ApiCronExecFlattenRoute = ApiCronExecFlattenRouteImport.update({
   id: '/api/cron/exec-flatten',
   path: '/api/cron/exec-flatten',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronNewsCalendarRoute = ApiCronNewsCalendarRouteImport.update({
+  id: '/api/cron/news-calendar',
+  path: '/api/cron/news-calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
@@ -80,6 +93,11 @@ const ApiCronRoomStepRoute = ApiCronRoomStepRouteImport.update({
 const ApiCronWeeklyRoute = ApiCronWeeklyRouteImport.update({
   id: '/api/cron/weekly',
   path: '/api/cron/weekly',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronWeeklyCostRoute = ApiCronWeeklyCostRouteImport.update({
+  id: '/api/cron/weekly-cost',
+  path: '/api/cron/weekly-cost',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDeskCardRoute = ApiDeskCardRouteImport.update({
@@ -148,12 +166,15 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
+  '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
@@ -172,12 +193,15 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
+  '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
@@ -197,12 +221,15 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/actuals': typeof ApiCronActualsRoute
   '/api/cron/checklist': typeof ApiCronChecklistRoute
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
+  '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
+  '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
@@ -223,12 +250,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
+    | '/api/cron/news-calendar'
     | '/api/cron/review'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
+    | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
     | '/api/desk/fast'
@@ -247,12 +277,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
+    | '/api/cron/news-calendar'
     | '/api/cron/review'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
+    | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
     | '/api/desk/fast'
@@ -271,12 +304,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/mcp'
     | '/api/auth/$'
+    | '/api/cron/actuals'
     | '/api/cron/checklist'
     | '/api/cron/exec-flatten'
+    | '/api/cron/news-calendar'
     | '/api/cron/review'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
+    | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
     | '/api/desk/fast'
@@ -296,12 +332,15 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiMcpRoute: typeof ApiMcpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronActualsRoute: typeof ApiCronActualsRoute
   ApiCronChecklistRoute: typeof ApiCronChecklistRoute
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
+  ApiCronNewsCalendarRoute: typeof ApiCronNewsCalendarRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
   ApiCronRhManageRoute: typeof ApiCronRhManageRoute
   ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
+  ApiCronWeeklyCostRoute: typeof ApiCronWeeklyCostRoute
   ApiDeskCardRoute: typeof ApiDeskCardRoute
   ApiDeskCardStreamRoute: typeof ApiDeskCardStreamRoute
   ApiDeskFastRoute: typeof ApiDeskFastRoute
@@ -346,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/actuals': {
+      id: '/api/cron/actuals'
+      path: '/api/cron/actuals'
+      fullPath: '/api/cron/actuals'
+      preLoaderRoute: typeof ApiCronActualsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cron/checklist': {
       id: '/api/cron/checklist'
       path: '/api/cron/checklist'
@@ -358,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/exec-flatten'
       fullPath: '/api/cron/exec-flatten'
       preLoaderRoute: typeof ApiCronExecFlattenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/news-calendar': {
+      id: '/api/cron/news-calendar'
+      path: '/api/cron/news-calendar'
+      fullPath: '/api/cron/news-calendar'
+      preLoaderRoute: typeof ApiCronNewsCalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/review': {
@@ -386,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/weekly'
       fullPath: '/api/cron/weekly'
       preLoaderRoute: typeof ApiCronWeeklyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/weekly-cost': {
+      id: '/api/cron/weekly-cost'
+      path: '/api/cron/weekly-cost'
+      fullPath: '/api/cron/weekly-cost'
+      preLoaderRoute: typeof ApiCronWeeklyCostRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/desk/card': {
@@ -480,12 +540,15 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiMcpRoute: ApiMcpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronActualsRoute: ApiCronActualsRoute,
   ApiCronChecklistRoute: ApiCronChecklistRoute,
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
+  ApiCronNewsCalendarRoute: ApiCronNewsCalendarRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
   ApiCronRhManageRoute: ApiCronRhManageRoute,
   ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
+  ApiCronWeeklyCostRoute: ApiCronWeeklyCostRoute,
   ApiDeskCardRoute: ApiDeskCardRoute,
   ApiDeskCardStreamRoute: ApiDeskCardStreamRoute,
   ApiDeskFastRoute: ApiDeskFastRoute,

@@ -19,6 +19,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { FEEDS, parseFeed, type FeedItem } from "./feed";
 import { ALL_DOSSIERS } from "@/lib/invest/dossiers";
+import { parseFredCsv, parseFredJson, pulseRegime, type FredPoint, type PulseRegime } from "./pulse-regime";
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
@@ -39,6 +40,8 @@ export interface NewsPayload {
   items: FeedItem[];
   failed: { source: string; why: string }[];
   pulse: PulseQuote[];
+  /** VIX term structure + FRED GDPNow / 2s10s. Talk and journal only — never a gate. */
+  regime?: PulseRegime;
   cached: boolean;
 }
 
@@ -59,7 +62,44 @@ const PULSE: { symbol: string; label: string }[] = [
   { symbol: "^TNX", label: "10y yield" },
   { symbol: "QQQ", label: "QQQ" },
   { symbol: "SPY", label: "SPY" },
+  // Term structure (2026-10-16): Floor weather and the journal regime slice only. mandate.ts still reads spot "VIX".
+  { symbol: "^VIX9D", label: "VIX9D" },
+  { symbol: "^VIX3M", label: "VIX3M" },
+  { symbol: "^VVIX", label: "VVIX" },
 ];
+
+/* FRED context series. Daily/weekly data, so cached for hours, not minutes. */
+const FRED_CACHE_MS = 6 * 60 * 60_000;
+let fredCache: { at: number; gdpNow: FredPoint | null; t10y2y: FredPoint | null } | null = null;
+
+async function fredPoint(series: string): Promise<FredPoint | null> {
+  try {
+    const key = process.env.FRED_API_KEY?.trim();
+    if (key) {
+      const u = `https://api.stlouisfed.org/fred/series/observations?series_id=${series}&api_key=${encodeURIComponent(key)}&file_type=json&sort_order=desc&limit=10`;
+      const res = await fetch(u, { signal: AbortSignal.timeout(FEED_TIMEOUT_MS), cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      return parseFredJson(series, await res.json());
+    }
+    const res = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${series}`, {
+      headers: { "User-Agent": UA, Accept: "text/csv" },
+      signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(String(res.status));
+    return parseFredCsv(series, await res.text());
+  } catch {
+    return null;
+  }
+}
+
+async function loadFred(): Promise<{ gdpNow: FredPoint | null; t10y2y: FredPoint | null }> {
+  if (fredCache && Date.now() - fredCache.at < FRED_CACHE_MS) return fredCache;
+  const [gdpNow, t10y2y] = await Promise.all([fredPoint("GDPNOW"), fredPoint("T10Y2Y")]);
+  // A failed fetch is retried next call; only a result with at least one point is held for hours.
+  if (gdpNow || t10y2y) fredCache = { at: Date.now(), gdpNow, t10y2y };
+  return { gdpNow, t10y2y };
+}
 
 async function pulseQuote(symbol: string, label: string): Promise<PulseQuote> {
   try {
@@ -88,7 +128,7 @@ async function pulseQuote(symbol: string, label: string): Promise<PulseQuote> {
 export async function loadNews(): Promise<NewsPayload> {
     if (cache && Date.now() - cache.at < CACHE_MS) return { ...cache.data, cached: true };
     const failed: NewsPayload["failed"] = [];
-    const [feeds, pulse] = await Promise.all([
+    const [feeds, pulse, fred] = await Promise.all([
       Promise.all(
         FEEDS.map(async (f) => {
           try {
@@ -100,6 +140,7 @@ export async function loadNews(): Promise<NewsPayload> {
         }),
       ),
       Promise.all(PULSE.map((p) => pulseQuote(p.symbol, p.label))),
+      loadFred(),
     ]);
     const cutoff = Date.now() - 7 * 86_400_000;
     const items = feeds
@@ -107,7 +148,7 @@ export async function loadNews(): Promise<NewsPayload> {
       .filter((i) => !i.published || Date.parse(i.published) >= cutoff)
       .sort((a, b) => (b.published ?? "").localeCompare(a.published ?? ""))
       .slice(0, MAX_ITEMS);
-    const data: NewsPayload = { fetchedAt: new Date().toISOString(), items, failed, pulse, cached: false };
+    const data: NewsPayload = { fetchedAt: new Date().toISOString(), items, failed, pulse, regime: pulseRegime(pulse, fred), cached: false };
     cache = { at: Date.now(), data };
     return data;
 }
@@ -116,20 +157,21 @@ export async function loadNews(): Promise<NewsPayload> {
 export const getNewsFeed = createServerFn({ method: "GET" }).handler(loadNews);
 
 /**
- * The pulse alone (VIX, 10y, QQQ, SPY) — four quotes, no RSS. The trading
+ * The pulse alone (VIX, 10y, QQQ, SPY, VIX9D, VIX3M, VVIX + cached FRED GDPNow / 2s10s) — no RSS. The trading
  * floor reads VIX and the 10y every few minutes, and pulling eight feeds to
  * get two numbers would make the room the News tab's heaviest caller.
  */
 const PULSE_CACHE_MS = 60_000;
-let pulseCache: { at: number; pulse: PulseQuote[] } | null = null;
+let pulseCache: { at: number; pulse: PulseQuote[]; regime: PulseRegime } | null = null;
 
-export async function loadPulse(): Promise<{ fetchedAt: string; pulse: PulseQuote[]; cached: boolean }> {
+export async function loadPulse(): Promise<{ fetchedAt: string; pulse: PulseQuote[]; regime: PulseRegime; cached: boolean }> {
   if (pulseCache && Date.now() - pulseCache.at < PULSE_CACHE_MS) {
-    return { fetchedAt: new Date(pulseCache.at).toISOString(), pulse: pulseCache.pulse, cached: true };
+    return { fetchedAt: new Date(pulseCache.at).toISOString(), pulse: pulseCache.pulse, regime: pulseCache.regime, cached: true };
   }
-  const pulse = await Promise.all(PULSE.map((p) => pulseQuote(p.symbol, p.label)));
-  pulseCache = { at: Date.now(), pulse };
-  return { fetchedAt: new Date().toISOString(), pulse, cached: false };
+  const [pulse, fred] = await Promise.all([Promise.all(PULSE.map((p) => pulseQuote(p.symbol, p.label))), loadFred()]);
+  const regime = pulseRegime(pulse, fred);
+  pulseCache = { at: Date.now(), pulse, regime };
+  return { fetchedAt: new Date().toISOString(), pulse, regime, cached: false };
 }
 
 export const getPulse = createServerFn({ method: "GET" }).handler(loadPulse);

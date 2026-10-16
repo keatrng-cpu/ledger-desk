@@ -911,12 +911,30 @@ export interface DataFreshness {
   investMaxDays?: number;
 }
 
+/** Term structure / macro context for the talk. Mirrors live-voices PulseTerm. Never read by a gate. */
+export interface PulseTermLite {
+  ivts: number | null;
+  vvix: number | null;
+  t10y2y: number | null;
+  gdpNow: number | null;
+}
+
+export interface ShockNoteLite {
+  key: string;
+  symbol: string;
+  tape: { side: "up" | "down"; pts: number; atrX: number };
+  headline: string;
+  sourceHost: string;
+}
+
 export interface TalkWorld {
   nowMs: number;
   clock: ClockRead;
   feed: FeedRead;
   books: Record<Underlier, TapeBook | null>;
-  pulse: { vix: number | null; tenYear: number | null; at: number | null };
+  pulse: { vix: number | null; tenYear: number | null; at: number | null; term?: PulseTermLite | null };
+  /** A cited Grok headline for an unscheduled shock (src/lib/news/shock-explain.ts). Absent or null: the tape line stands alone. */
+  shockNote?: ShockNoteLite | null;
   news: NewsLite[];
   cal: CalRead;
   book: BookRead;
