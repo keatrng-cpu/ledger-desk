@@ -6,7 +6,7 @@ import { register } from "tsx/esm/api";
 register();
 const h = await import("../src/lib/desk/rules-hash.ts");
 const dl = await import("../src/lib/trading/desk-listen.ts");
-const rs = await import("../src/lib/desk/reasons-shadow.ts");
+const rs = await import("../docs/graph-drift-1016/reasons-shadow.ts");
 const d = await import("../src/lib/smc/discipline.ts");
 const qs = await import("../src/lib/trading/q-source.ts");
 const cfg = await import("../src/lib/aplus/config.ts");

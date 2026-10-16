@@ -3,7 +3,7 @@
  * only the first snapshot per day ("on conflict do nothing"), and only reasons.slice(-12). This keeps EVERY card's full
  * reasons, sampled: a row is written only when a card's reasons change. It does not touch desk_card_snap.
  *
- * NOT WIRED and the table is NOT created: the DDL is a proposal in docs/graph-drift-1016/proposed-0028_card_reasons_shadow.sql
+ * NOT WIRED and the table is NOT created: the DDL is a proposal in proposed-0028_card_reasons_shadow.sql (same folder). It lives under docs/, not src/, until it is wired (repo-guards: no dark modules in src)
  * (kept out of migrations/ on purpose, because scripts/migrate.mjs applies that folder on every build). Pure helpers only.
  */
 import { createHash } from "node:crypto";

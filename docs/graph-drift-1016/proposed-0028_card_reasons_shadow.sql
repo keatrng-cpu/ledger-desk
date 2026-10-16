@@ -2,7 +2,7 @@
 -- apply every file there on build/startup. Move it to migrations/0028_card_reasons_shadow.sql only after review.
 --
 -- Shadow table for card reasons. desk_card_snap is unchanged (q >= 0.65 only, first snapshot per day, reasons.slice(-12)).
--- This keeps every card's reasons, sampled: one row per card only when its reasons change (src/lib/desk/reasons-shadow.ts
+-- This keeps every card's reasons, sampled: one row per card only when its reasons change (docs/graph-drift-1016/reasons-shadow.ts
 -- reasonsShadowRows dedupes on a 16-hex sha256 of the reasons list). Additive; nothing reads it to grade, gate or fire.
 create table if not exists desk_card_reasons_shadow (
   id bigserial primary key,
