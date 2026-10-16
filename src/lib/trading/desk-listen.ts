@@ -1,4 +1,5 @@
 import { stopText, ticketMatchesCard, dteFitsPlan, tapeStale } from "@/lib/smc/deep-audit";
+import { cardLatency } from "@/lib/desk/push-shadow";
 import { floorDteRead } from "@/lib/smc/smc-unity";
 import { masterSeat, type MasterInput } from "@/lib/smc/master-seat";
 import { EVF, evCard, on as evOn } from "@/lib/desk/ev-fire";
@@ -121,6 +122,8 @@ export interface DeskWire {
   deskSeq?: DeskSeqWire | null;
   htf?: ReturnType<typeof htfBiasOf>;
   smt?: { lead: SmtRead | null; all: SmtRead[] } | null;
+  /** Push-path SHADOW timing (shared/push-shadow.json): last 1m bar close, build time, build latency. Logged by the watcher; never gates. */
+  latency?: import("@/lib/desk/push-shadow").CardLatency | null;
   /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
   rule1: import("./rule1").Rule1Ticket[];
   strategy: {
@@ -305,6 +308,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     .map(({ createdT: _t, ...r }) => r);
   const wire: DeskWire = {
     rulesHash: RULES_HASH,
+    latency: cardLatency(Date.parse(desk.fetchedAt) || Date.now()),   // push shadow (overnight-1016 #3)
     ltfArm: { mode: LTF_ARM.mode, capBand: LTF_ARM.capBand, dropped: (desk.scan.ltfArmShadow ?? []).map((x) => ({ symbol: x.symbol, side: x.side, why: x.why, wouldBand: x.wouldBand, arm: x.arm.why, entry: x.arm.entry, stop: x.arm.stop, t1: x.arm.t1?.price ?? null })) },
     arrays,
     mtf: desk.mtfContext ? wireMtf(desk.mtfContext) : null,
