@@ -1,0 +1,19 @@
+{
+  "_doc": "xAI Grok SHADOW reader (Keaton 2026-10-16). Informational only: reads B+ or better cards, re-anchored arrays and a once-per-closed-5m RTH missed-setup check, and writes plain-language reads to payload.grokReads + a [grok-reader] log line. NOT part of shared/desk-rules.json (RULES_HASH unchanged). Nothing in gate/score/fire reads it. Off unless env GROK_READER=1 and XAI_API_KEY is set. Calls are fire-and-forget with a hard timeout and are never awaited by the desk build.",
+  "version": 1,
+  "mode": "shadow",
+  "live": false,
+  "envFlag": "GROK_READER",
+  "model": "grok-4.20-0309-non-reasoning",
+  "endpoint": "https://api.x.ai/v1/chat/completions",
+  "timeoutMs": 4000,
+  "maxOutputTokens": 220,
+  "dailyCallCap": 150,
+  "dailySpendCapUsd": 1.0,
+  "pricePerMTokIn": 1.25,
+  "pricePerMTokOut": 2.5,
+  "pricingSource": "https://docs.x.ai/docs/models (fetched 2026-10-16)",
+  "minBand": "B+",
+  "missedCheck": { "everyClosed5m": true, "rthStartMinCt": 510, "rthEndMinCt": 900, "fvgTapTolAtr15": 0.15, "dispBodyAtr5": 1.2 },
+  "keepReads": 60
+}

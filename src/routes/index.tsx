@@ -181,6 +181,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EntryHero } from "@/components/desk/entry-hero";
 import { TwoSidedLadderPanel } from "@/components/desk/two-sided-ladder-panel";
+import { GrokReadLine } from "@/components/desk/grok-read-line";
 import { ScreenFlash } from "@/components/desk/screen-flash";
 import { BUILD_ID, BUILD_LABEL, BUILD_MARKER } from "@/lib/build-id";
 import {
@@ -2018,6 +2019,7 @@ function MasterplacePage() {
                     </div>
                   }
                 >
+                  <GrokReadLine desk={desk} />
                   <TradingFloorTab desk={desk} />
                 </Suspense>
               )}
@@ -2035,6 +2037,7 @@ function MasterplacePage() {
                     sub="The book in the middle. A nerve lights only when a seat writes it, reads it, or says it."
                   />
                   <FloorBrains />
+                  <GrokReadLine desk={desk} />
                   <VeteranBrainPanel desk={desk} risk={risk} riskGate={riskFetchState} />
                   <TradingCoach desk={desk} />
                 </div>

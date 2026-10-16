@@ -6,6 +6,7 @@ import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
+import { kickGrokReader, readerEnabled, grokReadsSnapshot, cardsLite, type GrokRead } from "@/lib/grok-reader/reader";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -125,6 +126,8 @@ const LOSS_RULES = RULES_ALL.loss;
 export interface DeskPayload {
   ok: true;
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
+  /** Grok SHADOW reads (shared/grok-reader.json). Display only; present only when GROK_READER is on. Nothing gates on it. */
+  grokReads?: GrokRead[];
   rule1?: (import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane })[];
   fetchedAt: string;
   clock: SessionClock;
@@ -2107,7 +2110,20 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       left: { ...mtf.left, hourly: (mtf.left.hourly ?? []).slice(-LADDER_HOURLY_SHIP) },
       right: { ...mtf.right, hourly: (mtf.right.hourly ?? []).slice(-LADDER_HOURLY_SHIP) },
     };
+    // Grok SHADOW reader: off unless GROK_READER=1. Fire-and-forget (setTimeout 0, never awaited); it gets a copy of
+    // the cards, reads nothing back into this build, and attaches only the PREVIOUS reads as a display-only side field.
+    const grokOn = readerEnabled();
+    if (grokOn) {
+      try {
+        kickGrokReader({
+          cards: cardsLite(payload.scan.candidates), nowMs: Date.now(),
+          books: [{ symbol: left.symbol, minute: minuteL ?? [], bars15: closedL }, { symbol: right.symbol, minute: minuteR ?? [], bars15: closedR }],
+          arraysOf: (b) => mtfArrays(b.symbol, b.minute as never, b.bars15 as never) as never,
+        });
+      } catch { /* shadow: never into the desk path */ }
+    }
     return {
+      ...(grokOn ? { grokReads: grokReadsSnapshot() } : {}),
       ...payload,
       smcMaster,
       mtfContext,
