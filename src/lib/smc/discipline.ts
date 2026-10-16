@@ -125,6 +125,11 @@ export function rejectionVote(side: "long" | "short", closed15: OhlcBar[], level
 
 export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineCtx): C {
   const note = (s: string) => c.reasons.push(s);
+  // fix/cap-why-attribution-1016: the writes below happen AFTER every note, so the tracker's "next reason line"
+  // fallback labelled them with whatever the desk pushed next (the MTF align line). Each write now names its own why.
+  const bandWhy: string[] = [];
+  const qWhy: string[] = [];
+  const bandNote = (s: string) => { bandWhy.push(s); note(s); };
   let band: Band = capBand(c.pathBand, "A+");
   let q = c.confluence;
   const atr = ctx.atr15;
@@ -132,7 +137,7 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
 
   // R1
   if (entry == null || !Number.isFinite(entry)) {
-    if (idx(band) < idx("B+")) note(`No entry — band capped at B+ (was ${band})`);
+    if (idx(band) < idx("B+")) bandNote(`No entry — band capped at B+ (was ${band})`);
     band = capBand(band, "B+");
     c.actionable = false;
   }
@@ -148,7 +153,7 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
       if (rr1 == null || rr1 < 1) {
         band = capBand(band, "B");
         c.actionable = false;
-        note("T1 under 1R at the minimum stop — band ≤ B");
+        bandNote("T1 under 1R at the minimum stop — band ≤ B");
       }
     }
   }
@@ -167,9 +172,10 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
       (c as { chase?: unknown }).chase = { distAtr: +d.toFixed(2), qFactor: +factor.toFixed(4), bandSteps: steps, qBefore: q, bandBefore: band, applied: TIMING_MODE !== "live" };
       if (TIMING_MODE !== "live") {
         q = +(q * factor).toFixed(4);
+        qWhy.push(`R3 chase ${d.toFixed(2)}×ATR15 past CE — q ×${factor.toFixed(4)} (timing.mode ${TIMING_MODE})`);
         if (steps > 0) {
           band = stepDown(band, steps);
-          note(`Chase ${d.toFixed(2)}×ATR past CE — ${steps} band step${steps > 1 ? "s" : ""} down`);
+          bandNote(`Chase ${d.toFixed(2)}×ATR past CE — ${steps} band step${steps > 1 ? "s" : ""} down`);
         }
       } else note(`Timing: ${d.toFixed(2)}×ATR past CE — quality unchanged, entryState carries it`);
     }
@@ -177,7 +183,7 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
   // R4
   const htfAgainst = (c.gapSide != null && c.gapSide !== c.side) || (c.gapSide == null && !c.htfOk);
   if (htfAgainst && !c.htfDisrespected) {
-    if (idx(band) < idx("B+")) note("HTF conflict — band capped at B+");
+    if (idx(band) < idx("B+")) bandNote("HTF conflict — band capped at B+");
     band = capBand(band, "B+");
   }
   // R5
@@ -186,26 +192,28 @@ export function applyDiscipline<C extends DisciplineCard>(c: C, ctx: DisciplineC
     band = capBand(band, "C");
     c.actionable = false;
     c.vetoes = [...(c.vetoes ?? []), "fast invalidation — 5m displacement closed through the entry zone"];
-    note("Fast invalidation: a 5m body ≥1.25×ATR5 closed through the entry zone");
+    bandNote("Fast invalidation: a 5m body ≥1.25×ATR5 closed through the entry zone");
   }
   // R7
   const ch = isChop(ctx.closed15, atr);
   (c as { chop?: boolean }).chop = ch.chop;
   if (ch.chop) {
-    if (idx(band) < idx("B+")) note(`Chop (overlap ${ch.overlap}, range ${ch.rangeAtr}×ATR) — band capped at B+`);
+    if (idx(band) < idx("B+")) bandNote(`Chop (overlap ${ch.overlap}, range ${ch.rangeAtr}×ATR) — band capped at B+`);
     band = capBand(band, "B+");
   }
   // R8
   const vote = rejectionVote(c.side, ctx.closed15, ctx.levels, atr);
   if (vote !== 0) {
     q = +Math.min(0.99, Math.max(0, q + vote * WICK_NUDGE)).toFixed(4);
-    note(`Rejection wick at a level ${vote > 0 ? "for" : "against"} this side (${vote > 0 ? "+" : "−"}${WICK_NUDGE})`);
+    const w = `Rejection wick at a level ${vote > 0 ? "for" : "against"} this side (${vote > 0 ? "+" : "−"}${WICK_NUDGE})`;
+    qWhy.push(w);
+    note(w);
   }
   if (idx(band) > idx("B+")) c.actionable = false;
   // Every discipline write is labelled R1–R8 (the chase source above wins when q moved by R3).
-  if (c.pathBand !== band) setQSource("discipline:band cap (R1/R2/R4/R5/R7/R3 steps)");
+  if (c.pathBand !== band) setQSource("discipline:band cap (R1/R2/R4/R5/R7/R3 steps)", bandWhy.join(" · ") || "discipline band cap");
   c.pathBand = band;
-  if (c.confluence !== q) setQSource((c as { chase?: { applied?: boolean } }).chase?.applied ? "R3 chase (×factor, + R8 wick if any)" : "R8 rejection wick");
+  if (c.confluence !== q) setQSource((c as { chase?: { applied?: boolean } }).chase?.applied ? "R3 chase (×factor, + R8 wick if any)" : "R8 rejection wick", qWhy.join(" · ") || null);
   c.confluence = q;
   setQSource(null);
   return c;
