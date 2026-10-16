@@ -126,6 +126,10 @@ export interface DeskWire {
   latency?: import("@/lib/desk/push-shadow").CardLatency | null;
   /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
   rule1: import("./rule1").Rule1Ticket[];
+  /** Grok SUGGESTION cards (shadow unless the watcher runs GROK_SUGGEST_FIRE). Read by the watcher's fast review only. */
+  grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
+  /** Grok SHADOW ADVISOR rows. Brain/Floor/watcher log them only (seat/log lines); never a check, never a fire. */
+  grokAdvice?: import("@/lib/grok-reader/advisor").AdviceRow[];
   strategy: {
     symbol: string;
     side: string;
@@ -342,6 +346,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
     },
     rule1: (desk as { rule1?: import("./rule1").Rule1Ticket[] }).rule1 ?? [],
+    ...(desk.grokAdvice?.length ? { grokAdvice: desk.grokAdvice.slice(0, 6) } : {}),
+    ...((desk as { grokSuggest?: unknown[] }).grokSuggest?.length ? { grokSuggest: (desk as { grokSuggest: import("@/lib/grok-reader/suggest").SuggestionCard[] }).grokSuggest } : {}),
     strategy: top
       ? {
           symbol: top.symbol,
@@ -639,6 +645,8 @@ export function masterInputOf(
         }
       : null,
     rule1: wire.rule1 ?? [],
+    grokSuggest: wire.grokSuggest ?? [],
+    grokAdvice: wire.grokAdvice ?? [],
     brainWord: wire.brain.word,
     brainBook: wire.brain.book ?? null,
     floorVerdict: wire.floor.verdict,

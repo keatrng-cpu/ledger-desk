@@ -1,0 +1,108 @@
+{
+ "suggestions": 122,
+ "wouldFireA_asSpecified": {
+  "n": 0,
+  "wins": 0,
+  "losses": 0,
+  "netR": 0,
+  "avgR": 0
+ },
+ "wouldFireB_brainTakeAssumed": {
+  "n": 41,
+  "wins": 16,
+  "losses": 25,
+  "netR": 8.69,
+  "avgR": 0.212
+ },
+ "allSuggestions": {
+  "n": 122,
+  "wins": 83,
+  "losses": 39,
+  "netR": 18.39,
+  "avgR": 0.151
+ },
+ "deskRule1Shadow": {
+  "n": 4,
+  "wins": 1,
+  "losses": 3,
+  "netR": -2.83,
+  "avgR": -0.708
+ },
+ "noFireReasons": [
+  [
+   "rr",
+   81
+  ]
+ ],
+ "perDay": [
+  {
+   "day": "2026-10-12",
+   "sugg": 29,
+   "fireB": 6,
+   "netRB": 0.07
+  },
+  {
+   "day": "2026-10-13",
+   "sugg": 25,
+   "fireB": 10,
+   "netRB": 7.59
+  },
+  {
+   "day": "2026-10-14",
+   "sugg": 29,
+   "fireB": 11,
+   "netRB": -0.7
+  },
+  {
+   "day": "2026-10-15",
+   "sugg": 24,
+   "fireB": 9,
+   "netRB": -6.54
+  },
+  {
+   "day": "2026-10-16",
+   "sugg": 15,
+   "fireB": 5,
+   "netRB": 8.27
+  }
+ ],
+ "latency": {
+  "grokRttAssumedMs": 3000,
+  "deskReviewP50Ms": 0.118,
+  "deskReviewMaxMs": 26.39
+ },
+ "desk": [
+  {
+   "day": "2026-10-12",
+   "sym": "MNQ",
+   "at": 520,
+   "side": "long",
+   "r": -1,
+   "how": "stop"
+  },
+  {
+   "day": "2026-10-13",
+   "sym": "MNQ",
+   "at": 520,
+   "side": "long",
+   "r": 0.17,
+   "how": "eod"
+  },
+  {
+   "day": "2026-10-15",
+   "sym": "MNQ",
+   "at": 520,
+   "side": "long",
+   "r": -1,
+   "how": "stop"
+  },
+  {
+   "day": "2026-10-15",
+   "sym": "ES",
+   "at": 520,
+   "side": "long",
+   "r": -1,
+   "how": "stop"
+  }
+ ]
+}
