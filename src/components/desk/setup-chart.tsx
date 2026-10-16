@@ -306,9 +306,9 @@ function arrayFill(a: SmcArray): string {
  * the pixels, because it is the one that changes where you enter.
  */
 function arrayName(a: SmcArray): string {
-  const kind = (a.kind === "bb" ? "BRK" : a.kind === "rb" ? "REJ" : a.kind === "sponsored" ? "FVG+" : a.kind).toUpperCase();
+  const kind = (a.kind === "bb" ? "BRK" : a.kind === "rb" ? "REJ" : a.kind === "sponsored" ? "FVG+" : a.kind)?.toUpperCase() ?? "?";
   const partial = a.state === "partial" ? "·part" : "";
-  return `${a.tf.toUpperCase()} ${kind}${partial}`;
+  return `${a.tf?.toUpperCase() ?? "—"} ${kind}${partial}`;
 }
 
 /**
@@ -1130,7 +1130,7 @@ export function SetupChart({
                   fontWeight={600}
                   opacity={0.9}
                 >
-                  {s.kind.toUpperCase()} {up ? "↑" : "↓"}
+                  {s.kind?.toUpperCase() ?? "—"} {up ? "↑" : "↓"}
                 </text>
               </g>
             );

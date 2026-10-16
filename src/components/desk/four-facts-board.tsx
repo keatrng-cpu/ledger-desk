@@ -100,7 +100,7 @@ export function FourFactsBoard({ desk }: { desk: DeskPayload }) {
           The option
         </span>
         {t
-          ? `${t.contracts} ${t.underlier} ${t.side.toUpperCase()} · $${Math.round(t.estDebitTotal)} ${t.pricedFrom === "live_chain" ? "live ask" : "model, not a contract"} · ${book.best?.verdict ?? "STAND"}`
+          ? `${t.contracts} ${t.underlier} ${t.side?.toUpperCase() ?? "—"} · $${Math.round(t.estDebitTotal)} ${t.pricedFrom === "live_chain" ? "live ask" : "model, not a contract"} · ${book.best?.verdict ?? "STAND"}`
           : book.focus}
       </p>
     </section>

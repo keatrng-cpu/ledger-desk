@@ -913,7 +913,7 @@ function SetupCard({
                     : "text-[var(--color-down)]"
                 }
               >
-                {c.side.toUpperCase()}
+                {c.side?.toUpperCase() ?? "—"}
               </span>
             </h3>
             <GradeBadge g={String(c.pathBand ?? c.grade)} />
@@ -1075,7 +1075,7 @@ function SetupCard({
       )}
       {seqForSide && seqForSide.side && seqForSide.side !== c.side && (
         <p className="mb-2 text-[10px] text-[var(--color-warn)]">
-          Compose split — the sequence is grading {seqForSide.side.toUpperCase()}, this card is {c.side.toUpperCase()}.
+          Compose split — the sequence is grading {seqForSide.side?.toUpperCase() ?? "—"}, this card is {c.side?.toUpperCase() ?? "—"}.
         </p>
       )}
       {seqWord === "TAKE" && c.htfOk && seqForSide?.side === c.side && (
