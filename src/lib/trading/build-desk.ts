@@ -123,6 +123,8 @@ const LOSS_RULES = RULES_ALL.loss;
 
 export interface DeskPayload {
   ok: true;
+  /** fire.bplusBrainTake day limits (watcher day ledger, when the desk has it). Absent = not checked on the desk. */
+  bplusDay?: { entries: number | null; lost: boolean | null };
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
   rule1?: import("./rule1").Rule1Ticket[];
   fetchedAt: string;

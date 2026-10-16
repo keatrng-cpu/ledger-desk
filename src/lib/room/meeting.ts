@@ -801,7 +801,7 @@ function setupReview(f: Facts, m: Meeting, minds: MindState | null): Line[] {
     say(
       "Sterling",
       bPlus
-        ? "B+ is live. Smaller size. Same chart."
+        ? "B+ fires only on a Brain TAKE on this symbol and side, fit at 0.60 or better, and no veto — no Floor block, caution clear, Brain not against. One B+ a day, none after a loss. Any miss, no fire. Same for a near-miss B+ or an A- the 1h/4h cap cut to B+ size."
         : !s.actionable
           ? `Not armed yet${s.missing ? ` — ${s.missing}` : ""}.`
           : "If the 5m inverted and displaced, that close is the entry. CE is only the midpoint of a gap we are still inside. A mitigation block is a failed second push — we don't wait to hit one.",
