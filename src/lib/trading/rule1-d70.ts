@@ -76,8 +76,8 @@ export function rule1D70(symbol: string, side: "long" | "short", px: number, atr
 const legTxt = (l: D70Leg | null) => {
   if (!l) return "—";
   if (l.capBlocked) return `${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} over the $${CFG.debitCap} cap (no trade)`;
-  const step = l.steppedFrom != null ? ` (stepped Δ${l.steppedFrom}→${l.delta})` : "";
-  return `${l.contracts}× ${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} ~$${l.premium} ($${l.debit})${step}`;
+  // Step-down is shown once via rule1D70Line's tag (Δ0.7→0.6 / Δ0.7→0.5), not again here.
+  return `${l.contracts}× ${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} ~$${l.premium} ($${l.debit})`;
 };
 /** One line for the brain seat / Floor: the shadow Δ0.7 ticket next to the current Rule 1 ticket and ATM. */
 export function rule1D70Line(t: { symbol: string; side: string; option?: { underlier: string; strike: number | null; right: string; delta: number; contracts: number; premium: number | null } | null; ticketD70?: Rule1D70 | null }): string {

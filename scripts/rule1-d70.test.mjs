@@ -49,6 +49,8 @@ test("shadow step-down: when Δ0.7 1-lot is over $650, pick Δ0.6 then ATM (over
       assert.equal(full.atm.delta, 0.5);
       const line = d.rule1D70Line({ symbol: "NQ", side: "long", ticketD70: full });
       assert.ok(line.includes("Δ0.7→0.6") && line.includes("(shadow, no order)"));
+      assert.equal((line.match(/Δ0\.7→0\.6/g) || []).length, 1);
+      assert.equal(line.includes("(stepped"), false);
       break;
     }
   }
@@ -58,6 +60,34 @@ test("shadow step-down: when Δ0.7 1-lot is over $650, pick Δ0.6 then ATM (over
   const allBlocked = d.pickShadowLeg("NQ", "long", 25000, 400, 520, 2000);
   assert.equal(allBlocked.capBlocked, true);
   assert.equal(allBlocked.contracts, 0);
+});
+test("shadow step-down: when Δ0.7 and Δ0.6 are over $650, pick ATM (overnight line 156)", () => {
+  let stepped = null;
+  for (const atr of [40, 60, 80, 100]) {
+    for (let S = 400; S <= 3000; S += 5) {
+      const d70 = d.legAt(0.7, "NQ", "long", 25000, atr, 520, S);
+      const d60 = d.legAt(0.6, "NQ", "long", 25000, atr, 520, S);
+      const atm = d.legAt(0.5, "NQ", "long", 25000, atr, 520, S);
+      if (d70 && d60 && atm && d70.capBlocked && d60.capBlocked && !atm.capBlocked) {
+        stepped = d.pickShadowLeg("NQ", "long", 25000, atr, 520, S);
+        assert.equal(stepped.delta, 0.5);
+        assert.equal(stepped.steppedFrom, 0.7);
+        assert.equal(stepped.capBlocked, false);
+        assert.ok(stepped.contracts >= 1 && stepped.debit <= 650);
+        const full = d.rule1D70("NQ", "long", 25000, atr, 520, S);
+        assert.equal(full.d70.delta, 0.5);
+        assert.equal(full.d70.steppedFrom, 0.7);
+        assert.equal(full.atm.delta, 0.5);
+        const line = d.rule1D70Line({ symbol: "NQ", side: "long", ticketD70: full });
+        assert.ok(line.includes("Δ0.7→0.5") && line.includes("(shadow, no order)"));
+        // Step tag appears once (not also as "(stepped Δ…)" inside the leg text).
+        assert.equal((line.match(/Δ0\.7→0\.5/g) || []).length, 1);
+        break;
+      }
+    }
+    if (stepped) break;
+  }
+  assert.ok(stepped, "expected a price where Δ0.7 and Δ0.6 are over the cap and ATM fits");
 });
 test("brain seat shows the line (narrative only, verdict/checks unchanged)", () => {
   const tk = walk("MNQ");
