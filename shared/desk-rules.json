@@ -1486,15 +1486,11 @@
   },
   "combo1016Arms": {
     "live": {
-      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT (live: capped by session.flatByMaxEt 15:50 ET and the 0DTE flat 15:40 ET; entry_cutoff kept). Concurrency (Keaton 10/16 15:06 CT): config1 holds positions concurrently across books, 1 open per book, RH open positions/working orders must equal the watcher-tracked set (fail closed); other desk paths keep one position. Loss timing: a loss counts for the halt when the trade closes (cannot be known earlier). Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Missing atrpct may fire (research NaN routing, ctx_lowvol 0.5); any other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift fails closed.",
+      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT (live: capped by session.flatByMaxEt 15:50 ET and the 0DTE flat 15:40 ET; entry_cutoff kept). Concurrency (Keaton 10/16 15:06 CT): config1 holds positions concurrently across books, 1 open per book, RH open positions/working orders must equal the watcher-tracked set (fail closed); other desk paths keep one position. Loss timing: a loss counts for the halt when the trade closes (cannot be known earlier). Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Release Watch 10/16: atrpct is computed from the desk's 1mo 5m feed (feat.py rank, >=500 valid ATRs); a missing atrpct now FAILS CLOSED like every other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift. Inputs come from the research candidate generator (combo1016-cand.ts, eng.py closed-bar port).",
       "mode": "live",
       "arm": "config1_trail",
-      "allowMissingGbm": [
-        "atrpct"
-      ],
-      "allowDefaultedS2": [
-        "ctx_lowvol"
-      ],
+      "allowMissingGbm": [],
+      "allowDefaultedS2": [],
       "marketOnly": false,
       "notBeforeCt": "08:30",
       "bypass": [

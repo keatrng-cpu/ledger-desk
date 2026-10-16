@@ -243,3 +243,15 @@ RULES_HASH moves (see docs/combo1016/README.md). Desk + watcher patches deploy t
 - Concurrency: config1 holds positions concurrently across books (1 open per book, 5/day, 3/symbol). Other desk paths keep the one-position limit. Safety kept: RH positions/orders must reconcile with what the watcher tracks, else fail closed.
 - Flat: 14:55 CT instead of FLAT_BY_ET 15:30 ET. Not bypassed (hard session/RH clocks): flatByMaxEt 15:50 ET (14:50 CT), 0DTE flat 15:40 ET (14:40 CT), entry_cutoff 15:40 ET. Effect −$3.3/week (re-simulated on 1m bars).
 - Loss timing: live counts a loss at close (research halts from the fill of a losing trade). +50 trades, ≈ −$17/week. Cannot be known earlier; accepted.
+
+## 2026-10-16 16:30 CT — Release Watch NO-GO + Accuracy Review #47 fixes on config1 (Grok Bot; RULES_HASH 6fe537e09d6fabef)
+- Live config1 inputs now come from a closed-bar port of the research candidate generator (combo1016-cand.ts); atrpct from a new 1mo 5m feed; a missing atrpct fails closed (allowMissingGbm/allowDefaultedS2 emptied).
+- Finding for Keaton: the research backtest reads up to 5 bars past its decision bar (disp/mss/ifvg/extreme) and prices chaseR at the next open; a no-lookahead live path cannot reproduce all of its fires (counts in the PR).
+- Watcher: explicit soft allowlist (bypasses + rows the SMC reference does not apply), resting broker stop mandatory for config1 (reject → flatten), caps per Keaton (below).
+- Deploy previews no longer migrate the prod DB (scripts/migrate.mjs CONTEXT guard).
+
+### 2026-10-16 16:10 CT — config1 risk decisions (Keaton)
+Keaton, 10/16 16:10 CT: "Input the 7 it needs still please and fix all of these issues proficiently". He accepted the proposed broker stop and the $500 daily cap.
+- **Resting broker stop REQUIRED for config1** regardless of EXIT_SAFE_RESTING_STOP. RH reject / no order id / invalid stop → flatten or refuse the entry (fail closed, no script-stop fallback). `watcher/daemon.py _combo_stop_fail`, `gates.manage_action` (`combo_flatten`).
+- **Daily dollar-loss cap $500** (`COMBO1016_MAX_DAY_LOSS_USD`, default 500): realized config1 losses + open risk across ES and NQ + the new order's 1R; a new entry that would exceed $500 worst case is blocked. `combo1016_live.caps_ok`.
+- **Contract cap = one order's modeled loss ≤ $500** (`COMBO1016_MAX_ORDER_LOSS_USD`, default 500; A+ $500/R fits). Optional `COMBO1016_MAX_CONTRACTS` extra count, unset by default. Invalid values fail closed.

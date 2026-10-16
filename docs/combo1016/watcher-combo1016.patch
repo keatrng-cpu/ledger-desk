@@ -16831,10 +16831,10 @@ index 0000000..91237e8
 +    assert LV.concurrency(g, {"symbol": "MES"}) == g              # no tracking info: single-position rule unchanged
 diff --git a/tests/test_combo1016_live.py b/tests/test_combo1016_live.py
 new file mode 100644
-index 0000000..057a4bb
+index 0000000..da42d2c
 --- /dev/null
 +++ b/tests/test_combo1016_live.py
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,138 @@
 +"""combo1016 config1_trail LIVE path (Keaton 10/16 14:38 CT): parity with SMC's integration reference (golden_decisions, DayBook caps/halt,
 +ExitSim TR on exit_ref) and with SMC's config1 VAL trade list (contracts come from the desk's pp4 estimate; checked in the npm twin).
 +Bypasses ($650 cap, dayLoss, weekly lock, B+ Brain TAKE) apply to this path only."""
@@ -16847,6 +16847,11 @@ index 0000000..057a4bb
 +CT = ZoneInfo("America/Chicago"); ETZ = ZoneInfo("America/New_York")
 +V2K = ["tr4h_with", "atrpct", "pd", "wtmax", "nk", "smt", "disp", "mss", "ifvg", "risk_atr", "chaseR", "arr_ifvg", "tmin", "rng30"]
 +ms = lambda s: int(dt.datetime.fromisoformat(s).timestamp() * 1000)
++
++import pytest
++@pytest.fixture(autouse=True)
++def _caps_set(monkeypatch):   # config1 caps ship UNSET (fail closed); these parity tests run with generous caps
++    monkeypatch.setenv("COMBO1016_MAX_CONTRACTS", "1000"); monkeypatch.setenv("COMBO1016_MAX_DAY_LOSS_USD", "1000000"); monkeypatch.setenv("COMBO1016_MAX_ORDER_LOSS_USD", "1000000")
 +
 +def snap_of(f, i, fire=None):
 +    ft = f["features"]; v2 = {k: ft.get(k) for k in V2K}; g = {k: ft.get(k) for k in A.AGBM["features"]}
@@ -16944,12 +16949,22 @@ index 0000000..057a4bb
 +    ok2, _ = Watcher._bplus_brain_gate.__func__(Watcher, {"band": "B+", "brain_word": "WAIT", "symbol": "MNQ", "side": "long"}, "B+")
 +    assert ok2 is False
 +
-+def test_fail_closed_inputs_atrpct_allowed():
-+    f = FX["golden"][0]; s = snap_of(f, 0); now = ms(f["decision_at_close"])
-+    s["combo1016"]["arms"]["feat"]["gbm"]["atrpct"] = None; s["combo1016"]["arms"]["feat"]["v2"]["atrpct"] = None
++def test_fail_closed_inputs_atrpct_missing():
++    """Release Watch 10/16 (b): a missing atrpct no longer fails open: rules allow no missing GBM input and no defaulted S2 subfactor."""
++    assert A.AB["live"]["allowMissingGbm"] == [] and A.AB["live"]["allowDefaultedS2"] == []
++    f = next(x for x in FX["golden"] if x["configs"]["config1_trail"]["fires"]); i = FX["golden"].index(f); now = ms(f["decision_at_close"])
++    assert LV.decide(snap_of(f, i), now, {})["take"] or LV.decide(snap_of(f, i), now, {}).get("kind") == "limit_sealed"   # complete inputs: fires
++    s = snap_of(f, i); s["combo1016"]["arms"]["feat"]["gbm"]["atrpct"] = None; s["combo1016"]["arms"]["feat"]["v2"]["atrpct"] = None
 +    v2, g = s["combo1016"]["arms"]["feat"]["v2"], s["combo1016"]["arms"]["feat"]["gbm"]
-+    r = s["combo1016"]["arms"]["reads"][0]; r["S2"], r["gbmP"] = round(A.arms_s2(v2), 1), round(A.arms_gbm_p(g), 4); r["fire"] = A.fire("config1_trail", r["S2"], r["gbmP"])[0]
-+    d = LV.decide(s, now, {}); assert d["take"] == r["fire"] and "missing" not in d["why"] or d["take"], d
++    r = s["combo1016"]["arms"]["reads"][0]; r["S2"], r["gbmP"] = round(A.arms_s2(v2), 1), round(A.arms_gbm_p(g), 4); r["fire"] = True
++    d = LV.decide(s, now, {})
++    if A.fire("config1_trail", r["S2"], r["gbmP"])[0]:
++        assert d["take"] is False and d.get("kind") != "limit_sealed" and "atrpct" in d["why"] and "ctx_lowvol" in d["why"], d
++    else:
++        assert d["take"] is False
++    s0 = snap_of(f, i); s0["combo1016"]["arms"]["feat"]["gbm"]["atrpct"] = None
++    d0 = LV.decide(s0, now, {}); assert d0["take"] is False and d0.get("kind") != "limit_sealed", d0
++    f = FX["golden"][0]
 +    s2 = snap_of(f, 0); s2["combo1016"]["arms"]["feat"]["gbm"]["sw_with"] = None
 +    d2 = LV.decide(s2, now, {}); assert d2["take"] is False and "sw_with" in d2["why"]
 +    d3 = LV.decide(snap_of(f, 0), ms("2026-07-10T14:55:00-05:00"), {}); assert d3["take"] is False and "window" in d3["why"]
@@ -16958,8 +16973,92 @@ index 0000000..057a4bb
 +    """config1: sizing row = desk pp4 contracts at $250/$500 per R, no $650 cap (Keaton bypass); BP still checked by the core."""
 +    f = FX["golden"][0]; s = snap_of(f, 0); s["combo1016"]["arms"]["reads"][0]["opt"]["contracts"] = 40
 +    d = LV.decide(s, ms(f["decision_at_close"]), {}); assert d["take"] and d["contracts"] == 40 and d["usdPerR"] == (500 if f["S2"] >= 85 else 250)
+diff --git a/tests/test_combo1016_review.py b/tests/test_combo1016_review.py
+new file mode 100644
+index 0000000..3d6fc34
+--- /dev/null
++++ b/tests/test_combo1016_review.py
+@@ -0,0 +1,78 @@
++"""Accuracy Review #47 on the config1 live path: (2) explicit soft allowlist, everything else hard; (3) broker-resting stop required
++regardless of EXIT_SAFE_RESTING_STOP, RH reject -> flatten, no script-stop fallback; (4) caps unset -> fail closed, per-order contracts,
++day loss with open risk across ES and NQ."""
++import time
++from datetime import datetime
++from watcher import combo1016_live as LV, gates, exitsafe
++from tests.test_combo1016_daemon import setup, _pos, run
++
++HARD = ["fast:agree", "stop_width", "entries_day", "chop", "rr_sane", "blocks", "brain", "cap", "account", "exec_account", "rules_pin",
++        "rules_parity", "market_open", "no_position", "no_working_order", "live_quote", "sizing", "buying_power", "tape", "tape_fresh",
++        "feed_gapped", "ticket", "ticket_side", "dte", "news", "entry_cutoff", "card_age", "verdict", "htf_bias", "ltf_kill", "t1_rr",
++        "entry_distance", "actionable", "grok_agree", "bplus_caution", "late_pnl_live", "opt:spread", "option_net", "disp_vs_rr"]
++
++def test_each_named_gate_stays_hard():
++    for n in HARD:
++        (m, ok, _), = LV.soften([(n, False, "x")])
++        assert (m, ok) == (n, False), f"{n} must stay hard on the config1 path"
++
++def test_only_allowlist_softens_with_reason():
++    soft = list(LV.BYPASS_ROWS) + list(LV.NOT_IN_REFERENCE)
++    for n in soft:
++        (m, ok, w), = LV.soften([(n, False, "x")])
++        assert m == "soft:" + n and ok is True and ("Keaton" in w or "not in SMC reference" in w), n
++    assert set(LV.NOT_IN_REFERENCE) == {"band", "band_truth", "q", "fast:plan", "fast:entry", "fast:geometry", "fast:persist", "fast:velocity", "fast:ifvg"}
++    assert not (set(LV.NOT_IN_REFERENCE) & LV.HARD_NAMED)
++    assert LV.soften([("band", True, "ok")]) == [("band", True, "ok")]   # passing rows untouched
++
++CAPENV = ("COMBO1016_MAX_CONTRACTS", "COMBO1016_MAX_DAY_LOSS_USD", "COMBO1016_MAX_ORDER_LOSS_USD")
++
++def test_caps_keaton_defaults(monkeypatch):
++    for k in CAPENV: monkeypatch.delenv(k, raising=False)
++    assert LV._cfg_caps() == (None, 500.0, 500.0)
++    assert LV.caps_ok({}, 2, 500)[0] is True                       # A+ $500/R fits
++    ok, why = LV.caps_ok({}, 3, 501); assert ok is False and "per order" in why
++
++def test_caps_invalid_fail_closed(monkeypatch):
++    for k in CAPENV: monkeypatch.delenv(k, raising=False)
++    monkeypatch.setenv("COMBO1016_MAX_DAY_LOSS_USD", "abc")
++    ok, why = LV.caps_ok({}, 1, 250); assert ok is False and "fail closed" in why
++    monkeypatch.setenv("COMBO1016_MAX_DAY_LOSS_USD", "500"); monkeypatch.setenv("COMBO1016_MAX_ORDER_LOSS_USD", "0")
++    assert LV.caps_ok({}, 1, 250)[0] is False
++
++def test_caps_day_loss_500_across_books(monkeypatch):
++    for k in CAPENV: monkeypatch.delenv(k, raising=False)
++    d = {}; L = LV.book(d)
++    L["entries"] += [{"setupId": "a", "book": "ES", "open": False, "netR": -1.0, "usdPerR": 150, "result": "loss"},
++                     {"setupId": "b", "book": "NQ", "open": True, "usdPerR": 200}]
++    ok, why = LV.caps_ok(d, 1, 150); assert ok and "$500/$500" in why            # 150 realized + 200 open + 150 new
++    ok, why = LV.caps_ok(d, 1, 151); assert ok is False and "realized $150 + open $200 + new $151" in why
++    monkeypatch.setenv("COMBO1016_MAX_CONTRACTS", "1")
++    assert LV.caps_ok({}, 2, 100) == (False, "config1 2 contracts > max 1 per order")
++
++class RejectStop(Exception): pass
++
++def test_config1_resting_stop_required_and_reject_flattens(tmp_path, monkeypatch):
++    w, fb = setup(tmp_path, monkeypatch)
++    monkeypatch.delenv("EXIT_SAFE_RESTING_STOP", raising=False); assert exitsafe.resting_stop_enabled() is False
++    placed = []
++    class CG:
++        def __init__(s, *a, **k): pass
++        def place_resting_stop(s, q, stop): placed.append((q, stop)); return {"id": "rs1"}
++    monkeypatch.setattr(exitsafe, "CloseGuard", CG)
++    p = w.combo_positions()["ES"]; p["opt_stop"] = 0.5
++    w._place_resting_stop(p); assert placed == [(4, 0.5)] and p["resting_stop_id"] == "rs1" and not p.get("combo_flatten")
++    class CGx(CG):
++        def place_resting_stop(s, q, stop): raise RejectStop("RH rejected stop")
++    monkeypatch.setattr(exitsafe, "CloseGuard", CGx)
++    q = w.combo_positions()["NQ"]; q["opt_stop"] = 0.5
++    w._place_resting_stop(q); assert "rejected" in q["combo_flatten"]
++    a, n, why = gates.manage_action(q, 1.5, w.cfg, datetime(2026, 10, 16, 11, 0, tzinfo=gates.ET), 200.0)
++    assert (a, n) == ("exit", 4) and "fail closed" in why            # no script-stop hold: flatten
++
++def test_non_config1_keeps_env_switch(tmp_path, monkeypatch):
++    w, fb = setup(tmp_path, monkeypatch); monkeypatch.delenv("EXIT_SAFE_RESTING_STOP", raising=False)
++    called = []
++    monkeypatch.setattr(exitsafe, "CloseGuard", lambda *a, **k: called.append(1))
++    p = _pos("o9", "MES", "long", 100.0, 98.0, "x"); p.pop("combo_arm"); p["opt_stop"] = 0.5
++    w._place_resting_stop(p); assert called == []
 diff --git a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
-index 7abc0d2..ff802ef 100644
+index 7abc0d2..5ef0c73 100644
 --- a/tests/test_review_quote_refetch.py
 +++ b/tests/test_review_quote_refetch.py
 @@ -21,7 +21,7 @@ stale = {"bid": 1.0, "ask": 1.1, "asOfMs": 0}
@@ -16967,7 +17066,7 @@ index 7abc0d2..ff802ef 100644
  def test_threshold_still_1s_and_hash_unchanged():
      assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
 -    assert gates.RULES_HASH == "c3b14cab9e29a630"   # score1016 block added 2026-10-16 (after fix1016) (desk-rules.json); threshold unchanged
-+    assert gates.RULES_HASH == "9b967da4dc11d2b7"   # combo1016Arms + brainPd added 2026-10-16 (after combo1016) (desk-rules.json); threshold unchanged
++    assert gates.RULES_HASH == "6fe537e09d6fabef"   # combo1016Arms + brainPd added 2026-10-16 (after combo1016) (desk-rules.json); threshold unchanged
  
  def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
@@ -17344,10 +17443,10 @@ index 0000000..bcffe70
 +    return rows
 diff --git a/watcher/combo1016_live.py b/watcher/combo1016_live.py
 new file mode 100644
-index 0000000..0773503
+index 0000000..073393d
 --- /dev/null
 +++ b/watcher/combo1016_live.py
-@@ -0,0 +1,141 @@
+@@ -0,0 +1,186 @@
 +"""combo1016 config1_trail LIVE fire path (Keaton 10/16 14:38 CT): trades exactly like SMC's backtest (integration combo1016.ts / pnl-push).
 +Twin of src/lib/smc/combo1016-arms.ts (desk read). Shared rules combo1016Arms.live.
 +decide(snap, now_ms, state_day) -> dict(take, why, ...). take=True turns the v5 non-safety refusals of THIS card into soft rows and sizes
@@ -17359,19 +17458,40 @@ index 0000000..0773503
 +LIVE = (A.AB.get("live") or {})
 +KEY = LIVE.get("arm", "config1_trail")
 +BYPASS = set(LIVE.get("bypass") or [])
-+# rows that stay hard on the combo path (safety plumbing + data quality); every other failing v5 row becomes soft:<name>
-+KEEP = {"account", "exec_account", "rules_pin", "rules_parity", "market_open", "no_position", "no_working_order", "live_quote", "sizing",
-+        "buying_power", "tape", "tape_fresh", "feed_gapped", "ticket", "ticket_side", "dte", "late_pnl_live", "opt:spread", "news", "entry_cutoff", "card_age", "day_loss", "weekly_lock"}
++# Accuracy Review #47 (2): explicit ALLOWLIST. Only these failing v5 rows turn soft on the config1 path; every other row (account, rules,
++# market_open, no_position, quotes, BP, tape/feed, ticket/dte, news, entry_cutoff, card_age, fast:agree, brain (incl. Brain on the opposite
++# side), stop_width, entries_day, chop, rr_sane, blocks, verdict, htf_bias, ltf_kill, t1_rr, entry_distance, cap rows, ...) stays HARD.
++# (a) Keaton-approved bypasses (rules combo1016Arms.live.bypass). The $650 debit cap is bypassed in sizing (gates core) and the B+ Brain
++#     TAKE gate in daemon._bplus_brain_gate; neither is a v5 row softened here.
 +BYPASS_ROWS = {"day_loss": "dayLoss", "weekly_lock": "weeklyLock"}
++# (b) Rows SMC's backtest reference does NOT apply. Reference: audits/smc-research/integration/combo1016.ts decide() (fire = S2 >= 70 AND
++#     gbmP >= q90, no other filter), hybridEntry() (entry = market if chaseR <= 1 else limit at the newest edge; stop = raid extreme -/+ buffer)
++#     and week1016-review/work/eng.py (candidates = raid -> displacement/MSS -> 1m array). None of them reads the desk's band, q or the
++#     fast-chain plan/geometry, so those desk-model refusals are not part of the strategy being run:
++NOT_IN_REFERENCE = {
++    "band": "desk pathBand: reference fires on S2/gbmP only (combo1016.ts decide)",
++    "band_truth": "desk band persistence/streak: no band in the reference",
++    "q": "desk confluence q: replaced by S2/gbmP in the reference",
++    "fast:plan": "fast-chain desk plan: reference plan = hybridEntry (newest edge / raid-extreme stop)",
++    "fast:entry": "fast-chain desk entry geometry: reference entry = hybridEntry",
++    "fast:geometry": "fast-chain desk stop/target geometry: reference exits = ExitSim TR",
++    "fast:persist": "fast-chain persistence: reference decides once at the decision-bar close (eng.py sig = jm+1)",
++    "fast:velocity": "fast-chain velocity filter: not in eng.py / combo1016.ts",
++    "fast:ifvg": "fast-chain iFVG requirement: reference arrays = eng.py 1m FVG/iFVG, scored in S2/gbmP",
++}
++# Applied by the reference, or a safety/data row -> HARD (explicitly listed so a test can pin it): fast:agree (Brain opposite), stop_width,
++# entries_day, chop, rr_sane, blocks, brain, cap.
++HARD_NAMED = {"fast:agree", "stop_width", "entries_day", "chop", "rr_sane", "blocks", "brain", "cap"}
 +
 +def live():
 +    return LIVE.get("mode") == "live" and KEY in A.ARMS
 +
 +def inputs_ok(feat):
-+    """Fail closed on any missing/defaulted input except atrpct (research NaN routing; ctx_lowvol takes 0.5)."""
++    """Fail closed on ANY missing/defaulted input, atrpct included (Release Watch 10/16: a defaulted atrpct failed open).
++    Only what rules combo1016Arms.live.allowMissingGbm / allowDefaultedS2 list is tolerated; absent or empty -> nothing."""
 +    v2, g = (feat or {}).get("v2"), (feat or {}).get("gbm")
 +    if not isinstance(v2, dict) or not isinstance(g, dict): return False, "no arms feature vector"
-+    allow_g = set(LIVE.get("allowMissingGbm") or ["atrpct"]); allow_s = set(LIVE.get("allowDefaultedS2") or ["ctx_lowvol"])
++    allow_g = set(LIVE.get("allowMissingGbm") or []); allow_s = set(LIVE.get("allowDefaultedS2") or [])
 +    sf = subfactors(v2)
 +    bad_s = [k for k, v in sf.items() if v is None and k not in allow_s]
 +    if v2.get("tr4h_with") is None: bad_s.append("ctx_htf4(tr4h_with null)")
@@ -17379,6 +17499,27 @@ index 0000000..0773503
 +    bad_g = [k for k in A.AGBM["features"] if A._f(g.get(k)) is None and k not in allow_g]
 +    if bad_s or bad_g: return False, "missing/defaulted inputs: " + ", ".join(bad_s + [f"gbm:{k}" for k in bad_g])
 +    return True, "inputs ok" + (" (atrpct missing: research NaN routing)" if A._f(g.get("atrpct")) is None else "")
++
++def _cfg_caps():
++    from .config import Config
++    c = Config(); return c.combo1016_max_contracts, c.combo1016_max_day_loss_usd, c.combo1016_max_order_loss_usd
++
++def caps_ok(state_day, n, usd_per_r):
++    """Accuracy Review #47 (4), decided by Keaton 10/16 16:10 CT. Defaults (watcher/config.py): day loss $500
++    (COMBO1016_MAX_DAY_LOSS_USD), one order's modeled loss $500 (COMBO1016_MAX_ORDER_LOSS_USD; this IS the contract cap:
++    contracts x stop x multiplier = order $/R must be <= $500, so A+ $500/R fits). COMBO1016_MAX_CONTRACTS is an optional extra
++    hard count. A cap set to an invalid value (<=0 / junk) is None -> fail closed. Day loss = realized config1 loss today
++    (netR x $/R, both books) + open risk of every open config1 position (1R, ES and NQ) + this order's risk (1R)."""
++    mc, ml, mo = _cfg_caps()
++    if ml is None or mo is None: return False, "config1 caps invalid (COMBO1016_MAX_DAY_LOSS_USD / COMBO1016_MAX_ORDER_LOSS_USD): fail closed"
++    if mc is not None and n > mc: return False, f"config1 {n} contracts > max {mc} per order"
++    if float(usd_per_r) > mo: return False, f"config1 order modeled loss ${usd_per_r:.0f} ({n} ct) > max ${mo:.0f} per order"
++    L = book(state_day) or {}; ents = L.get("entries") or []
++    realized = -sum(min(0.0, float(e.get("netR") or 0.0)) * float(e.get("usdPerR") or 0.0) for e in ents if not e.get("open"))
++    open_risk = sum(float(e.get("usdPerR") or 0.0) for e in ents if e.get("open"))
++    tot = realized + open_risk + float(usd_per_r)
++    if tot > ml: return False, f"config1 day loss at risk ${tot:.0f} (realized ${realized:.0f} + open ${open_risk:.0f} + new ${usd_per_r:.0f}) > max ${ml:.0f}"
++    return True, f"config1 caps ok ({n} ct, order ${usd_per_r:.0f}/${mo:.0f}, day ${tot:.0f}/${ml:.0f})"
 +
 +def book(state_day):
 +    return state_day.setdefault("combo1016_live", {"entries": [], "pending": []}) if isinstance(state_day, dict) else None
@@ -17432,6 +17573,8 @@ index 0000000..0773503
 +    n = o.get("contracts")
 +    if not isinstance(n, int) or n < 1: return {**out, "why": "no pp4 contract count on the desk read (fail closed)"}
 +    if abs(float(rd.get("usdPerR") or 0) - usd) > 1e-6: return {**out, "why": f"desk $/R {rd.get('usdPerR')} != watcher {usd} (fail closed)"}
++    okc, whyc = caps_ok(state_day, n, usd)
++    if not okc: return {**out, "why": whyc, "S2": s2, "gbmP": g}
 +    setup = arms.get("setupId")
 +    if not setup: return {**out, "why": "no setupId (fail closed)"}
 +    ok, why = can_take(L, sym, setup)
@@ -17445,12 +17588,13 @@ index 0000000..0773503
 +    return {**out, "take": True, "why": f"config1 FIRE S2 {s2} gbmP {g} {'A+ ' if ap else ''}${usd:.0f}/R {n}ct market", "kind": "market", **info}
 +
 +def soften(g):
-+    """Failing v5 rows outside KEEP -> soft:<name> (logged); dayLoss/weekly bypassed per Keaton."""
++    """Failing v5 rows in the explicit allowlist -> soft:<name> (logged with the reason); everything else is returned unchanged (hard)."""
 +    out = []
 +    for n, ok, w in g:
-+        if ok is False and (n not in KEEP or n in BYPASS_ROWS and BYPASS_ROWS[n] in BYPASS):
-+            tag = " (bypassed for config1, Keaton 10/16)" if n in BYPASS_ROWS else ""
-+            out.append(("soft:" + n, True, f"combo1016 config1 live path{tag}: {w}"))
++        if ok is False and n in BYPASS_ROWS and BYPASS_ROWS[n] in BYPASS:
++            out.append(("soft:" + n, True, f"combo1016 config1 live path (bypassed for config1, Keaton 10/16): {w}"))
++        elif ok is False and n in NOT_IN_REFERENCE and n not in HARD_NAMED:
++            out.append(("soft:" + n, True, f"combo1016 config1 live path (not in SMC reference: {NOT_IN_REFERENCE[n]}): {w}"))
 +        else: out.append((n, ok, w))
 +    return out
 +
@@ -17489,8 +17633,45 @@ index 0000000..0773503
 +            out.append((n, oko, f"config1 per book: RH working orders {k} vs tracked {tr.get('n_ord')}"))
 +        else: out.append((n, ok, w))
 +    return out
+diff --git a/watcher/config.py b/watcher/config.py
+index 4ba05df..fe6bf67 100644
+--- a/watcher/config.py
++++ b/watcher/config.py
+@@ -13,6 +13,21 @@ def _f(name, default):
+     v = os.environ.get(name)
+     return default if v in (None, "") else float(v)
+ 
++def _optint(k):
++    v = os.environ.get(k, "").strip()
++    try: return int(v) if v and int(v) > 0 else None
++    except ValueError: return None
++
++def _optfloat(k):
++    v = os.environ.get(k, "").strip()
++    try: return float(v) if v and float(v) > 0 else None
++    except ValueError: return None
++
++def _capfloat(k, default):
++    """Keaton 10/16 16:10 CT: unset -> his decided default; set-but-invalid (<=0, junk) -> None = fail closed."""
++    if os.environ.get(k) is None: return default
++    return _optfloat(k)
++
+ @dataclass
+ class Config:
+     base_dir: str = field(default_factory=lambda: os.environ.get("WATCHER_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+@@ -27,6 +42,10 @@ class Config:
+     brain_wait_aplus: bool = field(default_factory=lambda: _b("BRAIN_WAIT_APLUS", True))  # Keaton-approved 2026-10-13
+     brain_soft: bool = field(default_factory=lambda: _b("BRAIN_SOFT", False))  # never blocks; logs brain_override
+     last_entry_et: str = field(default_factory=lambda: os.environ.get("NO_NEW_ENTRIES_AFTER_ET", "15:40"))
++    # Accuracy Review #47 (4): combo1016 config1 caps. UNSET by default = config1 refuses every entry (fail closed) until Keaton sets them.
++    combo1016_max_contracts: int | None = field(default_factory=lambda: _optint("COMBO1016_MAX_CONTRACTS"))
++    combo1016_max_day_loss_usd: float | None = field(default_factory=lambda: _capfloat("COMBO1016_MAX_DAY_LOSS_USD", 500.0))   # Keaton 10/16: $500/day, realized + open risk, ES+NQ
++    combo1016_max_order_loss_usd: float | None = field(default_factory=lambda: _capfloat("COMBO1016_MAX_ORDER_LOSS_USD", 500.0))  # Keaton 10/16: one order's modeled loss (1R $) <= $500 (A+ $500/R fits)
+     require_armed: bool = field(default_factory=lambda: _b("FLOOR_REQUIRE_ARMED", True))
+     fire_in_slow: bool = field(default_factory=lambda: _b("FIRE_IN_SLOW", True))
+     q_min: float = field(default_factory=lambda: _f("Q_MIN", 0.60))   # 0.65 -> 0.60 so B+ (q-edge 0.60) can fire; band truth still caps by q
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index 3f9b784..f196616 100644
+index 3f9b784..6a0216f 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
 @@ -31,7 +31,29 @@ class Watcher:
@@ -17595,7 +17776,65 @@ index 3f9b784..f196616 100644
          pos["card"] = {k: snap.get(k) for k in ("symbol", "side", "band", "q", "entry", "stop_px", "first_target", "card_rr", "disp_strength", "verdict", "brain_word")}
          pos["targets"] = snap.get("targets")
          dayst.setdefault("fires", []).append({"at": time.time(), "signal": key, "card": pos["card"], "contract": {k: c.get(k) for k in ("symbol", "exp", "strike", "type")},
-@@ -552,6 +594,24 @@ class Watcher:
+@@ -466,13 +508,18 @@ class Watcher:
+         force=True only after a clear has confirmed the old stop terminal. A stop that came back WITHOUT an order id
+         may be live at RH: it is never re-sent automatically (resting_stop_blocked) — alert, script stop stays."""
+         from . import exitsafe
+-        if not exitsafe.resting_stop_enabled() or pos["contract"].get("spread_short"): return
+-        if pos.get("resting_stop_blocked"): return
++        c1 = pos.get("combo_arm") == "config1_trail"   # Accuracy Review #47 (3): config1 ALWAYS rests a broker stop (EXIT_SAFE_RESTING_STOP ignored)
++        if not (exitsafe.resting_stop_enabled() or c1) or pos["contract"].get("spread_short"): return
++        if pos.get("resting_stop_blocked"):
++            if c1: self._combo_stop_fail(pos, "resting stop blocked: " + str(pos["resting_stop_blocked"]))
++            return
+         if pos.get("resting_stop_id") and not force:
+             self.log("resting_stop_exists", order_id=pos["resting_stop_id"]); return
+         if self.stopped(): self.log("kill_switch", note="STOP present — resting stop not placed"); return
+         stop, q = self._stop_px(pos), int(qty or pos.get("qty") or 0)
+-        if stop <= 0.01 or q <= 0: return
++        if stop <= 0.01 or q <= 0:
++            if c1 and q > 0: self._combo_stop_fail(pos, f"no valid stop price ({stop})")
++            return
+         if force:   # Release Watch 10/16: a RE-placed stop is clamped under the current bid (never an instant market-out)
+             try:
+                 _m, _md = self.broker.mark(pos["contract"]["id"]); _bid = float((_md or {}).get("bid_price") or 0)
+@@ -484,19 +531,31 @@ class Watcher:
+             res = exitsafe.CloseGuard(self.broker, pos["contract"], log=self.log).place_resting_stop(q, stop)
+             pos.update(resting_stop_id=res.get("id"), resting_stop_qty=q, resting_stop_px=stop)
+         except exitsafe.NoOrderId as e:
+-            pos["resting_stop_blocked"] = str(e); self.alert(f"RESTING STOP returned no order id — NOT re-sending; check RH for a working stop. Script stop still active. ({e})")
++            pos["resting_stop_blocked"] = str(e)
++            if c1: self._combo_stop_fail(pos, f"resting stop returned no order id ({e})"); return
++            self.alert(f"RESTING STOP returned no order id — NOT re-sending; check RH for a working stop. Script stop still active. ({e})")
+             self.save(); return
+         except Exception as e:
+-            self.log("resting_stop_failed", reason=str(e)); self.alert(f"RESTING STOP FAILED ({e}) — script-watched stop still active"); self.save(); return
++            self.log("resting_stop_failed", reason=str(e))
++            if c1: self._combo_stop_fail(pos, f"RH rejected the resting stop ({e})"); return
++            self.alert(f"RESTING STOP FAILED ({e}) — script-watched stop still active"); self.save(); return
+         self.save()
+ 
++    def _combo_stop_fail(self, pos, why):
++        """config1 without a broker-resting stop: NO fallback to the script-watched stop. Flag the position for an immediate flatten
++        (gates.manage_action returns exit on combo_flatten) and fail closed."""
++        pos["combo_flatten"] = why
++        self.log("combo1016_stop_fail_flatten", reason=why); self.alert(f"config1: {why} — FLATTENING (no script-stop fallback)"); self.save()
++
+     def _check_resting_stop(self, pos, qty, et):
+         """Every manage cycle: keep the resting stop matched to the live position.
+         filled -> recorded; expired/cancelled/rejected (gfd expiry at the close, manual cancel) -> re-placed unless
+         past flat-by; qty changed (later entry fills / partial trims) -> cancel-confirm-replace for the new qty."""
+         from . import exitsafe
+-        if not exitsafe.resting_stop_enabled() or pos["contract"].get("spread_short") or self.stopped(): return
+-        if pos.get("resting_stop_blocked"): return
++        if not (exitsafe.resting_stop_enabled() or pos.get("combo_arm") == "config1_trail") or pos["contract"].get("spread_short") or self.stopped(): return
++        if pos.get("resting_stop_blocked"):
++            if pos.get("combo_arm") == "config1_trail" and not pos.get("combo_flatten"): self._combo_stop_fail(pos, "resting stop blocked")
++            return
+         oid = pos.get("resting_stop_id")
+         if oid:
+             try: st = self.broker.order_state(oid)
+@@ -552,6 +611,24 @@ class Watcher:
              pos["qty"] = max(0, pos["qty"] - (fq or qty)); self._place_resting_stop(pos, force=True)
          return (vwap or rungs[-1][1]), {"id": None, "ladder": rungs, "filled_qty": fq or None, "vwap": vwap}, act
  
@@ -17620,7 +17859,7 @@ index 3f9b784..f196616 100644
      def _book_close(self, pos, et, act, px, qty):
          """One booking path for every close (script sell, exit ladder, resting-stop fill): losing exit -> day lost (no B+
          for the rest of the day), fireFix.dayLoss pnl, fix 20 option PnL on the fire row."""
-@@ -605,16 +665,16 @@ class Watcher:
+@@ -605,16 +682,16 @@ class Watcher:
                      q = self.broker.quote(pos["contract"]["id"]) or {}
                  okq, whyq = gates.quote_ok(q, now_ms(), self.cfg.order_review_max_age_ms, self.cfg.quote_max_future_ms) if q.get("ask") else (False, "no ask")
                  step = pos.get("walk_step", 0) + 1; lim = optexec.walk_limit(q.get("bid"), q.get("ask"), step) if okq else None
@@ -17642,7 +17881,7 @@ index 3f9b784..f196616 100644
              elif st in ("cancelled_walk",):
                  pass
              else:
-@@ -634,7 +694,7 @@ class Watcher:
+@@ -634,7 +711,7 @@ class Watcher:
              if pos.get("resting_stop_id"):
                  self.log("exit_by_resting_stop", signal=pos.get("signal"), order_id=pos["resting_stop_id"], stop=pos.get("resting_stop_px"))
                  self._book_resting_stop_fill(pos, pos["resting_stop_id"], et)
@@ -17651,7 +17890,7 @@ index 3f9b784..f196616 100644
          pos["qty"] = qty
          self._check_resting_stop(pos, qty, et)
          mark, md = self.broker.spread_mark(pos["contract"]) if pos["contract"].get("spread_short") else self.broker.mark(pos["contract"]["id"])
-@@ -812,7 +872,7 @@ class Watcher:
+@@ -812,7 +889,7 @@ class Watcher:
              self.state["heartbeat"] = {"ts": datetime.now(gates.ET).isoformat(timespec="seconds"), "mode": mode,
                                         "live": self.cfg.live, "stop_file": self.stopped()}
              self.save()
@@ -17661,7 +17900,7 @@ index 3f9b784..f196616 100644
              if mode != "idle" and self.agg.event_mode(time.time()): period = min(period, ticks.F["eventPollS"])   # event mode after a spike
              time.sleep(max(0.05, period - (time.time() - t0)))
 diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
-index a1d1c19..97c1625 100644
+index a1d1c19..ee215ee 100644
 --- a/watcher/desk-rules.json
 +++ b/watcher/desk-rules.json
 @@ -1154,6 +1154,7 @@
@@ -17672,7 +17911,7 @@ index a1d1c19..97c1625 100644
        "minRiskAtr1m": 0.5,
        "maxRiskAtr1m": 12
      },
-@@ -1172,6 +1173,499 @@
+@@ -1172,6 +1173,495 @@
      "scopeCaps": {
        "mode": "shadow",
        "_doc": "bt13 fix 8: LTF-reversal and Played-out caps scoped to the setup that triggered them."
@@ -17949,7 +18188,7 @@ index a1d1c19..97c1625 100644
 +          "C"
 +        ]
 +      ]
-+    }
+     }
 +  },
 +  "combo1016": {
 +    "_doc": "SMC research best combo (audits/smc-research/s2-combo.md). Fire = score1016.v2 S2 >= fireS2 AND gbmP >= gbm.thr (IS 2010-18 90th pct). A+ tier S2 >= aPlusS2 is logged only (no sizing change). Hybrid entry, T1 1R 50% -> BE -> 2R, caps 3/day 2/symbol, halt the day after the first loss, re-arm only with a new setup id (a sealed entry is never re-priced). Every item mode shadow: card.combo1016 + watcher shadow:combo1016:* rows; nothing moves q/band/plan/fire/size.",
@@ -17985,19 +18224,15 @@ index a1d1c19..97c1625 100644
 +      "mode": "shadow",
 +      "newSetupIdOnly": true,
 +      "repriceSealed": false
-     }
++    }
 +  },
 +  "combo1016Arms": {
 +    "live": {
-+      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT (live: capped by session.flatByMaxEt 15:50 ET and the 0DTE flat 15:40 ET; entry_cutoff kept). Concurrency (Keaton 10/16 15:06 CT): config1 holds positions concurrently across books, 1 open per book, RH open positions/working orders must equal the watcher-tracked set (fail closed); other desk paths keep one position. Loss timing: a loss counts for the halt when the trade closes (cannot be known earlier). Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Missing atrpct may fire (research NaN routing, ctx_lowvol 0.5); any other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift fails closed.",
++      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT (live: capped by session.flatByMaxEt 15:50 ET and the 0DTE flat 15:40 ET; entry_cutoff kept). Concurrency (Keaton 10/16 15:06 CT): config1 holds positions concurrently across books, 1 open per book, RH open positions/working orders must equal the watcher-tracked set (fail closed); other desk paths keep one position. Loss timing: a loss counts for the halt when the trade closes (cannot be known earlier). Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Release Watch 10/16: atrpct is computed from the desk's 1mo 5m feed (feat.py rank, >=500 valid ATRs); a missing atrpct now FAILS CLOSED like every other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift. Inputs come from the research candidate generator (combo1016-cand.ts, eng.py closed-bar port).",
 +      "mode": "live",
 +      "arm": "config1_trail",
-+      "allowMissingGbm": [
-+        "atrpct"
-+      ],
-+      "allowDefaultedS2": [
-+        "ctx_lowvol"
-+      ],
++      "allowMissingGbm": [],
++      "allowDefaultedS2": [],
 +      "marketOnly": false,
 +      "notBeforeCt": "08:30",
 +      "bypass": [
@@ -18173,7 +18408,7 @@ index a1d1c19..97c1625 100644
    }
  }
 diff --git a/watcher/gates.py b/watcher/gates.py
-index 3b8ff6f..58ba68a 100644
+index 3b8ff6f..878640e 100644
 --- a/watcher/gates.py
 +++ b/watcher/gates.py
 @@ -128,6 +128,8 @@ def snapshot(card):
@@ -18229,11 +18464,13 @@ index 3b8ff6f..58ba68a 100644
      add("sizing", nct is not None, why)
      if nct is None:
          if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")
-@@ -924,10 +948,30 @@ def parse_level(stop_text):
+@@ -924,10 +948,32 @@ def parse_level(stop_text):
  
  def manage_action(pos, mark, cfg, et_dt, underlying_px=None):
      """pos: {qty, entry, trimmed, side(call/put), fut_side(long/short), fut_stop}. Returns (action, qty, why)."""
 -    if past_flat(cfg, et_dt):
++    if pos.get("combo_flatten"):   # config1 with no broker-resting stop: flatten now, no script-stop fallback (Accuracy Review #47 (3))
++        return "exit", pos["qty"], f"combo1016 config1 fail closed: {pos['combo_flatten']}"
 +    if past_flat(cfg, et_dt) and pos.get("combo_arm") != "config1_trail":   # config1 keeps SMC's 14:55 CT (capped by flatByMaxEt / 0DTE flat below)
          return "exit", pos["qty"], f"flat by {cfg.flat_by} ET"
      if contract_dte(pos.get("contract"), et_dt) == 0 and et_dt.hour * 60 + et_dt.minute >= _hm(SESSION["zeroDteFlatEt"]):

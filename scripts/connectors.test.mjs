@@ -205,4 +205,4 @@ test("notify: a formatEvent/eventKey exception never leaves a key in-flight or t
   assert.equal(posts.length, 0);
 });
 
-test("desk-rules hash (combo1016 + score1016.v2 added 10-16)", () => assert.equal(h.RULES_HASH, "9b967da4dc11d2b7"));
+test("desk-rules hash (combo1016 + score1016.v2 added 10-16)", () => assert.equal(h.RULES_HASH, "6fe537e09d6fabef"));

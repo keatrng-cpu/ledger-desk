@@ -312,7 +312,15 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   // Keaton 2026-10-13: only full-plan cards are cards; watch rows never lead.
   const isWatch = (c: unknown) => Boolean((c as { watchOnly?: boolean }).watchOnly);
   const best = desk.scan.candidates.find((c) => !isWatch(c)) ?? null;
-  const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
+  const top0 = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
+  // combo1016 config1 LIVE (Release Watch 10/16): a card whose config1 read fires (research candidate on that book/side, plan + pp4 contracts)
+  // leads, so the watcher sees it; config1 decides on its own book/side, which need not be the desk's best card. Otherwise unchanged.
+  const config1Fires = (c: unknown): boolean => {
+    const a = (c as { combo1016?: { arms?: { reads?: { arm?: string; fire?: boolean; plan?: unknown; opt?: { contracts?: number } | null }[]; live?: { mode?: string; arm?: string } } } }).combo1016?.arms;
+    return a?.live?.mode === "live" && Boolean(a.reads?.some((r) => r.arm === a.live?.arm && r.fire === true && r.plan && (r.opt?.contracts ?? 0) >= 1));
+  };
+  const c1Lead = desk.scan.candidates.find((c) => config1Fires(c) && !(c as { invalidated?: boolean }).invalidated && !(c as { staleTape?: boolean }).staleTape) ?? null;
+  const top = c1Lead ?? top0;
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = !tapeStale([desk.quotes.left.lagSec, desk.quotes.right.lagSec]); // one boundary with build-desk (stale only when lag > STALE_TAPE_SEC)
   const tk = ticketCheck(shown?.ticket ?? null, top ? { symbol: top.symbol, side: top.side as "long" | "short" } : null, desk.clock.etHour, desk.clock.etMinute,

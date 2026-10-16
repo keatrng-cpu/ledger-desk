@@ -1,7 +1,7 @@
 /**
  * combo1016 card inputs from real desk bars: a closed-bar port of score-rebuild/ev/feat.py (+ the side mapping in gbm.py).
  * Fills the S2 inputs tr4h_with and rng30 and the GBM features sw_with, smt_with, fail3_with, mss5_with, tr1h_with, tr4h_with,
- * pdpos_with, compress, rng30, since_disp. atrpct stays null (needs 20 days of 5m ATR; the desk keeps 480 1m bars) and is listed.
+ * pdpos_with, compress, rng30, since_disp and atrpct (from the desk's 1mo 5m feed + closed 1m: atrpctAt).
  *
  * tMs = LABEL of the decision 1m bar (decision at its close, as SMC integration minutes_*.json t_bar) → research row t5 = floor(tMs, 5m): every feature uses only 5m bars that CLOSED at or before t5 (no lookahead).
  * Sources: own/other closed 1m (desk minute feed, 480 kept) for the 5m features; own closed 15m (1 month) for session levels
@@ -46,14 +46,15 @@ function trendAt(bins: { end: number; c: number }[], t5: number): number | null 
 }
 
 export interface BarFeat { sw_with: number | null; smt_with: number | null; fail3_with: number | null; mss5_with: number | null; tr1h_with: number | null; tr4h_with: number | null;
-  pdpos_with: number | null; compress: number | null; rng30: number | null; since_disp: number | null; atrpct: null; atr5: number | null; why: Record<string, string>;
+  pdpos_with: number | null; compress: number | null; rng30: number | null; since_disp: number | null; atrpct: number | null; atr5: number | null; why: Record<string, string>;
   /** decision row before 08:30 CT: research sw_with/pdpos_with used the whole overnight session (lookahead); desk values are closed-bar only → partial */
   preRthLevels: boolean }
 
 /** own1m/other1m: closed 1m bars (any length, ≥ ~40 5m bars before t5 for exact values). own15m: closed 15m bars, ~1 month. */
-export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: number; side: Side }): BarFeat {
-  const why: Record<string, string> = { atrpct: "needs 20 trading days of 5m ATR (5760 bars); the desk keeps 480 1m bars" };
+export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: number; side: Side; own5m?: B[] }): BarFeat {
+  const why: Record<string, string> = {};
   const t5 = Math.floor(i.tMs / M5) * M5;
+  const ap = atrpctAt(i.own5m ?? [], i.own1m, t5);
   // 5m bars (label left) from own 1m, only buckets fully closed by t5 → buckets with start < t5; row t5 itself is the decision row
   const oth = new Map(i.other1m.map((b) => [b.t, b]));
   const b5: { t: number; o: number; h: number; l: number; c: number; oh: number; ol: number }[] = [];
@@ -64,7 +65,8 @@ export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: num
     else b5.push({ t: k, o: b.o, h: b.h, l: b.l, c: b.c, oh: o ? o.h : nan, ol: o ? o.l : nan });
   }
   const n = b5.length; // index n = the decision row (t5); H/L/C = bar n-1
-  const out: BarFeat = { sw_with: null, smt_with: null, fail3_with: null, mss5_with: null, tr1h_with: null, tr4h_with: null, pdpos_with: null, compress: null, rng30: null, since_disp: null, atrpct: null, atr5: null, why, preRthLevels: tod(t5) < 510 };
+  const out: BarFeat = { sw_with: null, smt_with: null, fail3_with: null, mss5_with: null, tr1h_with: null, tr4h_with: null, pdpos_with: null, compress: null, rng30: null, since_disp: null, atrpct: ap.v, atr5: null, why, preRthLevels: tod(t5) < 510 };
+  if (ap.v == null) why.atrpct = ap.why;
   if (out.preRthLevels) why.sw_with = why.pdpos_with = "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only";
   const sd = i.side === "short" ? 1 : -1;
   // trends from 15m (hour close = last 15m close in the hour); keep bars closed by t5
@@ -137,6 +139,31 @@ export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: num
   if (last >= 0) out.since_disp = Math.min(200, n - last); else why.since_disp = `no strong 5m bar in the ${n} available (censored → missing)`;
   if (n - 15 < 200 && last < 0) out.since_disp = null;
   return out;
+}
+
+/**
+ * atrpct (feat.py / features-ref.ts exact): ATR14 of 24h 5m bars known at the row's open (mean TR of the 14 previous bars), percentile rank
+ * (pandas rank(pct=True), ties averaged) of the decision row's ATR within the last 5760 rows; null when fewer than 500 valid ATRs.
+ * 5m series = the desk's 1mo 5m feed (closed bars) with every COMPLETE 5m bucket rebuilt from closed 1m bars overriding it; rows < t5 only.
+ * With < 5760 rows (Yahoo 1mo 5m ≈ 20 sessions) the rank uses every available row (≥ 500), which is exactly what the reference does in its own
+ * warmup (rolling(5760, min_periods=500)); exact parity needs a full 5760-row window and is reported in `why`.
+ */
+export function atrpctAt(own5m: B[], own1m: B[], t5: number): { v: number | null; rows: number; why: string } {
+  const m = new Map<number, B>();
+  for (const b of own5m) if (b.t + M5 <= t5) m.set(b.t, { t: b.t, o: b.o, h: b.h, l: b.l, c: b.c });
+  const g = new Map<number, B & { n: number; first: number }>();
+  for (const b of own1m) { if (b.t >= t5) break; const k = Math.floor(b.t / M5) * M5; const L = g.get(k);
+    if (L) { L.h = Math.max(L.h, b.h); L.l = Math.min(L.l, b.l); L.c = b.c; L.n++; } else g.set(k, { t: k, o: b.o, h: b.h, l: b.l, c: b.c, n: 1, first: b.t }); }
+  for (const [k, b] of g) if (b.first === k && (b.n === 5 || k + M5 <= t5)) m.set(k, { t: k, o: b.o, h: b.h, l: b.l, c: b.c });
+  const b5 = [...m.values()].sort((a, b) => a.t - b.t); const n = b5.length;   // row n = the decision row t5
+  if (n < 515) return { v: null, rows: n, why: `only ${n} 5m rows before t5 (reference needs ≥ 500 valid ATRs; feed 1mo 5m + closed 1m)` };
+  const tr: number[] = b5.map((b, j) => (j === 0 ? NaN : Math.max(b.h - b.l, Math.abs(b.h - b5[j - 1]!.c), Math.abs(b.l - b5[j - 1]!.c))));
+  const atr = (j: number) => { if (j < 15) return NaN; let s = 0; for (let k = j - 14; k < j; k++) s += tr[k]!; return s / 14; };
+  const a = atr(n); if (!Number.isFinite(a)) return { v: null, rows: n, why: "ATR not available" };
+  let cnt = 0, lt = 0, eq = 0;
+  for (let k = Math.max(0, n - 5759); k <= n; k++) { const v = atr(k); if (!Number.isFinite(v)) continue; cnt++; if (v < a) lt++; else if (v === a) eq++; }
+  if (cnt < 500) return { v: null, rows: n, why: `${cnt} valid 5m ATRs < 500` };
+  return { v: (lt + (eq + 1) / 2) / cnt, rows: n, why: cnt >= 5760 ? "full 5760-row window" : `warmup window ${cnt} rows (< 5760; reference min_periods 500)` };
 }
 
 /** pandas ewm(span, adjust=False).mean() (eng.py b1/b4) */
