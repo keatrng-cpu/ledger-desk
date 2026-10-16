@@ -198,3 +198,9 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - **Decision:** Shadow-only. Desk stamps `wire.rule1[].lane = {lane:"rule1", mode:"shadow", live:false, persistExempt, … wouldFire}`. Watcher patch logs would-fire + latency to `rule1_lane_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Nothing fires.** Live fast chain, gates, and RH order path unchanged. Config in `shared/rule1-lane.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
 - **Why:** Measure the persist-exemption latency benefit (~+0.015R/trade on the desk Rule 1 set) without arming a live lane.
 - **File scope:** does not overlap Δ0.7 (#37) or push (#39) feature files.
+
+### 2026-10-16 — SHADOW PR #39: push path card-stream + latency logging (overnight-1016 #3)
+- **Status:** PROPOSED · **Decided by:** Dual Desk / overnight-1016 build queue · **Source:** `audits/overnight-1016/report.md` latency (a)+(b); validation in `docs/shadow-1016/push/`
+- **Decision:** Shadow-only. `GET /api/desk/card-stream` SSE is off unless `DESK_PUSH_SHADOW=1` (404 otherwise). `wire.latency` is stamped on every card. Watcher patch logs push/poll latency to `push_shadow.jsonl` with `broker:false`, `orders:0`, `live:false`. **Never feeds gates or firing.** Config in `shared/push-shadow.json` outside `shared/desk-rules.json`; **RULES_HASH stays `a4bfcb65c88badcd`**.
+- **Why:** Measure bar-close→decision latency (poll vs modelled push) without changing the live decision path; R gain from push alone is under 0.001R/trade.
+- **File scope:** does not overlap Δ0.7 (#37) or lane (#38) feature files.
