@@ -15,10 +15,11 @@ async function callClaude(user: string, timeoutMs: number) {
   const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), timeoutMs);
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01", ...(process.env.ANTHROPIC_WORKSPACE_ID ? { "anthropic-workspace-id": process.env.ANTHROPIC_WORKSPACE_ID } : {}) },
-      body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 400, temperature: 0.2, system: SMC_PACK, messages: [{ role: "user", content: user }] }) });
+      body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 700, thinking: { type: "disabled" }, system: SMC_PACK, messages: [{ role: "user", content: user }] }) });
     if (!res.ok) return { status: "error" as const, text: `http ${res.status} ${(await res.text()).slice(0, 200)}`, inTok: 0, outTok: 0 };
-    const j = await res.json() as { content?: { type: string; text?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
-    return { status: "ok" as const, text: (j.content ?? []).filter((c) => c.type === "text").map((c) => c.text).join("").trim(), inTok: j.usage?.input_tokens ?? 0, outTok: j.usage?.output_tokens ?? 0 };
+    const j = await res.json() as { stop_reason?: string; content?: { type: string; text?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
+    const tx = (j.content ?? []).filter((c) => c.type === "text").map((c) => c.text).join("").trim();
+    return { status: "ok" as const, text: tx || `EMPTY stop=${j.stop_reason} blocks=${(j.content ?? []).map((c) => c.type).join(",")}`, inTok: j.usage?.input_tokens ?? 0, outTok: j.usage?.output_tokens ?? 0 };
   } catch (e) { return { status: ac.signal.aborted ? "timeout" as const : "error" as const, text: String(e).slice(0, 120), inTok: 0, outTok: 0 }; } finally { clearTimeout(tm); }
 }
 import { parseGrokJson } from "../src/lib/grok-reader/suggest.ts";
@@ -37,15 +38,15 @@ async function one(r: (typeof rows)[number], idx: number) {
   const arrays = (mtfArrays(r.sym, m1 as never, b15 as never) as never as { tf: string; kind: string; dir: "bull" | "bear"; lo: number; hi: number; ce: number; mitigated: boolean; ageBars: number }[]);
   const ctx = mtfSummary({ symbol: r.sym, minute: m1, bars15: b15, arrays }, now);
   const prompt = `MISSED-SETUP CHECK at ${String(Math.floor(r.at / 60)).padStart(2, "0")}:${String(r.at % 60).padStart(2, "0")} CT ${r.day}. A mechanical scan flagged: ${r.side} ${r.kind} (scan entry ${r.entry}, structural stop ${r.stop}, T1 ${r.t1}). The desk has NO actionable card. Judge independently with SMC/ICT: if it is a valid setup that is still near entry, return a suggestion with YOUR levels; if it is not valid (chop, wrong half, no displacement, late, against HTF), return suggestion null and say why in read.note.\n\n${ctx}`;
-  const est = estCostUsd(Math.ceil((5200 + prompt.length) / 4), 400);
+  const est = estCostUsd(Math.ceil((5200 + prompt.length) / 4), PROVIDER === "claude" ? 500 : 400);
   if (spent + est > CAP) return { idx, skipped: "cap" };
   spent += est; calls++;
   const t0 = performance.now();
   const res = PROVIDER === "claude" ? await callClaude(prompt, 30_000) : await callXai(prompt, { timeoutMs: 20_000 });
   const ms = Math.round(performance.now() - t0);
-  const cost = res.inTok ? estCostUsd(res.inTok, res.outTok) : est; spent += cost - est;
+  const cost = res.inTok ? estCostUsd(res.inTok, res.outTok) : (res.status === "ok" ? est : 0); spent += cost - est;
   const p = res.status === "ok" ? parseGrokJson(res.text) : null;
-  const rec = { provider: PROVIDER, idx, day: r.day, sym: r.sym, at: r.at, scanSide: r.side, kind: r.kind, scanR: r.r, fireB: r.fireB, status: res.status === "ok" && !p ? "malformed" : res.status, ms, inTok: res.inTok, outTok: res.outTok, cost, suggestion: p?.suggestion ?? null, note: (p?.read as { note?: string } | null)?.note ?? null, setup: (p?.read as { setup?: string } | null)?.setup ?? null, raw: p ? undefined : (res.text ?? "").slice(0, 3000) };
+  const rec = { provider: PROVIDER, idx: (r as { origIdx?: number }).origIdx ?? idx, day: r.day, sym: r.sym, at: r.at, scanSide: r.side, kind: r.kind, scanR: r.r, fireB: r.fireB, status: res.status === "ok" && !p ? "malformed" : res.status, ms, inTok: res.inTok, outTok: res.outTok, cost, suggestion: p?.suggestion ?? null, note: (p?.read as { note?: string } | null)?.note ?? null, setup: (p?.read as { setup?: string } | null)?.setup ?? null, raw: p ? undefined : (res.text ?? "").slice(0, 3000) };
   appendFileSync(OUT, JSON.stringify(rec) + "\n");
   return rec;
 }

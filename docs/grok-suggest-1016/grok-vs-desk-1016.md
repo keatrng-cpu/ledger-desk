@@ -121,3 +121,16 @@ ANTHROPIC_API_KEY is set, but every request returns HTTP 400: *'This API key is 
 1. The desk missed these moves mainly because of a **stale entry anchor plus the played-out seal** (no re-anchor or re-entry onto the newer 15m gap / lower high) and **base-score C on the side card**, with **Brain STAND on 'POI in correct half'** throughout. 62/122 are unproven because no watcher row exists.
 2. The **score bump is rejected** at every size from 0.03 to 0.60. The **scan has no 16-year edge** (OOS −0.06R, PF 0.90). The one-week +8.69R is noise.
 3. **Real Grok agrees with the scan about 45% of the time and does not filter losers.** As a gate or confirmation it would have lowered R this week. Keep it informational (shadow), as built.
+
+## 5. Claude (claude-sonnet-5) vs Grok vs the scan (added 12:40 CT)
+
+Claude spend: **$1.98 total, at the $2 cap**. The first 122-call run sent `temperature` (rejected with HTTP 400, $0). A second run lost every reply to adaptive thinking that used the whole 400-token budget, returning empty text (billed $1.30). The final run had thinking disabled and max 700 tokens, so the cap only covered **50 moments** (the 41 upper-bound would-fires first, then 9 more). All comparisons below use those 50.
+
+- Claude format compliance: **20/50 valid strict JSON** (26 truncated at 700 tokens, 4 prose before the JSON → dropped). Latency p50 7706 ms, max 9599 ms. Cost about $0.0129/call, vs Grok $0.0039/call, p50 2780 ms, 50/50 valid.
+- Scan on these 50 (take all): n 50, 22W/28L, +8.79R, WR 44%.
+- **Grok-only** (take when Grok agrees): n 20, 7W/13L, +2.91R, WR 35%. Losers filtered 15/28, winners kept 7/22.
+- **Claude-only**: n 0, 0W/0L, +0.00R. Losers filtered 28/28, winners kept 0/22.
+- **Both agree**: n 0, 0W/0L, +0.00R. Losers filtered 28/28, winners kept 0/22.
+- Either agrees: n 20, 7W/13L, +2.91R, WR 35%.
+- Grok-Claude verdict agreement where both returned valid JSON: 8/20. On those 20: Claude says yes n 0, 0W/0L, +0.00R / no n 20, 9W/11L, +2.83R, WR 45%; Grok says yes n 12, 5W/7L, +1.32R, WR 42% / no n 8, 4W/4L, +1.51R, WR 50%.
+**Recommendation: NEITHER as a gate or confirmation.** On the same 50 moments the scan alone made +8.79R (22W/28L). Grok-only kept +2.91R (cut 15/28 losers but also 15/22 winners, WR 35% < 44%). Claude-only and both-agree take **0 trades**: Claude rejected all 20 setups it returned valid JSON for (9 of them winners, +2.83R), and 60% of its replies fail the strict-JSON contract. It is also about 3× the cost and 2.8× the latency of Grok. Keep Grok as the informational shadow reader (cheaper, faster, 100% valid JSON in JSON mode). Don't add Claude to the desk path. The edge question is settled by §2: the scan itself has none over 16 years, so no LLM filter on top of it is worth wiring.
