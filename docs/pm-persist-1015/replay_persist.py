@@ -3,7 +3,7 @@ Base = post-mortem shipped set (F1+F3+F5+F12, second_entry_band removed) from ..
 New:  P  persist: clock from the first qualifying card; A-+ with fresh sweep/displacement fires on the 2nd poll (no hold);
          otherwise 2 polls AND >= 20 s since the first qualifying card; <= 90 s (stale).
       S  brain STAND: -0.03 q weight, not a veto; STAND + iFVG flip against the side (ifvgAgainst / 1m close-through / read-priority) blocks.
-Run from this dir: WATCHER_DIR=/workspace/dw-unblock2 python3 replay_persist.py"""
+Run from this dir: WATCHER_DIR=/workspace/desk-watcher python3 replay_persist.py"""
 import sys, os, re, inspect, json
 HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(os.path.join(HERE, '../postmortem-fixes-1015')); sys.path.insert(0, '.')
 import replay_pm as P

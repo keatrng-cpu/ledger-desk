@@ -1,6 +1,6 @@
-# unblock-2-1015 (stacked on #22 `fix/fire-bugs-live-1015` be9ba9d2)
+# unblock-2-1015 (merged; was stacked on #22 `fix/fire-bugs-live-1015`, now on main)
 
-LIVE changes Keaton approved at 12:36 CT on 10/15. They apply to the desk (`src/lib/execution/fast-chain.ts`), the brain and Floor (both read `shared/desk-rules.json` → fastChain), and the watcher (`watcher.patch`, applied on top of #22's `watcher.patch`). rulesHash goes from **9c7a0478b4f910be** (#22) to **cfe75bee47cc5982**. The TS and Python hashes are identical.
+LIVE changes Keaton approved at 12:36 CT on 10/15. They apply to the desk (`src/lib/execution/fast-chain.ts`), the brain and Floor (both read `shared/desk-rules.json` → fastChain), and the watcher (`watcher.patch`, regenerated against the live watcher after #18 and applied on top of it; it already contains the pm-persist patch). As merged (572c2eb7), rulesHash goes from **3de8579d25237421** (main after #18) to **a4bfcb65c88badcd**. The TS and Python hashes are identical.
 
 ## 1) The 2-trade daily entry cap is deleted
 - `fastChain.dailyEntryCap.mode` = "off". `entries_day` comes off `fastChain.hard`, and the watcher row always passes. It still logs the count.

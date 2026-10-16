@@ -53,7 +53,7 @@ def load_seen(path_dir, now_ms=None):
     seen = set()
     today = _ct_day(now_ms or int(time.time() * 1000))
     try:
-        with open(os.path.join(path_dir, FILE)) as f:
+        with open(os.path.join(path_dir, FILE), encoding="utf-8", errors="replace") as f:   # a torn/binary line never raises UnicodeDecodeError
             for line in f:
                 try:
                     r = json.loads(line)
@@ -63,6 +63,6 @@ def load_seen(path_dir, now_ms=None):
                     continue
                 if r.get("kind") == "rule1_would_fire" and isinstance(r.get("ts"), (int, float)) and _ct_day(r["ts"]) == today:
                     seen.add((r.get("symbol"), r.get("side"), r.get("at")))
-    except OSError:   # missing, unreadable or a directory: start with an empty set, never crash the watcher
+    except (OSError, ValueError):   # missing, unreadable, a directory, or any decode/parse error: keep what was read, never crash the watcher
         pass
     return seen
