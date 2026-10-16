@@ -14,7 +14,7 @@ Stacks on #47's score1016 (and #46). Spec: `/workspace/audits/smc-research/s2-co
 | Brain + Floor seats: `combo1016Seat` line tagged `shadow:combo1016:*` | `desk-listen.ts` | note only |
 | Watcher: `shadow:combo1016:read / would_fire / a_plus / ledger / result` rows (status True, appended after every gate); recomputes S2 and gbmP from the card's features in pure Python and tags `DRIFT` on disagreement | `docs/combo1016/watcher-combo1016.patch` (`watcher/combo1016.py`, gates.py, model copy, rules copy) | shadow |
 
-**RULES_HASH: c3b14cab9e29a630 (#47 v1) → ba5fee962993fd8f → 8380b2b3975fdee2 → 8dac52fc50de2428 → 5b73f1001c0cb23d → d440041c193ea8a9 (current).** Adds `score1016.v2` and `combo1016`; no existing key changes. Paired deploy: desk merge + `watcher-fix1016.patch` → `watcher-score1016.patch` → `watcher-combo1016.patch` in one window (the watcher fails closed on a hash mismatch). The chain applies cleanly on the current live watcher tree.
+**RULES_HASH: c3b14cab9e29a630 (#47 v1) → ba5fee962993fd8f → 8380b2b3975fdee2 → 8dac52fc50de2428 → 5b73f1001c0cb23d → d440041c193ea8a9 → 9b967da4dc11d2b7 (current).** Adds `score1016.v2` and `combo1016`; no existing key changes. Paired deploy: desk merge + `watcher-fix1016.patch` → `watcher-score1016.patch` → `watcher-combo1016.patch` in one window (the watcher fails closed on a hash mismatch). The chain applies cleanly on the current live watcher tree.
 
 ## Parity (TS vs Python research, same 553 candidates as v1 parity)
 `scripts/combo1016.test.mjs` / watcher `tests/test_combo1016.py` on `scripts/fixtures/combo1016-parity.json` (rows in the same order/keys as `score1016-parity.json`). Python reference: distill.json S2 and the LightGBM `predict_proba`. 538 of 553 come straight from `m.pkl`; the other 15 have no resolved outcome (`Ro` NaN), so they were rebuilt with gbm.py's own feature code minus the outcome filter (`build_m_all.py`; it reproduces m.pkl's pg exactly on the overlap).
@@ -62,7 +62,7 @@ atrpct needs ≥ 20 days of 24h 5m bars (5760; ≥ 500 for any value). The desk 
 `brainPd.mode = "shadow"`: brainPdNudge (+0.1 when aligned, 0 otherwise, never negative) is only added to the score when mode is live; it is never a STAND reason. pd_cur and pd_ent are logged on the arms rows.
 
 ### Hashes
-Repo RULES_HASH = first 16 hex of sha256 over canonical shared/desk-rules.json = `d440041c193ea8a9`. SMC quotes `dee7810e4d8e050a`, a hash over its own bundle files; the two differ by construction and neither is expected to equal the other. The arms GBM file is pinned separately (sha256_16 1d976c113099d0d8).
+Repo RULES_HASH = first 16 hex of sha256 over canonical shared/desk-rules.json = `9b967da4dc11d2b7`. SMC quotes `dee7810e4d8e050a`, a hash over its own bundle files; the two differ by construction and neither is expected to equal the other. The arms GBM file is pinned separately (sha256_16 1d976c113099d0d8).
 
 ## LIVE: config1_trail (Keaton 10/16 14:38 CT)
 `combo1016Arms.live` = {mode live, arm config1_trail, bypass [debitCap650, dayLoss, weeklyLock, bplusBrainTake]}. Watcher `combo1016_live.py` decides before the v5 chain;
@@ -72,3 +72,8 @@ for 20 min and fire on an edge touch unless +0.75R prints first. Rows: `combo101
 Candidate inputs for the arms now also carry eng.py a5 and risk_atr (100% on 326 research candidates).
 Parity: golden_decisions 166/166 fire; the live day book reproduces SMC's 1177 config1 VAL trades exactly (pnl-push semantics); desk contracts 1177/1177,
 strike 1177/1177, option $ max diff 3.6e-9; exit_ref TR 75/75. Differences and bypasses: ai/DECISIONS.md 2026-10-16 14:38 CT; numbers in `live_diff_backtest.json`.
+
+### config1 gaps closed (Keaton 10/16 15:06 CT, RULES_HASH 9b967da4dc11d2b7)
+- **Concurrency:** config1 positions live in `state.combo_positions[book]` (ES/NQ), managed independently each step; the main desk slot (`state.position`) and its one-position rule are unchanged. On the config1 path `no_position` / `no_working_order` become per book: this book must be free and RH's open positions / working orders must equal the watcher-tracked set (an untracked position or order fails closed). The $650-capped contract pick is lifted for config1 only. A config1 crash stop rests at entry − 1.5 × modelled loss/contract (well past the SMC underlying stop). Tests: `tests/test_combo1016_daemon.py` (two concurrent positions: independent trim/BE/trail, stop-out → halt, state persisted mid-manage, reconciliation gate).
+- **Flat:** config1 ignores `FLAT_BY_ET` (15:30 ET) and exits at the close of the 14:55 CT bar, capped by `session.flatByMaxEt` 15:50 ET (14:50 CT, no overnight) and the 0DTE flat 15:40 ET (14:40 CT, RH force-close); `entry_cutoff` stays hard. Re-sim on real 1m bars: −$3.3/week.
+- **Loss timing:** a loss counts toward the halt when the trade closes (live cannot know the result earlier). Live-semantics replay: 1227 vs 1177 trades (+50, −0), +50 trades net −9.9 R ≈ −$17/week at $250/R.

@@ -78,6 +78,18 @@
    "after_flat": 10
   }
  },
+ "re-sim check (14:55 CT, should equal backtest)": {
+  "n": 1177,
+  "usd_wk": 1521.0,
+  "wr": 0.777,
+  "worst_wk": -1184.0
+ },
+ "REMAINING (RH/session clocks): entry cutoff 14:40 CT, 0DTE flat 14:40 CT, flatByMaxEt 14:50 CT": {
+  "n": 1177,
+  "usd_wk": 1517.7,
+  "wr": 0.777,
+  "worst_wk": -1184.0
+ },
  "_notes": {
   "weeks": 145,
   "daily stop 15% leg": "15% of equity binds before $150 only when equity < $1000 (not modelled)"

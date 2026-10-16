@@ -237,3 +237,9 @@ Remaining differences vs the backtest (NOT bypassed; for Keaton's decision; `doc
 - execution: research fills at the next 1m open and manages on closed 1m bars; live fills the option at the RH limit and manages the underlying on the live tape.
   The instrument is the live 0DTE ATM pick (delta 0.45–0.55) on the real SPY/QQQ chain, not K = round(ES/10). Not quantifiable from the backtest.
 RULES_HASH moves (see docs/combo1016/README.md). Desk + watcher patches deploy together.
+
+## 2026-10-16 15:06 CT — config1_trail gaps closed: concurrency, 14:55 CT flat, loss timing (Keaton; implemented by Grok Bot)
+- Keaton: "whatever will match the way he traded in the backtests." config1 path only.
+- Concurrency: config1 holds positions concurrently across books (1 open per book, 5/day, 3/symbol). Other desk paths keep the one-position limit. Safety kept: RH positions/orders must reconcile with what the watcher tracks, else fail closed.
+- Flat: 14:55 CT instead of FLAT_BY_ET 15:30 ET. Not bypassed (hard session/RH clocks): flatByMaxEt 15:50 ET (14:50 CT), 0DTE flat 15:40 ET (14:40 CT), entry_cutoff 15:40 ET. Effect −$3.3/week (re-simulated on 1m bars).
+- Loss timing: live counts a loss at close (research halts from the fill of a losing trade). +50 trades, ≈ −$17/week. Cannot be known earlier; accepted.

@@ -57,6 +57,36 @@ late=tr[tr.exit_t.dt.hour*60+tr.exit_t.dt.minute>870]; res['flat/fills cut at 14
 lim=tr[(tr.fill_t-tr.t)>pd.Timedelta('1min')]; res['limit fills (filled after the signal bar)']=dict(n=int(len(lim)),pnl_wk=round(float(lim.pnl.sum())/NW,1))
 k,dr=seq(cap650(tr),daystop=150,weeklock=300,one_open=True,flat_ct=870); res['ALL quantified rules combined']={**summ(k),'dropped':dr}
 k,dr=seq(tr,one_open=True,flat_ct=870); res['REMAINING after Keaton 10/16 bypasses (no_position + 14:30 CT flat)']={**summ(k),'dropped':dr}
+
+# ---- re-simulate the TR exit on real 1m bars with a live cut (research ExitSim: stop first, 50%@1R->BE, trail MFE-1R, close at the last bar)
+BARS={k:pd.read_parquet(f'/workspace/bt13w/cache/{k}.parquet') for k in ['ES','NQ']}
+def tr_sim(r,cut_tod):
+    d=BARS[r.sym]; ft=r.fill_t; i0=d.index.searchsorted(ft); i1=d.index.searchsorted(ft.normalize()+pd.Timedelta(minutes=cut_tod),side='right')
+    day=d.iloc[i0:i1]
+    if not len(day): return None
+    s=1 if r.side=='long' else -1; e=r.entry; rk=r.risk; st=e-s*rk; rem=1.0; R=0.0; t1=False; hw=0.0; legs=[]
+    H,L,C=day.high.values,day.low.values,day.close.values
+    for k in range(len(day)):
+        adv=H[k]-e if s==1 else e-L[k]
+        if (s==1 and L[k]<=st) or (s==-1 and H[k]>=st): R+=rem*(st-e)*s/rk; legs.append((rem,st,k)); return R-0.5/rk,legs
+        if not t1 and adv>=rk: t1=True; R+=0.5; rem=0.5; legs.append((0.5,e+s*rk,k)); st=e
+        if t1: hw=max(hw,adv/rk); st=e+s*max(0,hw-1)*rk
+    R+=rem*(C[-1]-e)*s/rk; legs.append((rem,C[-1],len(day)-1)); return R-0.5/rk,legs
+def cut_scn(df,fill_block_tod,exit_cut_fn):
+    out=[]
+    for r in df.itertuples():
+        ftod=r.fill_t.hour*60+r.fill_t.minute
+        if ftod>=fill_block_tod: continue
+        x=tr_sim(r,exit_cut_fn(ftod))
+        if x is None: continue
+        R,legs=x; rr=r._replace(L_TR=legs); o=opt(rr,r.usdR)
+        out.append(dict(wk=r.wk,pnl=o['pnl'] if o else 0.0,R=R))
+    return pd.DataFrame(out)
+chk=cut_scn(tr,9999,lambda f:895); res['re-sim check (14:55 CT, should equal backtest)']=summ(chk)
+# live: entry cutoff 15:40 ET = 14:40 CT; 0DTE opens until 15:25 ET (14:25 CT) flat at zeroDteFlatEt 15:40 ET (14:40 CT); later fills get 1DTE, flat at flatByMaxEt 15:50 ET (14:50 CT)
+live=cut_scn(tr,880,lambda f:879 if f<865 else 889)
+res['REMAINING (RH/session clocks): entry cutoff 14:40 CT, 0DTE flat 14:40 CT, flatByMaxEt 14:50 CT']=summ(live)
+res['loss timing (live counts a loss at close; tests/test_combo1016_live.py replay)']=dict(n_extra=50,R=-9.88,usd_wk_approx=round(-9.88*250/NW,1))
 res['_notes']={'weeks':NW,'daily stop 15% leg':'15% of equity binds before $150 only when equity < $1000 (not modelled)'}
 print(json.dumps(res,indent=1,default=str))
 if len(sys.argv)>1: json.dump(res,open(sys.argv[1],'w'),indent=1,default=str)
