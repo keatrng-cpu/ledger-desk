@@ -61,9 +61,11 @@ export class CloseBook {
     if (this.working) return { ok: false, reason: `single-close invariant: ${this.working.kind} already working` };
     return { ok: true, reason: "ok" };
   }
-  send(kind: CloseKind, id: string) {
+  /** id = broker order id. Missing id: the order MAY be live -> throw, never re-send (watcher NoOrderId). */
+  send(kind: CloseKind, id: string | null | undefined) {
     const c = this.canSend();
     if (!c.ok) throw new Error(c.reason);
+    if (!id) throw new Error(`${kind} returned no order id; not re-sending — manage manually`);
     this.working = { kind, id };
   }
   /** Call only once the broker confirms the working order terminal. */
@@ -77,4 +79,17 @@ export class CloseBook {
 export function exitSafetyNote(enabled = exitSafeEnabled()): string {
   if (!enabled) return "Exit safety: OFF (script-watched stop, single limit exit).";
   return `Exit safety: ON — entry requires live exit path; broker-resting stop-limit (offset ${Math.round(P.stopLimitOffsetPct * 100)}%/min $${P.stopLimitOffsetMin}); exit ladder at bid, re-price every ${P.repriceS}s, cross at ${P.crossAfterS}s; one working close max.`;
+}
+
+export type LadderStatus = "filled" | "filled_not_flat" | "closed_by_stop" | "already_closed" | "timeout" | "error"
+  | "no_order_id" | "stuck_working" | "kill_switch";
+/** What the watcher does after each ladder outcome (mirrors run_ladder docstring). */
+export function ladderFollowUp(s: LadderStatus): "done" | "reprotect" | "manual" {
+  if (s === "timeout" || s === "error") return "reprotect";
+  if (s === "no_order_id" || s === "stuck_working" || s === "kill_switch") return "manual";
+  return "done";
+}
+/** Hard deadline: monotonic maxLadderS OR wall clock maxLadderS + 3 s. */
+export function ladderExpired(elapsedS: number, wallElapsedS: number): boolean {
+  return elapsedS > P.maxLadderS || wallElapsedS > P.maxLadderS + 3;
 }

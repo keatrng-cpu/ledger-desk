@@ -43,3 +43,21 @@ test("one unit: params match watcher patch PARAMS; desk-rules.json untouched (ha
   for (const [k, v] of [["reprice_s", X.EXIT_SAFE_PARAMS.repriceS], ["cross_after_s", X.EXIT_SAFE_PARAMS.crossAfterS], ["tick", X.EXIT_SAFE_PARAMS.tick], ["stop_limit_offset_pct", X.EXIT_SAFE_PARAMS.stopLimitOffsetPct]])
     assert.match(patch, new RegExp(`"${k}": ${Number(v).toFixed(String(v).includes(".") ? String(v).split(".")[1].length : 1)}`));
 });
+
+test("missing order id: CloseBook refuses (no re-send), nothing marked working", () => {
+  const b = new X.CloseBook();
+  assert.throws(() => b.send("ladder", null), /no order id/); assert.equal(b.working, null);
+});
+test("ladder follow-up: timeout/error reprotect; no id / stuck / kill switch -> manual, never a new order", () => {
+  for (const s of ["timeout", "error"]) assert.equal(X.ladderFollowUp(s), "reprotect");
+  for (const s of ["no_order_id", "stuck_working", "kill_switch"]) assert.equal(X.ladderFollowUp(s), "manual");
+  assert.equal(X.ladderFollowUp("filled"), "done");
+  assert.equal(X.ladderExpired(21, 0), true); assert.equal(X.ladderExpired(0, 23.5), true); assert.equal(X.ladderExpired(19, 22), false);
+});
+test("parity: watcher fixture tests/fixtures/exit-safe.json inside the patch == shared/exit-safe.json", () => {
+  const patch = readFileSync(new URL("../docs/exit-safety-1016/watcher-exit-safety.patch", import.meta.url), "utf8");
+  const sec = patch.split("diff --git a/tests/fixtures/exit-safe.json")[1].split("diff --git")[0];
+  const body = sec.split("\n").filter((l) => l.startsWith("+") && !l.startsWith("+++")).map((l) => l.slice(1)).join("\n");
+  assert.deepEqual(JSON.parse(body), JSON.parse(readFileSync(new URL("../shared/exit-safe.json", import.meta.url), "utf8")));
+  for (const k of ["max_ladder_s", "stop_limit_offset_min", "flat_confirm_tries"]) assert.match(patch, new RegExp(`"${k}": `));
+});
