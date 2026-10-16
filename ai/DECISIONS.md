@@ -186,6 +186,7 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - Approved with it: T1 heavier than T2, ladder labels wrap at 360px, one `--level-target` green, grade badge 14px/700, Floor tap targets 44px, phone canvas 40vh, Floor plan card on tokens. State words stay WAIT / STALKING / ARMED / ENTER / IN TRADE.
 - Refused in the same pass: grade-palette change, ENTER-green unification, Floor sticky plan bar, PeopleCards grid, WireLog height, state tokens, motion tokens, and any edit to `shared/desk-rules.json` or the order path.
 - Why: the shadow book is a display of rules that already exist. The hash and the gates stay put.
+- 360px (Release Watch NO-GO, same draft): the status row keeps Synapse and Session on screen and scrolls the clock inside itself; the page no longer grows sideways. Fit tick numbers sit in a line under the bar so they do not cover the liquidity-sweep note. Floor cameras are one sideways-scrolling row below `sm`. The category pill paints before the panel (`useTransition`). No gate or hash change.
 
 ### 2026-10-15: intraday option tickets are 0DTE ATM; 1DTE+ is swing-only; late day blocks
 - ADOPTED · Keaton (owner rule, chat 2026-10-15) · PR #19 · rulesHash 47c62fe3d2355d3d → 7d151e5fed7fe3eb (main e7338987cbc7eea5)

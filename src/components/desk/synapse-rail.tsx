@@ -132,7 +132,7 @@ export function SynapseChip({ tab }: { tab: SynapseTab }) {
         className="flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--color-primary)_35%,var(--color-border))] px-2 py-1 text-[12px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
       >
         <Link2 className="h-3.5 w-3.5 text-[var(--color-primary)]" aria-hidden />
-        <span className="hidden xl:inline">Synapse</span>
+        <span>Synapse</span>
         <StateWord raw={posture.verdict} className="px-1.5 py-0 text-[10px]" />
         <ChevronDown className={cn("h-3 w-3 transition-transform", open && "rotate-180")} />
       </button>

@@ -279,7 +279,7 @@ export function SessionHud({
               : "WAIT";
 
   return (
-    <div className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-4 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_94%,transparent)] px-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="sticky top-[var(--grok-banner-h,0px)] z-20 -mx-3 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-bg)_94%,transparent)] px-3 backdrop-blur-md sm:-mx-5 sm:px-5 lg:-mx-8 lg:px-8">
       {synthetic && (
         <div className="mx-auto mt-2 flex max-w-7xl items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-down)] bg-[color-mix(in_oklab,var(--color-down)_18%,transparent)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-down)]">
           <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
@@ -317,8 +317,9 @@ export function SessionHud({
           Everything else that used to stack here (killzone, news, month/week
           focus, session, risk, halt room, focus line, PATH line, SMT, alarm
           controls) lives in the drawer below — one click away, still live. */}
-      <div className="mx-auto flex h-12 max-w-7xl items-center gap-2">
-        <div className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[13px] shrink-0 whitespace-nowrap text-[var(--color-fg)]">
+      <div className="mx-auto flex h-12 max-w-7xl min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[13px] whitespace-nowrap text-[var(--color-fg)]">
           <Clock className="h-3.5 w-3.5 text-[var(--color-primary)]" />
           <span suppressHydrationWarning>{etNow ?? clock.nowEt}</span>
         </div>
@@ -380,8 +381,8 @@ export function SessionHud({
           <Sparkles className="h-3.5 w-3.5" aria-hidden />
           <span className="hidden lg:inline">Flash</span>
         </button>
+        </div>
         <SynapseChip tab={synapseTab} />
-        <div className="flex-1" />
         <button
           type="button"
           onClick={() => setDrawerOpen((o) => !o)}
@@ -390,7 +391,7 @@ export function SessionHud({
           className="flex shrink-0 items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 text-[12px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
           title="Session details: killzone, news, risk, halt room, focus, alarms"
         >
-          <span className="hidden sm:inline">Session</span>
+          <span>Session</span>
           <ChevronDown
             className={cn("h-3.5 w-3.5 transition-transform", drawerOpen && "rotate-180")}
           />
@@ -528,10 +529,10 @@ export function SessionHud({
           </p>
         </div>
 
-        <div className="mx-auto mt-1 flex max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
+        <div className="mx-auto mt-1 flex w-full min-w-0 max-w-7xl flex-wrap items-center gap-1.5 text-[10px] text-[var(--color-subtle)]">
           <span
             className={cn(
-              "font-mono text-[11px] font-semibold",
+              "min-w-0 max-w-full whitespace-normal font-mono text-[11px] font-semibold",
               pathV.word === "TAKE" && "text-[var(--color-up)]",
               pathV.word === "MANAGE" && "text-[var(--color-warn)]",
               pathV.word === "STAND" && "text-[var(--color-muted)]",
@@ -542,7 +543,7 @@ export function SessionHud({
           {smtNote && (
             <>
               <span className="text-[var(--color-border-strong)]">·</span>
-              <span className={smtBear ? "text-[var(--color-down)]" : "text-[var(--color-up)]"}>
+              <span className={cn("min-w-0 max-w-full break-words", smtBear ? "text-[var(--color-down)]" : "text-[var(--color-up)]")}>
                 {smtNote.length > 64 ? `${smtNote.slice(0, 64)}…` : smtNote}
               </span>
             </>

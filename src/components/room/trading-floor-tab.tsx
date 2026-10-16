@@ -1680,7 +1680,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             "Click Walk or press W to walk · V switches eyes · Esc to stop · the camera buttons leave the walk"
           )}
         </div>
-        <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
+        <div className="pointer-events-none absolute left-2 top-14 flex max-w-[70%] flex-wrap gap-1 sm:top-2">
           {frame?.trace.meeting && (
             <span className="rounded bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-amber-300">MEETING · {frame.trace.meeting.title}</span>
           )}
@@ -1713,7 +1713,8 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             </button>
           </div>
         )}
-        <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-1">
+        <div className="absolute right-2 top-2 z-10 max-w-[calc(100%-1rem)] overflow-x-auto max-sm:inset-x-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="ml-auto flex w-max flex-wrap justify-end gap-1 max-sm:flex-nowrap">
           {CAMERAS.map((c) => (
             <button
               key={c.id}
@@ -1724,15 +1725,16 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
                 if (camera === c.id) sceneRef.current?.setCamera(c.id);
                 else setCamera(c.id);
               }}
-              className={`inline-flex min-h-11 items-center rounded px-2.5 text-[11px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
+              className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded px-2.5 text-[11px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
             >
               {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
               {c.label}
             </button>
           ))}
-          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 items-center rounded bg-black/60 px-2.5 text-[11px] text-slate-200" aria-label="Full screen">
+          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded bg-black/60 px-2.5 text-[11px] text-slate-200" aria-label="Full screen">
             <Expand className="inline h-3 w-3" />
           </button>
+          </div>
         </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
         <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">

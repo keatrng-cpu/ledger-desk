@@ -853,7 +853,7 @@ function SetupCard({
   return (
     <article
       className={cn(
-        "rounded-[var(--radius-md)] border bg-[var(--color-surface)] p-3 sm:p-4",
+        "min-w-0 max-w-full rounded-[var(--radius-md)] border bg-[var(--color-surface)] p-3 sm:p-4",
         ghost?.status === "won" &&
           "border-[color-mix(in_oklab,var(--color-up)_55%,var(--color-border))] bg-[color-mix(in_oklab,var(--color-up)_6%,var(--color-surface))]",
         ghost?.status === "lost" &&
@@ -1874,8 +1874,8 @@ export function SetupScanner({
         ))}
       </div>
 
-      <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
+      <div className="mb-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="min-w-0 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
           <span
             className="font-medium text-[var(--color-primary)]"
             title="SMT forms the timeframe bias. It adds to a card's score only when the divergence printed at a major level (PDH/PDL, PWH/PWL, Asia/London H/L) or a 1h/4h array (smt-level.ts)."
@@ -1884,7 +1884,7 @@ export function SetupScanner({
           </span>
           {scan.smt.note}
         </div>
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
+        <div className="min-w-0 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-xs text-[var(--color-muted)]">
           <span className="font-medium text-[var(--color-primary)]">
             Conditions ·{" "}
           </span>
