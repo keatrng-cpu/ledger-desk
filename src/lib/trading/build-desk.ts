@@ -2171,7 +2171,8 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
               staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
             const rd = c16.comboRead(ft.v2, ft.gbm, veto.vetoed);
             (c as { combo1016?: unknown }).combo1016 = { ...rd, plan: pc, wouldFire: rd.fire && pc != null, feat: ft,
-              rows: [rd.fire && pc != null ? "shadow:combo1016:would_fire" : "shadow:combo1016:read", ...(rd.aPlus ? ["shadow:combo1016:a_plus"] : [])],
+              // never a clean would_fire while any input is defaulted or missing: the row carries the partial label (fire decision unchanged)
+              rows: [(rd.fire && pc != null ? (rd.partial ? "shadow:combo1016:would_fire_partial" : "shadow:combo1016:would_fire") : "shadow:combo1016:read") + (rd.partial ? ` (${rd.partial})` : ""), ...(rd.aPlus ? ["shadow:combo1016:a_plus"] : [])],
               setupId: arm ? c16.setupIdOf(String(c.symbol ?? ""), side, arm.sweep.level, arm.sweep.t ?? null) : null,
               caps: { perDay: c16.CB.caps?.perDay ?? 3, perSymbol: c16.CB.caps?.perSymbol ?? 2, haltAfterLosses: c16.CB.caps?.haltAfterLosses ?? 1, by: "watcher day ledger" },
               src: arm ? `ltfArm ${arm.tf} ${arm.sweep.pool}` : "no event" };

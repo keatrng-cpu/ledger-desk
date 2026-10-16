@@ -82,3 +82,27 @@ test("seat line: shadow:combo1016:* tag, A+ logged only", async () => {
   assert.match(s, /^shadow:combo1016:would_fire S2 92/); assert.match(s, /A\+ \(logged only, no size change\)/);
   assert.equal(D.combo1016SeatNote(null), null);
 });
+
+test("partial: defaulted inputs are listed, never a clean would_fire; S2/fire unchanged", async () => {
+  const D = await import("../src/lib/trading/desk-listen.ts");
+  const r = FIX.rows[0];
+  const full = C.scoreV2(rawOf(r));
+  const v2 = { ...rawOf(r), atrpct: null, chaseR: null };
+  const s = C.scoreV2(v2);
+  assert.ok(s.filled.includes("ctx_lowvol") && s.filled.includes("ent_nochase"));
+  // numbers still use the research defaults (atrpct 0.5, chaseR 1): only the label changes
+  const sf = C.v2Subfactors(v2); assert.equal(sf.ctx_lowvol, 0.5); assert.equal(sf.ent_nochase, 0);
+  const ft = C.featuresFromScore1016({ side: "short", bias1h: 1, bias4h: 1, pd: 0.8, pools: ["PDH"], poolTier: () => 3, smt: true, dispAtr: 2, mss: true, ifvg: false,
+    arrayKind: "fvg", arrayAtLegEq: false, nArrays: 1, minuteCt: 560, chaseR: 0.2, riskPts: 5, atr5: 10, dow: 2 });
+  const rd = C.comboRead(ft.v2, ft.gbm);
+  for (const k of ["ctx_htf4", "ctx_lowvol", "tim_rng30"]) assert.ok(rd.filled.includes(k), k);
+  assert.ok(rd.gbmMissing.length > 0);
+  assert.equal(rd.partial, `partial: ${rd.filled.length}/14 S2 filled, ${rd.gbmMissing.length}/27 GBM missing`);
+  assert.ok(full.S2 >= 0);
+  const seat = D.combo1016SeatNote({ S2: 92, gbmP: 0.65, thr: 0.604, grade: "A+", wouldFire: true, mode: "shadow", plan: { kind: "market", entry: 1 }, partial: rd.partial, src: "x" });
+  assert.match(seat, /^shadow:combo1016:would_fire_partial S2 92 .* partial: \d+\/14 S2 filled, \d+\/27 GBM missing/); assert.match(seat, /would fire \(partial\)/);
+  const old = D.combo1016SeatNote({ S2: 92, wouldFire: true, mode: "shadow", filled: ["ctx_lowvol"], gbmMissing: [] });
+  assert.match(old, /^shadow:combo1016:would_fire_partial .*partial: 1\/14 S2 filled, 0\/27 GBM missing/);
+  const src = readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  assert.ok(src.includes('"shadow:combo1016:would_fire_partial"') && src.includes("rd.partial ? ` (${rd.partial})`"));
+});

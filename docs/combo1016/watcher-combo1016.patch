@@ -8,10 +8,10 @@ index 0000000..4589b0c
 \ No newline at end of file
 diff --git a/tests/test_combo1016.py b/tests/test_combo1016.py
 new file mode 100644
-index 0000000..f27beb2
+index 0000000..d5a03b9
 --- /dev/null
 +++ b/tests/test_combo1016.py
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,74 @@
 +"""combo1016 watcher half: parity with the research on the 553 v1-parity candidates; shadow rows never gate; shadow day ledger."""
 +import json, os
 +from watcher import combo1016 as C, gates
@@ -31,7 +31,7 @@ index 0000000..f27beb2
 +
 +def _snap(**kw):
 +    c = {"S2": 91.2, "p": 0.64, "gbmP": 0.65, "thr": 0.604, "grade": "A+", "fire": True, "aPlus": True, "wouldFire": True, "setupId": "MNQ|short|30100|1",
-+         "plan": {"kind": "market", "entry": 100.0, "stop": 102.0, "t1": 98.0, "t2": 96.0, "partialFrac": 0.5}, "src": "ltfArm 1m PDH"}
++         "plan": {"kind": "market", "entry": 100.0, "stop": 102.0, "t1": 98.0, "t2": 96.0, "partialFrac": 0.5}, "src": "ltfArm 1m PDH", "partial": None}
 +    c.update(kw); return {"symbol": "MNQ", "side": "short", "combo1016": c, "tape_prices": {"MNQ": 100.0}}
 +
 +def test_rows_shadow_never_gate_and_ledger():
@@ -66,6 +66,26 @@ index 0000000..f27beb2
 +    assert "DRIFT" not in C.shadow_rows(s)[0][2]
 +    s = _snap(feat={"v2": r["raw"], "gbm": r["x"]}, S2=r["S2"] + 5, gbmP=r["gbmP"], fire=r["fire"], wouldFire=False)
 +    assert "DRIFT" in C.shadow_rows(s)[0][2]
++
++def test_partial_never_clean_would_fire():
++    r = FIX["rows"][0]
++    v2 = dict(r["raw"]); v2["atrpct"] = None; v2["chaseR"] = None; v2["rng30"] = None
++    gb = dict(r["x"]); gb["b1"] = None
++    assert C.filled_inputs(v2)[:0] == [] and {"ctx_lowvol", "ent_nochase", "tim_rng30"} <= set(C.filled_inputs(v2))
++    s = _snap(feat={"v2": v2, "gbm": gb})
++    rows = C.shadow_rows(s)
++    assert rows[0][0] == "shadow:combo1016:would_fire_partial" and "PARTIAL" in rows[0][2] and "GBM missing" in rows[0][2]
++    assert all(r[0] != "shadow:combo1016:would_fire" for r in rows) and gates.all_pass(rows)
++    assert C.shadow_rows(_snap(partial="partial: 3/14 S2 filled, 11/27 GBM missing"))[0][0] == "shadow:combo1016:would_fire_partial"
++    nofeat = _snap(); del nofeat["combo1016"]["partial"]
++    assert C.shadow_rows(nofeat)[0][0] == "shadow:combo1016:would_fire_partial"
++    rd = C.shadow_rows(_snap(wouldFire=False, feat={"v2": v2, "gbm": gb}))
++    assert rd[0][0] == "shadow:combo1016:read" and "partial:" in rd[0][2]
++
++def test_combo_import_inside_try():
++    src = open(gates.__file__).read()
++    i = src.index("from . import combo1016 as _c16")
++    assert src[:i].rstrip().endswith("try:")   # a corrupt GBM file fails closed for combo only, the poll keeps its other rows
 diff --git a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
 index 7abc0d2..4fc34b0 100644
 --- a/tests/test_review_quote_refetch.py
@@ -89,10 +109,10 @@ index 0000000..79d97f3
 \ No newline at end of file
 diff --git a/watcher/combo1016.py b/watcher/combo1016.py
 new file mode 100644
-index 0000000..24732a9
+index 0000000..c59e41a
 --- /dev/null
 +++ b/watcher/combo1016.py
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,152 @@
 +"""combo1016: watcher half of the SMC research best combo (TS twin src/lib/smc/combo1016.ts, rules combo1016 + score1016.v2).
 +SHADOW ONLY: rows are logged as shadow:combo1016:<item> with status True, so they never gate. Nothing here changes a fire or a size.
 +
@@ -153,6 +173,23 @@ index 0000000..24732a9
 +            z += V2["coef"][k] * (V2["medians"][k] if v is None else v)
 +    return 100 * _cl((z - V2["lo"]) / (V2["hi"] - V2["lo"])), _interp(z, V2["isoX"], V2["isoY"])
 +
++def filled_inputs(x):
++    """S2 subfactors that did not come from a real input: median-filled (None) plus the two research defaults (atrpct -> 0.5, chaseR -> 1)."""
++    sf = subfactors(x); out = []
++    for ks in LAYERS.values():
++        for k in ks:
++            if sf[k] is None or (k == "ctx_lowvol" and _f(x.get("atrpct")) is None) or (k == "ent_nochase" and _f(x.get("chaseR")) is None): out.append(k)
++    return out
++
++def gbm_missing(feat):
++    return [k for k in GBM["features"] if _f((feat or {}).get(k)) is None]
++
++def partial_label(v2, feat):
++    """'partial: N/14 S2 filled, M/27 GBM missing' when any input is defaulted or missing; None only when every input is real."""
++    f, m = filled_inputs(v2 or {}), gbm_missing(feat)
++    n = sum(len(ks) for ks in LAYERS.values())
++    return f"partial: {len(f)}/{n} S2 filled, {len(m)}/{len(GBM['features'])} GBM missing" if (f or m) else None
++
 +def _leaf(n, x):
 +    while "v" not in n:
 +        v = x[n["f"]]; nan = v is None
@@ -208,9 +245,14 @@ index 0000000..24732a9
 +        fire_w = s2 >= FIRE_S2 and g >= THR
 +        drift = abs(s2 - float(c.get("S2") or 0)) > 0.06 or abs(g - float(c.get("gbmP") or 0)) > 1e-4 or fire_w != bool(c.get("fire"))
 +        head += f" | watcher S2 {s2:.1f} gbmP {g:.4f}{' DRIFT' if drift else ''}{'' if GBM_SHA_OK else ' GBM-SHA-MISMATCH'}"
++    # never a clean would_fire while any input is defaulted or missing (fire decision unchanged; label only)
++    if isinstance(feat.get("v2"), dict) and isinstance(feat.get("gbm"), dict): partial = partial_label(feat["v2"], feat["gbm"])
++    elif "partial" in c: partial = c.get("partial")
++    else: partial = "partial: unknown (no feature vector)"
++    if partial: head += f" | {partial}"
 +    plan = c.get("plan") or {}
 +    if c.get("wouldFire"):
-+        rows.append(("shadow:combo1016:would_fire", True, f"WOULD FIRE {snap.get('symbol')} {snap.get('side')} {plan.get('kind')} {plan.get('entry')} stop {plan.get('stop')} "
++        rows.append(("shadow:combo1016:would_fire_partial" if partial else "shadow:combo1016:would_fire", True, f"WOULD FIRE{' (PARTIAL)' if partial else ''} {snap.get('symbol')} {snap.get('side')} {plan.get('kind')} {plan.get('entry')} stop {plan.get('stop')} "
 +                     f"T1 {plan.get('t1')} ({plan.get('partialFrac')}) -> BE -> T2 {plan.get('t2')} setup {c.get('setupId')} | {head}"))
 +        if c.get("aPlus"): rows.append(("shadow:combo1016:a_plus", True, f"A+ (S2 >= {APLUS_S2:g}) logged only, no sizing change | {head}"))
 +        if state_day is not None and c.get("setupId"):
@@ -544,7 +586,7 @@ index a1d1c19..0a238df 100644
    }
  }
 diff --git a/watcher/gates.py b/watcher/gates.py
-index 78d458a..47cf61f 100644
+index 78d458a..2675ea4 100644
 --- a/watcher/gates.py
 +++ b/watcher/gates.py
 @@ -128,6 +128,8 @@ def snapshot(card):
@@ -556,13 +598,14 @@ index 78d458a..47cf61f 100644
      }
  
  def displacement_present(*parts):
-@@ -566,7 +568,10 @@ def evaluate_fire(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+@@ -566,7 +568,11 @@ def evaluate_fire(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      g = _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker, calendar)
      from . import fix1016 as _f16     # post-mortem 10/16: appended AFTER the fast chain / evFire so nothing softens them
      from . import score1016 as _s16   # score1016: shadow would-fire rows only (never gate while mode shadow)
 -    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap) + _s16.shadow_rows(snap)
-+    from . import combo1016 as _c16   # combo1016: shadow rows + shadow day ledger only (never gate while mode shadow)
-+    try: _c = _c16.shadow_rows(snap, state_day if isinstance(state_day, dict) else None, now_ms)
++    try:
++        from . import combo1016 as _c16   # combo1016: shadow rows + shadow day ledger only (never gate while mode shadow); import inside try so a corrupt GBM file fails closed for combo only
++        _c = _c16.shadow_rows(snap, state_day if isinstance(state_day, dict) else None, now_ms)
 +    except Exception as e: _c = [("shadow:combo1016:error", True, str(e)[:160])]
 +    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap) + _s16.shadow_rows(snap) + _c
  

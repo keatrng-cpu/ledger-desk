@@ -720,9 +720,11 @@ export function score1016SeatNote(f: unknown): string | null {
 
 /** combo1016: one seat line (Floor + Brain) from the top card's combo read. Shadow is labelled; never a vote. Prefix shadow:combo1016 for log greps. */
 export function combo1016SeatNote(f: unknown): string | null {
-  const x = f as { S2?: number; gbmP?: number; thr?: number; grade?: string; wouldFire?: boolean; aPlus?: boolean; mode?: string; plan?: { kind: string; entry: number } | null; setupId?: string | null; src?: string } | null | undefined;
+  const x = f as { S2?: number; gbmP?: number; thr?: number; grade?: string; wouldFire?: boolean; aPlus?: boolean; mode?: string; plan?: { kind: string; entry: number } | null; setupId?: string | null; src?: string; partial?: string | null; filled?: string[]; gbmMissing?: string[] } | null | undefined;
   if (!x || typeof x !== "object" || typeof x.S2 !== "number") return null;
   const live = x.mode === "live";
-  const head = `${live ? "combo1016" : "shadow:combo1016:" + (x.wouldFire ? "would_fire" : "read")} S2 ${x.S2} · gbmP ${x.gbmP ?? "-"}/${x.thr ?? "-"} · ${x.grade ?? "-"}`;
-  return `${head}${x.wouldFire ? ` · ${live ? "FIRE" : "would fire"} ${x.plan ? `${x.plan.kind} ${x.plan.entry}` : ""}` : ""}${x.aPlus ? " · A+ (logged only, no size change)" : ""}${live ? "" : " (shadow)"} — ${x.src ?? ""}`.trim();
+  // never a clean would_fire while any input is defaulted or missing (older cards without `partial` are derived from filled/gbmMissing)
+  const partial = x.partial ?? ((x.filled?.length || x.gbmMissing?.length) ? `partial: ${x.filled?.length ?? 0}/14 S2 filled, ${x.gbmMissing?.length ?? 0}/27 GBM missing` : null);
+  const head = `${live ? "combo1016" : "shadow:combo1016:" + (x.wouldFire ? (partial ? "would_fire_partial" : "would_fire") : "read")} S2 ${x.S2} · gbmP ${x.gbmP ?? "-"}/${x.thr ?? "-"} · ${x.grade ?? "-"}${partial ? ` · ${partial}` : ""}`;
+  return `${head}${x.wouldFire ? ` · ${live ? "FIRE" : partial ? "would fire (partial)" : "would fire"} ${x.plan ? `${x.plan.kind} ${x.plan.entry}` : ""}` : ""}${x.aPlus ? " · A+ (logged only, no size change)" : ""}${live ? "" : " (shadow)"} — ${x.src ?? ""}`.trim();
 }

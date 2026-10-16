@@ -65,10 +65,12 @@ export function gradeV2(S: number): string { for (const [s, g] of V2P.grades) if
 export interface ScoreV2 { mode: Mode; S2: number; z: number; p: number; grade: string; layers: Record<string, number>; filled: string[] }
 export function scoreV2(x: V2Raw): ScoreV2 {
   const sf = v2Subfactors(x); const filled: string[] = [];
+  // v2Subfactors substitutes the research defaults for these two (atrpct → 0.5, chaseR → 1): same numbers, but they are defaulted inputs and are listed.
+  const defaulted = new Set<string>([...(fin(x.atrpct) ? [] : ["ctx_lowvol"]), ...(fin(x.chaseR) ? [] : ["ent_nochase"])]);
   let z = V2P.intercept; const layers: Record<string, number> = {};
   for (const [L, ks] of Object.entries(V2_LAYERS)) {
     let s = 0;
-    for (const k of ks) { let v = sf[k]; if (v == null || !Number.isFinite(v)) { v = V2P.medians[k]!; filled.push(k); } s += V2P.coef[k]! * v; }
+    for (const k of ks) { let v = sf[k]; if (v == null || !Number.isFinite(v)) { v = V2P.medians[k]!; filled.push(k); } else if (defaulted.has(k)) filled.push(k); s += V2P.coef[k]! * v; }
     layers[L] = r3(s); z += s;
   }
   const S2 = 100 * cl((z - V2P.lo) / (V2P.hi - V2P.lo));
@@ -99,14 +101,19 @@ export function gbmP(feat: Record<string, number | null | undefined>): number {
 }
 
 // ---------------------------------------------------------------- fire rule
-export interface ComboRead { mode: Mode; S2: number; p: number; grade: string; gbmP: number; thr: number; fire: boolean; aPlus: boolean; layers: Record<string, number>; filled: string[]; gbmMissing: string[]; why: string }
+export interface ComboRead { mode: Mode; S2: number; p: number; grade: string; gbmP: number; thr: number; fire: boolean; aPlus: boolean; layers: Record<string, number>; filled: string[]; gbmMissing: string[]; partial: string | null; why: string }
+export const V2_N = Object.values(V2_LAYERS).flat().length;
+/** "partial: N/14 S2 filled, M/27 GBM missing" when any S2 input was defaulted/median-filled or any GBM feature is missing; null only when every input is real. */
+export function partialLabel(filled: string[], gbmMissing: string[]): string | null {
+  return filled.length || gbmMissing.length ? `partial: ${filled.length}/${V2_N} S2 filled, ${gbmMissing.length}/${G.features.length} GBM missing` : null;
+}
 export function comboRead(v2: V2Raw, gbmFeat: Record<string, number | null | undefined>, vetoed = false): ComboRead {
   const s = scoreV2(v2); const g = gbmP(gbmFeat);
   const fire = !vetoed && s.S2 >= FIRE_S2 && g >= GBM_THR;
   const aPlus = fire && s.S2 >= APLUS_S2;
   const gbmMissing = G.features.filter((k) => !fin(gbmFeat[k] as number));
   return { mode: comboMode(), S2: Math.round(s.S2 * 10) / 10, p: r3(s.p), grade: vetoed ? "skip" : s.grade, gbmP: Math.round(g * 1e4) / 1e4, thr: r3(GBM_THR), fire, aPlus,
-    layers: s.layers, filled: s.filled, gbmMissing,
+    layers: s.layers, filled: s.filled, gbmMissing, partial: partialLabel(s.filled, gbmMissing),
     why: `S2 ${s.S2.toFixed(1)} ${s.S2 >= FIRE_S2 ? "≥" : "<"} ${FIRE_S2} · gbmP ${g.toFixed(3)} ${g >= GBM_THR ? "≥" : "<"} ${GBM_THR.toFixed(3)}${aPlus ? " · A+ (logged only)" : ""}${vetoed ? " · hard veto" : ""}` };
 }
 
