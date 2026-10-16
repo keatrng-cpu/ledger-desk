@@ -1,9 +1,10 @@
 /**
  * Rule 1 SHADOW Δ0.70 0DTE ticket (audits/overnight-1016/report.md item 1). Pure and read-only.
  * Same signal as rule1.ts; only the option leg differs: strike at |Δ| = 0.70 instead of ATM (Δ0.5), always 0DTE, at most
- * maxContracts with debit ≤ debitCap. A ticket whose ONE contract costs more than the cap is a no-trade (capBlocked, 0 contracts),
- * exactly as the study counted it. Config: shared/rule1-d70.json (outside the rules hash). live is false: nothing sizes,
- * stages or places an order from this; the current ticket and the live order path are unchanged.
+ * maxContracts with debit ≤ debitCap. If the Δ0.7 1-lot is over the cap, the shadow ticket steps down to Δ0.6 then ATM
+ * (overnight report line 156); capBlocked only when ATM also exceeds the cap. Config: shared/rule1-d70.json (outside the
+ * rules hash). live is false: nothing sizes, stages or places an order from this; the current ticket and the live order
+ * path are unchanged.
  */
 import CFG from "../../../shared/rule1-d70.json";
 import R1 from "../../../shared/rule1.json";
@@ -11,6 +12,8 @@ import R1 from "../../../shared/rule1.json";
 export type D70Leg = {
   delta: number; underlier: string; right: "call" | "put"; strike: number; premium: number;
   contracts: number; debit: number; capBlocked: boolean; dte: 0;
+  /** When set, this leg was chosen by stepping down from requestedDelta because of the $650 debit cap (shadow only). */
+  steppedFrom?: number;
 };
 export type Rule1D70 = { mode: "shadow"; live: false; version: number; d70: D70Leg | null; atm: D70Leg | null };
 
@@ -39,13 +42,47 @@ export function legAt(delta: number, symbol: string, side: "long" | "short", px:
   return { delta, underlier: und, right: side === "long" ? "call" : "put", strike, premium: +prem.toFixed(2), contracts, debit: +(prem * 100 * contracts).toFixed(2), capBlocked, dte: 0 };
 }
 
-export function rule1D70(symbol: string, side: "long" | "short", px: number, atr5: number, minCT: number, underPx?: number | null): Rule1D70 {
-  return { mode: "shadow", live: false, version: CFG.version, d70: legAt(CFG.delta, symbol, side, px, atr5, minCT, underPx), atm: legAt(CFG.compareDelta, symbol, side, px, atr5, minCT, underPx) };
+/**
+ * Shadow pick: try Δ0.7, then each stepDownDeltas entry (Δ0.6, then ATM). First leg that fits under the debit cap wins;
+ * if none fit, return the last attempt with capBlocked. Comparison ATM leg is always computed at compareDelta.
+ */
+export function pickShadowLeg(symbol: string, side: "long" | "short", px: number, atr5: number, minCT: number, underPx?: number | null): D70Leg | null {
+  const requested = CFG.delta as number;
+  const chain = [requested, ...((CFG as { stepDownDeltas?: number[] }).stepDownDeltas ?? [0.6, 0.5])];
+  // de-dupe while preserving order (ATM may appear both as step-down and as compareDelta)
+  const seen = new Set<number>();
+  const deltas: number[] = [];
+  for (const d of chain) { if (!seen.has(d)) { seen.add(d); deltas.push(d); } }
+  let last: D70Leg | null = null;
+  for (const d of deltas) {
+    const leg = legAt(d, symbol, side, px, atr5, minCT, underPx);
+    if (!leg) return null;
+    last = leg;
+    if (!leg.capBlocked) {
+      return d === requested ? leg : { ...leg, steppedFrom: requested };
+    }
+  }
+  return last;
 }
 
-const legTxt = (l: D70Leg | null) => (!l ? "—" : l.capBlocked ? `${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} over the $${CFG.debitCap} cap (no trade)` : `${l.contracts}× ${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} ~$${l.premium} ($${l.debit})`);
+export function rule1D70(symbol: string, side: "long" | "short", px: number, atr5: number, minCT: number, underPx?: number | null): Rule1D70 {
+  return {
+    mode: "shadow", live: false, version: CFG.version,
+    d70: pickShadowLeg(symbol, side, px, atr5, minCT, underPx),
+    atm: legAt(CFG.compareDelta, symbol, side, px, atr5, minCT, underPx),
+  };
+}
+
+const legTxt = (l: D70Leg | null) => {
+  if (!l) return "—";
+  if (l.capBlocked) return `${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} over the $${CFG.debitCap} cap (no trade)`;
+  const step = l.steppedFrom != null ? ` (stepped Δ${l.steppedFrom}→${l.delta})` : "";
+  return `${l.contracts}× ${l.underlier} ${l.strike}${l.right[0]!.toUpperCase()} ~$${l.premium} ($${l.debit})${step}`;
+};
 /** One line for the brain seat / Floor: the shadow Δ0.7 ticket next to the current Rule 1 ticket and ATM. */
 export function rule1D70Line(t: { symbol: string; side: string; option?: { underlier: string; strike: number | null; right: string; delta: number; contracts: number; premium: number | null } | null; ticketD70?: Rule1D70 | null }): string {
   const cur = t.option ? `${t.option.contracts}× ${t.option.underlier} ${t.option.strike ?? "?"}${t.option.right[0]!.toUpperCase()} Δ${t.option.delta}` : "—";
-  return `Rule1 shadow ${t.symbol} ${t.side}: Δ0.7 0DTE ${legTxt(t.ticketD70?.d70 ?? null)} · ATM ${legTxt(t.ticketD70?.atm ?? null)} · current ${cur} (shadow, no order)`;
+  const d = t.ticketD70?.d70 ?? null;
+  const tag = d?.steppedFrom != null ? `Δ${d.steppedFrom}→${d.delta}` : "Δ0.7";
+  return `Rule1 shadow ${t.symbol} ${t.side}: ${tag} 0DTE ${legTxt(d)} · ATM ${legTxt(t.ticketD70?.atm ?? null)} · current ${cur} (shadow, no order)`;
 }

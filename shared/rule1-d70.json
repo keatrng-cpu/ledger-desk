@@ -1,10 +1,14 @@
 {
-  "_doc": "Rule 1 SHADOW option ticket at ~0.70 delta, 0DTE (audits/overnight-1016/report.md item 1: Rule1 $/wk -64 ATM -> +28 at d.7, Holm p 1.3e-11). NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. Desk computes it next to the current Rule 1 ticket; brain/Floor show it; the watcher logs it. live=false: nothing reads this to size or place an order.",
+  "_doc": "Rule 1 SHADOW option ticket at ~0.70 delta, 0DTE (audits/overnight-1016/report.md item 1). Validation (not the overnight edge claim): d0.7 beats ATM only under the study's cost model (+$42.7 per trade paired, t 6.10, n 716, both negative at -$40.9 vs -$116.1/wk). Under the desk's model both are positive (+$35.6 vs +$42.8/wk), with d0.7 -$4.1 per trade vs ATM (t -0.55). If the \u03940.7 1-lot debit exceeds $650, the shadow ticket steps down to \u03940.6 then ATM (overnight report line 156); capBlocked only if ATM also exceeds the cap. NOT part of shared/desk-rules.json, so RULES_HASH is unchanged. Desk computes it next to the current Rule 1 ticket; brain/Floor show it; the watcher logs it. live=false: nothing reads this to size or place an order.",
   "version": 1,
   "mode": "shadow",
   "live": false,
   "delta": 0.7,
   "compareDelta": 0.5,
+  "stepDownDeltas": [
+    0.6,
+    0.5
+  ],
   "dte": 0,
   "debitCap": 650,
   "maxContracts": 4,
