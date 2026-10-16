@@ -10,7 +10,7 @@
 
 import { kzSeatNote } from "@/lib/desk/kz-disp";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Copy, Expand, Footprints, RotateCcw, Users, Volume2, VolumeX, X } from "lucide-react";
+import { Camera, Copy, Expand, Footprints, RotateCcw, Shrink, Users, Volume2, VolumeX, X } from "lucide-react";
 import { CREW, TRAITS, rankTitle, recordLine, relationWord } from "@/lib/room/agents";
 import { TALK } from "@/lib/room/live-types";
 import { ROOM_MANDATE, type Character, type DialogueLine } from "@/lib/room/orchestrator";
@@ -49,7 +49,7 @@ const EV_Z = /z (-?[\d.]+)/.exec(EV_TEST.verdict)?.[1] ?? "n/a";
 
 const CARD = "min-w-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3";
 const BTN =
-  "inline-flex items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-40";
+  "inline-flex min-h-11 items-center gap-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-primary)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-40";
 const HEAD = "mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-muted)]";
 
 const COLOR: Record<Character, string> = Object.fromEntries(
@@ -410,7 +410,7 @@ function WireLog({ onFocus }: { onFocus: (who: Character) => void }) {
                 </div>
                 {head && (
                   <div className="mt-1 flex items-start gap-2">
-                    <button type="button" onClick={() => onFocus(head.character)} aria-label={`Select ${head.character}`}>
+                    <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center" onClick={() => onFocus(head.character)} aria-label={`Select ${head.character}`}>
                       <MiniAvatar who={head.character} size={26} />
                     </button>
                     <p className="min-w-0 text-[12px] leading-snug">
@@ -425,7 +425,7 @@ function WireLog({ onFocus }: { onFocus: (who: Character) => void }) {
                   <ul className="ml-[13px] mt-1 space-y-1 border-l border-[var(--color-border)] pl-3">
                     {shown.map((l, i) => (
                       <li key={i} className="flex items-start gap-1.5">
-                        <button type="button" onClick={() => onFocus(l.character)} aria-label={`Select ${l.character}`}>
+                        <button type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center" onClick={() => onFocus(l.character)} aria-label={`Select ${l.character}`}>
                           <MiniAvatar who={l.character} size={18} />
                         </button>
                         <p className="min-w-0 text-[12px] leading-snug">
@@ -891,7 +891,7 @@ function PeopleCards({ frame, selected, onSelect }: { frame: FloorFrame | null; 
         const flipBtn = (
           <button
             type="button"
-            className="ml-auto shrink-0 rounded border border-[var(--color-border)] px-1.5 py-0.5 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
+            className="ml-auto inline-flex min-h-11 shrink-0 items-center rounded border border-[var(--color-border)] px-3 text-[11px] text-[var(--color-muted)] hover:text-[var(--color-fg)]"
             aria-pressed={isFlipped}
             onClick={(e) => {
               e.stopPropagation();
@@ -1191,7 +1191,7 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
     return (
       <div className={`${className} text-right`}>
         <span
-          className="inline-block rounded-full border border-white/15 bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300 shadow"
+          className="inline-block rounded-full border border-[var(--color-border)] bg-[var(--overlay-bg)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)] shadow"
           title="The plan card opens when the desk has a priced plan (or a pinned wire line)"
         >
           The plan · none yet
@@ -1200,7 +1200,7 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
     );
   }
   return (
-    <div className={`rounded-lg border border-white/15 bg-black/80 p-2.5 text-slate-100 shadow-lg backdrop-blur ${className}`}>
+    <div className={`rounded-lg border border-[var(--color-border)] bg-[var(--overlay-bg)] p-2.5 text-[var(--color-fg)] shadow-lg backdrop-blur ${className}`}>
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="text-[12px] font-bold uppercase tracking-[0.14em]">The plan</span>
         {(card?.band || pT1 != null) && (
@@ -1217,36 +1217,40 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
       </div>
       {p ? (
         <>
-          <p className="mb-1 font-mono text-[11px] text-slate-300">
+          <p className="mb-1 font-mono text-[11px] text-[var(--color-muted)]">
             {p.symbol} {p.side.toUpperCase()}
           </p>
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-[13px]">
-            <dt className="text-slate-300">CE</dt>
-            <dd className="text-right font-semibold">{fmtPx(p.entry)}</dd>
-            <dt className="text-[#f87171]">STOP</dt>
-            <dd className="text-right font-semibold text-[#f87171]">{fmtPx(p.stop)}</dd>
+            <dt className="text-[var(--color-muted)]">CE</dt>
+            <dd className="text-right font-semibold text-[var(--level-entry)]">{fmtPx(p.entry)}</dd>
+            <dt className="text-[var(--level-stop)]">STOP</dt>
+            <dd className="text-right font-semibold text-[var(--level-stop)]">{fmtPx(p.stop)}</dd>
             {p.t1 != null && (
               <>
-                <dt className="text-[#4ade80]">T1</dt>
-                <dd className="text-right text-[#4ade80]">{fmtPx(p.t1)}</dd>
+                <dt className="font-bold text-[var(--level-target)]">T1</dt>
+                <dd className="text-right font-bold text-[var(--level-target)]">{fmtPx(p.t1)}</dd>
               </>
             )}
-            <dt className="text-[#86efac]">T2</dt>
-            <dd className="text-right font-semibold text-[#86efac]">{fmtPx(p.t2)}</dd>
+            {p.t2 != null && (
+              <>
+                <dt className="font-medium text-[var(--level-target)] opacity-75">T2</dt>
+                <dd className="text-right font-medium text-[var(--level-target)] opacity-75">{fmtPx(p.t2)}</dd>
+              </>
+            )}
           </dl>
         </>
       ) : (
-        <p className="text-[11px] text-slate-400">No priced plan yet.</p>
+        <p className="text-[11px] text-[var(--color-muted)]">No priced plan yet.</p>
       )}
       {pins.length > 0 && (
-        <ul className="mt-2 space-y-1 border-t border-white/10 pt-1.5">
+        <ul className="mt-2 space-y-1 border-t border-[var(--color-border)] pt-1.5">
           {pins.map((pn) => (
             <li key={pn.id} className="text-[11px] leading-snug">
-              <span className="mr-1 text-[9px] uppercase tracking-wide text-slate-400">📌 {etTime(pn.at).slice(0, 5)}</span>
-              <span className="font-semibold" style={{ color: COLOR[pn.who as Character] ?? "#e2e8f0" }}>
+              <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--color-subtle)]"><span aria-hidden>📌 </span>{etTime(pn.at).slice(0, 5)}</span>
+              <span className="font-semibold" style={{ color: COLOR[pn.who as Character] ?? "var(--color-fg)" }}>
                 {pn.who}
               </span>{" "}
-              <span className="text-slate-200">{pn.text}</span>
+              <span className="text-[var(--color-fg)]">{pn.text}</span>
             </li>
           ))}
         </ul>
@@ -1304,7 +1308,7 @@ function GateBlocks({ gates }: { gates: GateRow[] }) {
               type="button"
               aria-expanded={isOpen}
               onClick={() => setOpen(isOpen ? "" : g.key)}
-              className="flex w-full items-center gap-2 px-2 py-1 text-left text-[11px]"
+              className="flex min-h-11 w-full items-center gap-2 px-2 py-2 text-left text-[11px]"
             >
               <span className="font-semibold text-[var(--color-fg)]">{g.title}</span>
               <span className="text-[10px] text-[var(--color-subtle)]">
@@ -1358,8 +1362,8 @@ function DecisionStrip({
           {d?.label ?? "—"}
         </span>
       </div>
-      <button type="button" onClick={onManager} className="flex min-w-0 items-center gap-2 text-left" title="Open the Manager's stand">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
+      <button type="button" onClick={onManager} className="flex min-h-11 min-w-0 items-center gap-2 text-left" title="Open the Manager's stand">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-subtle)]">Manager</span>
         <span className="font-mono text-[11px] font-semibold text-[var(--color-fg)]">{managerState?.current ?? "—"}</span>
         <span className="min-w-0 truncate text-[11px] text-[var(--color-muted)]">
           {call ? `${call.action}${call.underlier ? ` · ${call.underlier} ${call.side ?? ""}` : ""}${call.reasoning?.thesis ? ` — ${call.reasoning.thesis}` : ""}` : d?.why ?? "No call yet."}
@@ -1432,6 +1436,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
   useMeadFloorFeed(sceneRef, env);
   const [copied, setCopied] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const [floorFull, setFloorFull] = useState(false);
   // The room's lighting follows the desk's entry state (the same word as the Now hero).
   const auto = useAutomation();
   // An open position (RH automation or a paper MANAGE) lights the room green, like ENTER.
@@ -1536,6 +1541,12 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
     if (document.fullscreenElement) void document.exitFullscreen();
     else void el.requestFullscreen?.();
   };
+  // The fullscreen element is the stage (chips, cameras, exit, canvas). Esc and the button both leave it.
+  useEffect(() => {
+    const sync = () => setFloorFull(document.fullscreenElement === wrap.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
 
   const json = frame ? JSON.stringify(frame.output, null, 2) : "";
   const urgency = frame?.output.room_state.market_urgency ?? "LOW";
@@ -1618,7 +1629,42 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </p>
       )}
 
-      <div ref={wrap} className="relative h-[58vh] min-h-[340px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[#0b1220]">
+      <div ref={wrap} className="floor-stage flex flex-col gap-3">
+      <div className="flex shrink-0 flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          {frame?.trace.meeting && (
+            <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-warn)]">MEETING · {frame.trace.meeting.title}</span>
+          )}
+          {frame && <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 font-mono text-[11px] text-[var(--color-fg)]">{frame.trace.beat}</span>}
+          {env && <span className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-0.5 text-[11px] text-[var(--color-muted)]">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
+        </div>
+        <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max flex-nowrap gap-1">
+          {CAMERAS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
+                // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
+                if (camera === c.id) sceneRef.current?.setCamera(c.id);
+                else setCamera(c.id);
+              }}
+              className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border px-2.5 text-[11px] ${camera === c.id ? "border-[var(--color-fg)] bg-[var(--color-fg)] text-[var(--color-bg)]" : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-fg)]"}`}
+            >
+              {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
+              {c.label}
+            </button>
+          ))}
+          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 text-[11px] text-[var(--color-fg)]" aria-label={floorFull ? "Exit full screen" : "Full screen"}>
+            {floorFull ? <Shrink className="inline h-3 w-3" /> : <Expand className="inline h-3 w-3" />}
+            {floorFull ? <span className="ml-1">Exit</span> : null}
+          </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="floor-view relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--floor-canvas)] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
         <FloorCanvas
           frame={frame}
           camera={camera}
@@ -1676,13 +1722,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             "Click Walk or press W to walk · V switches eyes · Esc to stop · the camera buttons leave the walk"
           )}
         </div>
-        <div className="pointer-events-none absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1">
-          {frame?.trace.meeting && (
-            <span className="rounded bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-amber-300">MEETING · {frame.trace.meeting.title}</span>
-          )}
-          {frame && <span className="rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-slate-200">{frame.trace.beat}</span>}
-          {env && <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] text-slate-400">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
-        </div>
         {(following || looking) && (
           <div className="absolute left-2 top-9 flex items-center gap-1 rounded bg-black/75 px-2 py-0.5 text-[11px] text-slate-100">
             <Footprints className="h-3 w-3" />
@@ -1697,7 +1736,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             )}
             <button
               type="button"
-              className="ml-1 inline-flex items-center gap-0.5 rounded border border-slate-500 px-1 text-[10px] hover:border-white"
+              className="ml-1 inline-flex min-h-11 items-center gap-0.5 rounded border border-[var(--color-border)] px-2 text-[11px] text-[var(--color-fg)] hover:border-[var(--color-fg)]"
               onClick={() => {
                 sceneRef.current?.follow(null);
                 setLooking(null);
@@ -1709,27 +1748,6 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             </button>
           </div>
         )}
-        <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-1">
-          {CAMERAS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => {
-                // The scene hears every click. Setting the same state again does not re-run the effect, so choosing the
-                // Director while already "on" it (the usual case after a walk) did nothing and left the owner's camera stuck.
-                if (camera === c.id) sceneRef.current?.setCamera(c.id);
-                else setCamera(c.id);
-              }}
-              className={`rounded px-2 py-0.5 text-[10px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
-            >
-              {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
-              {c.label}
-            </button>
-          ))}
-          <button type="button" onClick={fullscreen} className="rounded bg-black/60 px-2 py-0.5 text-[10px] text-slate-200" aria-label="Full screen">
-            <Expand className="inline h-3 w-3" />
-          </button>
-        </div>
         {hover && <div className="pointer-events-none absolute bottom-14 right-2 rounded bg-black/80 px-2 py-0.5 text-[11px] text-slate-100">{hover}</div>}
         <div className="pointer-events-none absolute inset-x-0 bottom-6 bg-gradient-to-t from-black/85 to-transparent p-3 pt-8">
           {speaker.line ? (
@@ -1737,7 +1755,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
                 {speaker.line.character}
               </span>
-              <span className="mr-1 text-[10px] uppercase text-slate-400">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
+              <span className="mr-1 text-[11px] uppercase text-[var(--color-subtle)]">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
               {speaker.line.text}
             </p>
           ) : (
@@ -1745,6 +1763,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
           )}
         </div>
         <TickerCrawl desk={desk} frame={frame} entry={entry} />
+      </div>
       </div>
 
       <PlanOverlay frame={frame} className="sm:hidden" />

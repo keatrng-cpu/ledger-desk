@@ -62,6 +62,7 @@ import {
   SetupScanner,
   type CardTape,
 } from "@/components/desk/setup-scanner";
+import { ShadowDesk } from "@/components/desk/shadow-panel";
 import { ProfitPathPanel } from "@/components/desk/profit-path";
 import { TradezellaChat } from "@/components/desk/tradezella-chat";
 import { TradingCoach } from "@/components/desk/trading-coach";
@@ -936,7 +937,14 @@ function MasterplacePage() {
   const paper = getPaperAccount(mounted ? memoryBook : emptyDeskMemory());
   const [wallNow] = useState(() => formatUtcClock(Date.now()));
   // The session opens on the ticket (trader's call 2026-10-09).
-  const [cat, setCat] = useState<DeskCategory>("swing");
+  const [cat, setCatState] = useState<DeskCategory>("swing");
+  // The pill paints on this. The panel follows on the next turn, so painting
+  // the new tab cannot hold the highlight on the tab you just left.
+  const [navCat, setNavCat] = useState<DeskCategory>("swing");
+  const setCat = (id: DeskCategory) => {
+    setNavCat(id);
+    window.setTimeout(() => setCatState(id), 0);
+  };
   // DEV capture only — Accuracy attachment re-render (set after mount: SSR-safe).
   const [captureMead, setCaptureMead] = useState(false);
   useEffect(() => {
@@ -1818,7 +1826,7 @@ function MasterplacePage() {
         aria-hidden
       />
 
-      <div className="relative mx-auto max-w-7xl px-3 pb-24 pt-[calc(var(--grok-banner-h,0px)+0.5rem)] sm:px-5 lg:px-8">
+      <div className="relative mx-auto min-w-0 max-w-7xl px-3 pb-24 pt-[calc(var(--grok-banner-h,0px)+0.5rem)] sm:px-5 lg:px-8">
         {/* Compact brand */}
         <header className="mb-2 flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -1882,13 +1890,13 @@ function MasterplacePage() {
             wallNow={wallNow}
             liveRisk={risk}
             onEntryChip={() => setCat("trade")}
-            synapseTab={(SYNAPSE_TABS as string[]).includes(cat) ? (cat as SynapseTab) : "trade"}
+            synapseTab={(SYNAPSE_TABS as string[]).includes(navCat) ? (navCat as SynapseTab) : "trade"}
             tabs={
               <nav aria-label="Profit categories">
                 <div className="flex flex-wrap gap-1">
                   {CATEGORIES.map((c) => {
                     const Icon = c.icon;
-                    const on = cat === c.id;
+                    const on = navCat === c.id;
                     return (
                       <button
                         key={c.id}
@@ -1897,10 +1905,10 @@ function MasterplacePage() {
                         title={`${c.label} — ${c.hint}`}
                         aria-current={on ? "page" : undefined}
                         className={cn(
-                          "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-left transition-colors",
+                          "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-left",
                           on
                             ? "border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary)_14%,var(--color-surface))] text-[var(--color-fg)]"
-                            : "border-transparent text-[var(--color-muted)] hover:border-[var(--color-border-strong)] hover:text-[var(--color-fg)]",
+                            : "border-transparent text-[var(--color-muted)] [@media(hover:hover)]:hover:border-[var(--color-border-strong)] [@media(hover:hover)]:hover:text-[var(--color-fg)]",
                         )}
                       >
                         <Icon
@@ -1922,9 +1930,11 @@ function MasterplacePage() {
           >
             <PathAlarmBar desk={desk} />
             <p className="mt-1.5 px-1 text-[12px] text-[var(--color-subtle)]">
-              <span className="font-medium text-[var(--color-muted)]">{active.label}</span>
+              <span className="font-medium text-[var(--color-muted)]">
+                {(CATEGORIES.find((c) => c.id === navCat) ?? active).label}
+              </span>
               {" — "}
-              {active.hint}
+              {(CATEGORIES.find((c) => c.id === navCat) ?? active).hint}
             </p>
           </SessionHud>
         )}
@@ -2071,6 +2081,15 @@ function MasterplacePage() {
                     n="1"
                     title="PATH"
                     sub={`≥${APLUS_RULES.confluenceFloor} + HTF · one book · rest the limit at CE or skip`}
+                  />
+                  <ShadowDesk
+                    lead={desk.scan.candidates[0] ?? null}
+                    rule1={desk.rule1 ?? []}
+                    nowMs={Date.parse(desk.fetchedAt) || Date.now()}
+                    minuteBySymbol={{
+                      [desk.left.symbol]: desk.mtf?.left?.minute ?? [],
+                      [desk.right.symbol]: desk.mtf?.right?.minute ?? [],
+                    }}
                   />
                   <SetupScanner
                     scan={desk.scan}

@@ -504,7 +504,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
         </p>
         <ul className="divide-y divide-[var(--color-border)] rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)]">
           {book.cards.map((c) => (
-            <li key={c.id} className="flex flex-wrap items-baseline gap-x-2 px-2.5 py-1.5 text-[11px]">
+            <li key={c.id} className="flex min-w-0 flex-wrap items-baseline gap-x-2 px-2.5 py-1.5 text-[11px]">
               <span
                 className={cn(
                   "shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold",
@@ -520,7 +520,7 @@ export function OptionsSwingPanel({ desk }: { desk: DeskPayload }) {
                   ? ` · ${c.ticket.contracts} ${c.ticket.underlier} ${c.ticket.side} ${usd(c.ticket.estDebitTotal)}${c.ticket.pricedFrom === "live_chain" ? " live" : " model"}`
                   : " · no ticket"}
               </span>
-              <span className="min-w-0 flex-1 text-[var(--color-muted)]">
+              <span className="min-w-0 flex-1 truncate text-[var(--color-muted)]">
                 {c.blocks[0] ?? c.reasons[0] ?? "—"}
               </span>
             </li>
