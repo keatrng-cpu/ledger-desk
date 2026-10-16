@@ -4,8 +4,10 @@
  * q_v2 is the object already on the card. Rule 1 R is the same walk as
  * scripts/rule1.py `outcome` (stop before 3R, else the 14:55 CT print).
  */
+import QV2CFG from "../../../shared/q-v2.json";
 import type { QV2 } from "@/lib/trading/q-v2";
 import type { Rule1Ticket } from "@/lib/trading/rule1";
+import { weekDayFor } from "@/lib/trading/week-ahead";
 
 const WINDOW_FROM = 510;
 const WINDOW_TO = 540;
@@ -36,14 +38,19 @@ export function ctParts(ms: number): { min: number; day: string; weekday: number
   };
 }
 
-/** The next weekday after `day` (YYYY-MM-DD). That day's 08:30 CT is the next Rule 1 session open. */
+/** Cash holiday on a day the week-ahead plan already marks. A day with no plan is not invented as one. */
+export function cashHoliday(day: string): boolean {
+  return weekDayFor(day)?.kind === "holiday";
+}
+
+/** The next weekday after `day` that is not a cash holiday. That day's 08:30 CT is the next Rule 1 session open. */
 export function nextWeekday(day: string): string {
   const [y, m, d] = day.split("-").map(Number);
   let t = Date.UTC(y!, (m ?? 1) - 1, d ?? 1, 18, 0, 0);
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 12; i++) {
     t += 86_400_000;
     const p = ctParts(t);
-    if (p.weekday >= 1 && p.weekday <= 5) return p.day;
+    if (p.weekday >= 1 && p.weekday <= 5 && !cashHoliday(p.day)) return p.day;
   }
   return day;
 }
@@ -94,10 +101,24 @@ export function bandRelation(live: string, v2: string): "agree" | "raise" | "low
   return b > a ? "raise" : "lower";
 }
 
-/** The single q_v2 delta: shadow q minus the live fit. */
+/** The single q_v2 delta: shadow q minus the live fit. Both are on the 0–1 scale. */
 export function qv2Delta(liveQ: number, shadowQ: number): number | null {
   if (!Number.isFinite(liveQ) || !Number.isFinite(shadowQ)) return null;
   return shadowQ - liveQ;
+}
+
+/** shared/q-v2.json factorCap. Display clamp for a factor row, not a new weight. */
+export const FACTOR_CAP = QV2CFG.factorCap;
+
+/**
+ * Factor rows draw inside ±factorCap. `base:` is the anchored level itself
+ * (the q), not a factor, so clamping it would print a different number than
+ * the one q_v2 stored.
+ */
+export function displayDelta(source: string, delta: number): number {
+  if (!Number.isFinite(delta)) return delta;
+  if (source.startsWith("base:")) return delta;
+  return Math.max(-FACTOR_CAP, Math.min(FACTOR_CAP, delta));
 }
 
 export type ShadowOutcome = { r: number | null; exit: "stop" | "target" | "time" | "open" | "nodata" };
@@ -163,6 +184,43 @@ export function rule1Lines(ticket: Rule1Ticket): ShadowLine[] {
   if (finite(ticket.runner)) lines.push({ id: "runner", label: "Runner", value: px(ticket.runner) });
   if (finite(ticket.riskPts)) lines.push({ id: "risk", label: "Risk", value: `${px(ticket.riskPts)} pt` });
   return lines;
+}
+
+export type LevelTone = "stop" | "entry" | "target" | "target-soft" | "plain";
+export type LevelRow = { id: string; label: string; price: string; r: string | null; tone: LevelTone };
+
+/** Signed R from the ticket's own entry, stop distance, and side. */
+function rMultiple(ticket: Rule1Ticket, price: number): string | null {
+  if (!(ticket.riskPts > 0) || !finite(ticket.entry)) return null;
+  const s = ticket.side === "long" ? 1 : -1;
+  const r = (s * (price - ticket.entry)) / ticket.riskPts;
+  const sign = r >= 0 ? "+" : "−";
+  return `${sign}${Math.abs(r).toFixed(1)}R`;
+}
+
+/** Label | price | R for the Rule 1 ticket. A row is omitted when its price is not on the ticket. */
+export function rule1Rows(ticket: Rule1Ticket): LevelRow[] {
+  const rows: LevelRow[] = [];
+  if (ticket.swept && finite(ticket.level)) {
+    rows.push({ id: "sweep", label: "Sweep", price: px(ticket.level), r: ticket.swept, tone: "plain" });
+  }
+  const clock = shadowClock(ticket.dispAt);
+  const mult = finite(ticket.bodyAtr) ? `${ticket.bodyAtr.toFixed(2)}×` : null;
+  if (clock || mult || ticket.bonus) {
+    rows.push({
+      id: "displacement",
+      label: "Displacement",
+      price: clock ?? "",
+      r: [mult, ticket.bonus ? "bonus" : null].filter(Boolean).join(" · ") || null,
+      tone: "plain",
+    });
+  }
+  if (finite(ticket.entry)) rows.push({ id: "entry", label: "Entry", price: px(ticket.entry), r: "CE", tone: "entry" });
+  if (finite(ticket.stop)) rows.push({ id: "stop", label: "Stop", price: px(ticket.stop), r: rMultiple(ticket, ticket.stop), tone: "stop" });
+  if (finite(ticket.target)) rows.push({ id: "target", label: "3R", price: px(ticket.target), r: rMultiple(ticket, ticket.target), tone: "target" });
+  if (finite(ticket.runner)) rows.push({ id: "runner", label: "Runner", price: px(ticket.runner), r: finite(ticket.runnerR) ? rMultiple(ticket, ticket.runner) : null, tone: "target-soft" });
+  if (finite(ticket.riskPts)) rows.push({ id: "risk", label: "Risk", price: px(ticket.riskPts), r: "pt", tone: "plain" });
+  return rows;
 }
 
 export function optionLine(ticket: Rule1Ticket): string | null {

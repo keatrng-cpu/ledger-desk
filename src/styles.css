@@ -41,6 +41,7 @@
   --shadow-bg: color-mix(in oklab, var(--color-accent) 6%, var(--color-surface));
   --shadow-border: color-mix(in oklab, var(--color-accent) 35%, transparent);
   --overlay-bg: color-mix(in oklab, #000 80%, transparent);
+  --floor-canvas: #0b1220;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;

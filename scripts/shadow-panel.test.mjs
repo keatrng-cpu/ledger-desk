@@ -52,6 +52,30 @@ test("Rule 1 lines omit fields that are not on the ticket", () => {
   assert.deepEqual(left.includes("displacement"), false);
   assert.ok(left.includes("sweep"));
   assert.ok(left.includes("entry"));
+  const rows = view.rule1Rows(tk);
+  assert.equal(rows.find((r) => r.id === "stop").r, "−1.0R");
+  assert.equal(rows.find((r) => r.id === "entry").r, "CE");
+  assert.ok(rows.find((r) => r.id === "target").r.startsWith("+"));
+  const dropped = view.rule1Rows(partial).map((r) => r.id);
+  assert.equal(dropped.includes("stop"), false);
+  assert.equal(dropped.includes("target"), false);
+});
+
+test("factor rows clamp to ±0.07 and the anchored base does not", () => {
+  assert.equal(view.FACTOR_CAP, 0.07);
+  assert.equal(view.displayDelta("keySweep", 0.2), 0.07);
+  assert.equal(view.displayDelta("option", -0.2), -0.07);
+  assert.equal(view.displayDelta("regime:vol", -0.01), -0.01);
+  assert.equal(view.displayDelta("base:anchored", 0.51), 0.51);
+});
+
+test("next session skips a cash holiday the week-ahead plan marks", () => {
+  assert.equal(view.cashHoliday("2026-10-12"), true);
+  assert.equal(view.cashHoliday("2026-10-13"), false);
+  assert.equal(view.nextWeekday("2026-10-09"), "2026-10-13");
+  const fri = Date.parse("2026-10-09T13:40:00Z");
+  assert.equal(view.rule1Phase(Date.parse("2026-10-12T13:30:00Z"), fri), "closed");
+  assert.equal(view.rule1Phase(Date.parse("2026-10-13T13:30:00Z"), fri), "hidden");
 });
 
 test("window, closed, and next session open", () => {

@@ -1191,7 +1191,7 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
     return (
       <div className={`${className} text-right`}>
         <span
-          className="inline-block rounded-full border border-[var(--color-border)] bg-[var(--overlay-bg)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)] shadow"
+          className="inline-block rounded-full border border-[var(--color-border)] bg-[var(--overlay-bg)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)] shadow"
           title="The plan card opens when the desk has a priced plan (or a pinned wire line)"
         >
           The plan · none yet
@@ -1246,7 +1246,7 @@ function PlanOverlay({ frame, className = "" }: { frame: FloorFrame | null; clas
         <ul className="mt-2 space-y-1 border-t border-[var(--color-border)] pt-1.5">
           {pins.map((pn) => (
             <li key={pn.id} className="text-[11px] leading-snug">
-              <span className="mr-1 text-[9px] uppercase tracking-wide text-[var(--color-subtle)]">{etTime(pn.at).slice(0, 5)}</span>
+              <span className="mr-1 text-[11px] uppercase tracking-wide text-[var(--color-subtle)]">{etTime(pn.at).slice(0, 5)}</span>
               <span className="font-semibold" style={{ color: COLOR[pn.who as Character] ?? "var(--color-fg)" }}>
                 {pn.who}
               </span>{" "}
@@ -1622,7 +1622,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
         </p>
       )}
 
-      <div ref={wrap} className="relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[#0b1220] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
+      <div ref={wrap} className="relative h-[40vh] min-h-[260px] w-full overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--floor-canvas)] md:h-[50vh] md:min-h-[300px] lg:h-[58vh] lg:min-h-[340px]">
         <FloorCanvas
           frame={frame}
           camera={camera}
@@ -1685,7 +1685,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             <span className="rounded bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-amber-300">MEETING · {frame.trace.meeting.title}</span>
           )}
           {frame && <span className="rounded bg-black/60 px-2 py-0.5 font-mono text-[11px] text-slate-200">{frame.trace.beat}</span>}
-          {env && <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] text-slate-400">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
+          {env && <span className="rounded bg-black/50 px-2 py-0.5 text-[11px] text-slate-400">{env === "glb" ? "office: Blender" : "office: plan boxes"}</span>}
         </div>
         {(following || looking) && (
           <div className="absolute left-2 top-9 flex items-center gap-1 rounded bg-black/75 px-2 py-0.5 text-[11px] text-slate-100">
@@ -1701,7 +1701,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
             )}
             <button
               type="button"
-              className="ml-1 inline-flex min-h-11 items-center gap-0.5 rounded border border-[var(--color-border)] px-2 text-[10px] text-[var(--color-fg)]"
+              className="ml-1 inline-flex min-h-11 items-center gap-0.5 rounded border border-[var(--color-border)] px-2 text-[11px] text-[var(--color-fg)]"
               onClick={() => {
                 sceneRef.current?.follow(null);
                 setLooking(null);
@@ -1724,13 +1724,13 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
                 if (camera === c.id) sceneRef.current?.setCamera(c.id);
                 else setCamera(c.id);
               }}
-              className={`inline-flex min-h-11 items-center rounded px-2.5 text-[10px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
+              className={`inline-flex min-h-11 items-center rounded px-2.5 text-[11px] ${camera === c.id ? "bg-white text-black" : "bg-black/60 text-slate-200"}`}
             >
               {c.id === "overview" ? <Camera className="mr-0.5 inline h-3 w-3" /> : null}
               {c.label}
             </button>
           ))}
-          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 items-center rounded bg-black/60 px-2.5 text-[10px] text-slate-200" aria-label="Full screen">
+          <button type="button" onClick={fullscreen} className="inline-flex min-h-11 items-center rounded bg-black/60 px-2.5 text-[11px] text-slate-200" aria-label="Full screen">
             <Expand className="inline h-3 w-3" />
           </button>
         </div>
@@ -1741,7 +1741,7 @@ export default function TradingFloorTab({ desk = null }: { desk?: DeskPayload | 
               <span className="mr-1 font-bold" style={{ color: COLOR[speaker.line.character] }}>
                 {speaker.line.character}
               </span>
-              <span className="mr-1 text-[10px] uppercase text-slate-400">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
+              <span className="mr-1 text-[11px] uppercase text-slate-400">{speaker.line.animation.replace(/_/g, " ").toLowerCase()}</span>
               {speaker.line.text}
             </p>
           ) : (

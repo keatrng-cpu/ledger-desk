@@ -50,3 +50,5 @@ Add a line here when a behavior gets a new owner. Do not paste the function.
 - One SMC raid read for desk, brain and Floor — `src/lib/smc/shared.ts` `armingRaid`, `raidReadForCard`, `locationVerdict`
 - PD arrays on 1m–4h, the continuation stack — `src/lib/smc/mtf-arrays.ts` `mtfArrays`, `continuationArray`
 - Rule 1 and q_v2 on the desk, one panel, display only — `src/components/desk/shadow-panel.tsx` `ShadowDesk`, `ShadowPanel`
+- PATH band pill, live and dashed v2 — `src/components/desk/grade-badge.tsx` `GradeBadge`
+- Rule 1 ticket as label | price | R — `src/components/desk/levels-block.tsx` `LevelsBlock`
