@@ -1,0 +1,84 @@
+diff --git a/tests/test_rule1_shadow.py b/tests/test_rule1_shadow.py
+index fc1acfc..613dd20 100644
+--- a/tests/test_rule1_shadow.py
++++ b/tests/test_rule1_shadow.py
+@@ -85,3 +85,29 @@ def test_load_seen_catches_valueerror_from_the_reader(tmp_path, monkeypatch):
+         return real(*a, **k)
+     monkeypatch.setattr(builtins, "open", bad_open)
+     assert rule1_shadow.load_seen(str(tmp_path), DAY_MS) == set()
++
++
++D70 = {"mode": "shadow", "live": False, "version": 1,
++       "d70": {"delta": 0.7, "underlier": "QQQ", "right": "call", "strike": 748, "premium": 2.9, "contracts": 2, "debit": 580.0, "capBlocked": False, "dte": 0},
++       "atm": {"delta": 0.5, "underlier": "QQQ", "right": "call", "strike": 753, "premium": 1.5, "contracts": 4, "debit": 600.0, "capBlocked": False, "dte": 0}}
++
++
++def test_d70_shadow_ticket_logged_next_to_current(tmp_path):
++    rows = rule1_shadow.log(str(tmp_path), {"rule1": [dict(TK, ticketD70=D70)]}, set(), 5)
++    r = rows[0]
++    assert r["strike"] == 753 and r["delta"] == 0.6                      # current ticket unchanged
++    assert r["d70"]["delta"] == 0.7 and r["d70"]["dte"] == 0 and r["d70"]["contracts"] == 2 and r["d70"]["debit"] <= 650
++    assert r["atm"]["delta"] == 0.5 and r["d70_live"] is False and r["broker"] is False and r["orders"] == 0
++
++
++def test_d70_missing_or_cap_blocked(tmp_path):
++    r = rule1_shadow.log(str(tmp_path), {"rule1": [TK]}, set(), 5)[0]
++    assert r["d70"] is None and r["atm"] is None and r["d70_live"] is False
++    blk = dict(D70, d70=dict(D70["d70"], contracts=0, debit=0.0, capBlocked=True))
++    r = rule1_shadow.log(str(tmp_path), {"rule1": [dict(TK, at=2, ticketD70=blk)]}, set(), 5)[0]
++    assert r["d70"]["capBlocked"] is True and r["d70"]["contracts"] == 0
++
++
++def test_reads_wire_rule1_like_the_live_card(tmp_path):
++    rows = rule1_shadow.log(str(tmp_path), {"at": "x", "wire": {"rule1": [dict(TK, ticketD70=D70)]}}, set(), 5)
++    assert len(rows) == 1 and rows[0]["d70"]["delta"] == 0.7
+diff --git a/watcher/rule1_shadow.py b/watcher/rule1_shadow.py
+index 1319508..91c733c 100644
+--- a/watcher/rule1_shadow.py
++++ b/watcher/rule1_shadow.py
+@@ -14,9 +14,17 @@ CT = ZoneInfo("America/Chicago")
+ FILE = "rule1_shadow.jsonl"
+ 
+ 
++def feed_tickets(card):
++    """Rule 1 tickets from the desk card. The live card carries them on wire.rule1 (desk-listen DeskWire.rule1); older
++    test feeds put them at the top level. Reading only the top level logged nothing against the live card."""
++    c = card if isinstance(card, dict) else {}
++    w = c.get("wire") if isinstance(c.get("wire"), dict) else {}
++    return c.get("rule1") or w.get("rule1") or []
++
++
+ def rows_from_feed(card, seen, now_ms=None):
+     out = []
+-    for tk in (card or {}).get("rule1") or []:
++    for tk in feed_tickets(card):
+         if not isinstance(tk, dict) or tk.get("mode") != "shadow":
+             continue
+         k = (tk.get("symbol"), tk.get("side"), tk.get("at"))
+@@ -31,10 +39,26 @@ def rows_from_feed(card, seen, now_ms=None):
+             "entry": tk.get("entry"), "stop": tk.get("stop"), "target": tk.get("target"), "runner": tk.get("runner"),
+             "underlier": o.get("underlier"), "right": o.get("right"), "strike": o.get("strike"), "delta": d,
+             "delta_ok": d is not None and 0.5 <= d <= 0.7, "contracts": o.get("contracts"), "premium": o.get("premium"), "dte": o.get("dte"),
++            **d70_fields(tk),
+         })
+     return out
+ 
+ 
++def _leg(l):
++    if not isinstance(l, dict):
++        return None
++    return {k: l.get(k) for k in ("delta", "underlier", "right", "strike", "premium", "contracts", "debit", "capBlocked", "dte")}
++
++
++def d70_fields(tk):
++    """Shadow d.7 0DTE ticket (ledger-desk shared/rule1-d70.json, overnight-1016 #1) logged NEXT TO the current ticket.
++    Log only: nothing here sizes, stages or places an order; live is always False on the row."""
++    t = tk.get("ticketD70") if isinstance(tk.get("ticketD70"), dict) else None
++    if t is None:
++        return {"d70": None, "atm": None, "d70_live": False}
++    return {"d70": _leg(t.get("d70")), "atm": _leg(t.get("atm")), "d70_live": False}
++
++
+ def log(path_dir, card, seen, now_ms=None):
+     rows = rows_from_feed(card, seen, now_ms)
+     if rows:

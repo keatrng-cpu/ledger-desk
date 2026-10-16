@@ -185,3 +185,10 @@ Agents (Claude Code via hooks, Grok/Codex via AGENTS.md / .grok/GROK.md) read `a
 - Intraday tickets (path/continuation, Judas/killzone) on QQQ/SPY are 0DTE ATM, with 1 OTM only when the cap needs it, and never a spread. 1DTE+ only for swing-classified cards (SMT lead, event, swing spans).
 - From `optExec.intradayTicket.lateBlockEt` (15:25 ET) intraday is BLOCKED, never silently rolled to 1DTE (desk, Floor ticketCheck, watcher picker).
 - Supersedes the edge-research-1015 1DTE pick made earlier the same day.
+
+### 2026-10-16 — SHADOW PR #37: Rule 1 Δ0.7 0DTE ticket (overnight-1016 #1)
+- **Status:** PROPOSED · **Decided by:** Keaton (approved shadow build 2026-10-16, chat) · **Source:** `audits/overnight-1016/report.md` item 1 / Top-10 #1 (line 156); validation in `docs/shadow-1016/d70/`
+- **Decision:** Shadow-only. Desk computes `wire.rule1[].ticketD70` (Δ0.7 0DTE next to the current ticket and ATM). Brain/Floor show a narrative line; watcher patch logs `d70`/`atm` with `d70_live:false`. **No live sizing, staging, or orders.** `shared/desk-rules.json` untouched; **RULES_HASH stays `a4bfcb65c88badcd`**. Config lives in `shared/rule1-d70.json`.
+- **Accuracy Review fixes (this entry):** (1) `_doc` matches validation — d0.7 beats ATM only under the study's cost model (+$42.7/trade paired, t 6.10, n 716; both negative −$40.9 vs −$116.1/wk); under the desk model both are positive (+$35.6 vs +$42.8/wk), d0.7 −$4.1/trade vs ATM (t −0.55). (2) README/PR body no longer imply both lose money unconditionally. (3) Over $650: validation counted no-trade; overnight line 156 steps down Δ0.6→ATM — shadow ticket logic now steps down (shadow only), with a test.
+- **Why:** overnight-1016 ticket change; the Δ0.7-over-ATM ordering replicates only under the study cost model (not the desk model). Kept off the live path until a later promote decision.
+- **File scope:** does not overlap lane (#38) or push (#39) feature files.

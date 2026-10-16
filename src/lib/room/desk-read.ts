@@ -27,6 +27,7 @@ import { NEWS_CALENDAR } from "@/lib/trading/news";
 import { rhSizeCutContracts } from "@/lib/execution/rh-autofire-gates";
 import { compareForBoard } from "@/lib/trading/scanner";
 import type { OhlcBar } from "@/lib/market/types";
+import { rule1D70Line } from "@/lib/trading/rule1-d70";
 import type { HtfBiasRead } from "@/lib/trading/structure";
 import type { Agenda, AgendaEvent, AgendaSetup } from "./agents";
 import type { HeldLevels, RoomDeskRead, RoomEntryRead, RoomExitRead, Trend, UnderlierTape } from "./orchestrator";
@@ -440,5 +441,6 @@ export function readDeskForRoom(
       SPY: { symbol: books.SPY.series.symbol, price: esPx },
     }),
     agenda: agendaFromDesk(desk, nowMs),
+    rule1Shadow: (desk.rule1 ?? []).filter((t) => t.ticketD70).map(rule1D70Line),
   };
 }

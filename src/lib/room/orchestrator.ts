@@ -235,6 +235,8 @@ export interface RoomExitRead {
 }
 
 export interface RoomDeskRead {
+  /** Rule 1 SHADOW Δ0.7 0DTE ticket lines (overnight-1016 #1). Shown on the Floor only; no seat gates on it. */
+  rule1Shadow?: string[];
   isWeekday: boolean;
   holiday: boolean;
   killzone: string;
