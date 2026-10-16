@@ -82,15 +82,18 @@ export function createNotifier(opts: { webhookUrl?: string | null; fetch?: Fetch
       if (!url || !/^https:\/\//.test(url) || !doFetch) return { sent: false, why: "disabled" };
       const t = now();
       for (const [k, at] of seen) if (t - at >= dedupeMs) seen.delete(k);
-      const key = eventKey(e);
+      let key: string;
+      try { key = eventKey(e); } catch { return { sent: false, why: "error" }; } // malformed event: never throw into the caller
       if (seen.has(key) || inflight.has(key)) return { sent: false, why: "duplicate" };
       sentAt = sentAt.filter((x) => t - x < windowMs);
       if (sentAt.length >= rateMax) { suppressed++; return { sent: false, why: "rate_limited" }; }
       inflight.add(key); sentAt.push(t);
-      let text = formatEvent(e);
       const carried = suppressed;
-      if (carried) { text += ` _(+${carried} suppressed by rate limit)_`; suppressed = 0; }
+      suppressed = 0;
       try {
+        // formatEvent is inside the try: a bad event (e.g. a malformed field) must not leave its key stuck in-flight.
+        let text = formatEvent(e);
+        if (carried) text += ` _(+${carried} suppressed by rate limit)_`;
         const res = await doFetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: scrubText(text) }), signal: AbortSignal.timeout(SLACK_TIMEOUT_MS) });
         if (res.ok) { seen.set(key, t); return { sent: true, status: res.status }; }
         suppressed += carried; // not delivered: keep the count for the next post; the event itself may be retried

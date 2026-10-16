@@ -1,0 +1,408 @@
+diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_fills_sink.py b/tests/test_fills_sink.py
+--- a/tests/test_fills_sink.py	1969-12-31 18:00:00.000000000 -0600
++++ b/tests/test_fills_sink.py	2026-10-16 01:41:58.813196876 -0500
+@@ -0,0 +1,116 @@
++"""watcher/fills_sink.py: payloads from logged records, outbox retry, dry-run/shadow skip."""
++import json
++from types import SimpleNamespace
++from watcher import fills_sink as fs
++
++POS = {"signal": "sig-85e8feddd99efe46", "fut_symbol": "ES", "fut_side": "long", "fut_stop": 7775.0, "fut_t1": 7792.25, "order_id": "6ad1151c-8bc9-4446-a02f-9223be78a8f9",
++       "ordered": 1, "qty": 0, "entry": 2.98, "contract": {"symbol": "SPY", "exp": "2026-10-16", "strike": 770.0, "type": "call"},
++       "card": {"symbol": "ES", "side": "long", "band": "B+", "entry": 7782.63, "stop_px": 7775.0, "first_target": 7792.25}}
++ST = {"position": POS}
++
++def test_payloads_from_records():
++    p = fs.payload_for({"kind": "alert", "text": "FIRE B+ ES long q=0.6 entry=7782.63", "signal": POS["signal"]}, ST)
++    assert p["event"] == "placed" and p["orderId"] == POS["order_id"] and p["plan"] == {"entry": 7782.63, "stop": 7775.0, "t1": 7792.25}
++    assert p["option"] == {"underlier": "SPY", "right": "call", "strike": 770.0, "expiry": "2026-10-16"}
++    f = fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96 (filled)"}, {"position": {**POS, "qty": 1, "entry": 2.96}})
++    assert f["event"] == "filled" and f["fillPx"] == 2.96 and f["qty"] == 1 and f["orderId"] == POS["order_id"]
++    x = fs.payload_for({"kind": "alert", "text": "EXIT 1 @ 2.6: ticket stop 7775.0 hit (px 7775.0)", "result": {"id": "6ad115c6-72e9-4303-ad11-ab83fd3726ba", "account_number": "900000001"}},
++                       {"position": {**POS, "qty": 1, "entry": 2.96}})
++    assert x["event"] == "exit" and x["exitPx"] == 2.6 and x["exitUnderlierPx"] == 7775.0 and x["optionPnl"] == -36.0
++    assert x["orderId"].startswith("6ad115c6") and "900000001" not in json.dumps(x)
++    assert fs.payload_for({"kind": "alert", "text": "DESK A ES long"}, ST) is None
++    assert fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96", "shadow": True}, ST) is None
++    assert fs.payload_for({"kind": "alert", "text": "FILLED 1 @ 2.96"}, {"position": None}) is None
++
++def test_outbox_retry_and_order(tmp_path):
++    status = [503]; seen = []
++    s = fs.Sink(str(tmp_path / "outbox.jsonl"), url="https://desk/api/desk/fills", token="t", post=lambda u, p, t: seen.append(p["event"]) or status[0])
++    s.enqueue({"event": "placed"}); s.enqueue({"event": "filled"})
++    assert s.flush() == 0 and len(s._read()) == 2          # desk down: both kept, order preserved
++    status[0] = 200
++    assert s.flush() == 2 and s._read() == []
++    assert seen == ["placed", "placed", "filled"]
++    status[0] = 422; s.enqueue({"event": "exit"})
++    assert s.flush() == 1 and s._read() == []                # permanently refused rows are dropped, not retried forever
++
++def test_unconfigured_is_a_noop(tmp_path):
++    s = fs.Sink(str(tmp_path / "o.jsonl"), url="", token="")
++    assert s.enqueue({"event": "filled"}) is False and s.flush() == 0 and not (tmp_path / "o.jsonl").exists()
++    s = fs.Sink(str(tmp_path / "o.jsonl"), url="https://desk/api/desk/fills", token="")
++    assert s.enqueue({"event": "filled"}) is False and not (tmp_path / "o.jsonl").exists()
++
++def test_corrupt_line_is_quarantined_and_good_rows_survive(tmp_path):
++    path = tmp_path / "outbox.jsonl"
++    path.write_text('{"event": "placed"}\n{"event": "fil\n[1, 2]\n{"event": "filled"}\n')
++    seen = []
++    s = fs.Sink(str(path), url="https://desk/api/desk/fills", token="t", post=lambda u, p, t: seen.append(p["event"]) or 503)
++    assert s._read() == [{"event": "placed"}, {"event": "filled"}]       # read skips bad lines, never returns []
++    assert s.flush() == 0                                                  # desk down
++    assert [json.loads(l) for l in path.read_text().splitlines()] == [{"event": "placed"}, {"event": "filled"}]
++    assert (tmp_path / "outbox.jsonl.bad").read_text().splitlines() == ['{"event": "fil', "[1, 2]"]
++    s._post = lambda u, p, t: seen.append(p["event"]) or 200
++    assert s.flush() == 2 and s._read() == [] and seen == ["placed", "placed", "filled"]
++    assert (tmp_path / "outbox.jsonl.bad").exists()                       # quarantine is kept for a human
++
++def test_enqueue_never_blocks_while_a_send_hangs(tmp_path):
++    import threading, time as t
++    gate = threading.Event(); started = threading.Event()
++    def hang(u, p, tok):
++        started.set(); gate.wait(10); return 200
++    s = fs.Sink(str(tmp_path / "outbox.jsonl"), url="https://desk/api/desk/fills", token="t", post=hang)
++    s.enqueue({"event": "placed"})
++    th = threading.Thread(target=s.flush); th.start()
++    assert started.wait(5)
++    t0 = t.monotonic()
++    for i in range(20): assert s.enqueue({"event": "filled", "i": i})
++    assert t.monotonic() - t0 < 0.5, "enqueue waited on a network send"
++    assert s.flush() == 0                                                 # a second sender does not queue behind the first
++    gate.set(); th.join(5)
++    rows = s._read()
++    assert [r.get("i") for r in rows] == list(range(20)), "rows appended during the send were kept, the acked one dropped"
++
++def test_full_outbox_refuses_new_rows_and_keeps_the_oldest(tmp_path):
++    s = fs.Sink(str(tmp_path / "outbox.jsonl"), url="https://desk/api/desk/fills", token="t", post=lambda u, p, t: 503, max_bytes=60)
++    assert s.enqueue({"event": "placed", "n": 1}) and s.enqueue({"event": "filled", "n": 2})
++    assert s.enqueue({"event": "exit", "n": 3}) is False and s.refused == 1
++    assert [r["n"] for r in s._read()] == [1, 2]
++
++def test_boot_starts_the_sender_and_drains_an_existing_outbox(tmp_path, monkeypatch):
++    import time as t
++    (tmp_path / "outbox.jsonl").write_text('{"event": "placed"}\n{"event": "filled"}\n')
++    sent = []
++    monkeypatch.setattr(fs, "_default", None)
++    monkeypatch.setenv("WATCHER_FILLS_URL", "https://desk/api/desk/fills"); monkeypatch.setenv("WATCHER_STATUS_TOKEN", "t")
++    real = fs.Sink._send
++    monkeypatch.setattr(fs.Sink, "_send", lambda self, p: sent.append(p["event"]) or 200)
++    cfg = SimpleNamespace(live=True, fire_enabled=True, path=lambda n: str(tmp_path / n))
++    s = fs.boot(cfg)
++    assert s is not None and s._thread is not None
++    for _ in range(100):
++        if sent == ["placed", "filled"] and s._read() == []: break
++        t.sleep(0.05)
++    assert sent == ["placed", "filled"] and s._read() == []
++    monkeypatch.setattr(fs, "_default", None)
++
++def test_boot_is_a_noop_when_dry_run_or_unconfigured(tmp_path, monkeypatch):
++    monkeypatch.setattr(fs, "_default", None)
++    monkeypatch.delenv("WATCHER_FILLS_URL", raising=False); monkeypatch.delenv("WATCHER_STATUS_URL", raising=False)
++    assert fs.boot(SimpleNamespace(live=False, fire_enabled=True, path=lambda n: str(tmp_path / n))) is None
++    assert fs.boot(SimpleNamespace(live=True, fire_enabled=True, path=lambda n: str(tmp_path / n))) is None
++    rec = {"kind": "alert", "text": "FILLED 1 @ 2.96"}
++    assert fs.on_record(rec, ST, SimpleNamespace(live=True, fire_enabled=True, path=lambda n: str(tmp_path / n))) is None
++    assert not (tmp_path / "outbox.jsonl").exists()
++    monkeypatch.setattr(fs, "_default", None)
++
++def test_dry_run_and_fire_disabled_skip(tmp_path):
++    rec = {"kind": "alert", "text": "FILLED 1 @ 2.96"}
++    cfg = SimpleNamespace(live=False, fire_enabled=True, path=lambda n: str(tmp_path / n))
++    assert fs.on_record(rec, ST, cfg) is None
++    cfg.live, cfg.fire_enabled = True, False
++    assert fs.on_record(rec, ST, cfg) is None
++    assert not (tmp_path / "outbox.jsonl").exists()
++
++def test_url_derivation():
++    assert fs.fills_url({"WATCHER_STATUS_URL": "https://x.app/api/desk/watcher"}) == "https://x.app/api/desk/fills"
++    assert fs.fills_url({"WATCHER_FILLS_URL": "https://y/f", "WATCHER_STATUS_URL": "https://x/a/b"}) == "https://y/f"
++    assert fs.fills_url({}) == ""
+diff -ruN '--exclude=data' '--exclude=tools' a/tests/test_notify.py b/tests/test_notify.py
+--- a/tests/test_notify.py	2026-10-16 01:16:52.000000000 -0500
++++ b/tests/test_notify.py	2026-10-16 01:40:41.017196876 -0500
+@@ -105,3 +105,16 @@
+     assert n.notify(FIRE) == (False, "error") and FIRE_KEY_NOT_SEEN(n)
+ 
+ def FIRE_KEY_NOT_SEEN(n): return notify.event_key(FIRE) not in n.seen and not n.inflight
++
++def test_format_exception_never_sticks_in_flight(monkeypatch):
++    sent = []
++    n = notify.Notifier(webhook_url="https://hooks.slack.com/x", post=lambda u, b: sent.append(b) or True, clock=Clock())
++    real = notify.format_event; calls = [0]
++    def flaky(e):
++        calls[0] += 1
++        if calls[0] == 1: raise ValueError("bad field")
++        return real(e)
++    monkeypatch.setattr(notify, "format_event", flaky)
++    assert n.notify(FIRE) == (False, "error")
++    assert not n.inflight and notify.event_key(FIRE) not in n.seen
++    assert n.notify(FIRE) == (True, None) and len(sent) == 1
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-16 01:16:52.000000000 -0500
++++ b/watcher/daemon.py	2026-10-16 01:41:01.885196876 -0500
+@@ -4,7 +4,7 @@
+ from . import status
+ from datetime import datetime
+ import requests
+-from . import gates, ticks, notify, monitoring
++from . import gates, ticks, notify, monitoring, fills_sink
+ from .config import Config
+ from .broker import Broker, BrokerRefused
+ 
+@@ -20,6 +20,8 @@
+         self.sess = requests.Session()
+         self.sess.headers["user-agent"] = "desk-watcher/1"
+         self.running = True
++        try: fills_sink.boot(cfg)   # start the fills sender now so an outbox left by a previous run drains; never raises
++        except Exception: pass
+ 
+     # ---- io ----
+     def _load(self):
+@@ -39,6 +41,8 @@
+         if kind not in ("tick",): self.state["events"].append(rec)
+         try: notify.on_record(rec)   # Slack side channel (SLACK_DESK_WEBHOOK_URL); no-op when unset, never raises
+         except Exception: pass
++        try: fills_sink.on_record(rec, self.state, self.cfg)   # live order events -> /api/desk/fills via outbox thread; never raises
++        except Exception: pass
+         return rec
+ 
+     def alert(self, text, **kw):
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/fills_sink.py b/watcher/fills_sink.py
+--- a/watcher/fills_sink.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/fills_sink.py	2026-10-16 01:41:01.885196876 -0500
+@@ -0,0 +1,216 @@
++"""Live order events -> desk /api/desk/fills (room_orders + desk_trades). Spec: ledger-desk docs/watcher-fills-1016.
++
++Off the order path: on_record() only builds a payload from a record the daemon ALREADY logged plus state["position"],
++appends it to outbox.jsonl and wakes a background thread that POSTs it (WATCHER_STATUS_TOKEN bearer, 5 s timeout).
++Anything not acknowledged stays in the outbox and is retried (at most every RETRY_S). Never raises into the daemon,
++never places/cancels/gates anything. Skipped entirely for dry-run (cfg.live False or fire disabled) and shadow records,
++and a no-op (nothing written) when the URL or WATCHER_STATUS_TOKEN is unset. The sender starts at boot (boot(cfg)).
++URL: WATCHER_FILLS_URL, else WATCHER_STATUS_URL with its last path segment replaced by "fills".
++"""
++import json, os, re, threading, time
++
++RETRY_S = 60
++_FILL = re.compile(r"^FILLED (\d+) @ ([\d.]+)")
++_EXIT = re.compile(r"^EXIT (\d+) @ ([\d.]+)(?::\s*(.*?))?(?:\(px ([\d.]+)\))?\s*$")
++
++def fills_url(env=None):
++    env = os.environ if env is None else env
++    u = (env.get("WATCHER_FILLS_URL") or "").strip()
++    if u: return u
++    s = (env.get("WATCHER_STATUS_URL") or "").strip()
++    return s.rsplit("/", 1)[0] + "/fills" if s else ""
++
++def _plan(pos):
++    card = pos.get("card") or {}
++    entry = card.get("entry"); stop = pos.get("fut_stop") or card.get("stop_px"); t1 = pos.get("fut_t1") or card.get("first_target")
++    if entry is None or stop is None: return None
++    p = {"entry": float(entry), "stop": float(stop)}
++    if t1 is not None:
++        try: p["t1"] = float(t1)
++        except (TypeError, ValueError): pass
++    return p
++
++def _option(pos):
++    c = pos.get("contract") or {}
++    if not c.get("symbol"): return None
++    o = {"underlier": str(c["symbol"]), "right": "call" if str(c.get("type", "")).lower().startswith("c") else "put",
++         "strike": float(c.get("strike") or 0), "expiry": str(c.get("exp") or "")[:10]}
++    return o
++
++def payload_for(rec, state):
++    """-> dict for POST /api/desk/fills, or None. Pure."""
++    if rec.get("shadow") or rec.get("kind") != "alert": return None
++    text = str(rec.get("text", "")); pos = (state or {}).get("position") or {}
++    if not pos.get("signal") or pos.get("fut_symbol") not in ("ES", "MNQ") or pos.get("fut_side") not in ("long", "short"): return None
++    base = {"signal": pos["signal"], "atMs": int(time.time() * 1000), "symbol": pos["fut_symbol"], "side": pos["fut_side"],
++            "band": (pos.get("card") or {}).get("band"), "option": _option(pos), "qty": int(pos.get("qty") or pos.get("ordered") or 1)}
++    if base["option"] is None: base.pop("option")
++    if base["band"] is None: base.pop("band")
++    plan = _plan(pos)
++    if plan is None: return None
++    base["plan"] = plan
++    if text.startswith("FIRE ") and rec.get("signal") == pos["signal"]:      # logged right after PLACED, once pos["card"] exists
++        return {**base, "event": "placed", "orderId": pos.get("order_id")}
++    m = _FILL.match(text)
++    if m: return {**base, "event": "filled", "orderId": pos.get("order_id"), "qty": int(m[1]), "fillPx": float(m[2])}
++    m = _EXIT.match(text)
++    if m:
++        res = rec.get("result") if isinstance(rec.get("result"), dict) else {}
++        out = {**base, "event": "exit", "qty": int(m[1]), "exitPx": float(m[2]), "reason": (m[3] or "exit").strip()[:300]}
++        if res.get("id"): out["orderId"] = str(res["id"])
++        if m[4]: out["exitUnderlierPx"] = float(m[4])
++        try: out["optionPnl"] = round((float(m[2]) - float(pos.get("entry"))) * int(m[1]) * 100, 2)
++        except (TypeError, ValueError): pass
++        return out
++    return None
++
++MAX_OUTBOX_BYTES = 2_000_000   # ~8k fills; past this NEW rows are refused (counted), the oldest are never trimmed
++
++
++class Sink:
++    """Append-only outbox + background sender.
++
++    Locking: `_lock` guards ONLY local file IO (an append, a snapshot read, the post-send rewrite), never a network
++    call. flush() snapshots the rows under the lock, POSTs them with the lock released, then re-reads the file under
++    the lock and drops just the acknowledged prefix, so rows appended while the sends were in flight are kept.
++    A line that does not parse is moved to `<outbox>.bad` (quarantine) and never takes good rows down with it.
++    """
++
++    def __init__(self, outbox_path, url=None, token=None, post=None, clock=time.time, max_bytes=None):
++        self.path = outbox_path; self.bad_path = outbox_path + ".bad"
++        self.url = fills_url() if url is None else url
++        self.token = os.environ.get("WATCHER_STATUS_TOKEN", "") if token is None else token
++        self._post = post; self.clock = clock; self.last_try = 0.0
++        self.max_bytes = MAX_OUTBOX_BYTES if max_bytes is None else max_bytes
++        self.refused = 0; self.quarantined = 0
++        self._lock = threading.Lock(); self._send_lock = threading.Lock(); self._wake = threading.Event(); self._thread = None
++
++    def configured(self):
++        return bool(self.url and self.token)
++
++    def enqueue(self, p):
++        """Append one row. Never touches the network and never waits on a send. False when unconfigured or full."""
++        if not self.configured(): return False
++        line = json.dumps(p, default=str) + "\n"
++        with self._lock:
++            try: size = os.path.getsize(self.path)
++            except OSError: size = 0
++            if size + len(line) > self.max_bytes:
++                self.refused += 1; return False
++            with open(self.path, "a") as f: f.write(line)
++        self._wake.set()
++        return True
++
++    def _lines(self):
++        try:
++            with open(self.path) as f: return [l for l in f.read().split("\n") if l.strip()]
++        except FileNotFoundError: return []
++
++    @staticmethod
++    def _parse(lines):
++        good, bad = [], []
++        for l in lines:
++            try:
++                v = json.loads(l)
++                (good if isinstance(v, dict) else bad).append((l, v) if isinstance(v, dict) else l)
++            except ValueError:
++                bad.append(l)
++        return good, bad
++
++    def _write(self, lines):
++        tmp = self.path + ".tmp"
++        with open(tmp, "w") as f:
++            for l in lines: f.write(l + "\n")
++        os.replace(tmp, self.path)
++
++    def _quarantine(self, bad):
++        if not bad: return
++        with open(self.bad_path, "a") as f:
++            for l in bad: f.write(l + "\n")
++        self.quarantined += len(bad)
++
++    def _read(self):
++        """Parsed good rows, in order (bad lines are skipped here, quarantined by flush). Read-only."""
++        with self._lock: return [v for _, v in self._parse(self._lines())[0]]
++
++    def _snapshot(self):
++        with self._lock:
++            lines = self._lines(); good, bad = self._parse(lines)
++            if bad:   # quarantine first, then rewrite with exactly the good lines (nothing good is ever dropped)
++                self._quarantine(bad); self._write([l for l, _ in good])
++            return good
++
++    def flush(self):
++        """POST outbox rows in order; drop the acknowledged prefix (2xx, or 422 = permanently refused)."""
++        if not self.configured(): return 0
++        if not self._send_lock.acquire(blocking=False): return 0   # one sender at a time; never queue behind it
++        try:
++            snap = self._snapshot(); acked = 0
++            for _, p in snap:   # network: NO file lock held
++                try: status = self._send(p)
++                except Exception: status = None
++                if status is not None and (200 <= status < 300 or status == 422): acked += 1
++                else: break
++            if acked:
++                done = [l for l, _ in snap[:acked]]
++                with self._lock:
++                    cur = self._lines()
++                    if cur[:acked] == done: rest = cur[acked:]
++                    else:   # file changed under us in an unexpected way: remove only the acked lines, one each
++                        rest = list(cur)
++                        for l in done:
++                            if l in rest: rest.remove(l)
++                    self._write(rest)
++            self.last_try = self.clock()
++            return acked
++        finally:
++            self._send_lock.release()
++
++    def _send(self, p):
++        if self._post: return self._post(self.url, p, self.token)
++        import requests
++        return requests.post(self.url, json=p, timeout=5, headers={"authorization": f"Bearer {self.token}"}).status_code
++
++    def start(self):
++        if self._thread or not self.configured(): return
++        def loop():
++            while True:
++                try: self.flush()
++                except Exception: pass
++                self._wake.wait(RETRY_S); self._wake.clear()
++        self._thread = threading.Thread(target=loop, name="fills_sink", daemon=True); self._thread.start()
++
++
++_default = None
++_default_lock = threading.Lock()
++
++def _enabled(cfg):
++    return bool(getattr(cfg, "live", False) and getattr(cfg, "fire_enabled", False))
++
++def sink_for(cfg):
++    """The process sink, created and STARTED once (so an outbox left from a previous run drains)."""
++    global _default
++    with _default_lock:
++        if _default is None:
++            _default = Sink(cfg.path("outbox.jsonl")); _default.start()
++        return _default
++
++def boot(cfg):
++    """Called from Watcher.__init__: start the sender at boot when live + fire enabled + URL/token set. Never raises."""
++    try:
++        if not _enabled(cfg): return None
++        s = sink_for(cfg)
++        return s if s.configured() else None
++    except Exception:
++        return None
++
++def on_record(rec, state, cfg):
++    """Daemon hook (runs inline in Watcher.log). Dry-run / fire-disabled / shadow / unconfigured -> nothing.
++    Cost on the order path: one regex match + one local file append. Never raises, never waits on the network."""
++    try:
++        if not _enabled(cfg): return None
++        p = payload_for(rec, state)
++        if p is None: return None
++        return p if sink_for(cfg).enqueue(p) else None
++    except Exception:
++        return None
+diff -ruN '--exclude=data' '--exclude=tools' a/watcher/notify.py b/watcher/notify.py
+--- a/watcher/notify.py	2026-10-16 01:16:52.000000000 -0500
++++ b/watcher/notify.py	2026-10-16 01:40:41.021196876 -0500
+@@ -84,11 +84,11 @@
+                 self.sent_at = [x for x in self.sent_at if t - x < self.window_s]
+                 if len(self.sent_at) >= self.rate_max: self.suppressed += 1; return False, "rate_limited"
+                 self.inflight.add(key); self.sent_at.append(t)
+-                text = format_event(e)
+-                carried = self.suppressed
+-                if carried: text += f" _(+{carried} suppressed by rate limit)_"; self.suppressed = 0
++                carried = self.suppressed; self.suppressed = 0
+             ok = False
+             try:
++                text = format_event(e)   # inside the try: a malformed event can never leave its key stuck in-flight
++                if carried: text += f" _(+{carried} suppressed by rate limit)_"
+                 body = {"text": scrub_text(text)}
+                 if self._post: ok = bool(self._post(self.url, body))
+                 else:
