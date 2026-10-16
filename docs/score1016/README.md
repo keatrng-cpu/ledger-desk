@@ -17,7 +17,7 @@ Research and backtests: `/workspace/audits/score-rebuild/impl/` (exp.py, exp2.py
 | Watcher: `shadow:score1016:would_fire` / `:read` rows (always pass, appended after every gate) | `docs/score1016/watcher-score1016.patch` (`watcher/score1016.py`, gates.py) | shadow |
 | Watcher resilience: alert when a poll gap is > 15 s in the fast/slow window, plus an alert on restart after a gap; run.sh alerts and exits when `.venv` is missing (it used to loop silently) | patch: daemon.py, run.sh | **live-capable (alerts only)** |
 
-**RULES_HASH: 9eeed9b4083700cb (#46) → c3b14cab9e29a630.** Adds the `score1016` block; no existing key changes. The watcher fails closed on a hash mismatch, so this needs a paired deploy: the desk merge plus `watcher-fix1016.patch` (#46) and then `watcher-score1016.patch` in the same window. It must not ride tonight's 3:20 CT window unless it goes in together with #44/#46. The patch applies cleanly on top of #46's watcher patch, and the watcher suite passes (602 passed, 3 skipped).
+**RULES_HASH: 9eeed9b4083700cb (#46) → c3b14cab9e29a630 (score1016) → … → d440041c193ea8a9 (current #47 head, after combo1016 + arms + `score1016.veto.mode: shadow`).** Adds the `score1016` block; no existing key changes. The watcher fails closed on a hash mismatch, so this needs a paired deploy: the desk merge plus `watcher-fix1016.patch` (#46) and then `watcher-score1016.patch` in the same window. It must not ride tonight's 3:20 CT window unless it goes in together with #44/#46. The patch applies cleanly on top of #46's watcher patch, and the watcher suite passes (602 passed, 3 skipped).
 
 ## Backtest (ES+NQ 1m, closed bars, 2010-10 → 2026-10-16; IS 2010–18, OOS 2019 → 2026-10-09, holdout 10/12–10/16)
 FULL = S ≥ 83, hybrid entry, T1/BE/2R, caps 2/day and 1/symbol, re-arm, SMT bonus.
@@ -75,3 +75,6 @@ S reaches 85–100 (no ceiling), but the **calibrated p(win) tops out near 0.63*
 
 ## Tests
 `node --test scripts/score1016.test.mjs`: 7 pass. Full suite: 511 pass, 1 fail. The failure is the expected cross-repo check "watcher copy of the rules is byte-identical", which compares against the live watcher on the box until the paired deploy. `tsc --noEmit` is clean. Watcher (patched copy): 602 passed, 3 skipped.
+
+
+**Update (#47 release fixes):** `score1016.veto` now carries `mode: "shadow"` (the vetoes only feed shadow reads; changes RULES_HASH). The watcher hook wraps `_s16.shadow_rows(snap)` in try/except and logs `shadow:score1016:error` instead of breaking `evaluate_fire` (test `test_score1016_hook_fails_closed_to_error_row`). `watcher-score1016.patch` is regenerated on the current live watcher (live + fix1016) and applies with no offset or fuzz.

@@ -83,12 +83,12 @@ test("card + seats: rows shadow:combo1016:<arm>, partial label kept, existing co
   const x = gf.features, nb = (v) => (v == null ? null : Boolean(v));
   const v2 = { tr4h_with: x.tr4h_with, atrpct: x.atrpct, pd: x.pd, wtmax: x.wtmax, nk: x.nk, smt: nb(x.smt), disp: x.disp, mss: nb(x.mss), ifvg: nb(x.ifvg), risk_atr: x.risk_atr, chaseR: x.chaseR, arr_ifvg: x.arr_ifvg, tmin: x.tmin, rng30: x.rng30 };
   const r = A.armsCardRead({ v2, gbm: x, vetoed: false, partial: "partial: 3/14 S2 filled, 11/27 GBM missing", side: "long", symbol: "MNQ", price: 20000, edge: 19999, stop: 19990, a5: 12, minuteCt: 600 });
-  assert.deepEqual(r.map((x) => x.row.split(" ").slice(0, 2).join(" ")), ["config1_trail", "config2_e75", "config3_e75_s65", "config2_e75_tier200_400"].map((k) => `shadow:combo1016:${k} would_fire_partial`));
+  assert.deepEqual(r.map((x) => x.row.split(" ").slice(0, 2).join(" ")), ["config1_trail", "config2_e75", "config3_e75_s65", "config2_e75_tier200_400"].map((k) => `${k === "config1_trail" ? "live" : "shadow"}:combo1016:${k} would_fire_partial`));
   assert.equal(A.armSetupId("MNQ", "short", 30100.25, Date.UTC(2026, 9, 16, 15)), "2026-10-16:NQ:short:30100.25");
   assert.ok(r.every((x) => x.opt && x.opt.etf === "QQQ" && x.plan.legs.length >= 1));
   const D = await import("../src/lib/trading/desk-listen.ts");
   const s = D.combo1016ArmsSeatNote({ arms: { mode: "shadow", reads: r, pd: { pd_cur: -0.5, pd_ent: 0.5 } } });
-  assert.match(s, new RegExp(`shadow:combo1016:config1_trail would_fire_partial market 20000 \\$${gf.S2 >= 85 ? 500 : 250}/R`));
+  assert.match(s, new RegExp(`live:combo1016:config1_trail would_fire_partial market 20000 \\$${gf.S2 >= 85 ? 500 : 250}/R`));
   assert.ok(Math.abs(r[0].S2 - Math.round(gf.S2 * 10) / 10) < 1e-9); assert.match(s, /pd_cur -0.5 pd_ent 0.5 \(shadow\)/);
   const src = readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
   const a = src.indexOf("// combo1016 arms (shadow)"); const b = src.indexOf("cb.arms = { error");
@@ -107,4 +107,18 @@ test("brainPd: shadow-only and non-gating (legacy step 8 kept, nudge ≤ +0.1, n
   const blk = src.slice(src.indexOf("// 8') brainPd"), src.indexOf("// 8b) Canon stack"));
   assert.ok(!/yellow\.push|green\.push|vetoes\.push|verdict\s*=/.test(blk));
   assert.ok(src.includes("own = rawBest.symbol === bias.right.symbol ? \"right\" : \"left\""));
+});
+
+test("config1 LIVE contracts: desk optEstimate == SMC pp4 opt_trade on all 1177 config1 VAL trades ($250 base / $500 A+ per R), strike and $", async () => {
+  const { readFileSync } = await import("node:fs");
+  const T = JSON.parse(readFileSync(new URL("./fixtures/combo1016-live-ref.json", import.meta.url))).trades;
+  let n = 0, nc = 0, nk = 0, w = 0;
+  for (const t of T) {
+    if (t.n == null) continue; n++;
+    const r = A.optEstimate({ sym: t.sym, side: t.side, entry: t.entry, risk: t.risk, a5: t.a5, fillMinCt: t.fill_tod, legs: t.legs.map(([frac, px, dm]) => ({ frac, px, dm })), riskUsd: A.armFire("config1_trail", t.S2, 0.99).usdPerR });
+    nc += r.contracts === t.n; nk += r.strike === t.K; w = Math.max(w, Math.abs(r.pnl - t.pnl));
+  }
+  console.log(`# config1 trades ${n}: contracts ${nc}/${n}, strike ${nk}/${n}, max |d option $| ${w.toExponential(2)}`);
+  assert.equal(n, 1177); assert.equal(nc, n); assert.equal(nk, n); assert.ok(w < 1e-6);
+  assert.equal(A.ARMS_LIVE.mode, "live"); assert.equal(A.ARMS_LIVE.arm, "config1_trail"); assert.ok(A.isLiveArm("config1_trail") && !A.isLiveArm("config2_e75"));
 });

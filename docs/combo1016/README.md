@@ -1,4 +1,4 @@
-# combo1016: SMC research best combo (SHADOW ONLY)
+# combo1016: SMC research best combo (legacy arm SHADOW; config1_trail LIVE since 10/16)
 
 Stacks on #47's score1016 (and #46). Spec: `/workspace/audits/smc-research/s2-combo.md` (proof tables: `proof_table.md`, grid: `combo_grid.csv`). Export and fixture build: `/workspace/audits/smc-research/export/export_combo.py` (+ `build_m_all.py`).
 
@@ -14,7 +14,7 @@ Stacks on #47's score1016 (and #46). Spec: `/workspace/audits/smc-research/s2-co
 | Brain + Floor seats: `combo1016Seat` line tagged `shadow:combo1016:*` | `desk-listen.ts` | note only |
 | Watcher: `shadow:combo1016:read / would_fire / a_plus / ledger / result` rows (status True, appended after every gate); recomputes S2 and gbmP from the card's features in pure Python and tags `DRIFT` on disagreement | `docs/combo1016/watcher-combo1016.patch` (`watcher/combo1016.py`, gates.py, model copy, rules copy) | shadow |
 
-**RULES_HASH: c3b14cab9e29a630 (#47 v1) → ba5fee962993fd8f.** Adds `score1016.v2` and `combo1016`; no existing key changes. Paired deploy: desk merge + `watcher-fix1016.patch` → `watcher-score1016.patch` → `watcher-combo1016.patch` in one window (the watcher fails closed on a hash mismatch). The chain applies cleanly on the current live watcher tree.
+**RULES_HASH: c3b14cab9e29a630 (#47 v1) → ba5fee962993fd8f → 8380b2b3975fdee2 → 8dac52fc50de2428 → 5b73f1001c0cb23d → d440041c193ea8a9 (current).** Adds `score1016.v2` and `combo1016`; no existing key changes. Paired deploy: desk merge + `watcher-fix1016.patch` → `watcher-score1016.patch` → `watcher-combo1016.patch` in one window (the watcher fails closed on a hash mismatch). The chain applies cleanly on the current live watcher tree.
 
 ## Parity (TS vs Python research, same 553 candidates as v1 parity)
 `scripts/combo1016.test.mjs` / watcher `tests/test_combo1016.py` on `scripts/fixtures/combo1016-parity.json` (rows in the same order/keys as `score1016-parity.json`). Python reference: distill.json S2 and the LightGBM `predict_proba`. 538 of 553 come straight from `m.pkl`; the other 15 have no resolved outcome (`Ro` NaN), so they were rebuilt with gbm.py's own feature code minus the outcome filter (`build_m_all.py`; it reproduces m.pkl's pg exactly on the overlap).
@@ -35,13 +35,15 @@ Source of truth: SMC integration bundle `/workspace/audits/smc-research/integrat
 Rules `combo1016Arms` (mode shadow): config1_trail (ALT_C70trail_tier250_500), config2_e75 (P1_B70E75_flat300), config3_e75_s65 (P3_A65E75_tier250_500), config2_e75_tier200_400 (P2).
 Fire S2 ≥ 70 (65 for config3) AND gbmP ≥ q90 0.6487956668756266 (walk-forward GBM 2020-01-01..2026-07-04, applies through 2027-01-02; 26-week refit is a documented parameter, no live refit).
 Entry market if chaseR ≤ 1 else limit at the newest near edge, 20 min, cancel at +0.75R. Caps 5/day, 3/symbol, 1 open/symbol, halt after the first losing day result (net R < 0), re-arm only on a new setupId, flat 14:55 CT.
-Fixed $/R; A+ (S2 ≥ 85) 2x for config1/config3. Exits TR (50% @1R → BE → trail MFE−1R) / E75 (50% @0.75R → BE → 2R). 2-tick cost. Rows `shadow:combo1016:<config>` (JSON, SMC log schema) with fire, legs, option-$ estimate, partial label. The legacy combo1016 arm is unchanged.
+Fixed $/R; A+ (S2 ≥ 85) 2x for config1/config3. Exits TR (50% @1R → BE → trail MFE−1R) / E75 (50% @0.75R → BE → 2R). 2-tick cost. Rows `shadow:combo1016:<config>` (JSON, SMC log schema) with fire, legs, option-$ estimate, partial label. The legacy combo1016 arm's rules and fire rule are unchanged, but its inputs changed (see below).
 
-### Inputs (arms only; the legacy arm keeps its inputs)
+### Inputs
+Legacy combo1016 arm (correction): it now also receives the closed-bar 5m features from `barFeatures` (tr4h_with, rng30 and the GBM context features), and its ATR inputs (risk_atr/atr5 and the hard-veto atr1m) moved from 15m bars to closed 1m bars (HEAD computed them on 15m bars by mistake). Its candidate inputs (b1/b4/pd/smt/chaseR) are still the desk's; only the arms use `candFeatures`. Its S2/gbmP therefore differ from #47 v1 on live cards (shadow only).
+Arms:
 - 5m context features: `combo1016-feat.ts barFeatures` (closed-bar port of feat.py; row t5 = floor(decision bar label, 5m)).
 - Candidate features: `candFeatures` = eng.py/score.py exact: b1/b4 sign(close − EMA20 adjust=False) on 1h / 4h bins (4h bins 02/06/10/14/18/22 UTC), pd on the eng.py DR (prior calendar-day RTH 08:30–15:00 + ON = prior day ≥15:15 and today <08:00) at the decision close, smt over [raid−5, decision] vs the 60 bars before, chaseR = |next open − newest near edge| / |next open − stop| (market-anchor risk, NOT riskEdge), tmin = decision bar label.
 - S2 defaults per SMC: atrpct → 0.5, chaseR → 1, tr4h_with null → ctx_htf4 = 0 (not the median).
-- Research quirks copied, not fixed: tr1h_with = −tr1h for both sides; ON/Asia/London levels use the full session — free of lookahead only during RTH (08:30+). Before 08:30 the research row used later overnight bars; the desk cannot, so those rows differ (sw_with 28, pdpos_with 266 of 4474 SMC minutes).
+- Research quirks copied, not fixed: tr1h_with = −tr1h for both sides; ON/Asia/London levels use the full session — free of lookahead only during RTH (08:30+). Before 08:30 the research row used later overnight bars; the desk cannot, so those rows differ (sw_with 28, pdpos_with 266 of 4474 SMC minutes) and every row decided before 08:30 CT carries the partial flag `pre-08:30 CT: sw_with,pdpos_with on a partial overnight` (legacy and arms).
 - Desk finding: the desk's bias1h/bias4h are structural MTF rung biases (not EMA), pd used the arm entry edge and desk-named levels, smt was a component flag, chaseR divided by riskEdge. None of these matched research; the arms now use candFeatures.
 
 ### Warmup (fail closed)
@@ -60,4 +62,13 @@ atrpct needs ≥ 20 days of 24h 5m bars (5760; ≥ 500 for any value). The desk 
 `brainPd.mode = "shadow"`: brainPdNudge (+0.1 when aligned, 0 otherwise, never negative) is only added to the score when mode is live; it is never a STAND reason. pd_cur and pd_ent are logged on the arms rows.
 
 ### Hashes
-Repo RULES_HASH = first 16 hex of sha256 over canonical shared/desk-rules.json = `5b73f1001c0cb23d`. SMC quotes `dee7810e4d8e050a`, a hash over its own bundle files; the two differ by construction and neither is expected to equal the other. The arms GBM file is pinned separately (sha256_16 1d976c113099d0d8).
+Repo RULES_HASH = first 16 hex of sha256 over canonical shared/desk-rules.json = `d440041c193ea8a9`. SMC quotes `dee7810e4d8e050a`, a hash over its own bundle files; the two differ by construction and neither is expected to equal the other. The arms GBM file is pinned separately (sha256_16 1d976c113099d0d8).
+
+## LIVE: config1_trail (Keaton 10/16 14:38 CT)
+`combo1016Arms.live` = {mode live, arm config1_trail, bypass [debitCap650, dayLoss, weeklyLock, bplusBrainTake]}. Watcher `combo1016_live.py` decides before the v5 chain;
+a take turns this card's non-safety v5 refusals into `soft:*` rows, sizes by SMC (desk pp4 contracts at $250/$500 per R, no $650 cap), records the day book
+(5/day, 3/symbol, 1 open/symbol, halt after the first loss, new setupId), and manages TR on the underlying (`gates.manage_action`). Limit plans are sealed
+for 20 min and fire on an edge touch unless +0.75R prints first. Rows: `combo1016:live` (TAKE / not taken: reason) and `live:combo1016:config1_trail`.
+Candidate inputs for the arms now also carry eng.py a5 and risk_atr (100% on 326 research candidates).
+Parity: golden_decisions 166/166 fire; the live day book reproduces SMC's 1177 config1 VAL trades exactly (pnl-push semantics); desk contracts 1177/1177,
+strike 1177/1177, option $ max diff 3.6e-9; exit_ref TR 75/75. Differences and bypasses: ai/DECISIONS.md 2026-10-16 14:38 CT; numbers in `live_diff_backtest.json`.

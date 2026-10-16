@@ -39,10 +39,10 @@ index 1d55159..7abc0d2 100644
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff --git a/tests/test_score1016.py b/tests/test_score1016.py
 new file mode 100644
-index 0000000..69dafca
+index 0000000..c64b5d3
 --- /dev/null
 +++ b/tests/test_score1016.py
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,43 @@
 +"""score1016 watcher half: shadow rows never gate; poll-gap alert; run.sh venv guard."""
 +import os, subprocess, shutil, json
 +from watcher import score1016 as S, gates
@@ -76,8 +76,18 @@ index 0000000..69dafca
 +    assert r.returncode == 3
 +    assert "venv/bin/python missing" in (d / "daemon.out").read_text()
 +    assert json.loads((d / "alerts.log").read_text().splitlines()[0])["kind"] == "alert"
++
++
++def test_score1016_hook_fails_closed_to_error_row(monkeypatch):
++    """A crash inside score1016.shadow_rows logs shadow:score1016:error (status True) and never breaks evaluate_fire."""
++    from watcher import gates, score1016
++    monkeypatch.setattr(score1016, "shadow_rows", lambda snap: (_ for _ in ()).throw(RuntimeError("boom")))
++    monkeypatch.setattr(gates, "_evaluate_fire_v5", lambda *a, **k: [("x", True, "")])
++    rows = gates.evaluate_fire({}, None, 0, {}, None, ())
++    err = [r for r in rows if r[0] == "shadow:score1016:error"]
++    assert err and err[0][1] is True and "boom" in err[0][2]
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index 5e62367..b95d992 100644
+index 05ca657..3f9b784 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
 @@ -52,6 +52,27 @@ class Watcher:
@@ -108,7 +118,7 @@ index 5e62367..b95d992 100644
      def stopped(self): return os.path.exists(self.cfg.path("STOP"))
  
      def day(self, et_date):
-@@ -639,10 +660,13 @@ class Watcher:
+@@ -777,10 +798,13 @@ class Watcher:
              if self.ensure_broker():
                  self.log("rh_session", detail=getattr(self.broker, "login_detail", None))
          errs = 0
@@ -185,7 +195,7 @@ index 8c0f2b5..a1d1c19 100644
    }
  }
 diff --git a/watcher/gates.py b/watcher/gates.py
-index d727337..78d458a 100644
+index d727337..3b8ff6f 100644
 --- a/watcher/gates.py
 +++ b/watcher/gates.py
 @@ -126,6 +126,8 @@ def snapshot(card):
@@ -197,13 +207,16 @@ index d727337..78d458a 100644
      }
  
  def displacement_present(*parts):
-@@ -563,7 +565,8 @@ def pick_strike(strikes, spot, opt_type, offset):
+@@ -563,7 +565,11 @@ def pick_strike(strikes, spot, opt_type, offset):
  def evaluate_fire(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      g = _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker, calendar)
      from . import fix1016 as _f16     # post-mortem 10/16: appended AFTER the fast chain / evFire so nothing softens them
 -    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap)
-+    from . import score1016 as _s16   # score1016: shadow would-fire rows only (never gate while mode shadow)
-+    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap) + _s16.shadow_rows(snap)
++    try:
++        from . import score1016 as _s16   # score1016: shadow would-fire rows only (never gate while mode shadow); a failure logs one row, never breaks the chain
++        _s = _s16.shadow_rows(snap)
++    except Exception as e: _s = [("shadow:score1016:error", True, str(e)[:160])]
++    return g + [_f16.market_open_row(now_ms)] + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap) + _s
  
  def _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker=None, calendar=()):
      g = _evaluate_fire_core(snap, cfg, now_ms, state_day, broker, calendar)

@@ -741,5 +741,7 @@ export function combo1016ArmsSeatNote(f: unknown): string | null {
     pd?: { pd_cur: number | null; pd_ent: number | null } } | null | undefined;
   if (!a || typeof a !== "object" || !Array.isArray(a.reads)) return null;
   const parts = a.reads.map((r) => { const [tag, label] = r.row.split(" "); return `${tag} ${label}${label?.startsWith("would_fire") && r.plan ? ` ${r.plan.kind} ${r.plan.entry} $${r.usdPerR}/R${r.opt ? ` ≈${r.opt.contracts} ${r.opt.etf} (opt est)` : ""}` : ""}`; });
-  return `${parts.join(" · ")} · pd_cur ${a.pd?.pd_cur ?? "-"} pd_ent ${a.pd?.pd_ent ?? "-"}${a.mode === "live" ? "" : " (shadow)"}`;
+  const lv = (a as { live?: { mode?: string; arm?: string | null } }).live;
+  const liveNote = lv?.mode === "live" && lv.arm ? ` · ${lv.arm} LIVE (SMC backtest sizing/caps; other arms shadow)` : "";
+  return `${parts.join(" · ")} · pd_cur ${a.pd?.pd_cur ?? "-"} pd_ent ${a.pd?.pd_ent ?? "-"}${liveNote}${a.mode === "live" || liveNote ? "" : " (shadow)"}`;
 }

@@ -1154,6 +1154,7 @@
       "perSymbol": 1
     },
     "veto": {
+      "mode": "shadow",
       "minRiskAtr1m": 0.5,
       "maxRiskAtr1m": 12
     },
@@ -1484,6 +1485,26 @@
     }
   },
   "combo1016Arms": {
+    "live": {
+      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT. Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Missing atrpct may fire (research NaN routing, ctx_lowvol 0.5); any other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift fails closed.",
+      "mode": "live",
+      "arm": "config1_trail",
+      "allowMissingGbm": [
+        "atrpct"
+      ],
+      "allowDefaultedS2": [
+        "ctx_lowvol"
+      ],
+      "marketOnly": false,
+      "notBeforeCt": "08:30",
+      "bypass": [
+        "debitCap650",
+        "dayLoss",
+        "weeklyLock",
+        "bplusBrainTake"
+      ],
+      "flatByCt": "14:55"
+    },
     "_doc": "SMC pnl-push finalists (audits/smc-research/pnl-push/report.md, tables_core.md; params_*.json) as SHADOW-ONLY arms beside the unchanged combo1016 arm. Fire = score1016.v2 S2 >= arm.fireS2 AND gbmP >= combo1016.gbm.thr (p90 of the model's fit window) AND no hard veto. Hybrid entry: market if chaseR <= 1, else a limit at the newest array edge valid 20 min, cancelled if price reaches +0.75R first. Caps 5/day 3/symbol, 1 open per symbol, halt after the first daily loss, re-arm only on a new setup id, flat by 14:55 CT. Fixed $/R sizing (A+ = S2 >= 85), never a percent of the account. Rows shadow:combo1016:<arm>:*; nothing moves q/band/plan/fire/size.",
     "mode": "shadow",
     "gbm": {

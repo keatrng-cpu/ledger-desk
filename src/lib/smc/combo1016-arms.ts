@@ -47,6 +47,9 @@ export function armsS2(x: V2Raw): { S2: number; z: number; filled: string[] } {
   for (const k of Object.values(V2_LAYERS).flat()) { let v = sf[k]; if (k === "ctx_htf4" && x.tr4h_with == null) { v = 0; filled.push(k); } else if (v == null || !Number.isFinite(v)) { v = P.medians[k]!; filled.push(k); } z += P.coef[k]! * v; }   // research: (NaN > 0) = False → ctx_htf4 0
   return { S2: 100 * Math.max(0, Math.min(1, (z - P.lo) / (P.hi - P.lo))), z, filled };
 }
+/** combo1016Arms.live (Keaton 10/16 14:38 CT): config1_trail trades live exactly like SMC's backtest; bypasses apply to this path only. */
+export const ARMS_LIVE = ((AB as unknown as { live?: { mode?: string; arm?: string; bypass?: string[] } }).live ?? {}) as { mode?: string; arm?: string; bypass?: string[] };
+export const isLiveArm = (k: string): boolean => ARMS_LIVE.mode === "live" && ARMS_LIVE.arm === k;
 export const armsMode = (): "live" | "shadow" => (AB.mode === "live" ? "live" : "shadow");
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const r2 = (x: number) => Math.round(x * 100) / 100;
@@ -206,7 +209,8 @@ export function armsCardRead(i: { v2: V2Raw; gbm: Record<string, number | null |
   // desk does not keep yet, so every arms row is labelled partial until that feed exists (fire decision unchanged; shadow only).
   const miss = Object.entries(i.gbm).filter(([, v]) => v == null || !Number.isFinite(v as number)).map(([k]) => k);
   const own = [...(miss.includes("atrpct") ? ["warmup<20d 5m"] : []), ...(s2r.filled.length ? [`S2 defaulted: ${s2r.filled.join(",")}`] : []), ...(miss.length ? [`gbm null: ${miss.join(",")}`] : [])];
-  i = { ...i, partial: own.length ? own.join("; ") : i.partial };
+  const all = [...own, ...(i.partial ? [i.partial] : [])];
+  i = { ...i, partial: all.length ? all.join("; ") : null };
   return ARM_KEYS.map((k) => {
     const f = armFire(k, S2, gp, i.vetoed);
     const plan = fin(i.price) && fin(i.edge) && fin(i.stop) ? armPlan(k, { side: i.side, price: i.price, edge: i.edge, stop: i.stop }) : null;
@@ -215,7 +219,7 @@ export function armsCardRead(i: { v2: V2Raw; gbm: Record<string, number | null |
     // SMC integration log schema: tag shadow:combo1016:<config>; the label keeps the partial labelling (never a clean would_fire while partial)
     const label = wf ? (i.partial ? "would_fire_partial" : "would_fire") : "read";
     return { S2: Math.round(S2 * 10) / 10, gbmP: Math.round(gp * 1e4) / 1e4, arm: k, name: ARMS[k]!.name, fire: f.fire, wouldFire: wf, aPlus: f.aPlus, usdPerR: f.usdPerR, plan, opt, why: f.why, label,
-      row: `shadow:combo1016:${k} ${label}` + (i.partial ? ` (${i.partial})` : ""), partial: i.partial };
+      row: `${isLiveArm(k) ? "live" : "shadow"}:combo1016:${k} ${label}` + (i.partial ? ` (${i.partial})` : ""), partial: i.partial };
   });
 }
 

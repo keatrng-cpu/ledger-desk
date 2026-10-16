@@ -210,3 +210,30 @@ Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy it
 set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
 live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
 was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).
+
+## 2026-10-16 14:38 CT — combo1016 config1_trail goes LIVE, exactly like SMC's backtest (Keaton; implemented by Grok Bot)
+Decision (Keaton, explicit, 14:38 CT): config1_trail (SMC ALT_C70trail_tier250_500) is the only live arm; config2_e75, config3_e75_s65,
+config2_e75_tier200_400 and the legacy combo1016 arm stay shadow comparison arms; Brain P/D nudge stays shadow.
+Spec = SMC integration bundle (`/workspace/audits/smc-research/integration/combo1016.ts`, pnl-push pp2–pp4): fire S2 ≥ 70 AND gbmP ≥ 0.6487956668756266;
+hybrid entry (market if chaseR ≤ 1, else limit at the newest near edge, 20 min, cancel at +0.75R); TR exits on the underlying (50% @1R → BE → trail MFE−1R,
+stop first, flat at the 14:55 CT bar close); caps 5/day, 3/symbol, 1 open/symbol; halt after the first loss (net R < 0); re-arm only on a new setupId;
+sizing $250/R base, A+ (S2 ≥ 85) $500/R; contracts = pp4 `opt_trade` floor(usd/R ÷ modelled loss per contract), 0DTE SPY (ES/10) / QQQ (NQ/41).
+Missing atrpct may fire (research NaN routing); any other missing/defaulted input or desk/watcher drift fails closed and is logged.
+
+Keaton-approved bypasses — config1 live path ONLY (every other desk fire path keeps them):
+1. fireFix $650 debit cap (backtest A+ $500/R needs up to ~$2.6k debit; 583/1177 VAL trades were above $650; cap would cut $/wk 1521 → 1105).
+2. dayLoss $150 / 15% daily stop (0 trades changed in VAL at $150 — the research halt-after-first-loss already stops the day; the 15% leg binds only under $1,000 equity).
+3. weekly −$300 lock (177/1177 trades dropped, $/wk 1521 → 1302).
+4. B+ Brain TAKE gate (not quantifiable from the backtest: research has no desk band/Brain word).
+Kept (safety plumbing): Agentic account only, market_open, order-review quote refetch, rules_pin / rules_parity hash checks, live quote, buying power,
+no_position / no_working_order, tape/feed freshness, news blackout, entry cutoff, option spread check.
+
+Remaining differences vs the backtest (NOT bypassed; for Keaton's decision; `docs/combo1016/live_diff_backtest.py`, VAL 2024-01-01..2026-10-09, 145 weeks, option $):
+- no_position (one open option position across ES+NQ; the daemon holds a single position): 172 trades dropped, $/wk 1521 → 1112.
+- watcher flat_by 15:30 ET (14:30 CT) default vs research 14:55 CT: 10 trades dropped, 27 trades cut early (not re-simulated; those 27 made +$6,701 in the backtest).
+  Together with no_position: 995 trades, $/wk 1092.
+- loss known only at close: pnl-push counts a loss when the trade is TAKEN (future knowledge); live can only halt when it closes. Without no_position this would add
+  50 trades (net −9.9R); with no_position it adds none.
+- execution: research fills at the next 1m open and manages on closed 1m bars; live fills the option at the RH limit and manages the underlying on the live tape.
+  The instrument is the live 0DTE ATM pick (delta 0.45–0.55) on the real SPY/QQQ chain, not K = round(ES/10). Not quantifiable from the backtest.
+RULES_HASH moves (see docs/combo1016/README.md). Desk + watcher patches deploy together.

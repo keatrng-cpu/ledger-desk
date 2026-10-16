@@ -46,7 +46,9 @@ function trendAt(bins: { end: number; c: number }[], t5: number): number | null 
 }
 
 export interface BarFeat { sw_with: number | null; smt_with: number | null; fail3_with: number | null; mss5_with: number | null; tr1h_with: number | null; tr4h_with: number | null;
-  pdpos_with: number | null; compress: number | null; rng30: number | null; since_disp: number | null; atrpct: null; atr5: number | null; why: Record<string, string> }
+  pdpos_with: number | null; compress: number | null; rng30: number | null; since_disp: number | null; atrpct: null; atr5: number | null; why: Record<string, string>;
+  /** decision row before 08:30 CT: research sw_with/pdpos_with used the whole overnight session (lookahead); desk values are closed-bar only → partial */
+  preRthLevels: boolean }
 
 /** own1m/other1m: closed 1m bars (any length, ≥ ~40 5m bars before t5 for exact values). own15m: closed 15m bars, ~1 month. */
 export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: number; side: Side }): BarFeat {
@@ -62,7 +64,8 @@ export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: num
     else b5.push({ t: k, o: b.o, h: b.h, l: b.l, c: b.c, oh: o ? o.h : nan, ol: o ? o.l : nan });
   }
   const n = b5.length; // index n = the decision row (t5); H/L/C = bar n-1
-  const out: BarFeat = { sw_with: null, smt_with: null, fail3_with: null, mss5_with: null, tr1h_with: null, tr4h_with: null, pdpos_with: null, compress: null, rng30: null, since_disp: null, atrpct: null, atr5: null, why };
+  const out: BarFeat = { sw_with: null, smt_with: null, fail3_with: null, mss5_with: null, tr1h_with: null, tr4h_with: null, pdpos_with: null, compress: null, rng30: null, since_disp: null, atrpct: null, atr5: null, why, preRthLevels: tod(t5) < 510 };
+  if (out.preRthLevels) why.sw_with = why.pdpos_with = "before 08:30 CT the research used the full overnight session (lookahead); desk uses closed bars only";
   const sd = i.side === "short" ? 1 : -1;
   // trends from 15m (hour close = last 15m close in the hour); keep bars closed by t5
   const b15 = i.own15m.filter((b) => b.t + 15 * 60_000 <= t5);
@@ -140,7 +143,7 @@ export function barFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: num
 function ewmF(x: number[], span: number): number[] { const a = 2 / (span + 1); let e = NaN; return x.map((v, k) => (e = k === 0 ? v : a * v + (1 - a) * e)); }
 const cdate = (ms: number) => Math.floor(wall(ms) / 86_400_000);          // CT calendar date (eng.py groups days by T.date)
 
-export interface CandFeat { b1: number | null; b4: number | null; pd: number | null; smt: boolean | null; chaseR: number | null; tmin: number; why: Record<string, string> }
+export interface CandFeat { a5: number | null; risk_atr: number | null; b1: number | null; b4: number | null; pd: number | null; smt: boolean | null; chaseR: number | null; tmin: number; why: Record<string, string> }
 /**
  * Research-exact candidate-level features (week1016-review eng.py + score.py), closed bars only, decided at the close of the 1m bar labelled tMs.
  * b1/b4: sign(close − EMA20 adjust=False) of the last 1h / 4h bin (4h bins 02/06/10/14/18/22 UTC) closed by tMs+1m, × side.
@@ -190,7 +193,16 @@ export function candFeatures(i: { own1m: B[]; other1m: B[]; own15m: B[]; tMs: nu
     const m1 = made(i.own1m), m2 = made(i.other1m);
     if (m1 != null && m2 != null) smt = m1 !== m2; else why.smt = "fewer than 65 1m bars before the raid on a book";
   } else why.smt = "no raid time";
+  // a5 (eng.py): ATR14 (rolling mean, min_periods 1, TR vs previous close; first bar uses its own close) of 5m bars (label left) whose END <= decision close
+  let a5: number | null = null;
+  { const b5: B[] = [];
+    for (const b of i.own1m) { if (b.t > i.tMs) break; const k = Math.floor(b.t / M5) * M5; const L = b5[b5.length - 1];
+      if (L && L.t === k) { L.h = Math.max(L.h, b.h); L.l = Math.min(L.l, b.l); L.c = b.c; } else b5.push({ t: k, o: b.o, h: b.h, l: b.l, c: b.c }); }
+    const done = b5.filter((b) => b.t + M5 <= decEnd);
+    if (done.length >= 15) { const tr = done.map((b, j) => { const pc = j === 0 ? b.c : done[j - 1]!.c; return Math.max(b.h - b.l, Math.abs(b.h - pc), Math.abs(b.l - pc)); });
+      a5 = tr.slice(-14).reduce((x, y) => x + y, 0) / 14; } else why.a5 = `only ${done.length} closed 5m bars`; }
+  const risk_atr = a5 && i.edge != null && i.stop != null ? Math.abs(i.edge - i.stop) / a5 : null;
   let chaseR: number | null = null;
   if (i.price != null && i.edge != null && i.stop != null) { const r = Math.abs(i.price - i.stop); if (r > 0) chaseR = Math.abs(i.price - i.edge) / r; }
-  return { b1, b4, pd, smt, chaseR, tmin: tod(i.tMs), why };
+  return { a5, risk_atr, b1, b4, pd, smt, chaseR, tmin: tod(i.tMs), why };
 }

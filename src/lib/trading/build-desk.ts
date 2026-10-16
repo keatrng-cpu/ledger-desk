@@ -2176,7 +2176,10 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
               atr5: bf.atr5 ?? closedAtr5(own1m), dow: (dowCt + 6) % 7, bar: bf });
             const veto = s16.hardVetoes({ riskPts: arm ? Math.abs(arm.stop - arm.entryEdge) : null, atr1m: closedAtr1m(own1m),
               staleData: Boolean((c as { staleTape?: boolean }).staleTape), invalidated: Boolean((c as { invalidated?: boolean }).invalidated) });
-            const rd = c16.comboRead(ft.v2, ft.gbm, veto.vetoed);
+            const rd0 = c16.comboRead(ft.v2, ft.gbm, veto.vetoed);
+            // Accuracy nit: before 08:30 CT sw_with/pdpos_with cannot equal research (it used the whole overnight) → flag partial
+            const preP = bf.preRthLevels ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null;
+            const rd = { ...rd0, partial: [rd0.partial, preP].filter(Boolean).join("; ") || null };
             (c as { combo1016?: unknown }).combo1016 = { ...rd, plan: pc, wouldFire: rd.fire && pc != null, feat: ft, barWhy: bf.why,
               // never a clean would_fire while any input is defaulted or missing: the row carries the partial label (fire decision unchanged)
               rows: [(rd.fire && pc != null ? (rd.partial ? "shadow:combo1016:would_fire_partial" : "shadow:combo1016:would_fire") : "shadow:combo1016:read") + (rd.partial ? ` (${rd.partial})` : ""), ...(rd.aPlus ? ["shadow:combo1016:a_plus"] : [])],
@@ -2197,16 +2200,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
               // smt on the [raid−5, decision] window, chaseR over the market anchor's risk, tmin = decision bar label. The legacy combo1016 arm keeps its inputs.
               const cf = c16f.candFeatures({ own1m: bars1 as unknown as c16f.B[], other1m: closed1mOf(isL ? minuteR : minuteL, nowMs), own15m: (isL ? closedL : closedR) as unknown as c16f.B[],
                 tMs: Math.floor(nowMs / 60_000) * 60_000 - 60_000, side, tRaidMs: arm?.sweep.t ?? null, price: px, edge: arm?.entryEdge ?? null, stop: arm?.stop ?? null });
-              const v2A = { ...cb.feat.v2, pd: cf.pd, smt: cf.smt, chaseR: cf.chaseR, tmin: cf.tmin };
-              const gA = { ...cb.feat.gbm, b1: cf.b1, b4: cf.b4, pd: cf.pd, smt: cf.smt == null ? null : cf.smt ? 1 : 0, chaseR: cf.chaseR, tmin: cf.tmin };
-              const reads = c16a.armsCardRead({ v2: v2A, gbm: gA, vetoed: vetoA.vetoed, partial: cb.partial ?? null, side, symbol: String(c.symbol ?? ""), price: px,
-                edge: arm?.entryEdge ?? null, stop: arm?.stop ?? null, a5: closedAtr5(bars1), minuteCt: (ctA[0]! % 24) * 60 + ctA[1]! });
+              const v2A = { ...cb.feat.v2, pd: cf.pd, smt: cf.smt, chaseR: cf.chaseR, tmin: cf.tmin, risk_atr: cf.risk_atr };
+              const gA = { ...cb.feat.gbm, b1: cf.b1, b4: cf.b4, pd: cf.pd, smt: cf.smt == null ? null : cf.smt ? 1 : 0, chaseR: cf.chaseR, tmin: cf.tmin, risk_atr: cf.risk_atr };
+              const reads = c16a.armsCardRead({ v2: v2A, gbm: gA, vetoed: vetoA.vetoed, partial: tod1m(nowMs) < 510 ? "pre-08:30 CT: sw_with,pdpos_with on a partial overnight" : null, side, symbol: String(c.symbol ?? ""), price: px,
+                edge: arm?.entryEdge ?? null, stop: arm?.stop ?? null, a5: cf.a5, minuteCt: (ctA[0]! % 24) * 60 + ctA[1]! });
               const pdE = (() => { const pe = reads.find((r) => r.plan)?.plan?.entry ?? arm?.entryEdge ?? null; return pdLegRead({ side, poi: pe, price: px, closed1m: bars1, feedNowMs: nowMs, legacyFail: false }); })();
               const w = bars1.slice(-1200); const hi = w.length ? Math.max(...w.map((b) => b.h)) : NaN, lo = w.length ? Math.min(...w.map((b) => b.l)) : NaN;
               const zc = px != null ? pdZoneOf(px, hi, lo) : null;
               (cb as { arms?: unknown }).arms = { mode: c16a.armsMode(), thr: c16a.ARMS_THR, setupId: c16a.armSetupId(String(c.symbol ?? ""), side, arm?.sweep.level ?? null, nowMs), refitWeeks: c16a.AB.gbm.refitWeeks, liveRefit: false, reads,
                 pd: { book: String(c.symbol ?? ""), pd_cur: c16a.pdScore(zc?.zone ?? null, side), pd_ent: c16a.pdScore(pdE.atPoi?.zone ?? null, side), zoneCur: zc?.zone ?? null, zoneEnt: pdE.atPoi?.zone ?? null },
-                cand: cf, feat: { v2: v2A, gbm: gA }, partial: reads[0]?.partial ?? null, rows: reads.map((r) => r.row + (r.aPlus ? ` A+ $${r.usdPerR}/R` : "")) };
+                cand: cf, feat: { v2: v2A, gbm: gA }, live: { mode: c16a.ARMS_LIVE.mode ?? "shadow", arm: c16a.ARMS_LIVE.arm ?? null, bypass: c16a.ARMS_LIVE.bypass ?? [] }, partial: reads[0]?.partial ?? null, rows: reads.map((r) => r.row + (r.aPlus ? ` A+ $${r.usdPerR}/R` : "")) };
             }
           } catch (e) { const cb = (c as { combo1016?: { arms?: unknown } }).combo1016; if (cb && typeof cb === "object") cb.arms = { error: String(e).slice(0, 160) }; }
           const deadNow = Boolean((c as { invalidated?: boolean }).invalidated || (c as { staleTape?: boolean }).staleTape || (c as { playedOut?: boolean }).playedOut);
@@ -2294,6 +2297,8 @@ function closedAtr1m(bars: { h: number; l: number; c: number }[] | null | undefi
 }
 
 /** Closed 1m bars only (a bar counts once its minute has ended by nowMs). */
+/** CT minute of day of the decision bar label (last closed 1m) */
+function tod1m(nowMs: number): number { const m = Math.floor(nowMs / 60_000) * 60_000 - 60_000; const p = new Date(m).toLocaleString("en-US", { timeZone: "America/Chicago", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":").map(Number); return (p[0]! % 24) * 60 + p[1]!; }
 function closed1mOf(bars: OhlcBar[] | null | undefined, nowMs: number): c16f.B[] {
   return (bars ?? []).filter((b) => b.t + 60_000 <= nowMs).map((b) => ({ t: b.t, o: b.o, h: b.h, l: b.l, c: b.c }));
 }

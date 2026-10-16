@@ -106,7 +106,7 @@ test("SMC integration minutes_*.json (source of truth): every 1m bar 08:00-14:55
 test("candidate-level parity (eng.py/score.py): b1, b4, pd, smt, chaseR, tmin on every research candidate of the 10 days, from the desk's bar view", () => {
   const CP = JSON.parse(readFileSync(new URL("./fixtures/combo1016-cand-parity.json", import.meta.url)));
   const byDay = new Map(DAYS.map((d) => [`${d.day}:${d.sym}`, d]));
-  const st = Object.fromEntries(["b1", "b4", "pd", "smt", "chaseR", "tmin"].map((k) => [k, { n: 0, ok: 0, nul: 0, wrong: 0, ex: [] }]));
+  const st = Object.fromEntries(["a5", "risk_atr", "b1", "b4", "pd", "smt", "chaseR", "tmin"].map((k) => [k, { n: 0, ok: 0, nul: 0, wrong: 0, ex: [] }]));
   for (const c of CP) {
     const d = byDay.get(`${c.day}:${c.sym}`); const v = deskView(d, c.t + 60000);
     const f = F.candFeatures({ ...v, tMs: c.t, side: c.side, tRaidMs: c.traid, price: c.price, edge: c.edge, stop: c.stop });
