@@ -60,7 +60,10 @@
 # .netlify/functions-internal beside Nitro's SSR function.
 # exec-flatten rings GET /api/cron/exec-flatten. It closes what this desk opened. It opens nothing.
 # room-step rings GET /api/cron/room-step: one room cycle, then the same Robinhood sender the floor uses.
-# Neither does anything until CRON_SECRET is set. The flatten route still
+# news-calendar (0 12,13 * * 1-5 UTC), actuals (45 12,13 * * 1-5) and weekly-cost (30 22,23 * * 0) ring
+# their /api/cron/* routes the same way. They're narration/audit only. news-calendar hands rows to the blackout
+# only when NEWS_LIVE_CALENDAR is on (default off). scripts/install-netlify-cron.mjs copies all five.
+# None of these does anything until CRON_SECRET is set. The flatten route still
 # no-ops unless the execution phase is paper or live.
 #
 # Scheduled jobs (the other crons still need a caller). Netlify does not read

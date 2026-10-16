@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { CalendarClock, Newspaper, ShieldAlert } from "lucide-react";
 import { NEWS_CALENDAR, newsRead, type NewsRead } from "@/lib/trading/news";
 import { cn } from "@/lib/utils";
+import { getCalendarSources, type CalendarSources } from "@/lib/news/calendar-sources-server";
 
 function countdown(minutesAway: number): string {
   if (minutesAway <= 0) return "now";
@@ -25,6 +26,17 @@ export function NewsChip({ className }: { className?: string }) {
   // Computed client-side only (first tick in effect) to avoid SSR
   // hydration drift on the countdown text.
   const [read, setRead] = useState<NewsRead | null>(null);
+  // Per-source calendar status (BLS / BEA / Fed: live or file). Display only.
+  const [src, setSrc] = useState<CalendarSources | null>(null);
+  useEffect(() => {
+    let alive = true;
+    getCalendarSources()
+      .then((r) => alive && setSrc(r))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const tick = () => setRead(newsRead(new Date(), NEWS_CALENDAR));
@@ -90,6 +102,17 @@ export function NewsChip({ className }: { className?: string }) {
         </span>
       )}
       <span className="hidden font-mono font-normal sm:inline">{detail}</span>
+      {src && (
+        <span
+          className="hidden font-mono text-[9px] font-normal md:inline"
+          title={`Calendar in use: ${src.inCharge === "live" ? "live agency rows" : "bundled file"} (NEWS_LIVE_CALENDAR ${src.flagOn ? "on" : "off"})${src.sources
+            .filter((x) => x.why)
+            .map((x) => ` · ${x.id}: ${x.why}`)
+            .join("")}`}
+        >
+          {src.sources.map((x) => `${x.id}: ${x.status}`).join(" · ")}
+        </span>
+      )}
     </div>
   );
 }

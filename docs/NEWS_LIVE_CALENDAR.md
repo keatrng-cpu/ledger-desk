@@ -12,8 +12,9 @@ Nothing below changes scoring, PATH bands, `config.ts`, sizing, RH autofire gate
 - `src/lib/news/calendar-live.ts` fetches the BLS ICS, the BEA ICS and the Fed FOMC page, parses them into
   `NewsEvent` rows, validates them (`isNewsEvent`, date window, 07:00–16:00 ET, ≥ 6 rows ahead, an FOMC decision
   ahead), aligns names with bundled rows at the same date and minute, and diffs them against `src/data/news-calendar.json`.
-- Cron: `GET /api/cron/news-calendar`, weekdays 08:00 ET (12:00 and 13:00 UTC in `vercel.json`, with an ET-hour guard).
-- Requests carry an identifying User-Agent (`CALENDAR_USER_AGENT`, else a default naming the repo). **BLS returned 403
+- Cron: `GET /api/cron/news-calendar` is **scheduled** for weekdays 08:00 ET, with an ET-hour guard. It only runs once this branch is deployed and `CRON_SECRET` is set on the site; it hasn't run in production yet. On Netlify it's rung by `netlify/functions/news-calendar.mjs` (12:00 and 13:00 UTC), the same way `exec-flatten.mjs` works, and `vercel.json` carries the same times. `actuals.mjs` and `weekly-cost.mjs` work the same way, and `install-netlify-cron.mjs` copies all three.
+- The news chip shows each source as live or file (e.g. `BLS: file · BEA: live · Fed: live`), and the tooltip gives the reason and flag state (`calendar-sources-server.ts`). A source shows as live only if the whole run validated.
+- Requests carry an identifying User-Agent with a contact address plus a `From:` header. `CALENDAR_USER_AGENT` replaces the whole UA. `CALENDAR_CONTACT_EMAIL` sets just the address, and the default is the repo bot's noreply address, so set a monitored inbox for BLS. BLS API v2 (`BLS_API_KEY` → `registrationkey`) is used for actuals; it has no release-schedule endpoint. **BLS returned 403
   to the build box even with that UA** (Akamai). If BLS refuses in production too, the run fails and the bundled file
   stays in charge. Setting `CALENDAR_USER_AGENT` to something with a real contact address may get through (BLS asks
   for that). That hasn't been proven.
@@ -27,6 +28,8 @@ Nothing below changes scoring, PATH bands, `config.ts`, sizing, RH autofire gate
 for 24 hours (`LIVE_CALENDAR_MAX_AGE_MIN`). **That changes what the ±15-minute blackout sees, so it can block or allow
 fires.** Leave it off until the daily logs (`[cron] news-calendar`: `onlyLive`, `onlyBundledHigh`,
 `grokDisagreements`) have matched the agency pages for a while.
+
+**Scope of the flag:** turning it on changes the blackout only inside the serverless instance that ran the cron. It never changes the desk-watcher, which keeps its own calendar and gates. Enabling it needs its own review first (persisting the rows, deciding whether the watcher follows, and some days of clean `[cron] news-calendar` diffs). Approving this PR doesn't approve turning it on.
 
 Serverless caveat: `setLiveCalendar` is module state, so with the flag on, the rows only reach the instance that ran
 the cron. To make the live calendar reach every desk build, the rows need to be persisted (e.g. a small table) and
@@ -42,6 +45,7 @@ npx tsx scripts/stamp-actuals.mjs --date 2026-11-10 --write    # append (never o
 npx tsx scripts/stamp-actuals.mjs --date 2026-11-10 --write --grok   # Grok writes the note prose only
 ```
 
+- NFP is stamped `(prelim)`, and its note says BLS revises payrolls in the next two reports.
 - CPI / PPI / Employment Situation come from the BLS Public API v2 (`BLS_API_KEY` optional), computed by code: m/m
   from SA, y/y from NSA, and payroll change from the level. `vs` is the prior period only, because there's no
   official consensus feed.

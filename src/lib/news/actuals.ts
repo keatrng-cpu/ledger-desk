@@ -2,7 +2,8 @@
  * Official actuals for week-prints.json — numbers from the agencies, never from a model.
  *
  *   BLS Public API v2 (https://api.bls.gov/publicAPI/v2/timeseries/data/): CPI, PPI, Employment Situation.
- *     Works without a key (v1 limits); BLS_API_KEY raises it to 500 queries/day.
+ *     With BLS_API_KEY the request carries `registrationkey` (v2: 500 queries/day, 20 years); without it, the
+ *     unregistered limits apply. The API has no release-schedule endpoint, so the calendar still needs the ICS.
  *   BEA API (https://apps.bea.gov/api/data): GDP (NIPA T10101 line 1, real GDP % change SAAR) and the PCE price
  *     index (T20804 line 1). Needs BEA_API_KEY; without it the BEA rows are skipped and reported, never guessed.
  *
@@ -131,7 +132,8 @@ export function computeNfp(data: Record<string, Obs[]>): Computed | null {
   const chg = Math.round(lv - lv1); // the level series is in thousands
   const ur = find(data[ids.urate], y, m);
   const ahe = pctCh(find(data[ids.ahe], y, m), find(data[ids.ahe], p1.y, p1.m));
-  const actual = `${chg >= 0 ? "+" : "−"}${Math.abs(chg)}k` + (ur != null ? `; U-rate ${ur.toFixed(1)}%` : "") + (ahe != null ? `; AHE ${sgn(ahe)}% MoM` : "");
+  // First print: BLS revises payrolls in each of the next two reports, so the stamp says so.
+  const actual = `${chg >= 0 ? "+" : "−"}${Math.abs(chg)}k (prelim)` + (ur != null ? `; U-rate ${ur.toFixed(1)}%` : "") + (ahe != null ? `; AHE ${sgn(ahe)}% MoM` : "");
   const vs = lv2 != null ? `prev ${Math.round(lv1 - lv2) >= 0 ? "+" : "−"}${Math.abs(Math.round(lv1 - lv2))}k (as revised)` : "prev n/a";
   return { ref: { year: y, month: m }, actual, vs, facts: [actual, vs] };
 }
@@ -221,7 +223,8 @@ export async function computeActual(kind: ActualKind, year: number, deps: Actual
 /* ── Notes and the merge ───────────────────────────────────────────────── */
 
 export function deterministicNote(kind: ActualKind): string {
-  return `${kind === "gdp" || kind === "pce" ? "BEA" : "BLS"} official, stamped by code from the agency API. Source: ${KIND_SOURCE[kind]}`;
+  const prelim = kind === "nfp" ? " Payrolls are preliminary — BLS revises them in the next two reports." : "";
+  return `${kind === "gdp" || kind === "pce" ? "BEA" : "BLS"} official, stamped by code from the agency API.${prelim} Source: ${KIND_SOURCE[kind]}`;
 }
 
 export const NOTE_INSTRUCTIONS =

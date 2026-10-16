@@ -293,3 +293,39 @@ test("rules: RULES_HASH unchanged and shared/desk-rules.json byte-identical", ()
   const sha = createHash("sha256").update(readFileSync(new URL("../shared/desk-rules.json", import.meta.url))).digest("hex");
   assert.equal(sha, "aa00a52822f8692263e37444c2b02e4c72611ceed0a6c59135284b6ecb734cbf");
 });
+
+/* ── Follow-ups (PR #50 review) ── */
+test("calendar UA carries a contact address; CALENDAR_USER_AGENT / CALENDAR_CONTACT_EMAIL override", async () => {
+  assert.match(CL.DEFAULT_UA, /contact: [^\s@]+@[^\s@)]+/);
+  assert.equal(CL.calendarUserAgent({ CALENDAR_USER_AGENT: "X/1 (me@a.b)" }).ua, "X/1 (me@a.b)");
+  assert.match(CL.calendarUserAgent({ CALENDAR_CONTACT_EMAIL: "k@x.io" }).ua, /contact: k@x\.io/);
+  const seen = [];
+  await CL.runLiveCalendar({ fetchImpl: async (u, init) => (seen.push(init.headers), fetchOf(ALL_OK)(u)), nowMs: NOW, env: {}, crossCheck: noCross });
+  assert.ok(seen.every((h) => /@/.test(h["User-Agent"]) && /@/.test(h.From)));
+});
+
+test("NFP actual is marked preliminary", () => {
+  const J = { Results: { series: [obs("CES0000000001", [[2026, 9, 160029], [2026, 8, 160000], [2026, 7, 159867]]), obs("LNS14000000", [[2026, 9, 4.2]])] } };
+  const c = A.computeNfp(A.parseBls(J));
+  assert.match(c.actual, /^\+29k \(prelim\); U-rate 4\.2%/);
+  assert.match(A.deterministicNote("nfp"), /preliminary/);
+});
+
+test("BLS API v2: BLS_API_KEY goes in as registrationkey (never logged)", async () => {
+  let body = null;
+  await A.fetchBls(["X"], 2025, 2026, { env: { BLS_API_KEY: "k-123" }, fetchImpl: async (_u, init) => ((body = JSON.parse(init.body)), okRes('{"status":"REQUEST_SUCCEEDED","Results":{"series":[]}}')) });
+  assert.equal(body.registrationkey, "k-123");
+  await A.fetchBls(["X"], 2025, 2026, { env: {}, fetchImpl: async (_u, init) => ((body = JSON.parse(init.body)), okRes('{"status":"REQUEST_SUCCEEDED","Results":{"series":[]}}')) });
+  assert.equal(body.registrationkey, undefined);
+});
+
+test("chip sources: BLS falls back → 'BLS: file', others live only if the whole run validated", async () => {
+  const { toSources } = await import("../src/lib/news/calendar-sources-server.ts");
+  const bad = await CL.runLiveCalendar({ fetchImpl: fetchOf({ ...ALL_OK, [CL.BLS_ICS_URL]: 403 }), nowMs: NOW, env: {}, crossCheck: noCross });
+  const s = toSources(bad, false);
+  assert.deepEqual(s.sources.map((x) => `${x.id}: ${x.status}`), ["BLS: file", "BEA: file", "Fed: file"]);
+  assert.match(s.sources[0].why, /403/);
+  const good = await CL.runLiveCalendar({ fetchImpl: fetchOf(ALL_OK), nowMs: NOW, env: {}, crossCheck: noCross });
+  assert.deepEqual(toSources(good, false).sources.map((x) => x.status), ["live", "live", "live"]);
+  assert.equal(toSources(good, false).inCharge, "file", "flag off: the bundled file still answers the blackout");
+});

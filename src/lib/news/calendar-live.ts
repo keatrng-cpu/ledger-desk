@@ -25,7 +25,17 @@ import { firstJson, grokSearch, type GrokSearchResult } from "./grok-search";
 export const BLS_ICS_URL = "https://www.bls.gov/schedule/news_release/bls.ics";
 export const BEA_ICS_URL = "https://www.bea.gov/news/schedule/ics/online-calendar-subscription.ics";
 export const FED_FOMC_URL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm";
-export const DEFAULT_UA = "LedgerDesk-calendar/1.0 (+https://github.com/keatrng-cpu/ledger-desk; official release schedule check)";
+/**
+ * BLS's bot policy wants an identifying UA with a contact address. The default names the repo and its bot address;
+ * set CALENDAR_CONTACT_EMAIL (just the address) or a full CALENDAR_USER_AGENT to use a monitored inbox instead.
+ */
+export const DEFAULT_CONTACT = "grok-bot@users.noreply.github.com";
+export function calendarUserAgent(env: Record<string, string | undefined> = process.env): { ua: string; contact: string } {
+  const contact = env.CALENDAR_CONTACT_EMAIL?.trim() || DEFAULT_CONTACT;
+  const ua = env.CALENDAR_USER_AGENT?.trim() || `LedgerDesk-calendar/1.0 (+https://github.com/keatrng-cpu/ledger-desk; contact: ${contact})`;
+  return { ua, contact };
+}
+export const DEFAULT_UA = calendarUserAgent({}).ua;
 export const LIVE_CALENDAR_FLAG = "NEWS_LIVE_CALENDAR";
 const FETCH_MS = 8_000;
 
@@ -285,9 +295,9 @@ export interface LiveCalendarDeps {
   crossCheck?: (rows: NewsEvent[], todayEt: string) => Promise<CrossCheck>;
 }
 
-async function fetchText(url: string, f: typeof fetch, ua: string): Promise<string> {
+async function fetchText(url: string, f: typeof fetch, ua: string, contact: string): Promise<string> {
   const res = await f(url, {
-    headers: { "User-Agent": ua, Accept: "text/calendar, text/html, */*" },
+    headers: { "User-Agent": ua, From: contact, Accept: "text/calendar, text/html, */*" },
     signal: AbortSignal.timeout(FETCH_MS),
     cache: "no-store",
   });
@@ -306,13 +316,13 @@ export async function runLiveCalendar(deps: LiveCalendarDeps = {}): Promise<Live
   const nowMs = deps.nowMs ?? Date.now();
   const env = deps.env ?? process.env;
   const bundled = deps.bundled ?? NEWS_CALENDAR;
-  const ua = env.CALENDAR_USER_AGENT?.trim() || DEFAULT_UA;
+  const { ua, contact } = calendarUserAgent(env);
   const todayEt = etOf(nowMs).date;
   const flagOn = liveCalendarFlagOn(env);
 
   const one = async (url: string, parse: (t: string) => NewsEvent[]): Promise<{ run: SourceRun; rows: NewsEvent[] }> => {
     try {
-      const text = await fetchText(url, f, ua);
+      const text = await fetchText(url, f, ua, contact);
       const rows = parse(text);
       return { run: { ok: rows.length > 0, rows: rows.length, error: rows.length ? null : "parsed 0 desk rows" }, rows };
     } catch (e) {
