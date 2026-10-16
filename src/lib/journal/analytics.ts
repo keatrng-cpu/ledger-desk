@@ -49,6 +49,11 @@ export interface AnalyticsTrade extends ClosedTrade {
   strategy?: string | null;
   /** `MarketConditions.regime` at log time: trending | ranging | dead. */
   regime?: string | null;
+  /**
+   * VIX term structure at log time (news/pulse-regime.ts volStructure): contango | backwardation. A journal
+   * slice only — no verdict, matrix, gate or size reads it. Null/absent until a writer records it.
+   */
+  volStructure?: string | null;
 }
 
 /** Below this, a bucket's win rate / expectancy is noise, not signal. */
@@ -218,6 +223,8 @@ export interface AnalyticsReport {
   bySymbol: Bucket[];
   bySide: Bucket[];
   byWeekday: Bucket[];
+  /** Regime slice by VIX term structure (contango / backwardation). Display only; empty until recorded per trade. */
+  byVolStructure?: Bucket[];
   /** C1 — per-strategy scoreboard, biggest sample first. */
   byStrategy: StrategyScore[];
   /** Closed trades carrying no `strategy` — the attribution gap, stated plainly. */
@@ -911,6 +918,7 @@ export function buildAnalytics(
       (t) => String(etWeekday(t.closed)),
       (k) => WEEKDAY_LABEL[Number(k)] ?? k,
     ),
+    byVolStructure: groupBy(chronological, (t) => t.volStructure ?? null),
     byStrategy: byStrategy(chronological),
     unattributedN: countUnattributed(chronological),
     matrix: buildRegimeMatrix(chronological),

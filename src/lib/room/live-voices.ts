@@ -1066,6 +1066,18 @@ export function exGhost(c: Ctx, d: GhostData): Ex | null {
 export interface PulseData {
   vix: { from: number; to: number } | null;
   tenYear: { from: number; to: number } | null;
+  /** Term structure and macro context (news-server.ts PULSE + FRED). Talk only — no gate, no size reads it. */
+  term?: PulseTerm | null;
+}
+
+export interface PulseTerm {
+  /** VIX / VIX3M. Under 1 is contango (calm curve), over 1 backwardation (stress priced near-dated). */
+  ivts: number | null;
+  vvix: number | null;
+  /** FRED T10Y2Y, percentage points. */
+  t10y2y: number | null;
+  /** FRED GDPNOW, % SAAR. */
+  gdpNow: number | null;
 }
 
 export function exPulse(c: Ctx, d: PulseData): Ex | null {
@@ -1086,6 +1098,18 @@ export function exPulse(c: Ctx, d: PulseData): Ex | null {
         ])));
     lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "pulse.vix.sterling", [() => `The ticket's cap is ${f.usd(EXEC_LIMITS.maxTicketUsd)} either way. The contract count is what vol changes.`, () => `Sizing comes from the level, not from how scared the VIX is.`, () => `Vol moves the price of the option. It doesn't move the rules.`])));
   }
+  if (d.vix && d.term?.ivts != null) {
+    const back = d.term.ivts >= 1;
+    lines.push(line("Nova", ANIM.Nova.write!, pick(c, back ? "pulse.ivts.back" : "pulse.ivts.cont", back
+      ? [
+          () => `Spot VIX over the three-month VIX is ${f.raw(d.term!.ivts!.toFixed(2))}. The curve is inverted — near-dated fear is priced over the three-month.`,
+          () => `Term structure flipped: spot over three-month is ${f.raw(d.term!.ivts!.toFixed(2))}. That's stress up front, not a signal to trade.`,
+        ]
+      : [
+          () => `Spot over three-month VIX is ${f.raw(d.term!.ivts!.toFixed(2))} — still contango. The curve isn't scared, just the spot.`,
+          () => `Curve's in contango, spot over three-month at ${f.raw(d.term!.ivts!.toFixed(2))}. Weather, not a gate.`,
+        ])));
+  }
   if (d.tenYear) {
     const up = d.tenYear.to > d.tenYear.from;
     lines.push(line("Gemma", ANIM.Gemma.explain!, pick(c, "pulse.ten", [
@@ -1093,6 +1117,39 @@ export function exPulse(c: Ctx, d: PulseData): Ex | null {
       () => `The ten-year went from ${f.raw(d.tenYear!.from.toFixed(2))}% to ${f.raw(d.tenYear!.to.toFixed(2))}%. ${up ? "Higher yields are a headwind for NQ." : "Lower yields give NQ room."}`,
     ])));
   }
+  if (d.tenYear && d.term?.t10y2y != null) {
+    const t = d.term.t10y2y;
+    lines.push(line("Gemma", ANIM.Gemma.wall!, pick(c, "pulse.2s10s", [
+      () => `Twos-tens is ${t < 0 ? "inverted at minus " : ""}${f.raw(Math.abs(t).toFixed(2))} points on FRED's last close${d.term!.gdpNow != null ? `; GDPNow has ${f.raw(d.term!.gdpNow.toFixed(1))}%` : ""}. Context, not a call.`,
+    ])));
+  }
+  const out = compact(lines);
+  return out.length >= 2 ? { lines: out, moves: {} } : null;
+}
+
+/* ── Shock explainer (src/lib/news/shock-explain.ts) ───────────────────── */
+
+export interface ShockNoteData {
+  symbol: string;
+  /** The tape line, code's own words and numbers. */
+  tape: { side: "up" | "down"; pts: number; atrX: number };
+  /** Grok's cited headline. The candidate is only built when this is present; otherwise the existing tape talk stands alone. */
+  headline: string;
+  /** Host of the first citation, said aloud so the room never sounds sure of an unsourced cause. */
+  sourceHost: string;
+}
+
+export function exShockExplain(c: Ctx, d: ShockNoteData): Ex | null {
+  const f = c.f;
+  const lines: (Line | null)[] = [];
+  lines.push(line("Gemma", ANIM.Gemma.explain!, pick(c, "shock.explain.gemma", [
+    () => `That ${d.symbol} candle — ${d.tape.side} ${f.pts(d.tape.pts)}, ${f.x(d.tape.atrX)} ATR — wasn't on the calendar. ${f.raw(d.sourceHost)} has it as: ${f.raw(d.headline)}.`,
+    () => `No release behind that ${d.symbol} spike. The wire, per ${f.raw(d.sourceHost)}: ${f.raw(d.headline)}.`,
+  ])));
+  lines.push(line("Sterling", ANIM.Sterling.tablet!, pick(c, "shock.explain.sterling", [
+    () => `A headline is a reason, not a level. The lock is the tape's, and it holds.`,
+    () => `Knowing why it moved doesn't change the stand-down. New raid, new array, or nothing.`,
+  ])));
   const out = compact(lines);
   return out.length >= 2 ? { lines: out, moves: {} } : null;
 }

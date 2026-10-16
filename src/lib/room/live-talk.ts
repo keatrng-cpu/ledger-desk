@@ -890,6 +890,7 @@ function pulseCands(w: TalkWorld, st: TalkState, out: Cand[]) {
         V.exPulse(c, {
           vix: vixHit ? { from: p.vix!, to: vix! } : null,
           tenYear: tenHit ? { from: p.tenYear!, to: tenYear! } : null,
+          term: w.pulse.term ?? null,
         }),
       commit: (s) => {
         s.pulse = { vix, tenYear, baseAt: w.nowMs };
@@ -900,6 +901,28 @@ function pulseCands(w: TalkWorld, st: TalkState, out: Cand[]) {
     p.tenYear = tenYear;
     p.baseAt = w.nowMs;
   }
+}
+
+/* ── Shock explainer: a cited headline for an unscheduled candle ───────── */
+
+function shockNoteCands(w: TalkWorld, st: TalkState, out: Cand[]) {
+  const n = w.shockNote;
+  if (!n || !n.headline) return;
+  const key = `shock:${n.key}`;
+  if (st.calFired[key]) return;
+  out.push({
+    id: key,
+    kind: "news",
+    topic: "news",
+    urgency: 2,
+    prio: 8,
+    at: w.nowMs,
+    label: `${n.symbol} shock — ${n.headline}`,
+    build: (c) => V.exShockExplain(c, n),
+    commit: (s) => {
+      s.calFired[key] = true;
+    },
+  });
 }
 
 /* ── The race: the seats' tickets, the goal's council, the R&D's verdicts ── */
@@ -1918,6 +1941,7 @@ export function talkTick(w: TalkWorld, prev: TalkState): { item: TalkItem | null
   bookCands(w, st, cands, !first);
   lessonCands(w, st, cands, !first);
   pulseCands(w, st, cands);
+  shockNoteCands(w, st, cands);
   seatCands(w, st, cands);
   goalCands(w, st, cands);
   rndCands(w, st, cands);

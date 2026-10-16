@@ -55,6 +55,8 @@ import type {
   TapeBook,
   TapeSample,
   WeekLite,
+  PulseTermLite,
+  ShockNoteLite,
 } from "./live-types";
 import { hallLiteNow } from "./hall-store";
 import { contractsFor } from "./goal";
@@ -622,7 +624,9 @@ export interface WorldInput {
   desk: DeskPayload;
   nowMs: number;
   rings: Rings;
-  pulse: { vix: number | null; tenYear: number | null; at: number | null };
+  pulse: { vix: number | null; tenYear: number | null; at: number | null; term?: PulseTermLite | null };
+  /** Cited shock headline (shock-explain.ts); absent in worlds built without it. */
+  shockNote?: ShockNoteLite | null;
   news: NewsLite[];
   book: RoomBook;
   beat: Beat | null;
@@ -665,6 +669,7 @@ export function worldFromDesk(i: WorldInput): TalkWorld {
     feed: feedOf(desk),
     books: { QQQ: tapeBook(desk, "QQQ", i.rings.QQQ, nowMs), SPY: tapeBook(desk, "SPY", i.rings.SPY, nowMs) },
     pulse: i.pulse,
+    shockNote: i.shockNote ?? null,
     news: i.news,
     cal: calendarRead(desk, nowMs),
     book: bookRead(i.book, nowMs),
