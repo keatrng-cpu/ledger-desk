@@ -123,3 +123,14 @@ test("daily call cap + spend cap", async () => {
   assert.ok(s.some((r) => r.status === "capped"));
   assert.ok(Math.abs(R.estCostUsd(3000, 200) - 0.00425) < 1e-9);
 });
+
+test("prompt arrays: nearest unmitigated per timeframe, not the oldest rows (grok-vs-desk-1016 §6)", () => {
+  const old = Array.from({ length: 20 }, (_, i) => ({ tf: "1m", kind: "ifvg", dir: "bear", lo: 30880 + i, hi: 30881 + i, ce: 30880.5 + i, mitigated: false, ageBars: 3000 }));
+  const near = [{ tf: "15m", kind: "fvg", dir: "bear", lo: 29948.75, hi: 30023.5, ce: 29986.1, mitigated: false, ageBars: 4 }, { tf: "1h", kind: "fvg", dir: "bear", lo: 29960, hi: 30000, ce: 29980, mitigated: false, ageBars: 2 }, { tf: "5m", kind: "fvg", dir: "bear", lo: 29900, hi: 29910, ce: 29905, mitigated: true, ageBars: 1 }];
+  const txt = R.mtfSummary({ symbol: "MNQ", minute: MNQ, bars15: B15, arrays: [...old, ...near] }, at(9, 55));
+  const line = txt.split("\n").find((l) => l.startsWith("arrays:"));
+  assert.match(line, /^arrays: 15m bear fvg|^arrays: 1h bear fvg/);
+  assert.ok(line.includes("15m bear fvg") && line.includes("1h bear fvg"));
+  assert.equal((line.match(/1m bear ifvg/g) ?? []).length, 3);
+  assert.equal(line.includes("29900-29910"), false);
+});

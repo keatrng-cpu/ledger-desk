@@ -76,7 +76,12 @@ export function mtfSummary(b: BookInput, nowMs: number): string {
   const pre = day.filter((x) => ctMin(x.t) < 510);
   const lv = (xs: Bar[]) => xs.length ? `${Math.max(...xs.map((x) => x.h))}/${Math.min(...xs.map((x) => x.l))}` : "-";
   lines.push(`levels: day hi/lo ${lv(day)} · pre-RTH hi/lo ${lv(pre)} · last ${m1[m1.length - 1]?.c ?? "-"}`);
-  const arr = (b.arrays ?? []).slice(0, 14).map((a) => `${a.tf} ${a.dir} ${a.kind} ${a.lo}-${a.hi} ce ${a.ce}${a.mitigated ? " mit" : ""}`);
+  // grok-vs-desk-1016 §6: was slice(0, 14) in mtfArrays order = the OLDEST 1m rows, ~8x ATR15 from price, never 15m-4h.
+  // Now: unmitigated rows nearest the last price, at most 3 per timeframe (so 15m/30m/1h/4h rungs are represented).
+  const lastPx = m1[m1.length - 1]?.c ?? 0; const perTf = new Map<string, number>();
+  const pick = [...(b.arrays ?? [])].filter((a) => !a.mitigated).sort((x, y) => Math.abs(x.ce - lastPx) - Math.abs(y.ce - lastPx))
+    .filter((a) => { const n = perTf.get(a.tf) ?? 0; if (n >= 3) return false; perTf.set(a.tf, n + 1); return true; }).slice(0, 14);
+  const arr = pick.map((a) => `${a.tf} ${a.dir} ${a.kind} ${a.lo}-${a.hi} ce ${a.ce}${a.mitigated ? " mit" : ""}`);
   if (arr.length) lines.push(`arrays: ${arr.join(" | ")}`);
   return `${b.symbol}\n${lines.join("\n")}`;
 }

@@ -134,3 +134,171 @@ Claude spend: **$1.98 total, at the $2 cap**. The first 122-call run sent `tempe
 - Either agrees: n 20, 7W/13L, +2.91R, WR 35%.
 - Grok-Claude verdict agreement where both returned valid JSON: 8/20. On those 20: Claude says yes n 0, 0W/0L, +0.00R / no n 20, 9W/11L, +2.83R, WR 45%; Grok says yes n 12, 5W/7L, +1.32R, WR 42% / no n 8, 4W/4L, +1.51R, WR 50%.
 **Recommendation: NEITHER as a gate or confirmation.** On the same 50 moments the scan alone made +8.79R (22W/28L). Grok-only kept +2.91R (cut 15/28 losers but also 15/22 winners, WR 35% < 44%). Claude-only and both-agree take **0 trades**: Claude rejected all 20 setups it returned valid JSON for (9 of them winners, +2.83R), and 60% of its replies fail the strict-JSON contract. It is also about 3× the cost and 2.8× the latency of Grok. Keep Grok as the informational shadow reader (cheaper, faster, 100% valid JSON in JSON mode). Don't add Claude to the desk path. The edge question is settled by §2: the scan itself has none over 16 years, so no LLM filter on top of it is worth wiring.
+
+## 6. Why Grok turned setups down: logged replies joined to outcomes (added 12:55 CT, $0 new spend)
+
+Source: `grok_real.jsonl` (`read.note`, `read.setup`, suggestion and confidence) joined to the scan's replay outcome R. Grok's own levels match the scan entry in nearly every accept (median |Δentry| = 0), so R is the setup's outcome. Categories are keyword buckets on Grok's stated note, multi-label, regexes in this section's script. Coverage: 116/122 valid replies; 5 malformed + 1 timeout = no reason logged (UNPROVEN). Grok gave no reason category for its accepts beyond 'valid …', so the accepted columns count the words it used.
+
+| reason category | rejected winner | rejected loser | accepted winner | accepted loser | rejected WR | rejected net R |
+|---|---|---|---|---|---|---|
+| late / post-killzone / time | 42 | 18 | 3 | 3 | 70% | +12.36 |
+| no fresh displacement / MSS | 23 | 13 | 0 | 0 | 64% | +6.86 |
+| premium/discount wrong half | 19 | 10 | 19 | 13 | 66% | +3.75 |
+| HTF bias against | 18 | 3 | 1 | 0 | 86% | +7.52 |
+| chop | 6 | 3 | 0 | 0 | 67% | +3.18 |
+| stale anchor / arrays stale or far | 13 | 4 | 1 | 0 | 76% | +6.76 |
+| price already past entry / at T1 | 11 | 4 | 0 | 0 | 73% | +3.31 |
+| no LTF arm / no array at entry | 10 | 4 | 0 | 0 | 71% | +4.67 |
+| other/none stated | 0 | 0 | 12 | 7 | - | +0.00 |
+
+Totals (116 valid): accepted n 54, 33W/21L, WR 61%, +4.14R; rejected n 62, 44W/18L, WR 71%, +12.91R. Base rate of the scan on these: n 116, 77W/39L, WR 66%, +17.05R.
+
+- accepts at confidence 0.55: n 1, 0W/1L, WR 0%, -1.00R
+- accepts at confidence 0.65: n 37, 24W/13L, WR 65%, +6.93R
+- accepts at confidence 0.68: n 1, 1W/0L, WR 100%, +0.13R
+- accepts at confidence 0.72: n 9, 4W/5L, WR 44%, -2.86R
+- accepts at confidence 0.75: n 6, 4W/2L, WR 67%, +0.94R
+
+- 08:30–11:00 CT: accepted n 33, 22W/11L, WR 67%, +7.05R | rejected n 21, 16W/5L, WR 76%, +4.72R
+- after 11:00 CT: accepted n 21, 11W/10L, WR 52%, -2.91R | rejected n 41, 28W/13L, WR 68%, +8.19R
+
+**What Grok saw (rebuilt exactly from the replay prompt, $0):** knowledge pack + `mtfSummary` (1m/5m/15m last 12 bars, 1h 8, 4h 6, day and pre-RTH hi/lo, last price, and up to 14 arrays) + the scan flag with entry/stop/T1. **Not sent:** prior-day/overnight levels (PDH/PDL/ONH/ONL), the other index (no SMT data, even though the pack lists SMT), desk card/brain state, volume, news.
+- **Proven prompt bug:** the reader sends `arrays.slice(0, 14)` in `mtfArrays` order, i.e. the oldest 1m rows. In **110/116** prompts, *none* of the 14 arrays was within 1×ATR15 of price (median nearest 7.77×ATR15). Every prompt carried 1m arrays only (no 15m/1h/4h). Example #52 MNQ 10/15 14:10: last 30093, every array 30878–30902 (3-day-old 1m iFVGs). Grok's note: *'levels mismatch; price ~30080 vs arrays ~30880'*.
+- Rejections that cite stale/far arrays or a stale anchor: n 17, 13W/4L, WR 76%, +6.76R. Those reasons describe the broken prompt, so they don't count as evidence against the setup.
+- **Pack-induced 'late' rule:** the pack says 'NY AM 08:30–11:00 CT is the desk's main window'. Grok treated that as a hard filter. It also called entries at 09:00–09:15, inside the window, 'late' (#2, #3, #4, #92, #93); the pack has no such rule.
+- **Misread data (proven from the prompt):** #118 ES 10/16 10:00, Grok wrote *'price at 7784 far from 7844 entry'*, but the scan entry it was given was 7784.5.
+
+**Does any reason separate losers from winners? No (proven on 116 replies).** Every rejection category has a win rate of 64–86%, all at or above the accepted set's 61% and the scan's 66% base. The 'HTF bias against' rejects were the *best* group: 18W/3L, 86% WR, +7.52R. Accept confidence doesn't rank either: 0.72 → 44% WR, −2.86R vs 0.65 → 65% WR, +6.93R. The only proven split is time. Grok's after-11:00 accepts lost (52% WR, −2.91R), but it rejected 41 post-11:00 setups that won 68% (+8.19R), so the time rule cut more winners than losers too.
+
+**Top findings:**
+1. **Prompt bug (proven):** 110/116 prompts had no array within 1×ATR15 of price, and all were 1m only (oldest rows). Grok then rejected setups as 'stale/far arrays' (17 rejects, 76% WR). **Fixed on the branch:** nearest unmitigated arrays, at most 3 per timeframe, with a test. Its effect on Grok's verdicts is **UNPROVEN** until re-run (about $0.50 for 122; not spent).
+2. **The knowledge pack's 'NY AM window' became a hard 'late' filter:** 'late/post-killzone' appears in 60 rejects (42W/18L, 70% WR, +12.36R). It's the biggest single source of rejected winners.
+3. **No stated reason has predictive value.** HTF-against, no-displacement, premium/discount and chop rejects all won more often than Grok's accepts. Grok's rejections are not a usable loser filter on this sample (122 moments, one week; the 16-year verdict in §2 still stands).
+
+Also missing from the prompt (proven by construction): PDH/PDL/ONH/ONL, the other index for SMT, desk card/Brain state, volume. Whether adding them changes verdicts is UNPROVEN.
+
+### Per-moment log (★ = in the 50 shared with Claude)
+| # | sym | side | day time CT | R | Grok | conf | Grok's stated reason |
+|---|---|---|---|---|---|---|---|
+| 0 ★ | MNQ | short | 10-12 8:35 | +0.12 | reject |  | late entry post 08:30 killzone, price already at 30952 far from scan entry 30952.25 with no retest of newest array |
+| 1 ★ | MNQ | short | 10-12 8:45 | +0.54 | reject |  | post-sweep displacement already filled; entry now stale vs newer arrays |
+| 2 ★ | MNQ | short | 10-12 9:00 | +0.51 | reject |  | late NY killzone, no recent MSS displacement, inside premium, against 4h bull bias |
+| 3 ★ | MNQ | short | 10-12 9:10 | -0.08 | reject |  | late entry post 09:00 killzone, price already at extreme low with no retest |
+| 4 ★ | MNQ | short | 10-12 9:15 | -1.00 | reject |  | late entry past 09:11, no fresh displacement after lower high, against 15m/1h bullish bias |
+| 5 ★ | MNQ | short | 10-12 9:40 | -1.00 | ACCEPT | 0.75 | Valid: post-AMD manip, displacement lower, in discount below 50% range, near entry at 09:40. |
+| 6 ★ | MNQ | long | 10-12 11:05 | +0.37 | reject |  | late post-killzone, no recent MSS/disp after 10:55, price in premium vs 4h range, arrays outdated |
+| 7 ★ | MNQ | long | 10-12 11:20 | -1.00 | reject |  | late post-killzone, no recent MSS/disp after 11:05 high, price in premium vs 4h, chop on 1m/5m |
+| 8 ★ | MNQ | short | 10-12 11:25 | +0.86 | reject |  | late post-killzone, no fresh 1m/5m bear array at entry, price already displaced past scan entry, against premium half |
+| 9 ★ | MNQ | short | 10-12 11:30 | +1.69 | reject |  | late entry 11:30 CT, no fresh displacement, against higher-timeframe discount bias |
+| 10 ★ | MNQ | short | 10-12 12:15 | +0.70 | reject |  | late post-killzone, no recent MSS, inside chop range, stale anchor |
+| 11 | MNQ | long | 10-12 14:35 | +0.01 | reject |  | late entry post-NY AM killzone, against higher-timeframe bearish structure |
+| 12 ★ | MNQ | long | 10-12 14:40 | -1.00 | ACCEPT | 0.65 | valid long near entry, HTF discount, post-killzone but displacement present |
+| 13 | MNQ | long | 10-12 15:00 | -0.21 | reject |  | late post-killzone, no recent MSS, arrays stale at 311xx far from price |
+| 14 | MNQ | short | 10-13 8:30 | +0.01 | ACCEPT | 0.75 | Valid NY killzone short; near entry with displacement. |
+| 15 | MNQ | long | 10-13 8:40 | +0.01 | ACCEPT | 0.72 | Valid NY AM killzone long; near entry at 30757.25 close, OTE discount to premium transition. |
+| 16 | MNQ | long | 10-13 8:45 | +0.58 | ACCEPT | 0.65 | Valid NY AM long in discount, displacement present, near entry. |
+| 17 | MNQ | long | 10-13 9:25 | -1.00 | ACCEPT | 0.72 | Valid long: AMD manipulation sweep done, displacement up, premium half avoided, still near entry in NY killzone. |
+| 18 | MNQ | short | 10-13 12:00 | +0.57 | ACCEPT | 0.65 | valid missed short; near entry at 12:00 CT with displacement |
+| 19 ★ | MNQ | long | 10-13 12:05 | -1.00 | reject |  | post-11:30 NY killzone, no recent MSS/disp after 11:55 break, in premium vs 4h, late entry |
+| 20 | MNQ | short | 10-13 12:15 | +0.21 | reject |  | late entry after NY killzone, price in discount but chop on 1m/5m with no displacement since 12:05; against higher-timeframe bullish 4h bias |
+| 21 ★ | MNQ | long | 10-13 12:35 | +3.23 | reject |  | post-NY killzone, no recent MSS/disp, inside premium after sweep, arrays stale high |
+| 22 ★ | MNQ | long | 10-13 12:45 | -1.00 | reject |  | late entry post-killzone, premium pricing, no fresh displacement on 1m/5m retest |
+| 23 | MNQ | long | 10-13 13:10 | +0.14 | reject |  | late entry, already distributed past OTE, against 4h bear bias |
+| 24 | MNQ | long | 10-13 13:15 | -1.00 | ACCEPT | 0.72 | Valid long in NY PM; near entry with displacement and HTF discount alignment. |
+| 25 ★ | MNQ | short | 10-13 14:00 | -1.00 | ACCEPT | 0.65 | Valid: displacement lower, in discount below day 50%, post-NY killzone but mechanical tap. |
+| 26 ★ | MNQ | long | 10-13 14:45 | +1.16 | ACCEPT | 0.65 | Valid displacement into gap, still near entry in NY PM, premium but HTF discount. |
+| 27 ★ | MNQ | short | 10-14 8:45 | -1.00 | reject |  | No MSS displacement; late post 08:30; in discount half; arrays outdated |
+| 28 | MNQ | short | 10-14 9:00 | +0.05 | ACCEPT | 0.65 | valid NY killzone short with displacement and pool raid; arrays shown are stale/old irrelevant levels |
+| 29 | MNQ | short | 10-14 9:00 | +0.09 | ACCEPT | 0.65 | Valid short in NY killzone; displacement present, premium rejection, near entry. |
+| 30 | MNQ | short | 10-14 11:00 | +0.42 | reject |  | late post-killzone, no recent displacement, price in discount not premium, arrays stale/high |
+| 31 | MNQ | short | 10-14 11:15 | +0.03 | reject |  | late entry after 11:00 killzone, displacement already distributed, price at extremes |
+| 32 | MNQ | short | 10-14 11:20 | +0.69 | reject |  | chop after 11:10 displacement, late entry, against higher-timeframe bullish bias |
+| 33 ★ | MNQ | short | 10-14 11:50 | +1.89 | reject |  | late post-killzone, no recent displacement, price already below entry in chop range |
+| 34 | MNQ | short | 10-14 12:30 | +0.08 | reject |  | late post-killzone, no fresh displacement, against 4h/1h bullish bias |
+| 35 | MNQ | short | 10-14 12:30 | +0.15 | reject |  | late post-killzone, price already at T1, no displacement after sweep, stale anchor |
+| 36 | MNQ | short | 10-14 12:50 | +0.48 | malformed |  |  |
+| 37 | MNQ | long | 10-14 14:20 | +0.18 | ACCEPT | 0.65 | Valid long setup still near entry; not late, has displacement, in discount below day 50% |
+| 38 | MNQ | long | 10-14 14:25 | +0.26 | reject |  | post-killzone, premium half, no fresh displacement on retest, against 15m/1h bear bias |
+| 39 ★ | MNQ | long | 10-14 14:45 | -1.00 | reject |  | post-14:30 displ down, now in premium, late after NY killzone |
+| 40 ★ | MNQ | short | 10-14 14:45 | -0.81 | reject |  | valid short but lateEntry after 11:00 killzone; no suggestion |
+| 41 | MNQ | long | 10-15 8:40 | +0.13 | ACCEPT | 0.68 | Valid NY killzone long; displacement present; near entry at 29829.75; premium but early session AMD distribution leg. |
+| 42 | MNQ | long | 10-15 8:45 | -1.00 | ACCEPT | 0.72 | Valid long setup still near entry in NY killzone; displacement present, no major HTF conflict. |
+| 43 | MNQ | short | 10-15 8:55 | +0.00 | ACCEPT | 0.65 | Valid NY killzone short; near entry with displacement. |
+| 44 ★ | MNQ | short | 10-15 9:00 | -1.00 | ACCEPT | 0.65 | valid NY killzone short; displacement present; near entry at 29687 |
+| 45 ★ | MNQ | short | 10-15 9:50 | -1.00 | ACCEPT | 0.72 | Valid near entry; displacement present, premium sell zone, killzone active. |
+| 46 | MNQ | long | 10-15 10:00 | +0.08 | ACCEPT | 0.65 | Valid AMD distro leg; displacement present; still near entry at 10:00 CT killzone. |
+| 47 ★ | MNQ | long | 10-15 10:30 | -1.00 | ACCEPT | 0.65 | Valid long: NY killzone, displacement through gap, premium but OTE retest, SMT ok. |
+| 48 | MNQ | short | 10-15 13:05 | +0.28 | ACCEPT | 0.65 | Valid short: MSS + displacement, near entry at 13:05, in NY killzone. |
+| 49 | MNQ | short | 10-15 13:10 | +0.57 | reject |  | late post-killzone, no MSS, against HTF bull bias |
+| 50 ★ | MNQ | short | 10-15 13:40 | -1.00 | ACCEPT | 0.72 | Valid short: displacement through 13:00 low, premium rejection, near entry at 13:40. |
+| 51 | MNQ | long | 10-15 14:05 | +0.03 | malformed |  |  |
+| 52 | MNQ | long | 10-15 14:10 | +0.06 | reject |  | levels mismatch; price ~30080 vs arrays ~30880; no recent displacement on 5m/15m; late post-killzone |
+| 53 | MNQ | long | 10-15 14:20 | +0.36 | reject |  | valid long but lateEntry after 11:00 killzone; premium above daily 50% |
+| 54 ★ | MNQ | long | 10-15 14:35 | +1.46 | ACCEPT | 0.65 | valid long setup still near entry; displacement present, in discount to day range, killzone passed but HTF aligned |
+| 55 | MNQ | short | 10-16 8:30 | +0.03 | ACCEPT | 0.65 | Valid AMD manip short; displacement present; near entry at 08:30 killzone open. |
+| 56 | MNQ | short | 10-16 8:35 | +0.06 | reject |  | late NY open, no HTF bearish structure, premium half, stale anchor |
+| 57 | MNQ | short | 10-16 8:40 | +0.29 | ACCEPT | 0.72 | Valid NY killzone short; displacement present; near entry. |
+| 58 ★ | MNQ | short | 10-16 9:45 | +3.26 | ACCEPT | 0.65 | Valid NY killzone short: displacement lower, premium sell, no opposing HTF. |
+| 59 ★ | MNQ | short | 10-16 10:00 | +1.83 | ACCEPT | 0.75 | Valid NY killzone short; displacement on 09:51 1m, lower high retest at 29862.25. |
+| 60 | MNQ | short | 10-16 10:10 | +0.00 | reject |  | late post-10am, no fresh displacement after 09:58 low, against 4h/1h bullish bias, stale entry anchor |
+| 61 | MNQ | short | 10-16 10:15 | +0.78 | ACCEPT | 0.65 | valid NY killzone short; near entry after LH retest |
+| 62 ★ | MNQ | short | 10-16 10:45 | +1.56 | ACCEPT | 0.65 | Valid near entry in NY killzone; displacement present. |
+| 63 | ES | short | 10-12 8:35 | +0.93 | ACCEPT | 0.72 | Valid AMD manipulation sweep at 08:30; displacement lower on 08:31-08:34; near entry in NY killzone. |
+| 64 ★ | ES | short | 10-12 8:35 | -1.00 | ACCEPT | 0.65 | valid AMD manip short into NY open; displacement present; still near entry |
+| 65 | ES | short | 10-12 8:50 | +0.15 | reject |  | late entry post 08:45 displacement; price already 4pts below scan entry at 08:50; against premium half |
+| 66 | ES | short | 10-12 9:10 | +0.01 | reject |  | valid short after MSS, near entry, in NY killzone, discount but with displacement |
+| 67 | ES | short | 10-12 9:15 | -1.00 | ACCEPT | 0.65 | valid NY killzone short; near entry; displacement present; premium to discount |
+| 68 | ES | short | 10-12 9:35 | +0.75 | reject |  | late post-killzone, no clear AMD distro, price in discount-to-premium transition without displacement confirmation |
+| 69 ★ | ES | long | 10-12 11:20 | -1.00 | reject |  | late entry, no LTF arm, against recent 1m arrays and chop tape |
+| 70 | ES | short | 10-12 11:25 | +0.18 | timeout |  |  |
+| 71 | ES | short | 10-12 11:30 | -1.00 | ACCEPT | 0.65 | Valid short on displacement & array; still actionable near 7856.5 close |
+| 72 | ES | short | 10-12 11:45 | +0.44 | malformed |  |  |
+| 73 ★ | ES | short | 10-12 12:15 | +1.46 | ACCEPT | 0.65 | valid near entry; displacement present; killzone late but HTF bear bias |
+| 74 | ES | short | 10-12 13:30 | -1.00 | ACCEPT | 0.65 | Valid short: recent MSS down, price at premium retest of broken 15m gap with displacement; still near entry. |
+| 75 | ES | long | 10-12 14:35 | +0.04 | ACCEPT | 0.65 | Valid post-AMD distro long; near entry at 14:35 with displacement present. |
+| 76 | ES | long | 10-12 14:40 | +0.56 | reject |  | late entry post-displacement; no killzone; against 1h bear bias from 11:00 |
+| 77 | ES | long | 10-12 15:00 | -0.07 | reject |  | post-15:00 CT, chop in 5m/15m, against higher-timeframe bearish structure from 4h/1h |
+| 78 ★ | ES | long | 10-13 8:30 | +2.80 | reject |  | no displacement, late entry into Asia range, against recent 1m bear iFVGs |
+| 79 | ES | long | 10-13 8:35 | +0.56 | ACCEPT | 0.65 | Valid NY killzone AMD manip low sweep + MSS displ; near entry in discount. |
+| 80 ★ | ES | short | 10-13 8:45 | +4.33 | ACCEPT | 0.65 | Valid: post-AMD manip sweep high, displacement down on 08:35 5m, in NY killzone, at premium but tapping unmit HTF gap. |
+| 81 ★ | ES | long | 10-13 8:45 | -1.00 | ACCEPT | 0.65 | valid long setup still actionable |
+| 82 | ES | short | 10-13 10:30 | +0.09 | reject |  | late entry post 10:25 displacement, price already 1pt below scan entry at 10:30, no fresh array below current price |
+| 83 ★ | ES | long | 10-13 11:15 | +1.07 | reject |  | lateEntry after 11:00 CT, chop on 5m/1m, against recent bear arrays |
+| 84 ★ | ES | long | 10-13 12:25 | -1.00 | reject |  | no displacement, post-killzone, premium |
+| 85 | ES | long | 10-13 13:10 | +0.10 | reject |  | late entry after 11:00 killzone, no HTF alignment, premium zone |
+| 86 | ES | long | 10-13 13:15 | -1.00 | ACCEPT | 0.55 | valid long but post-killzone and late vs NY AM; near entry |
+| 87 | ES | long | 10-13 14:10 | +0.17 | malformed |  |  |
+| 88 | ES | long | 10-13 14:15 | +0.08 | reject |  | valid long but lateEntry post-11:00 killzone; no card due to timing gate |
+| 89 | ES | long | 10-13 14:30 | +0.69 | reject |  | late post-killzone, no sponsored FVG or AMD structure, chop on 1m/5m |
+| 90 | ES | short | 10-14 8:45 | +0.75 | ACCEPT | 0.75 | Valid: post-AMD manip sweep low, displacement down, in NY killzone, at premium rejection into HTF gap. |
+| 91 | ES | short | 10-14 9:00 | +0.04 | malformed |  |  |
+| 92 | ES | short | 10-14 9:00 | +0.08 | reject |  | late entry past 08:57 displacement; price already at 7807.75 below T1; against HTF bull bias on 4h/1h |
+| 93 | ES | short | 10-14 9:05 | +0.42 | reject |  | late NY killzone entry, no fresh displacement, against 15m/1h/4h bullish structure, premium half |
+| 94 | ES | short | 10-14 9:40 | +0.08 | ACCEPT | 0.65 | valid displacement on 5m/15m, NY killzone, discount half, near entry |
+| 95 | ES | short | 10-14 11:00 | +0.58 | ACCEPT | 0.65 | Valid displacement lower into discount, near entry at 11:00 killzone close |
+| 96 ★ | ES | short | 10-14 11:15 | -0.15 | ACCEPT | 0.65 | Valid short: MSS+displacement into discount, still near entry at 11:15. |
+| 97 | ES | short | 10-14 11:20 | +0.64 | reject |  | Valid short but lateEntry after 11:00; against premium half and no fresh HTF MSS. |
+| 98 ★ | ES | short | 10-14 11:45 | +1.70 | reject |  | late post-killzone, no recent MSS displacement, price in discount half, arrays stale from overnight |
+| 99 | ES | short | 10-14 12:30 | +0.07 | ACCEPT | 0.65 | Valid short: MSS + displacement, near entry, in NY killzone tail, premium to discount. |
+| 100 ★ | ES | long | 10-14 13:20 | -1.00 | reject |  | valid long but lateEntry post-NY AM; no displacement on 5m close |
+| 101 ★ | ES | short | 10-14 13:25 | -1.00 | reject |  | late post-13:00 NY, no fresh displacement, price already 10pts below scan entry in discount half |
+| 102 ★ | ES | long | 10-14 14:20 | +0.59 | reject |  | late entry after 11:00 killzone, against HTF bear structure |
+| 103 ★ | ES | short | 10-14 14:40 | -1.00 | ACCEPT | 0.65 | Valid displacement lower on 14:35 5m, near entry at 14:40 with price ~7760 |
+| 104 ★ | ES | long | 10-14 14:45 | +1.08 | reject |  | late post-killzone, no recent MSS, in premium vs 4h, stale anchor |
+| 105 ★ | ES | long | 10-15 8:45 | -1.00 | ACCEPT | 0.75 | Valid NY AM long in discount; near entry, has MSS + FVG. |
+| 106 | ES | short | 10-15 8:55 | +0.01 | reject |  | Valid AMD manipulation sweep of low; near entry at 08:55 in NY killzone; displacement present but late vs ideal 08:30-09:00. |
+| 107 | ES | long | 10-15 9:10 | +0.26 | reject |  | stale entry anchor; no recent displacement or sweep at 7746; price in premium half; late for NY AM killzone |
+| 108 | ES | long | 10-15 10:00 | +0.06 | ACCEPT | 0.65 | Valid long: AMD distro phase, MSS up through PDH, sponsored FVG, in NY killzone, premium half but gap sponsored. |
+| 109 ★ | ES | long | 10-15 10:30 | -1.00 | reject |  | late entry post 10:25 low; no fresh displacement; inside premium; stale anchor |
+| 110 | ES | short | 10-15 13:05 | +0.20 | ACCEPT | 0.65 | Valid short: MSS + displacement, near entry, in NY killzone extension, discount to day high. |
+| 111 | ES | short | 10-15 13:10 | +0.38 | reject |  | late post-killzone, no recent displacement on 5m/15m, price already through entry, arrays stale & far from price |
+| 112 ★ | ES | short | 10-15 13:40 | -1.00 | ACCEPT | 0.65 | Valid short: displacement lower, premium sell zone, near entry at 13:40. |
+| 113 | ES | long | 10-15 14:20 | +0.24 | ACCEPT | 0.65 | Valid long: post-AMD distro, discount to day high, MSS up through 14:00 high, near entry at 14:20. |
+| 114 ★ | ES | long | 10-15 14:35 | -1.00 | reject |  | late post-killzone, displacement weak, price already swept high and in premium; no LTF arm |
+| 115 | ES | short | 10-16 8:35 | +0.02 | reject |  | late NY killzone entry, no fresh displacement, stale high arrays, price already 0.5pt below scan entry |
+| 116 | ES | short | 10-16 8:40 | +0.35 | ACCEPT | 0.75 | valid NY killzone short; near entry with displacement |
+| 117 | ES | short | 10-16 9:00 | +0.38 | ACCEPT | 0.65 | Valid displacement at 08:30-08:35, near entry at 09:00, premium sell zone. |
+| 118 ★ | ES | short | 10-16 10:00 | +1.95 | reject |  | price at 7784 far from 7844 entry; late post-killzone; against 15m/1h/4h bullish bias |
+| 119 | ES | short | 10-16 10:10 | +0.03 | reject |  | late entry post 10:05 displacement, price already 10pts below scan entry, no displacement after sweep, against 15m/1h bullish bias |
+| 120 | ES | short | 10-16 10:15 | +0.91 | ACCEPT | 0.72 | Valid NY killzone short; displacement present; near entry; HTF discount. |
+| 121 ★ | ES | short | 10-16 11:20 | -0.33 | reject |  | late post-killzone, no recent MSS/displacement, price already 10pts below scan entry in discount half |
