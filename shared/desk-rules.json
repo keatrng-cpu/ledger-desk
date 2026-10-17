@@ -820,8 +820,12 @@
     }
   },
   "ltfArm": {
-    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung. 2026-10-17 (Every-TF closes live + LTF inversion): mode live, 1D rung added; validatedOnly = arms are computed on every closed rung and carried on the card, but an arm APPLIES (components, entry/stop, extension release, T1 fallback, cap) only when its setup id is in mtfInversion.validated (Part A walk-forward + untouched holdout survivors); otherwise it is shadow-graded and marked ltfArmRefused, and the card stands on its own evidence. Any card still LTF-armed without a validated id is never fire-eligible (desk actionable=false, watcher hard row ltf_arm_validated).",
-    "mode": "live",
+    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung. 2026-10-17 (Every-TF closes live + LTF inversion): mode live, 1D rung added; validatedOnly = arms are computed on every closed rung and carried on the card, but an arm APPLIES (components, entry/stop, extension release, T1 fallback, cap) only when its setup id is in mtfInversion.validated (Part A walk-forward + untouched holdout survivors); otherwise it is shadow-graded and marked ltfArmRefused, and the card stands on its own evidence. Any card still LTF-armed without a validated id is never fire-eligible (desk actionable=false, watcher hard row ltf_arm_validated). 2026-10-17 Release Watch #52 NO-GO: mode back to SHADOW pending a desk replay and Keaton's OK. Live ltfArm would widen the mtf-context LTF kills from 5m to every rung, and each kill adds +0.02 q to the opposite side (about 115 side-minutes on the 8/31-10/16 tape could newly clear q 0.60), so it is not a pure tightening. The all-rung kills now sit behind their own setting, allTfKills.mode (default shadow), with the +0.02 boost unchanged. When it is live they are merged with the 5m read by strictKillUnion (adds kills only). validatedOnly and the watcher's ltf_arm_validated hard row stay in place.",
+    "mode": "shadow",
+    "allTfKills": {
+      "_doc": "mtf-context LTF kills on every rung 1m-4h (Keaton 2026-10-14 all-timeframe rule), separated from ltfArm.mode 2026-10-17 (Release Watch #52). shadow: kills read 5m as before, and the all-rung read is printed on the book (ltfReversalsAllTfShadow) without acting. live: strictKillUnion(5m, all-rung). A kill still adds +0.02 q to the opposite side (unchanged), so going live needs a desk replay and Keaton's OK.",
+      "mode": "shadow"
+    },
     "tfs": [
       "1m",
       "2m",
@@ -1110,12 +1114,12 @@
       "_doc": "Fix 6: watcher fast window opens at fastStartEt (polls, logs, persistence warm-up); the market_open hard gate refuses every fire before fireNotBeforeEt (options open). Not a strategy change."
     },
     "reviewQuoteRetry": {
-      "mode": "live",
+      "mode": "shadow",
       "rounds": 4,
       "roundDelayMs": 400,
       "maxTotalMs": 2500,
       "softMaxAgeS": 3,
-      "_doc": "Fix 7 (live 2026-10-17): after the v5 refetch tries still read a stale quote at order_review_quote, refetch up to `rounds` more rounds (roundDelayMs apart, all inside maxTotalMs). A quote passes on the strict fire.orderReviewMaxAgeS; if none does, the YOUNGEST re-read passes only if it is <= softMaxAgeS old now (capped at fire.quoteMaxAgeS), the ask is live and not crossed, at least two genuine re-reads were each <= softMaxAgeS old, and the quote stamp moved between them (not frozen). Otherwise fail closed. The chase check and every other gate still run after it. shadow = reads run, refusal unchanged."
+      "_doc": "Fix 7 (2026-10-17, SHADOW pending Keaton's approval; Accuracy Review #52 NO-GO on live, post-mortem 1016-short-postmortem.md:71: the 10/16 refusal likely saved a loss). Live behaviour is unchanged: the strict fire.orderReviewMaxAgeS (1 s) decides, on the desk (rh-autofire mayPlaceAfterReview) and the watcher alike, and the watcher re-checks the quote age against that 1 s limit right before broker.buy. Shadow: after the v5 refetch tries still read a stale quote at order_review_quote, refetch up to `rounds` more rounds (roundDelayMs apart, all inside maxTotalMs) and LOG the verdict the soft path would give (review_quote_retry_shadow: would_pass, why, every re-read's age). Soft verdict = pass only if a re-read passes the strict age, or the youngest re-read is <= softMaxAgeS old (capped at fire.quoteMaxAgeS), ask live and not crossed, >= 2 genuine re-reads each <= softMaxAgeS, and the quote stamp moved between them. Any RH error/exception or empty read inside the retry window makes the shadow verdict refuse. The fire is still refused in shadow."
     },
     "runner": {
       "mode": "shadow",

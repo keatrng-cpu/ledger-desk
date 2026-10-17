@@ -10,11 +10,10 @@ const T0 = Date.UTC(2026, 9, 16, 14, 0);
 
 test("rules: fix1016 block — every strategy item ships shadow; watcher window 09:25 / fire not before 09:30", () => {
   const b = RULES.fix1016;
-  for (const k of ["reanchor", "amdRetest", "ltfPromote", "score5", "chaseFromAnchor", "runner"]) assert.equal(b[k].mode, "shadow", k);
-  assert.equal(b.reviewQuoteRetry.mode, "live");   // 2026-10-17 stale-quote fix (watcher-only item; soft <= softMaxAgeS, fail closed)
+  for (const k of ["reanchor", "amdRetest", "ltfPromote", "score5", "chaseFromAnchor", "reviewQuoteRetry", "runner"]) assert.equal(b[k].mode, "shadow", k);   // reviewQuoteRetry: shadow pending Keaton (Accuracy Review #52)
   assert.equal(b.watcherWindow.fastStartEt, "09:25"); assert.equal(b.watcherWindow.fireNotBeforeEt, "09:30");
   const w = b.score5.weights; assert.ok(Math.abs(Object.values(w).reduce((a, c) => a + c, 0) - 1) < 1e-9);
-  for (const k of Object.keys(F.fixModes())) assert.equal(F.fixMode(k), k === "reviewQuoteRetry" ? "live" : "shadow", k);
+  for (const k of Object.keys(F.fixModes())) assert.equal(F.fixMode(k), "shadow", k);
 });
 
 // ---- fix 1: re-anchor (10-16 MNQ: card pinned at 30089 while the AMD/LTF plan was 30018.75 / 30052.5)

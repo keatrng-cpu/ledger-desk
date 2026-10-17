@@ -99,7 +99,7 @@ test("brain seat shows the line (narrative only, verdict/checks unchanged)", () 
 test("rules hash unchanged: the Δ0.7 config is outside shared/desk-rules.json", () => {
   const rules = readFileSync("shared/desk-rules.json", "utf8");
   assert.equal(rules.includes("rule1-d70") || rules.includes("ticketD70"), false);
-  assert.equal(h.RULES_HASH, "32d32bc808ccc4f4");
+  assert.equal(h.RULES_HASH, "0a692dc19944a8df");
   assert.equal(JSON.parse(readFileSync("shared/rule1-d70.json", "utf8")).live, false);
   assert.deepEqual(JSON.parse(readFileSync("shared/rule1-d70.json", "utf8")).stepDownDeltas, [0.6, 0.5]);
 });

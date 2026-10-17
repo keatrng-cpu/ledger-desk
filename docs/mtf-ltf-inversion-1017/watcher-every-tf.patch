@@ -13,10 +13,10 @@ index fa61d85..1512e1b 100644
      w, rec = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff --git a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
 new file mode 100644
-index 0000000..809d7e4
+index 0000000..70562f2
 --- /dev/null
 +++ b/tests/test_every_tf_ltf_arm.py
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,154 @@
 +"""2026-10-17 Every-TF closes live + LTF inversion (paired with ledger-desk grok/every-tf-ltf-inversion).
 +- ltf_arm_validated: HARD row, appended after the fast chain (never softened); empty mtfInversion.validated refuses every LTF-armed card.
 +- every_tf: info row carrying the desk's closed-bar body/wick read per rung.
@@ -26,10 +26,10 @@ index 0000000..809d7e4
 +from watcher.config import Config
 +
 +def test_rules_pair_and_hash():
-+    assert gates.RULES["ltfArm"]["mode"] == "live" and gates.RULES["ltfArm"]["validatedOnly"] is True
++    assert gates.RULES["ltfArm"]["mode"] == "shadow" and gates.RULES["ltfArm"]["allTfKills"]["mode"] == "shadow" and gates.RULES["ltfArm"]["validatedOnly"] is True
 +    assert gates.RULES["ltfArm"]["tfs"][-1] == "1D" and gates.RULES["everyTf"]["tfs"] == ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]
 +    assert gates.MTF_VALIDATED == ()
-+    assert gates.RULES_HASH == "32d32bc808ccc4f4"
++    assert gates.RULES_HASH == "0a692dc19944a8df"
 +    assert F.review_soft_max_age_s() == 3.0 and gates.RULES["fire"]["orderReviewMaxAgeS"] == 1
 +
 +def test_ltf_armed_card_refused_when_nothing_validated():
@@ -85,17 +85,53 @@ index 0000000..809d7e4
 +def lag(s):   # a LIVE but lagging RH quote: stamp moves every read, always ~s old
 +    return lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now() - s * 1000 + next(_seq) * 1e-3}
 +
-+def test_1016_case_lagging_live_quote_passes_soft(monkeypatch, tmp_path):
++def _shadow(logs):
++    ev = [k for e, k in logs if e == "review_quote_retry_shadow"]; assert len(ev) == 1; return ev[0]
++
++def test_1016_case_lagging_live_quote_shadow_logs_pass_but_refuses(monkeypatch, tmp_path):
++    # rules as shipped: reviewQuoteRetry SHADOW pending Keaton -> the live strict 1 s refusal stands
 +    w, calls, logs = _w(monkeypatch, tmp_path, [lag(1.8)] * 10)
++    assert F.mode("reviewQuoteRetry") == "shadow"
++    q, ok, why = w._review_quote({"id": "OPT1"}, None)
++    assert not ok and "old" in why and len(calls) == 3 + 4
++    v = _shadow(logs); assert v["would_pass"] is True and v["verdict"] == "pass" and "soft review pass" in v["why"]
++    assert len(v["ages_s"]["tries"]) == 3 and len(v["ages_s"]["retry"]) == 4 and all(1.7 <= a <= 1.9 for a in v["ages_s"]["retry"])
++
++def test_1016_case_soft_pass_only_when_live(monkeypatch, tmp_path):
++    w, calls, logs = _w(monkeypatch, tmp_path, [lag(1.8)] * 10)
++    monkeypatch.setitem(F.FX, "reviewQuoteRetry", {**F.FX["reviewQuoteRetry"], "mode": "live", "roundDelayMs": 0})
 +    q, ok, why = w._review_quote({"id": "OPT1"}, None)
 +    assert ok and "soft review pass" in why and q["ask"] == 1.1
-+    assert any(e == "review_quote_soft" and k["passed"] for e, k in logs)
++
++def test_shadow_two_lagging_reads_then_rh_500_x5_refuses(monkeypatch, tmp_path):
++    # Accuracy Review #52: two 1.8 s reads, then RH 500 x5 -> shadow verdict refuse (and the live refusal stands)
++    def e500(): raise RuntimeError("RH 500 Internal Server Error")
++    w, calls, logs = _w(monkeypatch, tmp_path, [lag(1.8)] * 2 + [e500] * 5)
++    q, ok, why = w._review_quote({"id": "OPT1"}, None)
++    assert not ok and len(calls) == 7
++    v = _shadow(logs); assert v["would_pass"] is False and v["verdict"] == "refuse" and v["ages_s"]["errors"] == 5
++    assert sum(1 for e, k in logs if e == "review_quote_error") == 5
++
++def test_shadow_rh_error_inside_window_refuses_even_if_soft_would_pass(monkeypatch, tmp_path):
++    # 3 lagging tries, then retry rounds: 2 good lagging re-reads (soft alone would pass), then RH 500 x2 -> refuse
++    def e500(): raise RuntimeError("RH 500")
++    for mode in ("shadow", "live"):
++        w, calls, logs = _w(monkeypatch, tmp_path, [lag(1.8)] * 5 + [e500] * 2)
++        monkeypatch.setitem(F.FX, "reviewQuoteRetry", {**F.FX["reviewQuoteRetry"], "mode": mode, "roundDelayMs": 0})
++        q, ok, why = w._review_quote({"id": "OPT1"}, None)
++        assert not ok, mode
++        if mode == "shadow": v = _shadow(logs); assert v["verdict"] == "refuse" and "RH error" in v["why"]
++        else: assert "RH error" in why
++    # an empty RH read counts as an error too
++    w, calls, logs = _w(monkeypatch, tmp_path, [lag(1.8)] * 5 + [None] * 2)
++    monkeypatch.setitem(F.FX, "reviewQuoteRetry", {**F.FX["reviewQuoteRetry"], "mode": "shadow", "roundDelayMs": 0})
++    w._review_quote({"id": "OPT1"}, None); assert _shadow(logs)["verdict"] == "refuse"
 +
 +def test_frozen_stamp_fails_closed(monkeypatch, tmp_path):
 +    t = now() - 1500
 +    w, calls, logs = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": t}] * 10)
 +    q, ok, why = w._review_quote({"id": "OPT1"}, None)
-+    assert not ok and "frozen" in why
++    assert not ok and _shadow(logs)["verdict"] == "refuse" and "frozen" in _shadow(logs)["why"]
 +
 +def test_truly_stale_fails_closed(monkeypatch, tmp_path):
 +    w, calls, logs = _w(monkeypatch, tmp_path, [lag(4.0)] * 10)
@@ -118,22 +154,37 @@ index 0000000..809d7e4
 +def test_soft_age_capped_by_quote_max_age(monkeypatch):
 +    monkeypatch.setitem(F.FX, "reviewQuoteRetry", {**F.FX["reviewQuoteRetry"], "softMaxAgeS": 30})
 +    assert F.review_soft_max_age_s() == float(gates.RULES["fire"]["quoteMaxAgeS"])
++
++# ---- pre-buy quote-age re-check (Accuracy Review #52; mirrors the desk's mayPlaceAfterReview) ----
++def test_prebuy_recheck_uses_live_1s(monkeypatch, tmp_path):
++    w, calls, logs = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
++    assert w.cfg.order_review_max_age_ms == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000 == 1000
++    q, ok, why = w._review_quote({"id": "OPT1"}, None); assert ok
++    assert w._prebuy_quote_ok(q)[0]
++    t = daemon.now_ms() + 1500   # 1.5 s spent between review and send (exit preflight, sizing) -> refuse
++    monkeypatch.setattr(daemon, "now_ms", lambda: t)
++    ok2, why2 = w._prebuy_quote_ok(q); assert not ok2 and "before send" in why2
++    assert not w._prebuy_quote_ok({"bid": 1.0, "ask": 1.1, "asOfMs": now()})[0]   # not the reviewed read -> refuse
++
++def test_prebuy_recheck_blocks_fire_live_before_buy(monkeypatch, tmp_path):
++    src = open(daemon.__file__).read(); i = src.index("def fire_live("); j = src.index("self.broker.buy(c, n, lim)", i)
++    body = src[i:j]
++    assert "self._prebuy_quote_ok(q)" in body and body.index("self._prebuy_quote_ok(q)") > body.index("exitsafe.preflight_exit_path")
++    assert body.index("self._prebuy_quote_ok(q)") < body.index('sig["fired"] = time.time()')   # a refusal never burns the setup
 diff --git a/tests/test_fix1016.py b/tests/test_fix1016.py
-index eb7b913..060d85c 100644
+index eb7b913..8b810cf 100644
 --- a/tests/test_fix1016.py
 +++ b/tests/test_fix1016.py
-@@ -9,8 +9,9 @@ ET = gates.ET
- def ms(h, m, s=0): return int(datetime(2026, 10, 16, h, m, s, tzinfo=ET).timestamp() * 1000)
+@@ -10,7 +10,7 @@ def ms(h, m, s=0): return int(datetime(2026, 10, 16, h, m, s, tzinfo=ET).timesta
  
  def test_rules_strategy_items_shadow_window_live():
--    for k in ("reanchor", "amdRetest", "ltfPromote", "score5", "chaseFromAnchor", "reviewQuoteRetry", "runner"):
-+    for k in ("reanchor", "amdRetest", "ltfPromote", "score5", "chaseFromAnchor", "runner"):
-         assert F.mode(k) == "shadow", k
-+    assert F.mode("reviewQuoteRetry") == "live"   # 2026-10-17 stale-quote fix (Every-TF closes live + LTF inversion)
+     for k in ("reanchor", "amdRetest", "ltfPromote", "score5", "chaseFromAnchor", "reviewQuoteRetry", "runner"):
+-        assert F.mode(k) == "shadow", k
++        assert F.mode(k) == "shadow", k   # reviewQuoteRetry: shadow pending Keaton (Accuracy Review #52, 1016-short-postmortem.md:71)
      assert F.item("watcherWindow") == {**F.item("watcherWindow"), "fastStartEt": "09:25", "fireNotBeforeEt": "09:30"}
  
  # ---- fix 6 ----
-@@ -35,7 +36,7 @@ def test_evaluate_fire_carries_market_open_after_fast_chain(fire_snap=None):
+@@ -35,7 +35,7 @@ def test_evaluate_fire_carries_market_open_after_fast_chain(fire_snap=None):
      card = json.load(open(cards[0])); snap = _raw_snapshot(card.get("card", card))
      g = gates.evaluate_fire(snap, Config(), ms(9, 27), {"entries": 0, "bplus_entries": 0, "lost": False}, None, ())
      row = [r for r in g if r[0] == "market_open"]; assert row and row[0][1] is False and not gates.all_pass(g)
@@ -142,7 +193,7 @@ index eb7b913..060d85c 100644
  
  # ---- fix 3 ----
  PROM = {"deskOk": True, "why": ["band B+ >= B+", "1h bear 4h bear agree"], "plan": {"entry": 29930.63, "stop": 29944.25}}
-@@ -114,7 +115,7 @@ stale = lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now() - 1800}
+@@ -114,7 +114,7 @@ stale = lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now() - 1800}
  fresh = lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}
  
  def test_review_retry_shadow_reads_but_still_refuses(monkeypatch, tmp_path):
@@ -151,7 +202,7 @@ index eb7b913..060d85c 100644
      w, calls, logs = _w(monkeypatch, tmp_path, [stale] * 3 + [fresh])
      q, ok, why = w._review_quote({"id": "OPT1"}, stale())
      assert not ok and "old" in why and len(calls) == 4
-@@ -124,8 +125,11 @@ def test_review_retry_live_passes_fresh_within_budget(monkeypatch, tmp_path):
+@@ -124,8 +124,11 @@ def test_review_retry_live_passes_fresh_within_budget(monkeypatch, tmp_path):
      monkeypatch.setitem(F.FX, "reviewQuoteRetry", {**F.FX["reviewQuoteRetry"], "mode": "live", "roundDelayMs": 0})
      w, calls, logs = _w(monkeypatch, tmp_path, [stale] * 3 + [fresh])
      q, ok, why = w._review_quote({"id": "OPT1"}, stale()); assert ok and q["ask"] == 1.1
@@ -166,7 +217,7 @@ index eb7b913..060d85c 100644
  def test_review_retry_not_for_non_stale_refusals(monkeypatch, tmp_path):
      w, calls, logs = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.2, "ask": 1.1, "asOfMs": now()}] * 6)
 diff --git a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
-index 1d55159..3c43bc9 100644
+index 1d55159..fa54db2 100644
 --- a/tests/test_review_quote_refetch.py
 +++ b/tests/test_review_quote_refetch.py
 @@ -21,7 +21,7 @@ stale = {"bid": 1.0, "ask": 1.1, "asOfMs": 0}
@@ -174,7 +225,7 @@ index 1d55159..3c43bc9 100644
  def test_threshold_still_1s_and_hash_unchanged():
      assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
 -    assert gates.RULES_HASH == "9eeed9b4083700cb"   # fix1016 block added 2026-10-16 (desk-rules.json); threshold unchanged
-+    assert gates.RULES_HASH == "32d32bc808ccc4f4"   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
++    assert gates.RULES_HASH == "0a692dc19944a8df"   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
  
  def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
@@ -229,22 +280,64 @@ index 0000000..31311f9
 +    else:
 +        r = R.diff(*sys.argv[2:4]); sys.exit(1 if r["v5_rows_changed"] else 0)
 diff --git a/watcher/daemon.py b/watcher/daemon.py
-index 05ca657..836596a 100644
+index 05ca657..7a0e750 100644
 --- a/watcher/daemon.py
 +++ b/watcher/daemon.py
-@@ -287,15 +287,23 @@ class Watcher:
+@@ -269,39 +269,79 @@ class Watcher:
+ 
+     def _review_quote(self, c, q0):
+         """Order review quote: re-fetch immediately, then gates.quote_ok (age, crossed, ask>0). Retries a few fresh reads
+-        within ~0.5 s; the threshold is unchanged (rules fire.orderReviewMaxAgeS). Returns (quote, ok, why)."""
++        within ~0.5 s; the threshold is unchanged (rules fire.orderReviewMaxAgeS). Returns (quote, ok, why).
++        self._review_read = (quote, local read ms) of the returned quote when it came from a fresh read here (the pre-buy
++        re-check in fire_live measures from it, like the desk's mayPlaceAfterReview readAtMs)."""
+         q, okq, whyq = q0, False, "no live RH option quote"
++        self._review_read = (None, None); errs = []; reads = []
+         for i in range(self.REVIEW_QUOTE_TRIES):
+             try: fq = self._fresh_quote(c)
+-            except Exception as e: fq = None; self.log("review_quote_error", error=str(e)[:160])
+-            if fq: q = fq
++            except Exception as e: fq = None; errs.append(str(e)[:160]); self.log("review_quote_error", error=str(e)[:160])
++            else:
++                if not fq: errs.append("empty RH quote read")
++            t = now_ms()
++            if fq: q = fq; self._review_read = (fq, t); reads.append((t, fq))
+             okq, whyq = gates.quote_ok(q, now_ms(), self.cfg.order_review_max_age_ms, self.cfg.quote_max_future_ms)
+             if okq: return q, True, whyq
+             if i + 1 < self.REVIEW_QUOTE_TRIES: time.sleep(self.REVIEW_QUOTE_RETRY_S)
+-        return self._review_quote_retry(c, q, okq, whyq)
++        return self._review_quote_retry(c, q, okq, whyq, errs, reads)
++
++    @staticmethod
++    def _read_ages(reads):
++        return [round((t - (gates._num(q.get("asOfMs")) or t)) / 1000, 2) if q else None for t, q in reads]
+ 
+-    def _review_quote_retry(self, c, q, okq, whyq):
++    def _review_quote_retry(self, c, q, okq, whyq, errs=None, reads0=None):
+         """fix1016 #7: still stale after the v5 tries -> up to `rounds` more refetch rounds (bounded by maxTotalMs).
+-        live: a fresh quote passes review (the caller's chase_check still bounds the price). shadow: the extra reads run
+-        and log review_quote_retry_shadow (would pass / not); the original refusal is returned unchanged."""
++        SHADOW (2026-10-17, pending Keaton; Accuracy Review #52): the extra reads run and review_quote_retry_shadow logs the
++        verdict the soft path would give (would_pass, why, every read's age); the original strict-1 s refusal is returned
++        unchanged. Any RH error / exception / empty read during the review (the v5 tries or the retry rounds) makes the
++        verdict refuse. live (not enabled): the verdict decides."""
          from . import fix1016
          md, rounds, delay, budget = fix1016.review_retry_cfg()
          if okq or rounds <= 0 or "old" not in str(whyq): return q, okq, whyq
 -        t0 = time.monotonic(); q2, ok2, why2 = q, okq, whyq
-+        t0 = time.monotonic(); q2, ok2, why2 = q, okq, whyq; reads = []
++        errs = list(errs or []); reads0 = list(reads0 or [])
++        t0 = time.monotonic(); q2, ok2, why2 = q, okq, whyq; reads = []; rr = (None, None)
          for r in range(rounds):
              if time.monotonic() - t0 + delay > budget: break
              time.sleep(delay)
              try: fq = self._fresh_quote(c)
-             except Exception as e: fq = None; self.log("review_quote_error", error=str(e)[:160])
+-            except Exception as e: fq = None; self.log("review_quote_error", error=str(e)[:160])
 -            if fq: q2 = fq
-+            if fq: q2 = fq; reads.append((now_ms(), fq))   # only genuine fresh re-reads count for the soft path
++            except Exception as e: fq = None; errs.append(str(e)[:160]); self.log("review_quote_error", error=str(e)[:160])
++            else:
++                if not fq: errs.append("empty RH quote read")
++            t = now_ms()
++            if fq: q2 = fq; reads.append((t, fq)); rr = (fq, t)   # only genuine fresh re-reads count for the soft path
              ok2, why2 = gates.quote_ok(q2, now_ms(), self.cfg.order_review_max_age_ms, self.cfg.quote_max_future_ms)
              if ok2: break
 +        if not ok2 and "old" in str(why2):
@@ -255,25 +348,62 @@ index 05ca657..836596a 100644
 +            self.log("review_quote_soft", passed=sok, why=swhy, reads=len(reads))
 +            if sok: q2, ok2, why2 = sq, True, swhy
 +            else: why2 = f"{why2}; {swhy}"
++        if errs and ok2:   # Accuracy Review #52: an RH error inside the window -> refuse, even when a later read looks good
++            ok2, why2 = False, f"RH error during order review ({len(errs)}x: {errs[-1]}) — refuse"
++        ages = {"tries": self._read_ages(reads0), "retry": self._read_ages(reads), "errors": len(errs)}
          if md != "live":
-             self.log("review_quote_retry_shadow", would_pass=ok2, why=why2, ask=(q2 or {}).get("ask"), original=whyq)
+-            self.log("review_quote_retry_shadow", would_pass=ok2, why=why2, ask=(q2 or {}).get("ask"), original=whyq)
++            self.log("review_quote_retry_shadow", would_pass=ok2, verdict="pass" if ok2 else "refuse", why=why2,
++                     ask=(q2 or {}).get("ask"), original=whyq, ages_s=ages)
              return q, okq, whyq
+-        self.log("review_quote_retry", passed=ok2, why=why2)
++        self.log("review_quote_retry", passed=ok2, why=why2, ages_s=ages)
++        if ok2: self._review_read = rr if rr[0] is q2 else (None, None)
+         return (q2, True, why2) if ok2 else (q2, False, why2)
+ 
++    def _prebuy_quote_ok(self, q):
++        """Accuracy Review #52: last check right before broker.buy, mirroring the desk's mayPlaceAfterReview — the reviewed
++        quote must come from a fresh order-review read taken <= fire.orderReviewMaxAgeS (live 1 s) ago on our clock, and its
++        RH stamp must still be <= that same 1 s (gates.quote_ok). No read time -> refuse (fail closed)."""
++        rq, rt = getattr(self, "_review_read", (None, None))
++        if rq is not q or rt is None: return False, "no order-review quote read on record — refuse"
++        lim = self.cfg.order_review_max_age_ms; t = now_ms(); age = t - rt
++        if not (-self.cfg.quote_max_future_ms <= age <= lim):
++            return False, f"review quote read {age/1000:.1f}s before send (> {lim/1000:g}s) — re-read"
++        return gates.quote_ok(q, t, lim, self.cfg.quote_max_future_ms)
++
+     @staticmethod
+     def _sizing_band(snap, band=None):
+         """Band whose size rung the order will use: an A- (or any band) stepped down by the one-step HTF cap
+@@ -399,6 +439,9 @@ class Watcher:
+             okx, whyx = exitsafe.preflight_exit_path(self.cfg, self.broker)
+             if not okx:
+                 self.log("fire_refused", signal=key, failing=[("exit_path_preflight", whyx)]); self._skip(dayst, key, snap, [("exit_path_preflight", whyx)]); return
++        okp, whyp = self._prebuy_quote_ok(q)   # last check before the send (nothing but local state writes follow)
++        if not okp:
++            self.log("fire_refused", signal=key, failing=[("prebuy_quote_age", whyp)]); self._skip(dayst, key, snap, [("prebuy_quote_age", whyp)]); return
+         sig = self.state["signals"].setdefault(key, {}); sig["fired"] = time.time()
+         from . import fastchain
+         if fastchain.live(): self.state["fast_streak"] = fastchain.mark_spent(self.state.get("fast_streak"), fastchain.setup_id(snap), "fired", int(time.time() * 1000))   # setup spent for the session
 diff --git a/watcher/desk-rules.json b/watcher/desk-rules.json
-index 8c0f2b5..eae3f3b 100644
+index 8c0f2b5..995e0b1 100644
 --- a/watcher/desk-rules.json
 +++ b/watcher/desk-rules.json
-@@ -820,8 +820,8 @@
+@@ -820,8 +820,12 @@
      }
    },
    "ltfArm": {
 -    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung.",
--    "mode": "shadow",
-+    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung. 2026-10-17 (Every-TF closes live + LTF inversion): mode live, 1D rung added; validatedOnly = arms are computed on every closed rung and carried on the card, but an arm APPLIES (components, entry/stop, extension release, T1 fallback, cap) only when its setup id is in mtfInversion.validated (Part A walk-forward + untouched holdout survivors); otherwise it is shadow-graded and marked ltfArmRefused, and the card stands on its own evidence. Any card still LTF-armed without a validated id is never fire-eligible (desk actionable=false, watcher hard row ltf_arm_validated).",
-+    "mode": "live",
++    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung. 2026-10-17 (Every-TF closes live + LTF inversion): mode live, 1D rung added; validatedOnly = arms are computed on every closed rung and carried on the card, but an arm APPLIES (components, entry/stop, extension release, T1 fallback, cap) only when its setup id is in mtfInversion.validated (Part A walk-forward + untouched holdout survivors); otherwise it is shadow-graded and marked ltfArmRefused, and the card stands on its own evidence. Any card still LTF-armed without a validated id is never fire-eligible (desk actionable=false, watcher hard row ltf_arm_validated). 2026-10-17 Release Watch #52 NO-GO: mode back to SHADOW pending a desk replay and Keaton's OK. Live ltfArm would widen the mtf-context LTF kills from 5m to every rung, and each kill adds +0.02 q to the opposite side (about 115 side-minutes on the 8/31-10/16 tape could newly clear q 0.60), so it is not a pure tightening. The all-rung kills now sit behind their own setting, allTfKills.mode (default shadow), with the +0.02 boost unchanged. When it is live they are merged with the 5m read by strictKillUnion (adds kills only). validatedOnly and the watcher's ltf_arm_validated hard row stay in place.",
+     "mode": "shadow",
++    "allTfKills": {
++      "_doc": "mtf-context LTF kills on every rung 1m-4h (Keaton 2026-10-14 all-timeframe rule), separated from ltfArm.mode 2026-10-17 (Release Watch #52). shadow: kills read 5m as before, and the all-rung read is printed on the book (ltfReversalsAllTfShadow) without acting. live: strictKillUnion(5m, all-rung). A kill still adds +0.02 q to the opposite side (unchanged), so going live needs a desk replay and Keaton's OK.",
++      "mode": "shadow"
++    },
      "tfs": [
        "1m",
        "2m",
-@@ -831,7 +831,8 @@
+@@ -831,7 +835,8 @@
        "15m",
        "30m",
        "1h",
@@ -283,7 +413,7 @@ index 8c0f2b5..eae3f3b 100644
      ],
      "lookbackMin": 45,
      "closeBackBars": 3,
-@@ -842,7 +843,8 @@
+@@ -842,7 +847,8 @@
      "killzoneOnly": true,
      "capBand": "B+",
      "t1FallbackNextPool": true,
@@ -293,23 +423,21 @@ index 8c0f2b5..eae3f3b 100644
    },
    "smcUnity": {
      "_doc": "SMC/unity audit 2026-10-14 (audits/smc-unity-audit-2026-10-14.md). Every item is shadow: computed, logged on wire.smcUnity / watcher shadow:smc:* rows, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only). Depends on fix/stale-veto-q-timing (kill.clear, timing) and feat/ltf-arm (1m-5m arming) — does not duplicate them.",
-@@ -1108,11 +1110,12 @@
-       "_doc": "Fix 6: watcher fast window opens at fastStartEt (polls, logs, persistence warm-up); the market_open hard gate refuses every fire before fireNotBeforeEt (options open). Not a strategy change."
+@@ -1109,10 +1115,11 @@
      },
      "reviewQuoteRetry": {
--      "mode": "shadow",
+       "mode": "shadow",
 -      "rounds": 2,
-+      "mode": "live",
 +      "rounds": 4,
        "roundDelayMs": 400,
        "maxTotalMs": 2500,
 -      "_doc": "Fix 7: after the v5 refetch tries still read a stale quote at order_review_quote, refetch for up to rounds more rounds (bounded by maxTotalMs) and proceed only if a fresh quote passes and the chase check passes. shadow = the extra reads run and log would-pass, the fire is still refused."
 +      "softMaxAgeS": 3,
-+      "_doc": "Fix 7 (live 2026-10-17): after the v5 refetch tries still read a stale quote at order_review_quote, refetch up to `rounds` more rounds (roundDelayMs apart, all inside maxTotalMs). A quote passes on the strict fire.orderReviewMaxAgeS; if none does, the YOUNGEST re-read passes only if it is <= softMaxAgeS old now (capped at fire.quoteMaxAgeS), the ask is live and not crossed, at least two genuine re-reads were each <= softMaxAgeS old, and the quote stamp moved between them (not frozen). Otherwise fail closed. The chase check and every other gate still run after it. shadow = reads run, refusal unchanged."
++      "_doc": "Fix 7 (2026-10-17, SHADOW pending Keaton's approval; Accuracy Review #52 NO-GO on live, post-mortem 1016-short-postmortem.md:71: the 10/16 refusal likely saved a loss). Live behaviour is unchanged: the strict fire.orderReviewMaxAgeS (1 s) decides, on the desk (rh-autofire mayPlaceAfterReview) and the watcher alike, and the watcher re-checks the quote age against that 1 s limit right before broker.buy. Shadow: after the v5 refetch tries still read a stale quote at order_review_quote, refetch up to `rounds` more rounds (roundDelayMs apart, all inside maxTotalMs) and LOG the verdict the soft path would give (review_quote_retry_shadow: would_pass, why, every re-read's age). Soft verdict = pass only if a re-read passes the strict age, or the youngest re-read is <= softMaxAgeS old (capped at fire.quoteMaxAgeS), ask live and not crossed, >= 2 genuine re-reads each <= softMaxAgeS, and the quote stamp moved between them. Any RH error/exception or empty read inside the retry window makes the shadow verdict refuse. The fire is still refused in shadow."
      },
      "runner": {
        "mode": "shadow",
-@@ -1121,5 +1124,31 @@
+@@ -1121,5 +1128,31 @@
        "minRunnerR": 2.0,
        "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
      }

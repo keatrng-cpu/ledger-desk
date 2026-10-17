@@ -18,7 +18,7 @@ test("rules: every rung 1m..1D, live, Part A validated list empty", () => {
   assert.deepEqual(RULES.everyTf.tfs, ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]);
   assert.equal(RULES.everyTf.mode, "live");
   assert.deepEqual(RULES.mtfInversion.validated, []);
-  assert.equal(RULES.fix1016.reviewQuoteRetry.mode, "live");
+  assert.equal(RULES.fix1016.reviewQuoteRetry.mode, "shadow");   // pending Keaton; live = strict 1 s on desk and watcher
   assert.equal(RULES.fix1016.reviewQuoteRetry.softMaxAgeS, 3);
   assert.equal(RULES.fire.orderReviewMaxAgeS, 1);   // strict threshold unchanged
 });
@@ -109,7 +109,43 @@ test("scanner: an unvalidated arm never mutates the card (no components, no entr
 });
 
 test("RULES_HASH: desk, Brain, Floor and watcher share one hash", () => {
-  assert.equal(H.RULES_HASH, "32d32bc808ccc4f4");   // 9eeed9b4083700cb -> 32d32bc808ccc4f4 (everyTf, mtfInversion, ltfArm live+validatedOnly+1D, reviewQuoteRetry live+softMaxAgeS)
+  assert.equal(H.RULES_HASH, "0a692dc19944a8df");   // 9eeed9b4083700cb -> 0a692dc19944a8df (everyTf, mtfInversion, ltfArm shadow+allTfKills shadow+validatedOnly+1D, reviewQuoteRetry shadow+softMaxAgeS)
   const w = readFileSync(new URL("../docs/mtf-ltf-inversion-1017/watcher-every-tf.patch", import.meta.url), "utf8");
-  assert.match(w, /32d32bc808ccc4f4/);   // the paired watcher patch pins the same hash
+  assert.match(w, /0a692dc19944a8df/);   // the paired watcher patch pins the same hash
+});
+
+test("Accuracy #52: the all-rung kill read only ADDS kills — re-arm never easier, both-sides kill never dropped", async () => {
+  const M = await import("../src/lib/smc/mtf-context.ts");
+  const k = (against, rearmed, t = 1, why = ["5m"]) => ({ against, why, killT: t, level: 100, rearmed: rearmed ? { t: t + 1, why: "re-arm" } : null, killCleared: null });
+  // 5m live kill stays exactly as it was, even when the all-rung read says re-armed (newest-kill clock)
+  let u = M.strictKillUnion([k("long", false, 1)], [k("long", true, 5, ["1m"])]);
+  assert.equal(u.length, 1); assert.equal(u[0].rearmed, null); assert.deepEqual(u[0].why, ["5m"]);
+  // 5m re-armed but the all-rung read still live -> killed
+  u = M.strictKillUnion([k("long", true, 1)], [k("long", false, 5, ["1m"])]);
+  assert.equal(u[0].rearmed, null);
+  // both sides killed on the all-rung read: both kills survive (never dropped), 5m-only sides untouched
+  u = M.strictKillUnion([], [k("long", false, 2), k("short", false, 3)]);
+  assert.equal(u.filter((r) => !r.rearmed).length, 2);
+  // free only if free in both reads
+  u = M.strictKillUnion([k("short", true, 1)], [k("short", true, 2)]);
+  assert.ok(u[0].rearmed);
+  const src = readFileSync(new URL("../src/lib/smc/mtf-context.ts", import.meta.url), "utf8");
+  assert.match(src, /const rev = ltfReversalOf\(rows, b\.minute, false\);/);   // governing read (alignment flip, both-sides rule) = the 5m read, unchanged
+});
+
+test("Accuracy #52: desk order review enforces the strict 1 s live (no soft path on the desk)", async () => {
+  const a = await import("../src/lib/execution/rh-autofire.ts");
+  assert.equal(a.RH_ORDER_REVIEW_MAX_AGE_MS, 1000);
+  assert.equal(RULES.fire.orderReviewMaxAgeS, 1);
+  const src = readFileSync(new URL("../src/lib/execution/rh-autofire.ts", import.meta.url), "utf8");
+  assert.ok(!/softMaxAgeS|reviewQuoteRetry/.test(src));
+});
+
+test("Release Watch #52: ltfArm shadow; all-rung kills behind ltfArm.allTfKills (shadow), never ltfArm.mode", () => {
+  assert.equal(RULES.ltfArm.mode, "shadow");
+  assert.equal(RULES.ltfArm.allTfKills.mode, "shadow");
+  assert.equal(RULES.ltfArm.validatedOnly, true);
+  const src = readFileSync(new URL("../src/lib/smc/mtf-context.ts", import.meta.url), "utf8");
+  assert.match(src, /const allTf = .*ltfArm\?\.allTfKills\?\.mode === "live";/);
+  assert.ok(!/ltfArm\?\.mode === "live"/.test(src));
 });

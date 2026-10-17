@@ -74,7 +74,7 @@ export interface BookMtf {
   ltfReversal: LtfReversal | null;
   /** Every side's kill (with its re-arm state) — a re-armed side stays capped A-. */
   ltfReversals: LtfReversal[];
-  /** shadow (ltfArm.mode shadow): the kills an all-rung (1m-4h) read would print. Never acted on. */
+  /** shadow (ltfArm.allTfKills.mode shadow): the kills an all-rung (1m-4h) read would print. Never acted on. */
   ltfReversalsAllTfShadow?: LtfReversal[];
   rungs: RungRead[];
   align: { long: Alignment; short: Alignment };
@@ -193,10 +193,15 @@ export function buildMtfContext(
       if (r) r.arrays[row.kind] += 1;
     }
     const rows = mtfArrays(b.symbol, b.minute, b.bars15);
-    // ltfArm all-timeframe rule: live → kills read every rung; shadow → 5m as today, all-rung read kept for the record.
-    const allTf = (RULES as unknown as { ltfArm?: { mode?: string } }).ltfArm?.mode === "live";
-    const revs = ltfReversalsOf(rows, b.minute, allTf);
-    const rev = ltfReversalOf(rows, b.minute, allTf);
+    // All-timeframe kills (ltfArm.allTfKills.mode, own setting since Release Watch #52): live → kills read every rung (strict union with
+    // the 5m read); shadow (default) → 5m as before, all-rung read kept for the record. ltfArm.mode no longer flips this.
+    const allTf = (RULES as unknown as { ltfArm?: { allTfKills?: { mode?: string } } }).ltfArm?.allTfKills?.mode === "live";
+    // Accuracy Review #52 (2026-10-17): the all-rung read may only ADD kills. The 5m read keeps its exact kills, re-arm
+    // and governing read (alignment flip, both-sides-null rule); a side is free only when BOTH reads leave it free, so the
+    // all-rung read can neither ease a re-arm (newest-kill clock) nor drop a kill through the both-sides rule.
+    const revs5 = ltfReversalsOf(rows, b.minute, false);
+    const revs = allTf ? strictKillUnion(revs5, ltfReversalsOf(rows, b.minute, true)) : revs5;
+    const rev = ltfReversalOf(rows, b.minute, false);
     const revsAllTfShadow = allTf ? undefined : ltfReversalsOf(rows, b.minute, true);
     const align = { long: alignFor(rungs, "long"), short: alignFor(rungs, "short") };
     if (rev && !rev.rearmed) {
@@ -448,6 +453,23 @@ export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: num
     notes.push(`${k.why.split(" against")[0]} @ ${k.level} (${agree.join("/")} closed ${side === "long" ? "above" : "below"})`);
   }
   return { t: tMax, why: `killCleared: evidence invalidated on closed bars — ${notes.join("; ")}` };
+}
+
+/**
+ * Strict union of the 5m kill read and the all-rung kill read, per side. A side is killed if EITHER read has a live
+ * (un-rearmed) kill; it is re-armed only when every read that has a kill re-armed it. The 5m entry wins when it is live
+ * (unchanged evidence and level); otherwise a live all-rung entry is used (marked `allTf`). Never looser than `base`.
+ */
+export function strictKillUnion(base: LtfReversal[], extra: LtfReversal[]): LtfReversal[] {
+  const out: LtfReversal[] = [];
+  for (const side of ["long", "short"] as Side[]) {
+    const a = base.find((r) => r.against === side) ?? null;
+    const x = extra.find((r) => r.against === side) ?? null;
+    if (a && !a.rearmed) out.push(a);
+    else if (x && !x.rearmed) out.push({ ...x, why: [...x.why, "all-rung kill (ltfArm live)"].slice(0, 4) });
+    else if (a ?? x) out.push((a ?? x)!);
+  }
+  return out;
 }
 
 /** The governing read: the newest live (un-rearmed) kill; else the newest re-armed one. */
