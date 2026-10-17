@@ -27,11 +27,14 @@ import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { cisdThroughSeries } from "@/lib/trading/raid-pair";
 import { rung, type ArrayTf } from "./mtf-arrays";
+import { rungBars } from "./every-tf";
+
+export type ArmTf = ArrayTf | "1D";
 
 export const LTF_ARM = (RULES as unknown as { ltfArm: LtfArmRules }).ltfArm;
 export interface LtfArmRules {
   mode: "shadow" | "live";
-  tfs: ArrayTf[];
+  tfs: ArmTf[];
   lookbackMin: number;
   closeBackBars: number;
   dispAtr: number;
@@ -42,6 +45,8 @@ export interface LtfArmRules {
   capBand: "B+" | "B" | "A-";
   t1FallbackNextPool: boolean;
   watcherMinKzBars: number;
+  /** 2026-10-17: an LTF-armed card is never fire-eligible unless its setup is in mtfInversion.validated. */
+  validatedOnly?: boolean;
 }
 export const ltfArmLive = (): boolean => LTF_ARM.mode === "live";
 
@@ -49,7 +54,7 @@ export type Side = "long" | "short";
 export interface Pool { name: string; price: number }
 export interface LtfArm {
   side: Side;
-  tf: ArrayTf;
+  tf: ArmTf;
   sweep: { t: number; pool: string; level: number; wick: number };
   disp: { t: number; atrMult: number };
   gap: { kind: "ifvg" | "fvg"; lo: number; hi: number; ce: number; t: number };
@@ -66,14 +71,14 @@ export interface LtfArm {
   why: string;
 }
 
-const TF_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240 };
+const TF_MIN: Record<string, number> = { "1m": 1, "2m": 2, "3m": 3, "4m": 4, "5m": 5, "15m": 15, "30m": 30, "1h": 60, "4h": 240, "1D": 1440 };
 const HTF = new Set(["15m", "30m", "1h", "4h"]);
 const TICK = 0.25;
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /** One rung. `bars` must already be CLOSED bars only. */
 export function armOnBars(
-  bars: OhlcBar[], side: Side, tf: ArrayTf, pools: Pool[], nowMs: number, rules: LtfArmRules = LTF_ARM, targets: Pool[] = pools,
+  bars: OhlcBar[], side: Side, tf: ArmTf, pools: Pool[], nowMs: number, rules: LtfArmRules = LTF_ARM, targets: Pool[] = pools,
 ): LtfArm | null {
   const n = bars.length;
   if (n < 20) return null;
@@ -173,15 +178,19 @@ function better(a: LtfArm, b: LtfArm): boolean {
 export function ltfArmOf(i: {
   symbol: string; side: Side; minute: OhlcBar[] | null | undefined; closed15: OhlcBar[];
   pools: Pool[]; targets?: Pool[]; nowMs: number; inKillzone: boolean; rules?: LtfArmRules;
+  /** 2026-10-17 every-TF: the daily series for the 1D rung (closed sessions only). Omitted -> 1D is skipped. */
+  daily?: OhlcBar[] | null;
 }): LtfArm | null {
   const rules = i.rules ?? LTF_ARM;
   if (rules.killzoneOnly && !i.inKillzone) return null;
   let best: LtfArm | null = null;
   for (const tf of rules.tfs) {
     // 1m-5m from the 1m tape, 15m-4h from the 15m series; `rung()` drops every forming bucket.
-    const bars = HTF.has(tf)
-      ? rung(i.symbol, i.closed15, tf, i.nowMs).bars
-      : i.minute?.length ? rung(i.symbol, i.minute, tf, i.nowMs).bars : [];
+    const bars = tf === "1D"
+      ? (i.daily?.length ? rungBars("1D", { daily: i.daily, closed15: i.closed15, nowMs: i.nowMs }) : [])
+      : HTF.has(tf)
+        ? rung(i.symbol, i.closed15, tf as ArrayTf, i.nowMs).bars
+        : i.minute?.length ? rung(i.symbol, i.minute, tf as ArrayTf, i.nowMs).bars : [];
     const a = armOnBars(bars, i.side, tf, i.pools, i.nowMs, rules, i.targets ?? i.pools);
     if (!a) continue;
     if (!best || a.parts > best.parts || (a.parts === best.parts && (TF_MIN[a.tf]! > TF_MIN[best.tf]! || a.disp.atrMult > best.disp.atrMult))) best = a;
@@ -234,3 +243,16 @@ export function sessionPools(bars: OhlcBar[], nowMs: number, spanMs = 60_000): P
   }
   return out;
 }
+
+/**
+ * 2026-10-17 validatedOnly: may an LTF-armed card fire? Only when its setup id is in shared rules
+ * `mtfInversion.validated` (the Part A survivors). Empty list -> never. Not an LTF-armed card -> not this gate's business.
+ */
+export function ltfArmFireGate(c: { ltfArmed?: boolean; mtfSetupId?: string | null }, validated: readonly string[] = MTF_VALIDATED): { ok: boolean; why: string } {
+  if (!c.ltfArmed) return { ok: true, why: "not LTF-armed" };
+  if (!LTF_ARM.validatedOnly) return { ok: true, why: "ltfArm.validatedOnly off" };
+  const id = c.mtfSetupId ?? null;
+  if (id && validated.includes(id)) return { ok: true, why: `validated setup ${id}` };
+  return { ok: false, why: validated.length ? `LTF arm is not a validated MTF->LTF setup (${id ?? "no setup id"})` : "LTF arm refused: no MTF->LTF inversion setup passed walk-forward + holdout (mtfInversion.validated empty)" };
+}
+export const MTF_VALIDATED: readonly string[] = ((RULES as unknown as { mtfInversion?: { validated?: string[] } }).mtfInversion?.validated ?? []);

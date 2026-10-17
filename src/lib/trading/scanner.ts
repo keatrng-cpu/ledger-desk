@@ -4,7 +4,7 @@
  */
 
 import { armingRaid, ownTemplateMissing } from "@/lib/smc/shared";
-import { LTF_ARM, capBandAt, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
+import { LTF_ARM, capBandAt, ltfArmFireGate, ltfArmLive, ltfArmOf, sessionPools, type LtfArm, type Pool } from "@/lib/smc/ltf-arm";
 import { IFVG_FLIP, flipTargets, ifvgFlipOf, readFlipped, scannerPools, type WireArray } from "@/lib/smc/ifvg-flip";
 import { mtfArrays } from "@/lib/smc/mtf-arrays";
 import RULES_ALL from "../../../shared/desk-rules.json";
@@ -143,6 +143,10 @@ export interface SetupCandidate {
   ltfArmed?: boolean;
   /** shadow mode: what live mode WOULD have done to this card (nothing on the board changes). */
   ltfArmShadow?: { addComponents: string[]; wouldBand: string | null; wouldQ: number | null; wouldReleaseExtension: boolean } | null;
+  /** ltfArm live + validatedOnly: why this card's arm was not applied (null/absent = applied or no arm). */
+  ltfArmRefused?: string | null;
+  /** MTF->LTF setup id (Part A label) when a validated detector emits one; none does today (mtfInversion.validated is empty). */
+  mtfSetupId?: string | null;
   qualityScore?: number;
   strategyComplete?: boolean;
   completeStrategy?: string;
@@ -1255,6 +1259,9 @@ export interface ScoreCandidatesOptions {
     left?: { lagSec?: number | null; source?: string | null };
     right?: { lagSec?: number | null; source?: string | null };
   };
+  /** 2026-10-17 every-TF: daily series per book, so ltfArm reads the 1D rung too (closed sessions only). */
+  leftDaily?: OhlcBar[];
+  rightDaily?: OhlcBar[];
 }
 
 /**
@@ -1337,6 +1344,8 @@ export function scoreCandidates(
     leftClosed,
     rightClosed,
     trust,
+    leftDaily,
+    rightDaily,
   } = opts;
   const floor = APLUS_RULES.confluenceFloor;
   const smt = smtRead(left, right, divergence);
@@ -1492,20 +1501,29 @@ export function scoreCandidates(
   const armNow = trust?.nowMs ?? Math.max(closedL.at(-1)?.t ?? 0, closedR.at(-1)?.t ?? 0) + 900_000;
   const inKz = inArmKillzone(clock);
   const live = ltfArmLive();
+  // 2026-10-17 validatedOnly: live arming only APPLIES (components, entry, stop, extension release, cap) to a card whose
+  // setup id is in mtfInversion.validated. Any other arm is computed, carried on the card (ltfArmRefused) and shadow-graded,
+  // but never changes the card - so an unvalidated arm can neither fire nor demote/re-plan a card that stands on its own.
+  const armApplies = (c: { mtfSetupId?: string | null }): boolean => live && ltfArmFireGate({ ltfArmed: true, mtfSetupId: c.mtfSetupId ?? null }).ok;
   const armAdds = new Map<SetupCandidate, string[]>();
   for (const c of candidates) {
     const isL = c.symbol === left.symbol;
     const mn = (isL ? leftMinute : rightMinute) ?? [];
     const sess = mn.length ? sessionPools(mn, armNow, 60_000) : sessionPools(isL ? closedL : closedR, armNow, 900_000);
     const { pools, targets } = armPools(isL ? left : right, drawByBook.get(c.symbol) ?? null, sess);
-    const arm = ltfArmOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, pools, targets, nowMs: armNow, inKillzone: inKz });
+    const arm = ltfArmOf({ symbol: c.symbol, side: c.side, minute: isL ? leftMinute : rightMinute, closed15: isL ? closedL : closedR, daily: isL ? leftDaily : rightDaily, pools, targets, nowMs: armNow, inKillzone: inKz });
     c.ltfArm = arm;
     if (!arm) continue;
     const add = ["sweep_significant", "ifvg", "displacement", ...(arm.cisd ? ["cisd"] : []), ...(arm.mss ? ["mss"] : [])]
       .filter((k) => !c.components.includes(k as ComponentKey));
     armAdds.set(c, add);
     c.reasons.push(`LTF arm (${LTF_ARM.mode}): ${arm.why}; entry ${arm.entry} (edge ${arm.entryEdge}), stop ${arm.stop}${arm.t1 ? `, T1 ${arm.t1.name} ${arm.t1.price} (${arm.rr1}R)` : ", no real pool >= 1R ahead"}`);
-    if (live && add.length) {
+    if (live && add.length && !armApplies(c)) {
+      const g = ltfArmFireGate({ ltfArmed: true, mtfSetupId: c.mtfSetupId ?? null });
+      c.ltfArmRefused = g.why;
+      c.reasons.push(`LTF arm refused (ltfArm.validatedOnly): ${g.why}`);
+    }
+    if (armApplies(c) && add.length) {
       c.components = [...c.components, ...(add as ComponentKey[])];
       c.ltfArmed = true;
       if (c.entryPx == null || !Number.isFinite(c.entryPx)) c.entryPx = arm.entry;
@@ -1539,10 +1557,10 @@ export function scoreCandidates(
     }
   }
   const pathCandidates = candidates.map((c) => applyProfitPathToCandidate(c, { etMin }));
-  if (!live) {
+  {
     for (const c of pathCandidates) {
       const add = armAdds.get(candidates[pathCandidates.indexOf(c)]!);
-      if (!c.ltfArm || !add) continue;
+      if (!c.ltfArm || !add || armApplies(c)) continue;   // shadow-grade every arm that did not apply (shadow mode, or live but unvalidated)
       const would = applyProfitPathToCandidate({ ...c, components: [...c.components, ...(add as ComponentKey[])] }, { etMin });
       c.ltfArmShadow = {
         addComponents: add,
@@ -1689,7 +1707,7 @@ export function scoreCandidates(
   for (const c of pathCandidates) {
     const bars = c.symbol === left.symbol ? closedL : closedR;
     // A closed-rung reversal (any of 1m-4h, ltf-arm.ts) is a reversal sign inside the run.
-    if (!bars.length || extensionAllows(bars, c.side, live ? () => c.ltfArm != null : undefined)) continue;
+    if (!bars.length || extensionAllows(bars, c.side, armApplies(c) ? () => c.ltfArm != null : undefined)) continue;
     c.grade = "skip";
     c.pathBand = "skip";
     c.actionable = false;
@@ -1767,11 +1785,9 @@ export function scoreCandidates(
     focus = blocked[0]!;
   }
 
-  const ltfArmShadow = live
-    ? undefined
-    : pathCandidates
-        .filter((c) => c.ltfArm && !tradable.includes(c))
-        .map((c) => ({ symbol: c.symbol, side: c.side, why: `dropped by the board (${c.missing[0] ?? "skip"}); live ltfArm would release the extension guard`, wouldBand: c.ltfArmShadow?.wouldBand ?? null, arm: c.ltfArm! }));
+  const ltfArmShadow = pathCandidates
+        .filter((c) => c.ltfArm && !armApplies(c) && !tradable.includes(c))
+        .map((c) => ({ symbol: c.symbol, side: c.side, why: `dropped by the board (${c.missing[0] ?? "skip"}); a validated live ltfArm would release the extension guard`, wouldBand: c.ltfArmShadow?.wouldBand ?? null, arm: c.ltfArm! }));
   return {
     ltfArmShadow,
     floor,
@@ -1810,6 +1826,8 @@ export function scanSetups(
    */
   closed?: { left?: OhlcBar[]; right?: OhlcBar[] },
   trust?: ScoreCandidatesOptions["trust"],
+  /** 2026-10-17 every-TF: trailing and optional (the 1D rung for ltfArm). */
+  daily?: { left?: OhlcBar[]; right?: OhlcBar[] },
 ): ScanResult {
   return scoreCandidates(left, right, clock, {
     divergence,
@@ -1822,6 +1840,8 @@ export function scanSetups(
     leftClosed: closed?.left,
     rightClosed: closed?.right,
     trust,
+    leftDaily: daily?.left,
+    rightDaily: daily?.right,
   });
 }
 

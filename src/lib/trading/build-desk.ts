@@ -1,5 +1,6 @@
 import { planTargetText, orderTargets } from "@/lib/trading/card-plan";
-import { LTF_ARM, capBandAt, ltfArmLive } from "@/lib/smc/ltf-arm";
+import { LTF_ARM, MTF_VALIDATED, capBandAt, ltfArmFireGate, ltfArmLive, sessionPools } from "@/lib/smc/ltf-arm";
+import { everyTfRead, everyTfSeatNote, wireEveryTf, type EveryTfRead } from "@/lib/smc/every-tf";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
@@ -816,6 +817,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         left: { lagSec: lq.lagSec, source: lq.source },
         right: { lagSec: rq.lagSec, source: rq.source },
       },
+      { left: dailyL, right: dailyR },
     );
     // Detectors only ever see CLOSED bars. The forming bar (patched with the
     // live print above) is for price location, never for "displacement" or
@@ -1765,7 +1767,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           ...sdFor(isL).map((d) => d.price),
           ...(today.length ? [Math.max(...today.map((b) => b.h)), Math.min(...today.map((b) => b.l))] : []),
         ];
-        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels, 0.25, ltfArmLive() && LTF_ARM.t1FallbackNextPool);
+        const r = sanePlan({ side: c.side as "long" | "short", entry, stop: pl.stop, t1: pl.t1, t2: pl.t2 }, atr15Of(b15), swings, levels, 0.25, ltfArmLive() && LTF_ARM.t1FallbackNextPool && c.ltfArmed === true);
         (c as { rrCheck?: unknown }).rrCheck = r;
         if (r.widened) {
           c.reasons.push(`Stop widened ${pl.stop} → ${r.stop} (was < ${0.5}×ATR15); R:R recomputed ${pl.rr1} → ${r.rr1}`);
@@ -2162,6 +2164,31 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
       // Accuracy PR #19: STABLE — only dead cards move behind live ones; live cards keep the scanner's order, so the
       // card the watcher fires on changes only when the previous lead died (never by a band/q re-rank here).
       payload.scan.candidates.sort((a, b) => Number(isDead(a)) - Number(isDead(b)));
+    }
+    // Every-TF closes (shared rules everyTf, 2026-10-17): the newest CLOSED bar on 1m-5m, 15m-4h and 1D, body AND wicks,
+    // read once per book and carried on every card (card.everyTf -> wire strategy.everyTf, Brain/Floor everyTfSeat).
+    // Then ltfArm validatedOnly: an LTF-armed card is never actionable unless its setup is in mtfInversion.validated.
+    {
+      const nowTf = left.marketTimeMs ?? right.marketTimeMs ?? Date.now();
+      const reads = new Map<string, EveryTfRead>();
+      for (const [sym, mn, c15, dly, bias] of [[left.symbol, minuteL, closedL, dailyL, biasL], [right.symbol, minuteR, closedR, dailyR, biasR]] as const) {
+        try {
+          const pools = [...sessionPools(mn ?? [], nowTf, 60_000), ...(bias.pdh != null ? [{ name: "PDH", price: bias.pdh }] : []), ...(bias.pdl != null ? [{ name: "PDL", price: bias.pdl }] : [])];
+          reads.set(sym, everyTfRead({ minute: mn, closed15: c15, daily: dly, pools, nowMs: nowTf }));
+        } catch { /* a read that fails is absent, never invented */ }
+      }
+      for (const c of payload.scan.candidates) {
+        const r = reads.get(c.symbol) ?? null;
+        (c as { everyTf?: unknown }).everyTf = wireEveryTf(r, c.side as "long" | "short");
+        (c as { everyTfSeat?: string | null }).everyTfSeat = everyTfSeatNote(r, c.side as "long" | "short");
+        const g = ltfArmFireGate(c as { ltfArmed?: boolean; mtfSetupId?: string | null });
+        (c as { ltfArmGate?: unknown }).ltfArmGate = { ok: g.ok, why: g.why, validated: MTF_VALIDATED.length, setupId: (c as { mtfSetupId?: string | null }).mtfSetupId ?? null, armRefused: (c as { ltfArmRefused?: string | null }).ltfArmRefused ?? null };
+        if (!g.ok) {
+          if (c.actionable) c.actionable = false;
+          if (!c.missing.includes(g.why)) c.missing.unshift(g.why);
+          c.reasons.push(`ltfArm validatedOnly: ${g.why}`);
+        }
+      }
     }
     for (const c of payload.scan.candidates) resolveWhy(c as never);
     capStage("scan");

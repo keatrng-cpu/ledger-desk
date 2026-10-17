@@ -1,0 +1,10 @@
+{
+ "cards": 10627,
+ "shared_rows_changed": 0,
+ "dry_pass_base": 0,
+ "dry_pass_new": 0,
+ "refused_base_but_pass_new (must be 0)": 0,
+ "new_rows": {
+  "ltf_arm_validated=False": 10627
+ }
+}

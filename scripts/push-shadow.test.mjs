@@ -30,6 +30,6 @@ test("stream is OFF unless DESK_PUSH_SHADOW=1", async () => {
 });
 test("rules hash unchanged: push config is outside shared/desk-rules.json", () => {
   assert.equal(readFileSync("shared/desk-rules.json", "utf8").includes("push-shadow"), false);
-  assert.equal(h.RULES_HASH, "9eeed9b4083700cb");   // fix1016 block added 10-16; push config still outside desk-rules.json
+  assert.equal(h.RULES_HASH, "32d32bc808ccc4f4");   // fix1016 block added 10-16; push config still outside desk-rules.json
   assert.equal(JSON.parse(readFileSync("shared/push-shadow.json", "utf8")).live, false);
 });

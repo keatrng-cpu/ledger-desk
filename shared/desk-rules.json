@@ -820,8 +820,8 @@
     }
   },
   "ltfArm": {
-    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung.",
-    "mode": "shadow",
+    "_doc": "LTF arm (Keaton 2026-10-14): closed-bar sweep -> displacement -> IFVG/FVG -> CISD/MSS on 1m-5m and 15m arms the side the raid arms. mode shadow: recorded on the card (ltfArm/ltfArmShadow) and in watcher gates.log shadow:kz rows, changes nothing. mode live: adds the evidence to the card, releases the extension guard, lets smc-canon sweep/POI pass, T1 falls back to the next real pool; any card that needed LTF evidence is capped at capBand. Band edges untouched. All-timeframe rule (Keaton 2026-10-14): arming and kills read every closed rung 1m-4h; no rule depends on one timeframe. Kill IFVG age is in minutes (kill.ifvg5MaxAge x 5m) on every rung. 2026-10-17 (Every-TF closes live + LTF inversion): mode live, 1D rung added; validatedOnly = arms are computed on every closed rung and carried on the card, but an arm APPLIES (components, entry/stop, extension release, T1 fallback, cap) only when its setup id is in mtfInversion.validated (Part A walk-forward + untouched holdout survivors); otherwise it is shadow-graded and marked ltfArmRefused, and the card stands on its own evidence. Any card still LTF-armed without a validated id is never fire-eligible (desk actionable=false, watcher hard row ltf_arm_validated).",
+    "mode": "live",
     "tfs": [
       "1m",
       "2m",
@@ -831,7 +831,8 @@
       "15m",
       "30m",
       "1h",
-      "4h"
+      "4h",
+      "1D"
     ],
     "lookbackMin": 45,
     "closeBackBars": 3,
@@ -842,7 +843,8 @@
     "killzoneOnly": true,
     "capBand": "B+",
     "t1FallbackNextPool": true,
-    "watcherMinKzBars": 5
+    "watcherMinKzBars": 5,
+    "validatedOnly": true
   },
   "smcUnity": {
     "_doc": "SMC/unity audit 2026-10-14 (audits/smc-unity-audit-2026-10-14.md). Every item is shadow: computed, logged on wire.smcUnity / watcher shadow:smc:* rows, changes nothing (q, band, actionable, brain word, Floor verdict, fire). Band edges untouched (rise-only). Depends on fix/stale-veto-q-timing (kill.clear, timing) and feat/ltf-arm (1m-5m arming) — does not duplicate them.",
@@ -1108,11 +1110,12 @@
       "_doc": "Fix 6: watcher fast window opens at fastStartEt (polls, logs, persistence warm-up); the market_open hard gate refuses every fire before fireNotBeforeEt (options open). Not a strategy change."
     },
     "reviewQuoteRetry": {
-      "mode": "shadow",
-      "rounds": 2,
+      "mode": "live",
+      "rounds": 4,
       "roundDelayMs": 400,
       "maxTotalMs": 2500,
-      "_doc": "Fix 7: after the v5 refetch tries still read a stale quote at order_review_quote, refetch for up to rounds more rounds (bounded by maxTotalMs) and proceed only if a fresh quote passes and the chase check passes. shadow = the extra reads run and log would-pass, the fire is still refused."
+      "softMaxAgeS": 3,
+      "_doc": "Fix 7 (live 2026-10-17): after the v5 refetch tries still read a stale quote at order_review_quote, refetch up to `rounds` more rounds (roundDelayMs apart, all inside maxTotalMs). A quote passes on the strict fire.orderReviewMaxAgeS; if none does, the YOUNGEST re-read passes only if it is <= softMaxAgeS old now (capped at fire.quoteMaxAgeS), the ask is live and not crossed, at least two genuine re-reads were each <= softMaxAgeS old, and the quote stamp moved between them (not frozen). Otherwise fail closed. The chase check and every other gate still run after it. shadow = reads run, refusal unchanged."
     },
     "runner": {
       "mode": "shadow",
@@ -1121,5 +1124,31 @@
       "minRunnerR": 2.0,
       "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
     }
+  },
+  "everyTf": {
+    "_doc": "Every-TF closes (Keaton 2026-10-17): the desk, Brain, Floor and watcher read the newest CLOSED bar on every rung 1m 2m 3m 4m 5m 15m 30m 1h 4h 1D (src/lib/smc/every-tf.ts) with body AND wick features: upper/lower wick, body/range, close location, body/ATR14, sweep wick-vs-body, iFVG body-vs-wick close (wick-to-wick and body-to-body FVGs), MSS body-vs-wick. 4h/1D anchored to the 18:00 ET Globex open. Facts only: no gate reads them except through ltfArm (validatedOnly). Thresholds are descriptive (Part A found none that pays; see docs/mtf-ltf-inversion-1017).",
+    "mode": "live",
+    "tfs": [
+      "1m",
+      "2m",
+      "3m",
+      "4m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "4h",
+      "1D"
+    ],
+    "dispAtr": 1.0,
+    "bodyRangeMin": 0.6,
+    "rejectWickMin": 0.4,
+    "fvgFreshBars": 30,
+    "swingWidth": 2
+  },
+  "mtfInversion": {
+    "_doc": "MTF->LTF inversion setups (audit /workspace/audits/mtf-ltf-inversion, 2026-10-17). `validated` lists the setup ids that passed the pre-declared live-wire test (family walk-forward OOS > 0 AND untouched holdout R/trade > 0, $/wk > 0, n >= 20, futures net of costs). Empty = nothing passed: ltfArm arms are computed and shown but never fire. Never add an id here without re-running that test.",
+    "mode": "live",
+    "validated": []
   }
 }

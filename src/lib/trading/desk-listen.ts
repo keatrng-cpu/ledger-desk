@@ -157,6 +157,11 @@ export interface DeskWire {
     entryState: unknown;
     /** fix1016 (post-mortem 10/16): per-item reads (re-anchor, chase-from-anchor, ltfPromote, score5, runner) + modes. Shadow = no effect. */
     fix1016?: unknown;
+    /** Every-TF closes (2026-10-17): newest CLOSED bar per rung 1m-1D with body/wick features + this side's evidence. */
+    everyTf?: unknown;
+    /** ltfArm live: the card is LTF-armed; ltfArmGate says whether it may fire (validatedOnly). */
+    ltfArmed?: boolean;
+    ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } | null;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -225,6 +230,8 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: the brain reads the same post-mortem line as the Floor (note only, never moves the word). */
     fix1016Seat?: string | null;
+    /** Every-TF closes: the same per-rung line as the Floor and the card (note only, never moves the word). */
+    everyTfSeat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -241,6 +248,8 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: Floor seat line for the post-mortem items (re-anchor / score5 / runner / ltfPromote) — a note, never a vote. */
     fix1016Seat?: string | null;
+    /** Every-TF closes: Floor seat line (newest closes per rung, body/wick evidence) — a note, never a vote. */
+    everyTfSeat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -374,6 +383,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
+          everyTf: (top as { everyTf?: unknown }).everyTf ?? null,
+          ltfArmed: (top as { ltfArmed?: boolean }).ltfArmed === true,
+          ltfArmGate: (top as { ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } }).ltfArmGate ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -414,6 +426,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     brain: {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -447,6 +460,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       verdict,
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -559,7 +573,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
         kind: (c as { watchOnly?: boolean }).watchOnly ? "watch" : "card",
         watchWhy: (c as { watchWhy?: string | null }).watchWhy ?? null,
         /** ltfArm (shared rules): best closed-rung 1m-4h arming evidence; mode says if it acted. */
-        ltfArm: c.ltfArm ? { mode: LTF_ARM.mode, tf: c.ltfArm.tf, why: c.ltfArm.why, entry: c.ltfArm.entry, stop: c.ltfArm.stop, t1: c.ltfArm.t1?.price ?? null, rr1: c.ltfArm.rr1, armed: c.ltfArmed === true, shadow: c.ltfArmShadow ?? null } : null,
+        ltfArm: c.ltfArm ? { mode: LTF_ARM.mode, tf: c.ltfArm.tf, why: c.ltfArm.why, entry: c.ltfArm.entry, stop: c.ltfArm.stop, t1: c.ltfArm.t1?.price ?? null, rr1: c.ltfArm.rr1, armed: c.ltfArmed === true, refused: c.ltfArmRefused ?? null, shadow: c.ltfArmShadow ?? null } : null,
         ask: desk.optionMarks?.find((m) => m.underlier === underlier && m.side === optSide)?.ask ?? null,
       };
     }),
