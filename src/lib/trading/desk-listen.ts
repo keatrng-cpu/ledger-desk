@@ -157,6 +157,12 @@ export interface DeskWire {
     entryState: unknown;
     /** fix1016 (post-mortem 10/16): per-item reads (re-anchor, chase-from-anchor, ltfPromote, score5, runner) + modes. Shadow = no effect. */
     fix1016?: unknown;
+    /** score1016: event-driven five-layer score read (S, layers, p, grade, entry/exit, wouldFire) + modes. Shadow = no effect. */
+    score1016?: unknown;
+    /** combo1016: SMC research combo read (S2 v2, gbmP, fire = S2>=75 AND gbmP>=thr, A+ logged only, hybrid plan, setup id). Shadow = no effect. */
+    combo1016?: unknown;
+    /** combo1016 config1 LIVE: every book/side whose config1 read fires this poll (the lead rotates among them every 15 s). */
+    combo1016Fires?: { symbol: string; side: string; shell: boolean }[];
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -225,6 +231,12 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: the brain reads the same post-mortem line as the Floor (note only, never moves the word). */
     fix1016Seat?: string | null;
+    /** score1016: the brain reads the same five-layer score line as the Floor (note only, never moves the word). */
+    score1016Seat?: string | null;
+    /** combo1016: the brain reads the same combo line as the Floor (note only, never moves the word). */
+    combo1016Seat?: string | null;
+    /** combo1016 arms (pnl-push cfg1/cfg2/cfg3/p2) + Brain step-8 pd_cur/pd_ent on the card's own book. Note only. */
+    combo1016ArmsSeat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -241,6 +253,12 @@ export interface DeskWire {
     kzSeat?: string;
     /** fix1016: Floor seat line for the post-mortem items (re-anchor / score5 / runner / ltfPromote) — a note, never a vote. */
     fix1016Seat?: string | null;
+    /** score1016: Floor seat line (S, p, grade, would-fire, entry kind) — a note, never a vote. */
+    score1016Seat?: string | null;
+    /** combo1016: Floor seat line (S2, gbmP vs thr, would-fire, A+ tag, entry kind) — a note, never a vote. */
+    combo1016Seat?: string | null;
+    /** combo1016 arms seat line (shadow:combo1016:<arm>) — a note, never a vote. */
+    combo1016ArmsSeat?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -296,7 +314,18 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
   // Keaton 2026-10-13: only full-plan cards are cards; watch rows never lead.
   const isWatch = (c: unknown) => Boolean((c as { watchOnly?: boolean }).watchOnly);
   const best = desk.scan.candidates.find((c) => !isWatch(c)) ?? null;
-  const top = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
+  const top0 = bookCand && (!best || rankOf(bookCand.pathBand) <= rankOf(best.pathBand)) ? bookCand : (best ?? bookCand ?? null);
+  // combo1016 config1 LIVE (Release Watch 10/16): a card whose config1 read fires (research candidate on that book/side, plan + pp4 contracts)
+  // leads, so the watcher sees it; config1 decides on its own book/side, which need not be the desk's best card. Otherwise unchanged.
+  const config1Fires = (c: unknown): boolean => {
+    const a = (c as { combo1016?: { arms?: { reads?: { arm?: string; fire?: boolean; plan?: unknown; opt?: { contracts?: number } | null }[]; live?: { mode?: string; arm?: string } } } }).combo1016?.arms;
+    return a?.live?.mode === "live" && Boolean(a.reads?.some((r) => r.arm === a.live?.arm && r.fire === true && r.plan && (r.opt?.contracts ?? 0) >= 1));
+  };
+  // SMC #47 review (2): config1 is read on EVERY book/side (build-desk adds config1 shell rows). When more than one fires, the lead rotates every
+  // 15 s so the watcher (one card per poll) evaluates each firing book/side inside the 60 s decision window.
+  const c1All = desk.scan.candidates.filter((c) => config1Fires(c) && !(c as { invalidated?: boolean }).invalidated && !(c as { staleTape?: boolean }).staleTape);
+  const c1Lead = c1All.length ? c1All[Math.floor(Date.now() / 15_000) % c1All.length]! : null;
+  const top = c1Lead ?? top0;
   const htfReleased = desk.scan.candidates.some((c) => c.htfDisrespected === true);
   const tapeFresh = !tapeStale([desk.quotes.left.lagSec, desk.quotes.right.lagSec]); // one boundary with build-desk (stale only when lag > STALE_TAPE_SEC)
   const tk = ticketCheck(shown?.ticket ?? null, top ? { symbol: top.symbol, side: top.side as "long" | "short" } : null, desk.clock.etHour, desk.clock.etMinute,
@@ -374,6 +403,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           ltfKillCleared: (top as { ltfKillCleared?: boolean }).ltfKillCleared === true,
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
+          score1016: (top as { score1016?: unknown }).score1016 ?? null,
+          combo1016: (top as { combo1016?: unknown }).combo1016 ?? null,
+          combo1016Fires: c1All.map((c) => ({ symbol: c.symbol, side: c.side, shell: Boolean((c as { config1Shell?: boolean }).config1Shell) })),
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -414,6 +446,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     brain: {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
+      combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
+      combo1016ArmsSeat: combo1016ArmsSeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -447,6 +482,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       verdict,
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
+      score1016Seat: score1016SeatNote((top as { score1016?: unknown } | null | undefined)?.score1016),
+      combo1016Seat: combo1016SeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
+      combo1016ArmsSeat: combo1016ArmsSeatNote((top as { combo1016?: unknown } | null | undefined)?.combo1016),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
@@ -690,4 +728,34 @@ export function fix1016SeatNote(f: unknown): string | null {
   if (x.ltfPromote?.deskOk) parts.push(`LTF arm ${x.ltfPromote.promoted ? "promoted" : "would promote"} (needs Brain TAKE)`);
   if (x.runner?.runnerTarget != null) parts.push(`runner → ${x.runner.runnerTarget}${x.runner.mode === "live" ? "" : " (shadow)"}`);
   return parts.length ? `Post-mortem 10/16: ${parts.join(" · ")}` : null;
+}
+
+/** score1016: one seat line from the top card's five-layer read (Floor + Brain). Shadow is labelled; never a vote. */
+export function score1016SeatNote(f: unknown): string | null {
+  const x = f as { S?: number; p?: number; grade?: string; wouldFire?: boolean; mode?: string; entry?: { kind: string; entry: number } | null; src?: string } | null | undefined;
+  if (!x || typeof x !== "object" || typeof x.S !== "number") return null;
+  const tag = x.mode === "live" ? "" : " (shadow)";
+  return `Score1016 ${x.S} · p≈${Math.round((x.p ?? 0) * 100)}% · ${x.grade ?? "-"}${x.wouldFire ? ` · ${x.mode === "live" ? "FIRE" : "would fire"} ${x.entry ? `${x.entry.kind} ${x.entry.entry}` : ""}` : ""}${tag} — ${x.src ?? ""}`.trim();
+}
+
+/** combo1016: one seat line (Floor + Brain) from the top card's combo read. Shadow is labelled; never a vote. Prefix shadow:combo1016 for log greps. */
+export function combo1016SeatNote(f: unknown): string | null {
+  const x = f as { S2?: number; gbmP?: number; thr?: number; grade?: string; wouldFire?: boolean; aPlus?: boolean; mode?: string; plan?: { kind: string; entry: number } | null; setupId?: string | null; src?: string; partial?: string | null; filled?: string[]; gbmMissing?: string[] } | null | undefined;
+  if (!x || typeof x !== "object" || typeof x.S2 !== "number") return null;
+  const live = x.mode === "live";
+  // never a clean would_fire while any input is defaulted or missing (older cards without `partial` are derived from filled/gbmMissing)
+  const partial = x.partial ?? ((x.filled?.length || x.gbmMissing?.length) ? `partial: ${x.filled?.length ?? 0}/14 S2 filled, ${x.gbmMissing?.length ?? 0}/27 GBM missing` : null);
+  const head = `${live ? "combo1016" : "shadow:combo1016:" + (x.wouldFire ? (partial ? "would_fire_partial" : "would_fire") : "read")} S2 ${x.S2} · gbmP ${x.gbmP ?? "-"}/${x.thr ?? "-"} · ${x.grade ?? "-"}${partial ? ` · ${partial}` : ""}`;
+  return `${head}${x.wouldFire ? ` · ${live ? "FIRE" : partial ? "would fire (partial)" : "would fire"} ${x.plan ? `${x.plan.kind} ${x.plan.entry}` : ""}` : ""}${x.aPlus ? " · A+ (logged only, no size change)" : ""}${live ? "" : " (shadow)"} — ${x.src ?? ""}`.trim();
+}
+
+/** combo1016 arms: one seat line (Floor + Brain) — every arm's tag, plan kind, $/R and option-$ estimate, plus pd_cur/pd_ent. Shadow; never a vote. */
+export function combo1016ArmsSeatNote(f: unknown): string | null {
+  const a = (f as { arms?: unknown } | null | undefined)?.arms as { mode?: string; reads?: { arm: string; row: string; usdPerR: number; plan?: { kind: string; entry: number } | null; opt?: { pnl: number; contracts: number; etf: string } | null }[];
+    pd?: { pd_cur: number | null; pd_ent: number | null } } | null | undefined;
+  if (!a || typeof a !== "object" || !Array.isArray(a.reads)) return null;
+  const parts = a.reads.map((r) => { const [tag, label] = r.row.split(" "); return `${tag} ${label}${label?.startsWith("would_fire") && r.plan ? ` ${r.plan.kind} ${r.plan.entry} $${r.usdPerR}/R${r.opt ? ` ≈${r.opt.contracts} ${r.opt.etf} (opt est)` : ""}` : ""}`; });
+  const lv = (a as { live?: { mode?: string; arm?: string | null } }).live;
+  const liveNote = lv?.mode === "live" && lv.arm ? ` · ${lv.arm} LIVE (SMC backtest sizing/caps; other arms shadow)` : "";
+  return `${parts.join(" · ")} · pd_cur ${a.pd?.pd_cur ?? "-"} pd_ent ${a.pd?.pd_ent ?? "-"}${liveNote}${a.mode === "live" || liveNote ? "" : " (shadow)"}`;
 }

@@ -14,6 +14,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import pg from "pg";
 
+// Netlify sets CONTEXT (production | deploy-preview | branch-deploy | dev). Only the production build may migrate:
+// a deploy preview carries the same DATABASE_URL, so without this guard a PR preview would migrate the prod database.
+// Unset CONTEXT (local, Vercel, CI) keeps the previous behaviour.
+if (process.env.CONTEXT && process.env.CONTEXT !== 'production') process.exit(0)
+
 /**
  * Connection string for MIGRATIONS, in priority order.
  *

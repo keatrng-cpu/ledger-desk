@@ -210,3 +210,54 @@ Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy it
 set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
 live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
 was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).
+
+## 2026-10-16 14:38 CT — combo1016 config1_trail goes LIVE, exactly like SMC's backtest (Keaton; implemented by Grok Bot)
+Decision (Keaton, explicit, 14:38 CT): config1_trail (SMC ALT_C70trail_tier250_500) is the only live arm; config2_e75, config3_e75_s65,
+config2_e75_tier200_400 and the legacy combo1016 arm stay shadow comparison arms; Brain P/D nudge stays shadow.
+Spec = SMC integration bundle (`/workspace/audits/smc-research/integration/combo1016.ts`, pnl-push pp2–pp4): fire S2 ≥ 70 AND gbmP ≥ 0.6487956668756266;
+hybrid entry (market if chaseR ≤ 1, else limit at the newest near edge, 20 min, cancel at +0.75R); TR exits on the underlying (50% @1R → BE → trail MFE−1R,
+stop first, flat at the 14:55 CT bar close); caps 5/day, 3/symbol, 1 open/symbol; halt after the first loss (net R < 0); re-arm only on a new setupId;
+sizing $250/R base, A+ (S2 ≥ 85) $500/R; contracts = pp4 `opt_trade` floor(usd/R ÷ modelled loss per contract), 0DTE SPY (ES/10) / QQQ (NQ/41).
+Missing atrpct may fire (research NaN routing); any other missing/defaulted input or desk/watcher drift fails closed and is logged.
+
+Keaton-approved bypasses — config1 live path ONLY (every other desk fire path keeps them):
+1. fireFix $650 debit cap (backtest A+ $500/R needs up to ~$2.6k debit; 583/1177 VAL trades were above $650; cap would cut $/wk 1521 → 1105).
+2. dayLoss $150 / 15% daily stop (0 trades changed in VAL at $150 — the research halt-after-first-loss already stops the day; the 15% leg binds only under $1,000 equity).
+3. weekly −$300 lock (177/1177 trades dropped, $/wk 1521 → 1302).
+4. B+ Brain TAKE gate (not quantifiable from the backtest: research has no desk band/Brain word).
+Kept (safety plumbing): Agentic account only, market_open, order-review quote refetch, rules_pin / rules_parity hash checks, live quote, buying power,
+no_position / no_working_order, tape/feed freshness, news blackout, entry cutoff, option spread check.
+
+Remaining differences vs the backtest (NOT bypassed; for Keaton's decision; `docs/combo1016/live_diff_backtest.py`, VAL 2024-01-01..2026-10-09, 145 weeks, option $):
+- no_position (one open option position across ES+NQ; the daemon holds a single position): 172 trades dropped, $/wk 1521 → 1112.
+- watcher flat_by 15:30 ET (14:30 CT) default vs research 14:55 CT: 10 trades dropped, 27 trades cut early (not re-simulated; those 27 made +$6,701 in the backtest).
+  Together with no_position: 995 trades, $/wk 1092.
+- loss known only at close: pnl-push counts a loss when the trade is TAKEN (future knowledge); live can only halt when it closes. Without no_position this would add
+  50 trades (net −9.9R); with no_position it adds none.
+- execution: research fills at the next 1m open and manages on closed 1m bars; live fills the option at the RH limit and manages the underlying on the live tape.
+  The instrument is the live 0DTE ATM pick (delta 0.45–0.55) on the real SPY/QQQ chain, not K = round(ES/10). Not quantifiable from the backtest.
+RULES_HASH moves (see docs/combo1016/README.md). Desk + watcher patches deploy together.
+
+## 2026-10-16 15:06 CT — config1_trail gaps closed: concurrency, 14:55 CT flat, loss timing (Keaton; implemented by Grok Bot)
+- Keaton: "whatever will match the way he traded in the backtests." config1 path only.
+- Concurrency: config1 holds positions concurrently across books (1 open per book, 5/day, 3/symbol). Other desk paths keep the one-position limit. Safety kept: RH positions/orders must reconcile with what the watcher tracks, else fail closed.
+- Flat: 14:55 CT instead of FLAT_BY_ET 15:30 ET. Not bypassed (hard session/RH clocks): flatByMaxEt 15:50 ET (14:50 CT), 0DTE flat 15:40 ET (14:40 CT), entry_cutoff 15:40 ET. Effect −$3.3/week (re-simulated on 1m bars).
+- Loss timing: live counts a loss at close (research halts from the fill of a losing trade). +50 trades, ≈ −$17/week. Cannot be known earlier; accepted.
+
+## 2026-10-16 16:30 CT — Release Watch NO-GO + Accuracy Review #47 fixes on config1 (Grok Bot; RULES_HASH 6fe537e09d6fabef)
+- Live config1 inputs now come from a closed-bar port of the research candidate generator (combo1016-cand.ts); atrpct from a new 1mo 5m feed; a missing atrpct fails closed (allowMissingGbm/allowDefaultedS2 emptied).
+- Finding for Keaton: the research backtest reads up to 5 bars past its decision bar (disp/mss/ifvg/extreme) and prices chaseR at the next open; a no-lookahead live path cannot reproduce all of its fires (counts in the PR).
+- Watcher: explicit soft allowlist (bypasses + rows the SMC reference does not apply), resting broker stop mandatory for config1 (reject → flatten), caps per Keaton (below).
+- Deploy previews no longer migrate the prod DB (scripts/migrate.mjs CONTEXT guard).
+
+### 2026-10-16 16:10 CT — config1 risk decisions (Keaton)
+Keaton, 10/16 16:10 CT: "Input the 7 it needs still please and fix all of these issues proficiently". He accepted the proposed broker stop and the $500 daily cap.
+- **Resting broker stop REQUIRED for config1** regardless of EXIT_SAFE_RESTING_STOP. RH reject / no order id / invalid stop → flatten or refuse the entry (fail closed, no script-stop fallback). `watcher/daemon.py _combo_stop_fail`, `gates.manage_action` (`combo_flatten`).
+- **Daily dollar-loss cap $500** (`COMBO1016_MAX_DAY_LOSS_USD`, default 500): realized config1 losses + open risk across ES and NQ + the new order's 1R; a new entry that would exceed $500 worst case is blocked. `combo1016_live.caps_ok`.
+- **Contract cap = one order's modeled loss ≤ $500** (`COMBO1016_MAX_ORDER_LOSS_USD`, default 500; A+ $500/R fits). Optional `COMBO1016_MAX_CONTRACTS` extra count, unset by default. Invalid values fail closed.
+
+### 2026-10-16 16:45 CT: SMC #47 parity review (config1)
+- atrpct is computed from the 20-day 5m feed and fails closed when missing. config1 is evaluated on every book/side (shell rows plus a rotating lead) and fires only on research candidates.
+- The 8 desk inputs are proven on week 10/12. The disp/mss/ifvg differences are eng.py lookahead (decision bar jm, scan to jm+5). This is reported to SMC, not reproduced.
+- Soft list cites SMC's report: band/q/brain/fast-chain/entries_day/chop/rr_sane. stop_width stays hard. Raw-S2 fire, 1DTE sizing model, and the config1 spread at or under the model spread are in. Halt-at-close and the 1-contract partial can't match the reference, so they stay as they are and are documented.
+- Broker stop required and the $500 day / $500 order caps stay as Keaton decided (16:10 CT).

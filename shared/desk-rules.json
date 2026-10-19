@@ -1121,5 +1121,547 @@
       "minRunnerR": 2.0,
       "_doc": "Fix 8: at T1 take t1PartialFrac off, move the runner stop to break-even, hold the rest to the next liquidity pool beyond T1 (>= minRunnerR). shadow = card.fix1016.runner + watcher shadow:fix1016:runner rows."
     }
+  },
+  "score1016": {
+    "_doc": "Event-driven five-layer score (audits/week1016-review, tested in audits/score-rebuild). S=(1.0 L1 HTF+PD, 1.5 L2 liquidity (+0.25 SMT, +0.1/extra pool, re-arm per event), 1.5 L3 displacement/MSS/iFVG, 1.0 L4 newest entry array, 0.5 L5 timing)/5.5x100. Probability grading from S (no band ceiling; A+ at S>=90 reachable). Only hard vetoes (risk, stale data, invalidation). Every item mode shadow: card.score1016 + watcher shadow:score1016:* would-fire rows; nothing moves q/band/plan/fire.",
+    "score": {
+      "mode": "shadow",
+      "fireAt": 83,
+      "smtBonus": true,
+      "weights": {
+        "L1": 1,
+        "L2": 1.5,
+        "L3": 1.5,
+        "L4": 1,
+        "L5": 0.5
+      }
+    },
+    "entry": {
+      "mode": "shadow",
+      "marketWithinR": 1,
+      "_doc": "market if within 1.0R of the newest array edge, else a resting limit at the edge"
+    },
+    "exit": {
+      "mode": "shadow",
+      "t1R": 1,
+      "t1PartialFrac": 0.5,
+      "beAfterT1": true,
+      "t2R": 2
+    },
+    "caps": {
+      "mode": "shadow",
+      "perDay": 2,
+      "perSymbol": 1
+    },
+    "veto": {
+      "mode": "shadow",
+      "minRiskAtr1m": 0.5,
+      "maxRiskAtr1m": 12
+    },
+    "poiHalf": {
+      "mode": "shadow",
+      "_doc": "Brain POI-in-correct-half graded at the ENTRY via seq pdLeg (narrow: atPoi zone only; EQ/no leg = no opinion). Backtest: not kept for live (cuts OOS frequency 6.6 to 0.5/wk at equal expectancy); shadow read only."
+    },
+    "altEntryIfvgCe": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 3: alternate entry at the 1m iFVG CE (survivor set {2,3,7,8,10}; needs fix1016.chaseFromAnchor)."
+    },
+    "setupPerSweep": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 7: setup id per sweep event (first-plan-wins scoped to the sweep, not the session side)."
+    },
+    "scopeCaps": {
+      "mode": "shadow",
+      "_doc": "bt13 fix 8: LTF-reversal and Played-out caps scoped to the setup that triggered them."
+    },
+    "v2": {
+      "_doc": "score1016.v2 = S2 distilled logistic (audits/score-rebuild/ev/distill.json, fit IS 2010-18). 5 layers / 14 subfactors in 0..1; z = intercept + sum(coef*x); S2 = 100*clip((z-lo)/(hi-lo),0,1) (no ceiling); p = isotonic(z). Signs as fit: ctx_pd = 1 - pd (L1 premium/discount flipped), ifvg + (L4 newest-array-is-iFVG penalised via ent_arr_fvg). NaN subfactors take the IS-era medians. Shadow only.",
+      "mode": "shadow",
+      "coef": {
+        "ctx_htf4": 0.06049649130501101,
+        "ctx_lowvol": 0.260864508646741,
+        "ctx_pd": 0.07117474068684988,
+        "liq_tier": -0.20583032724761235,
+        "liq_n": 0.09824277859376654,
+        "liq_smt": 0.01221716423365158,
+        "disp": 1.214481242166666,
+        "mss": 0.4118945377375256,
+        "ifvg": 0.24122078566052496,
+        "ent_tight": 0.9242882348509601,
+        "ent_nochase": 0.4410200144814128,
+        "ent_arr_fvg": 0.08569187191000777,
+        "tim_early": 0.17404482515433878,
+        "tim_rng30": 0.32050735041731165
+      },
+      "intercept": -2.179588036926961,
+      "lo": -0.7779019570096435,
+      "hi": 0.7804271653629166,
+      "medians": {
+        "ctx_htf4": 0.0,
+        "ctx_lowvol": 0.17934027777777772,
+        "ctx_pd": 0.501755514101637,
+        "liq_tier": 0.9,
+        "liq_n": 0.3333333333333333,
+        "liq_smt": 0.0,
+        "disp": 0.440251572327044,
+        "mss": 1.0,
+        "ifvg": 1.0,
+        "ent_tight": 0.6401028277634961,
+        "ent_nochase": 0.7857142857142857,
+        "ent_arr_fvg": 0.0,
+        "tim_early": 0.5333333333333333,
+        "tim_rng30": 0.2780373831775701
+      },
+      "isoX": [
+        -1.4408577100625013,
+        -1.2589012566279374,
+        -1.251612806005628,
+        -1.1635204837119573,
+        -1.1611884943248252,
+        -0.864264247341898,
+        -0.8640516997140382,
+        -0.8573560442146058,
+        -0.8569532357476493,
+        -0.6020760343554519,
+        -0.6019771309157385,
+        -0.5655956768181238,
+        -0.5655644317975466,
+        -0.42834906461880995,
+        -0.42830575841998675,
+        -0.4251006068557128,
+        -0.4250368147826702,
+        -0.36295647945290455,
+        -0.36295411810803113,
+        -0.22770495264030632,
+        -0.2276988649734284,
+        -0.21041984258080215,
+        -0.21040809544395156,
+        -0.19713661134928184,
+        -0.19712244586675842,
+        -0.19620407512495297,
+        -0.19619441476685906,
+        -0.1917817030204072,
+        -0.19176524553474406,
+        -0.14015072138212847,
+        -0.14013664049565788,
+        -0.10365961690724657,
+        -0.10364700242622282,
+        -0.10339615250970002,
+        -0.10339272400708488,
+        -0.1023614630871017,
+        -0.10235706255420185,
+        -0.07877849126856828,
+        -0.07877686172840725,
+        -0.054794679562169435,
+        -0.054786764895236484,
+        -0.020283162933214083,
+        -0.020275072835556074,
+        -0.0029783343502431947,
+        -0.0029655095193112935,
+        0.05445863298685172,
+        0.054479446170747625,
+        0.05789323840716243,
+        0.05790268289405809,
+        0.06068938506368626,
+        0.06069324245628627,
+        0.09885175074085728,
+        0.09886320912394764,
+        0.09964326730095197,
+        0.0996573324694432,
+        0.14945453558844557,
+        0.14945852733695153,
+        0.16907478513673624,
+        0.1690980265841433,
+        0.18999574623770776,
+        0.190001268709314,
+        0.19110305390144244,
+        0.19110638717473494,
+        0.20377563378124908,
+        0.2037773263489462,
+        0.33707126488526473,
+        0.3370903185751466,
+        0.3381871630422606,
+        0.33820150687710226,
+        0.35320744745413357,
+        0.3532840994081674,
+        0.37941767017518035,
+        0.3795172463632328,
+        0.48229779125535277,
+        0.4822994861028569,
+        0.49124971724829436,
+        0.4912878185036096,
+        0.5149996631443114,
+        0.5150439680535972,
+        0.5822280004050842,
+        0.5823317884253898,
+        0.6354546985176421,
+        0.6355312920804779,
+        0.6827451467482253,
+        0.6830668696088105,
+        0.73872151374036,
+        0.7388095735717934,
+        0.7440581449726209,
+        0.7441361717557555,
+        0.7716804234477581,
+        0.771870651505957,
+        0.8023878534969029,
+        0.8025993746395019,
+        0.8288031479627831,
+        0.8289465165384025,
+        0.8459351983920631,
+        0.846752829260748,
+        0.9128633881383874,
+        0.9137986158901152,
+        0.9841959244906531,
+        0.9844613536348739,
+        1.1279953519462858
+      ],
+      "isoY": [
+        0.0,
+        0.0,
+        0.3333333333333333,
+        0.3333333333333333,
+        0.35874439461883406,
+        0.35874439461883406,
+        0.375,
+        0.375,
+        0.38934426229508196,
+        0.38934426229508196,
+        0.39618138424821003,
+        0.39618138424821003,
+        0.40520896426408237,
+        0.40520896426408237,
+        0.4122137404580153,
+        0.4122137404580153,
+        0.41345525800130634,
+        0.41345525800130634,
+        0.4228369948467589,
+        0.4228369948467589,
+        0.42358803986710963,
+        0.42358803986710963,
+        0.4265635980323261,
+        0.4265635980323261,
+        0.4270833333333333,
+        0.4270833333333333,
+        0.42857142857142855,
+        0.42857142857142855,
+        0.4469529791206926,
+        0.4469529791206926,
+        0.45678716782379697,
+        0.45678716782379697,
+        0.4642857142857143,
+        0.4642857142857143,
+        0.4651162790697675,
+        0.4651162790697675,
+        0.46635480388629,
+        0.46635480388629,
+        0.47619047619047616,
+        0.47619047619047616,
+        0.48012304779933757,
+        0.48012304779933757,
+        0.49325337331334324,
+        0.49325337331334324,
+        0.4989244007375539,
+        0.4989244007375539,
+        0.5000000000000001,
+        0.5000000000000001,
+        0.5095057034220533,
+        0.5095057034220533,
+        0.512969825304394,
+        0.512969825304394,
+        0.5301204819277109,
+        0.5301204819277109,
+        0.5342935528120714,
+        0.5342935528120714,
+        0.5392221489782464,
+        0.5392221489782464,
+        0.5499669093315686,
+        0.5499669093315686,
+        0.5625,
+        0.5625,
+        0.562642369020501,
+        0.562642369020501,
+        0.582726623840114,
+        0.582726623840114,
+        0.5833333333333334,
+        0.5833333333333334,
+        0.5895372233400402,
+        0.5895372233400402,
+        0.6069651741293531,
+        0.6069651741293531,
+        0.6119087837837839,
+        0.6119087837837839,
+        0.625766871165644,
+        0.625766871165644,
+        0.6259740259740258,
+        0.6259740259740258,
+        0.6287069988137604,
+        0.6287069988137604,
+        0.6373626373626373,
+        0.6373626373626373,
+        0.6407035175879395,
+        0.6407035175879395,
+        0.7008797653958945,
+        0.7008797653958945,
+        0.7307692307692307,
+        0.7307692307692307,
+        0.7575757575757576,
+        0.7575757575757576,
+        0.7741935483870968,
+        0.7741935483870968,
+        0.7802197802197802,
+        0.7802197802197802,
+        0.813953488372093,
+        0.813953488372093,
+        0.8181818181818182,
+        0.8181818181818182,
+        0.8823529411764706,
+        0.8823529411764706,
+        1.0,
+        1.0
+      ],
+      "grades": [
+        [
+          90,
+          "A+"
+        ],
+        [
+          85,
+          "A"
+        ],
+        [
+          80,
+          "A-"
+        ],
+        [
+          75,
+          "B+"
+        ],
+        [
+          70,
+          "B"
+        ],
+        [
+          0,
+          "C"
+        ]
+      ]
+    }
+  },
+  "combo1016": {
+    "_doc": "SMC research best combo (audits/smc-research/s2-combo.md). Fire = score1016.v2 S2 >= fireS2 AND gbmP >= gbm.thr (IS 2010-18 90th pct). A+ tier S2 >= aPlusS2 is logged only (no sizing change). Hybrid entry, T1 1R 50% -> BE -> 2R, caps 3/day 2/symbol, halt the day after the first loss, re-arm only with a new setup id (a sealed entry is never re-priced). Every item mode shadow: card.combo1016 + watcher shadow:combo1016:* rows; nothing moves q/band/plan/fire/size.",
+    "mode": "shadow",
+    "fireS2": 75,
+    "aPlusS2": 90,
+    "aPlusSizing": false,
+    "gbm": {
+      "file": "shared/combo1016-gbm.json",
+      "sha256_16": "95b5f2f952792673",
+      "thr": 0.6041116469542696,
+      "nTrees": 400,
+      "_doc": "LightGBM 400 trees fit IS 2010-18 (score-rebuild/ev/gbm.py params), exported tree-by-tree; gbmP = sigmoid(sum of leaf values). thr = 90th pct of IS gbmP."
+    },
+    "entry": {
+      "mode": "shadow",
+      "marketWithinR": 1.0
+    },
+    "exit": {
+      "mode": "shadow",
+      "t1R": 1,
+      "t1PartialFrac": 0.5,
+      "beAfterT1": true,
+      "t2R": 2
+    },
+    "caps": {
+      "mode": "shadow",
+      "perDay": 3,
+      "perSymbol": 2,
+      "haltAfterLosses": 1
+    },
+    "rearm": {
+      "mode": "shadow",
+      "newSetupIdOnly": true,
+      "repriceSealed": false
+    }
+  },
+  "combo1016Arms": {
+    "live": {
+      "_doc": "Keaton 10/16 14:38 CT: config1_trail is LIVE and trades exactly like SMC's backtest (integration combo1016.ts): S2>=70 AND gbmP>=q90, $250/R base, A+ (S2>=85) $500/R, contracts = pp4 opt_trade floor(usdPerR / lossC), caps 5/day 3/symbol, halt after the first loss (net R<0), re-arm on a new setupId, TR exits (50% @1R, BE, trail MFE-1R), flat 14:55 CT (live: capped by session.flatByMaxEt 15:50 ET and the 0DTE flat 15:40 ET; entry_cutoff kept). Concurrency (Keaton 10/16 15:06 CT): config1 holds positions concurrently across books, 1 open per book, RH open positions/working orders must equal the watcher-tracked set (fail closed); other desk paths keep one position. Loss timing: a loss counts for the halt when the trade closes (cannot be known earlier). Keaton-approved bypasses for THIS path only: fireFix $650 debit cap, dayLoss $150/15%, weekly -$300 lock, B+ Brain TAKE gate. Kept: Agentic account, market_open, quote refetch, rules_pin/hash, no_position, live quote, buying power. Release Watch 10/16: atrpct is computed from the desk's 1mo 5m feed (feat.py rank, >=500 valid ATRs); a missing atrpct now FAILS CLOSED like every other missing/defaulted input, a pre-08:30 CT row or desk/watcher drift. Inputs come from the research candidate generator (combo1016-cand.ts, eng.py closed-bar port).",
+      "mode": "live",
+      "arm": "config1_trail",
+      "allowMissingGbm": [],
+      "allowDefaultedS2": [],
+      "marketOnly": false,
+      "notBeforeCt": "08:30",
+      "bypass": [
+        "debitCap650",
+        "dayLoss",
+        "weeklyLock",
+        "bplusBrainTake"
+      ],
+      "flatByCt": "14:55"
+    },
+    "_doc": "SMC pnl-push finalists (audits/smc-research/pnl-push/report.md, tables_core.md; params_*.json) as SHADOW-ONLY arms beside the unchanged combo1016 arm. Fire = score1016.v2 S2 >= arm.fireS2 AND gbmP >= combo1016.gbm.thr (p90 of the model's fit window) AND no hard veto. Hybrid entry: market if chaseR <= 1, else a limit at the newest array edge valid 20 min, cancelled if price reaches +0.75R first. Caps 5/day 3/symbol, 1 open per symbol, halt after the first daily loss, re-arm only on a new setup id, flat by 14:55 CT. Fixed $/R sizing (A+ = S2 >= 85), never a percent of the account. Rows shadow:combo1016:<arm>:*; nothing moves q/band/plan/fire/size.",
+    "mode": "shadow",
+    "gbm": {
+      "rule": "gbmP >= p90 of the fit window",
+      "thrFrom": "combo1016.gbm.thr",
+      "refitWeeks": 26,
+      "liveRefit": false,
+      "_doc": "Arms use SMC's walk-forward refit (integration bundle): S2 and LightGBM trained 2020-01-01..2026-07-04, applying 2026-07-05..2027-01-02; thr = q90 of that window's gbmP. Refit cadence 26 weeks (next window 2027-01-03) is documented only: no live refit; a new window must be exported and re-pinned. The existing combo1016 arm keeps its IS 2010-18 model.",
+      "file": "shared/combo1016-arms-gbm.json",
+      "sha256_16": "1d976c113099d0d8",
+      "window": "wf_2020-01-01_2026-07-05",
+      "thr": 0.6487956668756266,
+      "nextRefit": "2027-01-03"
+    },
+    "entry": {
+      "mode": "shadow",
+      "marketWithinR": 1.0,
+      "limitValidMin": 20,
+      "cancelAtR": 0.75
+    },
+    "caps": {
+      "mode": "shadow",
+      "perDay": 5,
+      "perSymbol": 3,
+      "openPerSymbol": 1,
+      "haltAfterLosses": 1,
+      "newSetupIdOnly": true,
+      "flatByCt": "14:55"
+    },
+    "aPlusS2": 85,
+    "costTicks": 2,
+    "option": {
+      "etf": {
+        "ES": "SPY",
+        "MES": "SPY",
+        "NQ": "QQQ",
+        "MNQ": "QQQ"
+      },
+      "mult": {
+        "SPY": 10.0,
+        "QQQ": 41.0
+      },
+      "spread": {
+        "SPY": 0.02,
+        "QQQ": 0.03
+      },
+      "feePerContract": 0.65,
+      "sigmaFloor": 0.08,
+      "sigmaCap": 0.8,
+      "sigmaAdj": 0.9,
+      "_doc": "0DTE ATM estimate exactly as pnl-push pp4.opt_trade (Black-Scholes, sigma from 5m ATR, nearest $1 strike, legs repriced at their price/time). An estimate, never an order."
+    },
+    "arms": {
+      "config1_trail": {
+        "name": "ALT_C70trail_tier250_500",
+        "params": "params_ALT_C70trail_tier250_500.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "TR",
+          "t1R": 1.0,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "trailR": 1.0
+        },
+        "sizing": {
+          "baseUsdPerR": 250,
+          "aPlusUsdPerR": 500
+        }
+      },
+      "config2_e75": {
+        "name": "P1_B70E75_flat300",
+        "params": "params_P1_B70E75_flat300.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 300,
+          "aPlusUsdPerR": 300
+        }
+      },
+      "config3_e75_s65": {
+        "name": "P3_A65E75_tier250_500",
+        "params": "params_P3_A65E75_tier250_500.json",
+        "fireS2": 65,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 250,
+          "aPlusUsdPerR": 500
+        }
+      },
+      "config2_e75_tier200_400": {
+        "name": "P2_B70E75_tier200_400",
+        "params": "params_P2_B70E75_tier200_400.json",
+        "fireS2": 70,
+        "exit": {
+          "mode": "E75",
+          "t1R": 0.75,
+          "t1PartialFrac": 0.5,
+          "beAfterT1": true,
+          "t2R": 2.0
+        },
+        "sizing": {
+          "baseUsdPerR": 200,
+          "aPlusUsdPerR": 400
+        }
+      }
+    },
+    "s2": {
+      "window": "wf_2020-01-01_2026-07-05",
+      "coef": {
+        "ctx_htf4": 0.0405660561571263,
+        "ctx_lowvol": 0.20814669874966116,
+        "ctx_pd": 0.10951039259447268,
+        "liq_tier": -0.14194332610661306,
+        "liq_n": 0.13316681298552482,
+        "liq_smt": 0.009000901800501842,
+        "disp": 1.6597442323662701,
+        "mss": 0.6052483760096566,
+        "ifvg": 0.24051376989725318,
+        "ent_tight": 1.833947389033848,
+        "ent_nochase": 0.7218666231805471,
+        "ent_arr_fvg": 0.0661995828918033,
+        "tim_early": 0.08780032025894818,
+        "tim_rng30": 0.7500931606570318
+      },
+      "intercept": -3.512507205521919,
+      "lo": -1.0451393159289302,
+      "hi": 1.126948797376979,
+      "medians": {
+        "ctx_htf4": 0.0,
+        "ctx_lowvol": 0.17934027777777772,
+        "ctx_pd": 0.501755514101637,
+        "liq_tier": 0.9,
+        "liq_n": 0.3333333333333333,
+        "liq_smt": 0.0,
+        "disp": 0.440251572327044,
+        "mss": 1.0,
+        "ifvg": 1.0,
+        "ent_tight": 0.6401028277634961,
+        "ent_nochase": 0.7857142857142857,
+        "ent_arr_fvg": 0.0,
+        "tim_early": 0.5333333333333333,
+        "tim_rng30": 0.2780373831775701
+      },
+      "_doc": "S2 = 100*clip((z-lo)/(hi-lo)), z = intercept + sum coef*subfactor; subfactors as score1016.v2 (ctx_lowvol uses atrpct 0.5 when missing, ent_nochase chaseR 1); other missing subfactors take these medians."
+    }
+  },
+  "brainPd": {
+    "_doc": "Brain step 8 (dealing range): graded at the ENTRY via deskSeq.pdLeg on the card's OWN symbol book (was: current price, always the left/MNQ book). NON-GATING: at most +nudgeMax when the entry is in the aligned half, 0 otherwise, never a STAND/yellow reason. Logs pd_cur and pd_ent (+0.5 aligned / -0.25 EQ / -0.5 opposed, research coding). mode shadow = the legacy step 8 still scores and the new read is logged only (no live brain/fire change); live = the nudge replaces the legacy term.",
+    "mode": "shadow",
+    "nudgeMax": 0.1
   }
 }
