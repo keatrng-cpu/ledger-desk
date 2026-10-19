@@ -7,9 +7,12 @@ const RULES = JSON.parse(readFileSync(new URL("../shared/desk-rules.json", impor
 const FIX = JSON.parse(readFileSync(new URL("./fixtures/ltf-arm-2026-10-14.json", import.meta.url)));
 const KZ0 = Date.UTC(2026, 9, 14, 13, 30); // 09:30 ET
 
-test("ltfArm rules: shadow first, every rung 1m-4h, capped B+, band edges untouched", () => {
-  assert.equal(RULES.ltfArm.mode, "shadow");
-  assert.deepEqual(RULES.ltfArm.tfs, ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h"]);
+test("ltfArm rules: SHADOW (Release Watch #52) with validatedOnly, every rung 1m-1D, capped B+, band edges untouched (2026-10-17)", () => {
+  assert.equal(RULES.ltfArm.mode, "shadow");   // Release Watch #52: shadow pending a desk replay + Keaton's OK
+  assert.equal(RULES.ltfArm.allTfKills.mode, "shadow");   // all-rung kills behind their own setting
+  assert.equal(RULES.ltfArm.validatedOnly, true);
+  assert.deepEqual(RULES.mtfInversion.validated, []);   // Part A: nothing passed walk-forward + untouched holdout
+  assert.deepEqual(RULES.ltfArm.tfs, ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]);
   assert.equal(RULES.ltfArm.capBand, "B+");
   assert.deepEqual(RULES.bandEdges, { "A+": 0.75, A: 0.68, "A-": 0.65, "B+": 0.6, B: 0.5 });
 });

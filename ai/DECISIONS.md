@@ -210,3 +210,23 @@ Keaton approved 10 fixes from audits/1016-short-postmortem.md. Every strategy it
 set parameters and flip one item at a time. Only the watcher window (09:25 ET poll, market_open hard gate at 09:30 ET) is
 live — it is not a strategy change. Watcher changes ship as patches (docs/fix1016, docs/exit-safety-1016); the live watcher
 was not touched. Desk + watcher must deploy together (rules_parity fails closed on hash mismatch).
+
+## 2026-10-17 — Every-TF closes live + LTF inversion (Grok Bot)
+Part A (audits/mtf-ltf-inversion; 4.69M pre-declared trials, eng_clean truncation test 0 violations, walk-forward + untouched holdout):
+no MTF sweep -> LTF inversion family (rev/cont/all/discounted, long/short, body vs wick variants) is positive after costs on both
+walk-forward and holdout, so `mtfInversion.validated = []` and nothing new fires. Shipped: every-TF closed-bar read (1m..1D, body + wick
+features) on the card for desk/Brain/Floor/watcher; ltfArm live plumbing with validatedOnly (an unvalidated arm never applies or fires);
+order-review stale-quote soft path (<= 3 s, moving stamp, >= 2 re-reads, fail closed). RULES_HASH 9eeed9b4083700cb -> 32d32bc808ccc4f4;
+watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy together. Depends on #51 (week-ahead.ts).
+
+## 2026-10-17 — #52 Accuracy Review NO-GO fixes: order-review quote retry stays SHADOW pending Keaton (Grok Bot)
+- `fix1016.reviewQuoteRetry` goes back to mode shadow. The soft path (≤ 3 s, moving stamp, ≥ 2 re-reads) only logs its verdict, and any RH error in the window logs refuse.
+- Live order review stays strict 1 s on both desk (rh-autofire mayPlaceAfterReview) and watcher. The watcher adds a final 1 s quote-age re-check right before broker.buy.
+- Why: the post-mortem (1016-short-postmortem.md:71) says the 10/16 refusal likely saved a loss. Going live needs Keaton's explicit approval.
+- Also: the all-rung kill read is merged with the 5m read by strictKillUnion, so re-arming is never easier than before and a both-sides kill is never dropped.
+- RULES_HASH 32d32bc808ccc4f4 → e1f704e02b438e98 (then → 0a692dc19944a8df, below).
+- Release Watch #52 NO-GO: `ltfArm.mode` back to shadow. Live ltfArm widened the LTF kills 5m → 1m–4h, and each kill gives the other side +0.02 q (about 115 side-minutes on 8/31–10/16 could newly clear q 0.60).
+- All-rung kills now sit behind `ltfArm.allTfKills.mode` (shadow), with the +0.02 boost unchanged.
+- ltfArm and reviewQuoteRetry both stay shadow pending a desk replay and Keaton's OK. The everyTf facts and the watcher `ltf_arm_validated` hard row stay.
+- RULES_HASH e1f704e02b438e98 → 0a692dc19944a8df.
+
