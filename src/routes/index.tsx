@@ -237,14 +237,30 @@ function BuildingDesk({ since }: { since: number }) {
   }, []);
   const sec = Math.max(0, Math.round((now - since) / 1000));
   return (
-    <div className="mt-10 flex flex-col items-center justify-center gap-1 text-sm text-[var(--color-muted)]">
-      <div className="flex items-center gap-2">
-        <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
-        Building desk… {sec}s
+    <div className="mt-6" aria-busy="true" aria-live="polite">
+      {/* Skeleton of the ticket the feed is about to fill — implies the structure
+          instead of a bare spinner. Motion lives in styles.css (.ld-skeleton),
+          disabled under prefers-reduced-motion. */}
+      <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+          <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+            <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+            Building desk… {sec}s
+          </div>
+          <div className="ld-skeleton h-5 w-16" />
+        </div>
+        <div className="divide-y divide-[var(--color-border)]">
+          {["DIRECTION", "COUNTER-BIAS", "ENTRY", "TARGET", "CONTRACT"].map((label) => (
+            <div key={label} className="flex items-center gap-4 px-4 py-3">
+              <div className="w-24 shrink-0 text-[11px] tracking-wide text-[var(--color-subtle)]">{label}</div>
+              <div className="ld-skeleton h-4" style={{ width: `${55 + ((label.length * 7) % 35)}%` }} />
+            </div>
+          ))}
+        </div>
       </div>
-      <p className="max-w-md text-center text-[12px] text-[var(--color-subtle)]">
+      <p className="mt-3 text-center text-[12px] text-[var(--color-subtle)]">
         {sec >= 12
-          ? "Still waiting on market data. A hang past 35s prints the reason under this line instead of spinning forever."
+          ? "Still waiting on market data. A hang past 35s prints the reason here instead of spinning forever."
           : "Waiting on quotes, structure, and the sequence."}
       </p>
     </div>

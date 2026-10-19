@@ -320,3 +320,63 @@
   font-size: 13px;
   line-height: 1.4;
 }
+
+/*
+ * MOTION + SKELETON LAYER (2026-10-19).
+ *
+ * Functional motion only — this is an instrument panel, not a marketing page.
+ * Everything here answers a change the trader should notice (a value ticked, a
+ * side flipped, a plan is loading) and nothing here is a decorative entrance.
+ * All of it is disabled under prefers-reduced-motion (matches screen-flash.tsx
+ * and setup-mini-chart.tsx, which already honour it).
+ */
+@theme {
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-mid: 220ms;
+}
+
+@keyframes ld-shimmer {
+  0% { background-position: -150% 0; }
+  100% { background-position: 150% 0; }
+}
+@keyframes ld-flash-up {
+  0% { background-color: color-mix(in oklab, var(--color-up) 34%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes ld-flash-down {
+  0% { background-color: color-mix(in oklab, var(--color-down) 34%, transparent); }
+  100% { background-color: transparent; }
+}
+@keyframes ld-rise {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* A loading placeholder that implies the surface it will become. */
+.ld-skeleton {
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(
+      100deg,
+      var(--color-surface) 30%,
+      var(--color-surface-2) 50%,
+      var(--color-surface) 70%
+    );
+  background-size: 200% 100%;
+  animation: ld-shimmer 1.6s var(--ease-out-quint) infinite;
+}
+
+/* Flash a live number when it changes value (add/remove the class on update). */
+.ld-flash-up { animation: ld-flash-up var(--dur-mid) ease-out; border-radius: 4px; }
+.ld-flash-down { animation: ld-flash-down var(--dur-mid) ease-out; border-radius: 4px; }
+
+/* One quiet entrance for a panel/word that just became real (not per-card spam). */
+.ld-rise { animation: ld-rise var(--dur-mid) var(--ease-out-quint) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-skeleton { animation: none; }
+  .ld-flash-up,
+  .ld-flash-down,
+  .ld-rise { animation: none; }
+}
