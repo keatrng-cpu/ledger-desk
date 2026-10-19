@@ -380,3 +380,19 @@
   .ld-flash-down,
   .ld-rise { animation: none; }
 }
+
+/* Floor full screen (from #33). The stage is the fullscreen element, so the
+   chips, camera row, and exit stay on screen. Unlayered so they beat the view's
+   vh utilities in the same frame full screen is entered or left, including Esc. */
+.floor-stage:fullscreen {
+  height: 100%;
+  gap: 0.25rem;
+  overflow: hidden;
+  background: var(--color-bg);
+  padding: 0.5rem;
+}
+.floor-stage:fullscreen .floor-view {
+  height: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+}

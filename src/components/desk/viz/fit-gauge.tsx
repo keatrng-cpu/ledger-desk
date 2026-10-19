@@ -123,13 +123,12 @@ export function FitGauge({
           />
         )}
       </div>
-      <div className="relative mt-1 h-3.5 font-mono text-[10px] text-[var(--color-muted)]">
-        <span className="absolute -translate-x-1/2" style={{ left: `${floor * 100}%` }}>
-          {floor}
-        </span>
-        <span className="absolute -translate-x-1/2" style={{ left: `${aplus * 100}%` }}>
-          A+ {aplus}
-        </span>
+      {/* In flow. Sitting the numbers on the notches put 0.65 and A+ 0.75
+          on top of the next line (the liquidity-sweep note) once the card
+          was narrower than the two labels. */}
+      <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 font-mono text-[11px] leading-snug text-[var(--color-muted)]">
+        <span>floor {floor}</span>
+        <span>A+ {aplus}</span>
       </div>
       {veto && !compact && (
         <p className="mt-1 text-[12px] font-semibold leading-snug text-[var(--color-down)]">
