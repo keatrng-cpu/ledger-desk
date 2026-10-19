@@ -25,3 +25,17 @@ test("PriceLadder fallback: stop missing / equal to entry → null ('—'), neve
   assert.equal(L.ladderFrom(base, "long").plan.side, "long");
   assert.equal(L.ladderFrom({ ...base, side: "short" }, "long").plan.side, "short");
 });
+
+test("PriceLadder fx: null / NaN stop renders '—' instead of throwing", async () => {
+  const L = await import("../src/components/desk/viz/price-ladder.tsx");
+  assert.equal(L.fx(null), "—"); assert.equal(L.fx(undefined), "—"); assert.equal(L.fx(NaN), "—"); assert.equal(L.fx(29739), "29739.00");
+  assert.equal(L.ladderFrom({ entry: 100, entryZone: null, stop: null, t1: 110, t2: null, rr1: null, rr2: null, riskPts: 0 }).plan.side, null);
+});
+
+test("PriceLadder renders with stop null (no throw, no STOP rung, '—')", async () => {
+  const L = await import("../src/components/desk/viz/price-ladder.tsx");
+  const React = await import("react"); const { renderToString } = await import("react-dom/server");
+  const { plan } = L.ladderFrom({ entry: 29739, entryZone: null, stop: null, t1: 29683.5, t2: null, rr1: null, rr2: null, riskPts: null }, "short");
+  const html = renderToString(React.createElement(L.PriceLadder, { plan, price: 29700 }));
+  assert.ok(html.includes("stop —"), html.slice(0, 300)); assert.ok(!html.includes(">STOP<"));
+});

@@ -15,7 +15,7 @@ export interface LadderPlan {
   side: "long" | "short" | null;
   entry: number;
   zone?: { top: number; bottom: number } | null;
-  stop: number;
+  stop: number | null;
   t1: number | null;
   t2: number | null;
   rr1?: number | null;
@@ -23,7 +23,8 @@ export interface LadderPlan {
   riskPts?: number | null;
 }
 
-const fx = (n: number) => n.toFixed(2);
+/** Null/NaN-safe price text: a missing stop renders "—" instead of throwing on toFixed. */
+export const fx = (n: number | null | undefined) => (n == null || !Number.isFinite(n) ? "—" : n.toFixed(2));
 
 export function PriceLadder({
   plan,
@@ -58,8 +59,9 @@ export function PriceLadder({
   const y = (p: number) => ((hi - p) / (hi - lo)) * height;
 
   type Rung = { key: string; p: number; label: string; color: string; strong?: boolean };
+  const hasStop = plan.stop != null && Number.isFinite(plan.stop);
   const rungs: Rung[] = [
-    { key: "stop", p: plan.stop, label: "STOP", color: "var(--color-down)", strong: true },
+    ...(hasStop ? [{ key: "stop", p: plan.stop as number, label: "STOP", color: "var(--color-down)", strong: true }] : []),
     {
       key: "entry",
       p: plan.entry,
@@ -91,7 +93,7 @@ export function PriceLadder({
   if (overflow) for (const r of placed) r.ly -= overflow;
 
   const band = (a: number, b: number) => ({ top: Math.min(y(a), y(b)), h: Math.abs(y(a) - y(b)) });
-  const risk = band(plan.entry, plan.stop);
+  const risk = hasStop ? band(plan.entry, plan.stop as number) : null;
   const reward = plan.t1 != null ? band(plan.entry, plan.t1) : null;
   const toT2 = plan.t2 != null ? band(plan.t1 ?? plan.entry, plan.t2) : null;
   const priceY = price == null ? null : priceIn ? y(price) : price > hi ? 0 : height;
@@ -108,11 +110,11 @@ export function PriceLadder({
         {/* The rail. */}
         <div className="absolute inset-y-0 left-[34%] w-[18%] rounded bg-[var(--color-surface-2)]" />
         {/* Risk and reward zones, to scale. */}
-        <div
+        {risk && <div
           className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-down)_40%,transparent)]"
           style={{ top: risk.top, height: Math.max(2, risk.h) }}
-          title={`Risk ${plan.riskPts != null ? `${plan.riskPts.toFixed(2)}pt` : fx(Math.abs(plan.entry - plan.stop))}`}
-        />
+          title={`Risk ${plan.riskPts != null ? `${plan.riskPts.toFixed(2)}pt` : fx(plan.stop == null ? null : Math.abs(plan.entry - plan.stop))}`}
+        />}
         {reward && (
           <div
             className="absolute left-[34%] w-[18%] bg-[color-mix(in_oklab,var(--color-up)_38%,transparent)]"
