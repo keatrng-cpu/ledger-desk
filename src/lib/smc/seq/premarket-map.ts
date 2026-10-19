@@ -358,7 +358,8 @@ const MAP_CACHE = new Map<string, PremarketMap>();
 export function premarketMapCached(i: MapInput): PremarketMap {
   const { cutT } = mapCut(i.nowMs);
   const lastClosed = [...i.minute].reverse().find((b) => b.t + 60_000 <= cutT);
-  const key = `${i.symbol}:${Math.floor(cutT / 60_000)}:${lastClosed?.t ?? 0}:${i.minute.length > 0}`;
+  // daily in the key: a map built without daily bars (no 1D read) is never served to a caller that passes them.
+  const key = `${i.symbol}:${Math.floor(cutT / 60_000)}:${lastClosed?.t ?? 0}:${i.minute.length > 0}:${i.daily?.length ?? 0}:${i.daily?.at(-1)?.t ?? 0}`;
   const hit = MAP_CACHE.get(key);
   if (hit) return hit;
   const m = premarketMap(i);

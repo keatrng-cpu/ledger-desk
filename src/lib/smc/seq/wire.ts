@@ -77,7 +77,9 @@ export function buildDeskSeq(i: SeqInputs): DeskSeqWire {
     const sym = i.desk[side].symbol;
     const b = bookOf(sym);
     const deskLevels = (i.desk.levels.find((l) => l.symbol === sym)?.items ?? []).map((x) => ({ name: x.name, price: x.price }));
-    if (b.feedNowMs != null) map[sym] = premarketMapCached({ symbol: sym, minute: b.closed1m, bars15: (i.desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs: b.feedNowMs });
+    if (b.feedNowMs != null) map[sym] = premarketMapCached({ symbol: sym, minute: b.closed1m, bars15: (i.desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs: b.feedNowMs,
+      // Accuracy 10/19: hand the map the desk's daily bars — sessionDaily(m1) finds 0 prior sessions, so the 1D read was never built.
+      daily: ((i.desk.mtf?.[side] as { daily?: OhlcBar[] } | undefined)?.daily ?? null) as OhlcBar[] | null });
   }
   const amd: Record<string, AmdRead> = {};
   for (const side of ["left", "right"] as const) {

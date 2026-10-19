@@ -27,7 +27,7 @@ export function buildLadderWire(desk: DeskLike): LadderWire | null {
       const nowMs = fc.feedNowMs ?? q.marketTimeMs ?? Date.now();
       const closed1m = closedByFeed(minute, 60_000, nowMs);
       const deskLevels = (desk.levels.find((l) => l.symbol === sym)?.items ?? []).map((x) => ({ name: x.name, price: x.price }));
-      const map = minute.length ? premarketMapCached({ symbol: sym, minute: closed1m, bars15: (desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs }) : null;
+      const map = minute.length ? premarketMapCached({ symbol: sym, minute: closed1m, bars15: (desk[side].bars ?? []) as OhlcBar[], deskLevels, nowMs, daily }) : null;
       const top = desk.scan.candidates.find((c) => c.symbol === sym);
       const plan = top?.plan as { entry?: number | null; stop?: number | null } | null | undefined;
       const card = top ? { side: top.side as Side, entry: plan?.entry ?? (top as { entryPx?: number | null }).entryPx ?? null, stop: plan?.stop ?? null } : null;
