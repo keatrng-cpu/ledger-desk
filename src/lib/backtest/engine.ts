@@ -17,6 +17,7 @@ import { ltfArmOf, sessionPools } from "@/lib/smc/ltf-arm";
 import { sanePlan } from "@/lib/smc/exec-context";
 import { rollingAtr, fractalSwings } from "@/lib/trading/detectors";
 import { et } from "@/lib/smc/day-context";
+import { rungBias } from "@/lib/smc/seq/premarket-map";
 
 export type Bar = { t: number; o: number; h: number; l: number; c: number; v: number };
 export interface OptModel {
@@ -42,10 +43,19 @@ export const DEFAULT_OPT: Record<string, OptModel> = {
   MNQ: { delta: 0.5, gamma: 0.05, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 50, premium: 1.2 },
   ES: { delta: 0.5, gamma: 0.04, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 10, premium: 1.2 },
 };
+export type Bias = "bull" | "bear" | "none";
 export interface Trade {
   symbol: string; side: "long" | "short"; t: number; entry: number; stop: number; target: number; rr: number;
   exitT: number | null; exitPx: number | null; outcome: "target" | "stop" | "time" | "open"; r: number | null;
   optPnlPct: number | null; minutes: number | null; why: string;
+  // HTF-agreement context (closed-bar structural bias at arm time), for the >75% filter.
+  // htfAgree = the trade side matches BOTH 1h and 4h bias (the live htfGuard's non-disrespect case).
+  htf1h?: Bias; htf4h?: Bias; htfAgree?: boolean;
+}
+
+/** The trade side matches a higher-TF structural bias (long↔bull, short↔bear). */
+export function sideAgreesBias(side: "long" | "short", bias: Bias): boolean {
+  return (side === "long" && bias === "bull") || (side === "short" && bias === "bear");
 }
 export interface Params { ifvg5MaxAge?: number; rejectWickFrac?: number; disp1Atr?: number; stepMin?: number; timeStopMin?: number }
 
@@ -225,8 +235,18 @@ export function replayDayLtfArm(symbol: string, day: Bar[], hist: Bar[], p: Para
       const px = stopOnFill ? a.stop : r.px; const outcome = stopOnFill ? "stop" as const : r.outcome;
       const R = outcome === "open" ? null : +(((side === "long" ? px - a.entry : a.entry - px) / risk)).toFixed(2);
       const mins = (stopOnFill ? fill : r.j) - fill;
+      // HTF-agreement context at the moment the arm formed (closed higher-TF bars only).
+      // Same structural read the live desk uses (rungBias = close beyond last confirmed swing),
+      // on 1h and 4h. htfAgree = side matches both — the subset the kz filter promotes.
+      const htfWin = all.slice(Math.max(0, i - 6000), i + 1);
+      const closed1h = resample(htfWin, 3_600_000).filter((x) => x.t + 3_600_000 <= nowMs);
+      const closed4h = resample(htfWin, 14_400_000).filter((x) => x.t + 14_400_000 <= nowMs);
+      const htf1h = rungBias(closed1h as never);
+      const htf4h = rungBias(closed4h as never);
+      const htfAgree = sideAgreesBias(side, htf1h) && sideAgreesBias(side, htf4h);
       out.push({ symbol, side, t: all[fill]!.t, entry: a.entry, stop: a.stop, target: a.t1.price, rr: a.rr1 ?? 0, exitT: all[stopOnFill ? fill : r.j]?.t ?? null, exitPx: px,
-        outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, a.entry, px, mins, minutesToRthClose(all[fill]!.t)) : null, why: `ltfArm ${a.why}` });
+        outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, a.entry, px, mins, minutesToRthClose(all[fill]!.t)) : null, why: `ltfArm ${a.why}`,
+        htf1h, htf4h, htfAgree });
       busyUntil = all[stopOnFill ? fill : r.j]?.t ?? b.t;
       break;
     }
