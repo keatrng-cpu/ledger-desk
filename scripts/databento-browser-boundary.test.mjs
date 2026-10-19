@@ -14,6 +14,7 @@ test("databento keeps Node fs/path behind the async server boundary", () => {
   assert.match(source, /import\(["']node:fs["']\)/);
   assert.match(source, /import\(["']node:path["']\)/);
   assert.match(source, /export async function hasDatabentoKey/);
+  assert.doesNotMatch(source, /cachedApiKey\s*=\s*["']["']/);
 });
 
 test("client-reachable synchronous consumers use the pure bars module", () => {

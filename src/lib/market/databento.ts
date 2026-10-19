@@ -80,8 +80,9 @@ async function readApiKey(): Promise<string> {
   } catch {
     /* ignore */
   }
-  cachedApiKey = "";
-  return cachedApiKey;
+  // Do not cache a miss: local development may add or update .env while the
+  // server is running, and the next request should be able to discover it.
+  return "";
 }
 
 export async function hasDatabentoKey(): Promise<boolean> {
