@@ -5,10 +5,10 @@
 
 import {
   fetchBacktestLayers,
-  aggregateBars,
   hasDatabentoKey,
   type BacktestLayers,
 } from "@/lib/market/databento";
+import { aggregateBars } from "@/lib/market/bars";
 import type { IndexSymbol, OhlcBar } from "@/lib/market/types";
 import { analyzeStructure, smtDivergence } from "./structure";
 import { summarizeDetectors } from "./detectors";
@@ -532,7 +532,7 @@ export async function runWeekBacktest(
   message: string,
   window: DateWindow,
 ): Promise<WeekBacktestReport> {
-  if (!hasDatabentoKey()) {
+  if (!(await hasDatabentoKey())) {
     const analysis = analyzeTradezella({
       message:
         message +

@@ -57,7 +57,7 @@ export async function loadStructureSeries(
   minBars: number,
 ): Promise<SymbolSeries> {
   let historical: SymbolSeries | null = null;
-  if (hasDatabentoKey()) {
+  if (await hasDatabentoKey()) {
     try {
       const minutes = minutesOf(interval);
       const db = await fetchDatabentoBars(

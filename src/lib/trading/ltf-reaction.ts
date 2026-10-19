@@ -10,7 +10,7 @@
  * Closed bars only. The forming bucket is dropped.
  */
 
-import { aggregateBars } from "../market/databento";
+import { aggregateBars } from "../market/bars";
 import type { OhlcBar } from "../market/types";
 import type { MarketNarrative } from "./market-narrative";
 import { detectFvgs, type FvgResult } from "./detectors";
