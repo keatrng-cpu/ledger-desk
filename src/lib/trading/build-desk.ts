@@ -1707,7 +1707,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.entryPx = a.entry;
         c.plan = { entry: a.entry, entryZone: { top: a.gap.hi, bottom: a.gap.lo }, stop: a.stop, stopWhy: `one tick past the ${a.tf} sweep wick ${a.sweep.wick}`, riskPts: +risk.toFixed(2),
           t1: a.t1.price, t2: a.t2?.price ?? null, rr1: rr(a.t1.price), rr2: rr(a.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
-          why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}`, entryFormedT: a.gap.t } as never;
+          symbol: c.symbol, side: c.side, why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}`, entryFormedT: a.gap.t } as never;
         c.invalidation = `Stop ${a.stop.toFixed(2)} — one tick past the ${a.tf} sweep wick`;
         c.reasons.push(`Plan from LTF arm: entry ${a.entry} (${a.tf} ${a.gap.kind} CE), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price}`);
       }
@@ -1720,7 +1720,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.entryPx = f.entry;
         c.plan = { entry: f.entry, entryZone: { top: f.gap.hi, bottom: f.gap.lo }, stop: f.stop, stopWhy: `beyond the ${f.tf} iFVG ${f.gap.lo}–${f.gap.hi}`, riskPts: +risk.toFixed(2),
           t1: f.t1.price, t2: f.t2?.price ?? null, rr1: rr(f.t1.price), rr2: rr(f.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
-          why: f.why, entrySrc: `${f.tf} iFVG`, targetSrc: `next real pool ${f.t1.name}`, entryFormedT: f.gap.invertedT } as never;
+          symbol: c.symbol, side: c.side, why: f.why, entrySrc: `${f.tf} iFVG`, targetSrc: `next real pool ${f.t1.name}`, entryFormedT: f.gap.invertedT } as never;
         c.reasons.push(`Plan from iFVG flip: entry ${f.entry} (${f.tf} iFVG CE), stop ${f.stop}, T1 ${f.t1.name} ${f.t1.price}`);
       }
       for (const c of payload.scan.candidates) {
