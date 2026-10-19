@@ -14,7 +14,7 @@ if (!existsSync(destDir)) {
   console.log("install-netlify-cron: no .netlify/functions-internal — skip");
   process.exit(0);
 }
-for (const name of ["exec-flatten.mjs", "room-step.mjs", "news-calendar.mjs", "actuals.mjs", "weekly-cost.mjs"]) {
+for (const name of ["exec-flatten.mjs", "room-step.mjs", "news-calendar.mjs", "actuals.mjs", "weekly-cost.mjs", "rh-journal.mjs"]) {
   copyFileSync(join(root, "netlify", "functions", name), join(destDir, name));
   console.log(`install-netlify-cron: copied ${name}`);
 }

@@ -18,6 +18,7 @@ import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklis
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
 import { Route as ApiCronNewsCalendarRouteImport } from './routes/api/cron/news-calendar'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
+import { Route as ApiCronRhJournalRouteImport } from './routes/api/cron/rh-journal'
 import { Route as ApiCronRhManageRouteImport } from './routes/api/cron/rh-manage'
 import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
@@ -80,6 +81,11 @@ const ApiCronNewsCalendarRoute = ApiCronNewsCalendarRouteImport.update({
 const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
   id: '/api/cron/review',
   path: '/api/cron/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronRhJournalRoute = ApiCronRhJournalRouteImport.update({
+  id: '/api/cron/rh-journal',
+  path: '/api/cron/rh-journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronRhManageRoute = ApiCronRhManageRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
   ApiCronNewsCalendarRoute: typeof ApiCronNewsCalendarRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
+  ApiCronRhJournalRoute: typeof ApiCronRhJournalRoute
   ApiCronRhManageRoute: typeof ApiCronRhManageRoute
   ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/review'
       fullPath: '/api/cron/review'
       preLoaderRoute: typeof ApiCronReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/rh-journal': {
+      id: '/api/cron/rh-journal'
+      path: '/api/cron/rh-journal'
+      fullPath: '/api/cron/rh-journal'
+      preLoaderRoute: typeof ApiCronRhJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/rh-manage': {
@@ -585,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
   ApiCronNewsCalendarRoute: ApiCronNewsCalendarRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
+  ApiCronRhJournalRoute: ApiCronRhJournalRoute,
   ApiCronRhManageRoute: ApiCronRhManageRoute,
   ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
