@@ -65,3 +65,24 @@ test("gradeSide ranks by EV and picks the best GO", () => {
   assert.equal(best.entry, 101);
   assert.equal(best.word, "GO");
 });
+
+const side = (label, entries) => ({ side: label, bias: label === "long" ? "bull" : "bear", prior: { p: null, method: "x", n: 0 }, entries, targets: [] });
+const book = (bull, bear) => ({ symbol: "MNQ", price: 100, atr1h: 5, asOfT: 0, bars1h: 100, spanDays: 60, bull, bear, flip: null, cardCheck: null, ltfFlip: null, noUpgrade: [], missing: [] });
+
+test("gradeBook picks the best GO across both sides, and gradeRow summarizes it", () => {
+  const b = book(
+    side("long", [entry({ entry: 101, pWin: prob(0.72), t1R: 1.5 })]),   // EV 0.80 GO
+    side("short", [entry({ entry: 99, pWin: prob(0.5), t1R: 1.0 })]),    // EV 0.00 WATCH
+  );
+  const gb = g.gradeBook(b);
+  assert.ok(gb);
+  assert.equal(gb.best.entry, 101);
+  const row = g.gradeRow("MNQ", gb);
+  assert.match(row, /MNQ measured A\+/);
+  assert.match(row, /pWin 72%/);
+});
+
+test("gradeRow is null when a book has no gradeable entries", () => {
+  const b = book(side("long", []), side("short", []));
+  assert.equal(g.gradeRow("MNQ", g.gradeBook(b)), null);
+});

@@ -139,3 +139,16 @@ export function gradeBook(b: LadderBook): LadderBookGrade {
   const best = gos.sort((a, z) => (z.evR ?? -Infinity) - (a.evR ?? -Infinity))[0] ?? null;
   return { symbol: b.symbol, long, short, best, shadow: true };
 }
+
+const pctOf = (x: number | null) => (x == null ? "—" : `${Math.round(x * 100)}%`);
+
+/**
+ * One display-only shadow row summarizing a book's best measured card, for the
+ * ladder wire's `rows` (the watcher logs these as shadow and never gates on them).
+ * Null when no side has a GO/WATCH card to report.
+ */
+export function gradeRow(symbol: string, g: LadderBookGrade): string | null {
+  const b = g.best ?? g.long.best ?? g.short.best;
+  if (!b) return null;
+  return `${symbol} measured ${b.band} ${b.kind} @ ${b.entry}: pWin ${pctOf(b.pWinGivenFill)} · reach ${pctOf(b.pReachT1)} · EV ${b.evR ?? "—"}R · ${b.word}`;
+}
