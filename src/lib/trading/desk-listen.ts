@@ -15,6 +15,12 @@ import { LTF_ARM, capBandAt } from "@/lib/smc/ltf-arm";
 const WIRE_BANDS = ["A+", "A", "A-", "B+", "B", "C"] as const;
 /** Lower of bandFromQ(q) and pathBand; pathBand "skip" -> "C". Unknown pathBand -> bandFromQ(q). */
 /** ltfArm: a card armed by LTF evidence never reads above ltfArm.capBand, whatever q says. */
+/** 10/16 retest re-entry: one shadow line for the brain seat and the Floor (same text both places). */
+function retestLine(top: unknown): string | null {
+  const r = (top as { retestReentry?: import("@/lib/smc/retest-reentry").RetestRead | null } | null)?.retestReentry;
+  return r && r.state !== "void" ? `${r.label} [shadow, no vote]` : null;
+}
+
 export function armedBand(c: { confluence: number; pathBand?: string | null; ltfArmed?: boolean }): string | null {
   const b = wireBand(c.confluence, c.pathBand ?? null);
   return c.ltfArmed ? capBandAt(b, LTF_ARM.capBand) : b;
@@ -168,6 +174,8 @@ export interface DeskWire {
     /** ltfArm live: the card is LTF-armed; ltfArmGate says whether it may fire (validatedOnly). */
     ltfArmed?: boolean;
     ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } | null;
+    /** 10/16 retest re-entry SHADOW read (smc/retest-reentry.ts). Brain/Floor note it, the watcher shadow-logs it; never fires. */
+    retestReentry?: import("@/lib/smc/retest-reentry").RetestRead | null;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
     sizeMult: number;
     sweep: boolean | null;
@@ -238,6 +246,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** Every-TF closes: the same per-rung line as the Floor and the card (note only, never moves the word). */
     everyTfSeat?: string | null;
+    /** 10/16 retest re-entry seat note (shadow: a note, never a vote). */
+    retestSeat?: string | null;
   };
   chart: { symbol: string; levels: { name: string; price: number; side: "above" | "below" | null }[] }[];
   /** Fix 7/8: ranked draws for the strategy's book. */
@@ -256,6 +266,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** Every-TF closes: Floor seat line (newest closes per rung, body/wick evidence) — a note, never a vote. */
     everyTfSeat?: string | null;
+    /** 10/16 retest re-entry Floor line (shadow: a note, never a vote; the watcher shadow-logs it only). */
+    retest?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
     sizeCut?: boolean;
     /** "watcher" = ARMED setup whose only hold is the live-chain price; the watcher prices it on RH. */
@@ -403,6 +415,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           everyTf: (top as { everyTf?: unknown }).everyTf ?? null,
           ltfArmed: (top as { ltfArmed?: boolean }).ltfArmed === true,
           ltfArmGate: (top as { ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } }).ltfArmGate ?? null,
+          retestReentry: ((top as { retestReentry?: unknown }).retestReentry as never) ?? null,
           sizeMult: (top as { sizeMult?: number }).sizeMult ?? 1,
           sweep: ((top as { loss?: { htf?: { sweep?: boolean } } }).loss?.htf?.sweep) ?? null,
           loss: (top as { loss?: Record<string, unknown> }).loss ?? null,
@@ -444,6 +457,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
+      retestSeat: retestLine(top),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
       thesis:
@@ -478,6 +492,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
+      retest: retestLine(top),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
       blocks: [...tk.blocks, ...shownBlocks].slice(0, 4),
