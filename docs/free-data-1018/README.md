@@ -38,12 +38,19 @@ port 13000. Until then:
 | `feeds/free_data/vix.py` | Cboe VIX / VIX9D / VIX3M CSVs → VIX9D/VIX and VIX/VIX3M ratios, a regime label, and a front-end inversion flag. Closed days only: today's row is used only after 15:30 CT. |
 | `feeds/free_data/xasset.py` | ZN / 6E: closed 1m bars, 30 and 60 min % change. |
 | `feeds/free_data/snapshot.py` | Writes `free-features.json` for the watcher shadow row. |
-| `src/lib/free-data/features.ts` | TS twin for the desk: `card.freeData` → wire `freeData`, a Brain (master seat) narrative line, and a Floor `freeDataShadow` line. It caches per instance, never throws, waits ≤ 1.2 s on a cold start, and turns off with `DESK_FREE_DATA=0`. |
+| `src/lib/free-data/features.ts` | TS twin for the desk: `card.freeData` → wire `freeData`, a Brain (master seat) narrative line, and a Floor `freeDataShadow` line. It caches per instance, never throws, waits ≤ 1.2 s on a cold start, and is **OFF by default**: it fetches Forex Factory / Cboe and emits Brain/Floor lines only when `DESK_FREE_DATA` is exactly `1` or `true` (unset, `0` or anything else = off). |
 | `docs/free-data-1018/watcher-free-data.patch` | Adds `watcher/free_data.py` plus a daemon hook. It writes one `free_data_shadow.jsonl` row per minute (desk freeData plus local order flow and xasset). It does no broker or gate work. |
 
 **FF limitation.** The free FF feed has no `actual` field (checked JSON and XML on 2026-10-18), so the surprise sign stays `null`
 unless an actual shows up. FF rates the 10/20 07:30 CT Housing Starts (forecast 1.30M, previous 1.28M) as **Low**. It is outside
 the USD High/Medium scope, but the 07:30 CT print-window flag still fires for it.
+
+## Release Watch: default OFF
+Free data is **off unless `DESK_FREE_DATA` is exactly `1` or `true`**, with one rule in every place: the desk
+(`freeDataRead` → no Forex Factory / Cboe fetch, wire `freeData: null`), Brain (master-seat line) and Floor (`freeDataShadow`)
+via `freeDataEnabled`/`freeDataSeatLine`, and the watcher (`free_data.enabled()`: no `free_data_shadow.jsonl` rows).
+Unset, `0`, `false`, `TRUE`, `yes` and anything else all mean off, so prod and preview make no FF/Cboe calls until rollout.
+To roll out, set `DESK_FREE_DATA=1` on the desk (Netlify env) and in the watcher's environment.
 
 ## Deploy (desk and watcher together; not applied)
 Apply the watcher patch in a flat window after a STOP, in the same window the desk deploys:
@@ -63,5 +70,5 @@ merge of #52 into this branch is reported in the PR body. The RULES_HASH test he
 - `python3 -m pytest -q feeds/free_data/tests`: bar builder (OHLCV, delta/CVD sign, the 30s boundary, no lookahead via prefix
   invariance, clock grace, late trades, session reset), FF parser, surprise sign, print window, 15-min cache and 429 back-off,
   VIX ratios and closed-day rule, the cost guard (non-zero aborts before download, cache, 12-month refusal), and live router.
-- `node --test scripts/free-data.test.mjs`: the TS twin, plus the Brain verdict and checks staying unchanged when freeData is added.
-- Watcher: `tests/test_free_data_shadow.py` (in the patch).
+- `node --test scripts/free-data.test.mjs`: the TS twin (default-off with zero fetches, enabled only by `1`/`true`), plus the Brain verdict and checks staying unchanged when freeData is added.
+- Watcher: `tests/test_free_data_shadow.py` (in the patch), including default-off and enabled-by-`1`/`true` tests.

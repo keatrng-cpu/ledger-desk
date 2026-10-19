@@ -1,23 +1,24 @@
-From 2600e5733b2d79634c01fbecdf28439cc58ec1c9 Mon Sep 17 00:00:00 2001
+From d8ca8743c3efec197bdfccc76b110bf2dfbc93a6 Mon Sep 17 00:00:00 2001
 From: Grok Bot <grokbot@users.noreply.github.com>
-Date: Sun, 18 Oct 2026 23:06:32 -0500
+Date: Sun, 18 Oct 2026 23:33:28 -0500
 Subject: [PATCH] free-data-1018: free_data_shadow.jsonl logger (desk freeData
- + local feature snapshot), shadow only; RULES_HASH unchanged 9eeed9b4083700cb
+ + local feature snapshot), shadow only, default OFF (DESK_FREE_DATA exactly
+ 1/true); RULES_HASH unchanged 9eeed9b4083700cb
 
 ---
- tests/test_free_data_shadow.py | 80 ++++++++++++++++++++++++++++++++++
- watcher/daemon.py              | 10 +++++
- watcher/free_data.py           | 65 +++++++++++++++++++++++++++
- 3 files changed, 155 insertions(+)
+ tests/test_free_data_shadow.py | 102 +++++++++++++++++++++++++++++++++
+ watcher/daemon.py              |  10 ++++
+ watcher/free_data.py           |  75 ++++++++++++++++++++++++
+ 3 files changed, 187 insertions(+)
  create mode 100644 tests/test_free_data_shadow.py
  create mode 100644 watcher/free_data.py
 
 diff --git a/tests/test_free_data_shadow.py b/tests/test_free_data_shadow.py
 new file mode 100644
-index 0000000..583989e
+index 0000000..0ab1354
 --- /dev/null
 +++ b/tests/test_free_data_shadow.py
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,102 @@
 +import copy
 +import json
 +import os
@@ -59,7 +60,8 @@ index 0000000..583989e
 +    assert free_data.record({}, int(time.time() * 1000), str(p))["local_snapshot"] is False
 +
 +
-+def test_once_per_minute(tmp_path):
++def test_once_per_minute(tmp_path, monkeypatch):
++    monkeypatch.setenv("DESK_FREE_DATA", "1")
 +    st = {}
 +    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, NOW, str(tmp_path / "x")) is not None
 +    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, NOW + 30_000, str(tmp_path / "x")) is None
@@ -84,7 +86,8 @@ index 0000000..583989e
 +    assert a == b
 +
 +
-+def test_daemon_hook_logs_and_never_raises(tmp_path):
++def test_daemon_hook_logs_and_never_raises(tmp_path, monkeypatch):
++    monkeypatch.setenv("DESK_FREE_DATA", "1")
 +    from watcher import daemon
 +
 +    class Cfg:
@@ -97,6 +100,26 @@ index 0000000..583989e
 +    w._free_data_shadow({"wire": {"freeData": FD}}, NOW)
 +    w._free_data_shadow("not a card", NOW + 60_000)
 +    assert "free_data_shadow_error" not in logged
++    assert len(open(tmp_path / free_data.FILE).read().splitlines()) == 2
++
++
++def test_default_off_writes_nothing(tmp_path, monkeypatch):
++    monkeypatch.delenv("DESK_FREE_DATA", raising=False)
++    for v in (None, "", "0", "false", "TRUE", "yes", " 1"):
++        if v is None:
++            monkeypatch.delenv("DESK_FREE_DATA", raising=False)
++        else:
++            monkeypatch.setenv("DESK_FREE_DATA", v)
++        assert free_data.enabled() is False
++        assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, {}, NOW, str(tmp_path / "x")) is None
++    assert not (tmp_path / free_data.FILE).exists()
++
++
++def test_enabled_only_by_1_or_true(tmp_path, monkeypatch):
++    for i, v in enumerate(("1", "true")):
++        monkeypatch.setenv("DESK_FREE_DATA", v)
++        assert free_data.enabled() is True
++        assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, {}, NOW + i * 60_000, str(tmp_path / "x")) is not None
 +    assert len(open(tmp_path / free_data.FILE).read().splitlines()) == 2
 diff --git a/watcher/daemon.py b/watcher/daemon.py
 index 05ca657..048f0aa 100644
@@ -128,10 +151,10 @@ index 05ca657..048f0aa 100644
          kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
 diff --git a/watcher/free_data.py b/watcher/free_data.py
 new file mode 100644
-index 0000000..f1c0494
+index 0000000..13cc786
 --- /dev/null
 +++ b/watcher/free_data.py
-@@ -0,0 +1,65 @@
+@@ -0,0 +1,75 @@
 +"""Free data feeds SHADOW logger (ledger-desk shared/free-data.json, docs/free-data-1018).
 +
 +Once per closed minute, appends one row to free_data_shadow.jsonl with: the desk's free-data read (card wire
@@ -148,6 +171,13 @@ index 0000000..f1c0494
 +SNAPSHOT_ENV = "FREE_FEATURES_PATH"
 +SNAPSHOT_DEFAULT = "/workspace/data/free-feeds/free-features.json"
 +MAX_SNAPSHOT_AGE_S = 1800
++ENABLE_ENV = "DESK_FREE_DATA"
++
++
++def enabled(env=None):
++    """Release Watch: OFF by default. On only when DESK_FREE_DATA is exactly "1" or "true" (same rule as the desk)."""
++    v = (os.environ if env is None else env).get(ENABLE_ENV)
++    return v in ("1", "true")
 +
 +
 +def _local(path, now_s):
@@ -187,7 +217,10 @@ index 0000000..f1c0494
 +
 +
 +def log(path_dir, card, state, now_ms=None, snapshot_path=None):
-+    """Append at most one row per minute. `state` is a dict the caller keeps (holds the last minute logged)."""
++    """Append at most one row per minute. `state` is a dict the caller keeps (holds the last minute logged).
++    Default OFF: returns None and writes nothing unless enabled()."""
++    if not enabled():
++        return None
 +    now_ms = now_ms or int(time.time() * 1000)
 +    minute = now_ms // 60_000
 +    if state.get("minute") == minute:

@@ -5,6 +5,7 @@ import { register } from "tsx/esm/api";
 register();
 const f = await import("../src/lib/free-data/features.ts");
 const ms = await import("../src/lib/smc/master-seat.ts");
+const ON = { DESK_FREE_DATA: "1" };
 const FF = JSON.parse(readFileSync("feeds/free_data/tests/fixtures/ff_thisweek_20261018.json", "utf8"));
 const ct = (y, mo, d, h, mi) => Date.parse(`${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}:00-05:00`);
 
@@ -42,7 +43,7 @@ test("VIX ratios, regimes and closed-days-only term structure", () => {
   assert.equal(f.termStructure(s, ct(2026, 10, 19, 15, 30)).regime, "backwardation");
 });
 
-test("freeDataRead: polite cache (FF ≤ 1 req / 15 min), 429 back-off, off switch, never throws", async () => {
+test("freeDataRead (enabled): polite cache (FF ≤ 1 req / 15 min), 429 back-off, never throws", async () => {
   f._resetFreeDataCache();
   const calls = [];
   let ffStatus = 200;
@@ -53,23 +54,49 @@ test("freeDataRead: polite cache (FF ≤ 1 req / 15 min), 429 back-off, off swit
     return new Response(vixCsv, { status: 200 });
   };
   const t0 = ct(2026, 10, 18, 23, 0);
-  const r1 = await f.freeDataRead(t0, fake, 2000, {});
+  const r1 = await f.freeDataRead(t0, fake, 2000, ON);
   assert.equal(r1.mode, "shadow"); assert.equal(r1.live, false); assert.equal(r1.ff.nextPrint.title, "Unemployment Claims"); assert.equal(r1.vix.date, "2026-10-16");
   const ffCalls = () => calls.filter((u) => u.includes("faireconomy")).length;
-  await f.freeDataRead(t0 + 14 * 60_000, fake, 2000, {}); await new Promise((r) => setTimeout(r, 10));
+  await f.freeDataRead(t0 + 14 * 60_000, fake, 2000, ON); await new Promise((r) => setTimeout(r, 10));
   assert.equal(ffCalls(), 1);
   ffStatus = 429;
-  await f.freeDataRead(t0 + 16 * 60_000, fake, 2000, {}); await new Promise((r) => setTimeout(r, 10));
+  await f.freeDataRead(t0 + 16 * 60_000, fake, 2000, ON); await new Promise((r) => setTimeout(r, 10));
   assert.equal(ffCalls(), 2);
-  await f.freeDataRead(t0 + 40 * 60_000, fake, 2000, {}); await new Promise((r) => setTimeout(r, 10));
+  await f.freeDataRead(t0 + 40 * 60_000, fake, 2000, ON); await new Promise((r) => setTimeout(r, 10));
   assert.equal(ffCalls(), 2);                                   // backing off after 429 (Retry-After 3600)
-  const r2 = await f.freeDataRead(t0 + 40 * 60_000, fake, 2000, {});
+  const r2 = await f.freeDataRead(t0 + 40 * 60_000, fake, 2000, ON);
   assert.equal(r2.ff.nextPrint.title, "Unemployment Claims");  // last good read kept
-  assert.equal(await f.freeDataRead(t0, fake, 10, { DESK_FREE_DATA: "0" }), null);
   f._resetFreeDataCache();
   const boom = async () => { throw new Error("down"); };
-  const r3 = await f.freeDataRead(t0, boom, 50, {});
+  const r3 = await f.freeDataRead(t0, boom, 50, ON);
   assert.equal(r3.ff, null); assert.equal(r3.vix, null);
+  f._resetFreeDataCache();
+});
+
+test("free data is OFF by default: unset / \"0\" / anything but \"1\"|\"true\" → null and zero FF/Cboe fetches", async () => {
+  f._resetFreeDataCache();
+  let calls = 0;
+  const spy = async () => { calls++; throw new Error("must not fetch"); };
+  for (const env of [{}, { DESK_FREE_DATA: "" }, { DESK_FREE_DATA: "0" }, { DESK_FREE_DATA: "false" }, { DESK_FREE_DATA: "TRUE" }, { DESK_FREE_DATA: "yes" }, { DESK_FREE_DATA: " 1" }]) {
+    assert.equal(f.freeDataEnabled(env), false, JSON.stringify(env));
+    assert.equal(await f.freeDataRead(Date.now(), spy, 10, env), null);
+  }
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(calls, 0);
+  const fd = { mode: "shadow", live: false, asOf: "x", ff: null, vix: { date: "2026-10-16", ...f.vixRatios(19.99, 20.12, 20.5) } };
+  assert.equal(f.freeDataSeatLine(fd, {}), null);            // Floor/Brain line off by default
+  assert.match(f.freeDataSeatLine(fd, ON), /^Free data/);
+  f._resetFreeDataCache();
+});
+
+test("free data enabled only by DESK_FREE_DATA exactly \"1\" or \"true\"", async () => {
+  assert.equal(f.freeDataEnabled({ DESK_FREE_DATA: "1" }), true);
+  assert.equal(f.freeDataEnabled({ DESK_FREE_DATA: "true" }), true);
+  f._resetFreeDataCache();
+  let calls = 0;
+  const boom = async () => { calls++; throw new Error("down"); };
+  const r = await f.freeDataRead(Date.now(), boom, 50, { DESK_FREE_DATA: "true" });
+  assert.notEqual(r, null); assert.ok(calls > 0);
   f._resetFreeDataCache();
 });
 
@@ -78,7 +105,14 @@ test("Brain seat: freeData adds one narrative line and never changes verdict or 
     rule1: [], brainWord: "LONG", brainBook: { symbol: "ES", side: "long" }, floorVerdict: "TAKE", align: 0.8, smtLead: null, shockActive: false, topDraw: null, governor: "normal" };
   const fd = { mode: "shadow", live: false, asOf: "x", ff: { source: "cache", usdScoped: [], nextPrint: null, printWindow: { flag: true, events: ["Housing Starts"] }, actualsAvailable: false },
     vix: { date: "2026-10-16", ...f.vixRatios(19.99, 20.12, 20.5) } };
-  const a = ms.masterSeat(base), b = ms.masterSeat({ ...base, freeData: fd });
+  const prev = process.env.DESK_FREE_DATA;
+  delete process.env.DESK_FREE_DATA;
+  const off = ms.masterSeat({ ...base, freeData: fd });
+  assert.equal(off.narrative.some((l) => l.startsWith("Free data")), false);   // default OFF: no Brain line
+  process.env.DESK_FREE_DATA = "1";
+  let a, b;
+  try { a = ms.masterSeat(base); b = ms.masterSeat({ ...base, freeData: fd }); }
+  finally { if (prev === undefined) delete process.env.DESK_FREE_DATA; else process.env.DESK_FREE_DATA = prev; }
   assert.equal(b.verdict, a.verdict); assert.deepEqual(b.checks, a.checks); assert.deepEqual(b.failed, a.failed); assert.deepEqual(b.cautions, a.cautions);
   assert.equal(b.narrative.length, a.narrative.length + 1);
   assert.match(b.narrative.find((l) => l.startsWith("Free data")), /shadow, no gate.*print window ON.*VIX 19.99.*flat, front inverted/);

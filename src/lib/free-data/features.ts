@@ -11,7 +11,7 @@
  *   gate (src/lib/trading/news.ts) is untouched.
  * - Cboe VIX / VIX9D / VIX3M daily closes → VIX9D/VIX and VIX/VIX3M ratios + regime. Closed days only.
  * Polite: per-instance cache, FF at most once per 15 min, 429 → back off (Retry-After or 30 min), every fetch has
- * a 4 s timeout, and any failure keeps the last good read. Off switch: DESK_FREE_DATA=0.
+ * a 4 s timeout, and any failure keeps the last good read. Default OFF: on only when DESK_FREE_DATA is exactly "1" or "true".
  */
 import CFG from "../../../shared/free-data.json";
 
@@ -113,8 +113,14 @@ export function termStructure(s: { VIX: Record<string, number>; VIX9D: Record<st
   return d ? { date: d, ...vixRatios(s.VIX[d], s.VIX9D[d], s.VIX3M[d]) } : null;
 }
 
-export function freeDataSeatLine(r: FreeDataRead | null | undefined): string | null {
-  if (!r) return null;
+/** Release Watch: free data is OFF unless DESK_FREE_DATA is exactly "1" or "true" (unset, "0", anything else → off). */
+export function freeDataEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  const v = env.DESK_FREE_DATA;
+  return v === "1" || v === "true";
+}
+
+export function freeDataSeatLine(r: FreeDataRead | null | undefined, env: Record<string, string | undefined> = process.env): string | null {
+  if (!r || !freeDataEnabled(env)) return null;
   const parts: string[] = [];
   const n = r.ff?.nextPrint;
   if (n) parts.push(`next USD print ${n.title} ${n.dateCt} ${n.timeCt} CT${n.forecast ? ` f ${n.forecast}` : ""}`);
@@ -172,10 +178,10 @@ export function freeDataFromCache(nowMs: number): FreeDataRead {
 
 /**
  * Never throws, never blocks long: a warm instance answers from cache and refreshes in the background; a cold one
- * waits at most `coldWaitMs` for the first fill. DESK_FREE_DATA=0 → null.
+ * waits at most `coldWaitMs` for the first fill. Default OFF: null (no FF/Cboe fetch) unless freeDataEnabled(env).
  */
 export async function freeDataRead(nowMs = Date.now(), f: Fetcher = fetch, coldWaitMs = 1200, env: Record<string, string | undefined> = process.env): Promise<FreeDataRead | null> {
-  if (env.DESK_FREE_DATA === "0") return null;
+  if (!freeDataEnabled(env)) return null;
   try {
     if (!cache.inflight) cache.inflight = refresh(nowMs, f).finally(() => { cache.inflight = null; });
     if (!cache.ffRows && !cache.vix) await Promise.race([cache.inflight, new Promise((r) => setTimeout(r, coldWaitMs))]);
