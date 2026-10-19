@@ -508,7 +508,7 @@ export function contractsWithinRisk(each: number, cap: number, riskBudget: numbe
 export function swingNoTicketWhy(i: { underlier: string; dte: number; spot: number; delta: number; iv: number; cap: number; riskBudget: number; hasLevel: boolean }): string {
   const head = `${i.dte} DTE ${i.underlier}: no ticket`;
   const single = estimateDebitContract(i.spot, i.dte, i.delta, i.iv);
-  if (i.hasLevel) return `${head} — the level-sized loss is over the $${i.riskBudget} sleeve risk budget and no $90–$${i.cap} single priced, skip`;
+  if (i.hasLevel) return `${head} — no $90–$${i.cap} single at 0.35/0.30/0.22 delta, skip`;
   const clock = brakeIsClock(i.dte);
   const effCap = clock ? Math.min(i.cap, i.riskBudget) : i.cap;
   if (single > 0 && single <= effCap && contractsWithinRisk(single, effCap, i.riskBudget) === 0) {
