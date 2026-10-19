@@ -1,0 +1,50 @@
+diff -ruN a/tests/test_bplus_q_from_rules.py b/tests/test_bplus_q_from_rules.py
+--- a/tests/test_bplus_q_from_rules.py	2026-10-16 09:49:30.178009149 -0500
++++ b/tests/test_bplus_q_from_rules.py	2026-10-16 09:49:30.174009149 -0500
+@@ -0,0 +1,9 @@
++from watcher import daemon, gates
++
++def test_bplus_limits_read_shared_rules():
++    r = gates.RULES["fire"]["bplusBrainTake"]
++    assert daemon.Watcher.BPLUS_Q_MIN == r["hard"]["minQ"] == 0.60
++    assert daemon.Watcher.BPLUS_MAX_PER_DAY == r["hard"]["maxPerDay"] == 1
++    assert daemon.Watcher.BPLUS_NONE_AFTER_LOSS is True and r["hard"]["dayUnknownFailsClosed"] is True
++    assert r["mode"] == "live" and r["htfCappedFrom"] == ["A-"] and r["hard"]["noBrainOverride"] and r["hard"]["noBrainWouldBlock"]
++    assert "bplus_brain_agree" in gates.RULES["fastChain"]["hard"]
+diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
+--- a/tests/test_review_quote_refetch.py	2026-10-16 09:49:30.158009149 -0500
++++ b/tests/test_review_quote_refetch.py	2026-10-16 09:49:30.174009149 -0500
+@@ -21,7 +21,7 @@
+ 
+ def test_threshold_still_1s_and_hash_unchanged():
+     assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
+-    assert gates.RULES_HASH == "a4bfcb65c88badcd"
++    assert gates.RULES_HASH == "178851ff55b729bc"
+ 
+ def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
+     w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
+diff -ruN a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-16 09:49:30.158009149 -0500
++++ b/watcher/daemon.py	2026-10-16 09:49:30.174009149 -0500
+@@ -290,7 +290,11 @@
+             return firefix.step_down(b) or b
+         return b
+ 
+-    BPLUS_Q_MIN = 0.60   # Keaton 10/16 09:43 CT (10-06 B+ rule): hard, not read from desk-rules.json (rules hash unchanged)
++    # Keaton 10/16 09:43/09:48 CT: hard B+-sizing limits read from shared rules (desk parity, fire.bplusBrainTake.hard).
++    # A missing key raises at import (fail closed); the rules-hash pin already refuses an old rules copy.
++    BPLUS_Q_MIN = float(gates.RULES["fire"]["bplusBrainTake"]["hard"]["minQ"])
++    BPLUS_MAX_PER_DAY = int(gates.RULES["fire"]["bplusBrainTake"]["hard"]["maxPerDay"])
++    BPLUS_NONE_AFTER_LOSS = bool(gates.RULES["fire"]["bplusBrainTake"]["hard"]["noneAfterLoss"])
+ 
+     @classmethod
+     def _bplus_brain_gate(cls, snap, band=None, cfg=None, dayst=None, now=None, g=None):
+@@ -309,7 +313,7 @@
+         nb, lost = dayst.get("bplus_entries"), dayst.get("lost")
+         if not isinstance(nb, int) or isinstance(nb, bool) or not isinstance(lost, bool):
+             return False, f"B+ sizing: day bplus_entries={nb!r} lost={lost!r} unknown (fail closed)"
+-        if nb >= 1 or lost: return False, f"B+ sizing: B+ entries today {nb}/1, a trade lost today={lost}"
++        if nb >= cls.BPLUS_MAX_PER_DAY or (cls.BPLUS_NONE_AFTER_LOSS and lost): return False, f"B+ sizing: B+ entries today {nb}/{cls.BPLUS_MAX_PER_DAY}, a trade lost today={lost}"
+         if snap.get("blocks"): return False, "B+ sizing needs no floor blocks: " + "; ".join(map(str, snap["blocks"]))[:200]
+         for n, okr, w in g or []:
+             if n in ("brain", "soft:brain") and (okr is False or "BRAIN_OVERRIDE" in str(w) or "WOULD block" in str(w)):

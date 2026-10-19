@@ -7,7 +7,7 @@
 import { EXEC_LIMITS } from "./exec/limits";
 import { ROOM_CLOCK } from "./mandate";
 
-export type Stamp = "EV" | "HALT" | "TAPE" | "TIGHT" | "ONE" | "CLOCK" | "CASH" | null;
+export type Stamp = "EV" | "HALT" | "TAPE" | "TIGHT" | "ONE" | "CLOCK" | "CASH" | "BRAIN" | null;
 export type Tint = "ink" | "amber" | "hatch";
 export type Blotter = "down" | "live" | "back";
 export type Flight = "fill" | "return" | "none";
@@ -49,7 +49,7 @@ export interface FloorCues {
   leader: string | null;
   /**
    * The hedge-fund wing. A colour for a decision already made.
-   * B+ may glow. It does not send.
+   * B+ may glow. It does not send without a Brain TAKE on the same symbol and side, fit q >= 0.60 and no veto (fire.bplusBrainTake; Floor stamp BRAIN).
    */
   light: FloorLight;
 }
@@ -96,6 +96,7 @@ export function stampOf(gate: string | null, refusal: string | null): Stamp {
   if (refusal && /TOO TIGHT/i.test(refusal)) return "TIGHT";
   if (!gate) return null;
   if (gate === "ev" || gate === "t1_pays") return "EV";
+  if (gate === "bplus_brain_agree") return "BRAIN";
   if (gate === "halt_day" || gate === "halt_week") return "HALT";
   if (gate === "fresh_tape") return "TAPE";
   if (gate === "cash_cap") return "CASH";
