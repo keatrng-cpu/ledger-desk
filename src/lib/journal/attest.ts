@@ -42,7 +42,7 @@
  * makes serialisation implementation-dependent silently destroys the record.
  */
 
-import { createHash } from "node:crypto";
+import { sha256hex } from "@/lib/hash/sha256";
 
 /** Chain genesis. 64 hex zeros — the `prev_hash` of the first link. */
 export const GENESIS_HASH = "0".repeat(64);
@@ -138,7 +138,7 @@ export function canonicalize(value: unknown): string {
 }
 
 export function sha256Hex(input: string): string {
-  return createHash("sha256").update(input, "utf8").digest("hex");
+  return sha256hex(input);
 }
 
 /* ── Building the attested body ───────────────────────────────────────────── */
