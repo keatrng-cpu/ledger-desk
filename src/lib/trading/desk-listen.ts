@@ -538,7 +538,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     },
     {
       who: "Nova",
-      line: book ? `${book.word}. ${book.missing}.` : "No book yet.",
+      line: book ? novaLine(book) : "No book yet.",
     },
     {
       who: "Gemma",
@@ -712,4 +712,9 @@ export function fix1016SeatNote(f: unknown): string | null {
   if (x.ltfPromote?.deskOk) parts.push(`LTF arm ${x.ltfPromote.promoted ? "promoted" : "would promote"} (needs Brain TAKE)`);
   if (x.runner?.runnerTarget != null) parts.push(`runner → ${x.runner.runnerTarget}${x.runner.mode === "live" ? "" : " (shadow)"}`);
   return parts.length ? `Post-mortem 10/16: ${parts.join(" · ")}` : null;
+}
+
+/** Accuracy #56 (3): Nova names the brain's first failing layer AS missing ("STAND. Missing: POI in correct half."), never as a pass. */
+export function novaLine(book: { word: string; missing: string }): string {
+  return !book.missing || book.missing === "Sequence complete" ? `${book.word}. Sequence complete.` : `${book.word}. Missing: ${book.missing}.`;
 }

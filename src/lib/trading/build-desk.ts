@@ -21,7 +21,7 @@ import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import * as fx16 from "@/lib/smc/fix1016";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
-import { barsSinceEntry, entryFormedTOf, playedOutBars, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
+import { barsSinceEntry, entryFormedTOf, firstPrintOf, playedOutBars, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
 import { sharedDeskBuild } from "@/lib/trading/desk-tick-cache";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
@@ -2073,13 +2073,16 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           rows: mtfArrays(c.symbol, minute, closed) as never,
         });
         if (es) (c as { entryState?: unknown }).entryState = es;
-        const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: since });
         // 10/19 played-out fix: the scan starts at the entry gap/anchor's formation (plan.entryFormedT, else the matching array).
         // Held (hysteresis) levels whose entry left the plan's zone belong to an older anchor → no anchor, old scan (conservative).
         const pz = (c.plan as { entryZone?: { top: number; bottom: number } | null } | null)?.entryZone ?? null;
         const anchorOk = c.plan?.t1 != null && entry != null && (!pz || (entry >= pz.bottom - 0.25 && entry <= pz.top + 0.25));
         const pfT = (c.plan as { entryFormedT?: number | null } | null)?.entryFormedT;
         const formedT = !anchorOk ? null : entryFormedTOf(c.plan as never, pfT != null ? [] : (mtfArrays(c.symbol, minute, closed) as never));
+        // Accuracy #56 (2): stop and T1 are scanned from the SAME formation-anchored start; whichever prints first decides.
+        const poBars = playedOutBars(minute, entry, formedT);
+        const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: poBars });
+        const first = firstPrintOf(poBars, side, c.plan?.stop ?? null, c.plan?.t1 ?? null);
         const kill = (why: string) => {
           if (c.actionable) c.actionable = false;
           qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
@@ -2087,7 +2090,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
           c.reasons.push(why);
         };
-        if (inv.invalid) {
+        if (inv.invalid && !(first === "t1" && !inv.why?.startsWith("INVALIDATED: stop "))) {
           (c as { invalidated?: boolean }).invalidated = true;
           if (es) (c as { entryState?: unknown }).entryState = { ...es, state: "invalidated", label: `${c.pathBand ?? "—"}, invalidated (stop printed)` };
           kill(inv.why!);
@@ -2096,7 +2099,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (c as { priceUnknown?: boolean }).priceUnknown = true;
           if (c.actionable) c.actionable = false;
           c.reasons.push(inv.why!);
-        } else if (c.plan?.t1 != null && playedOutBars(minute, entry, formedT).some((b) => (side === "long" ? b.h >= c.plan!.t1! : b.l <= c.plan!.t1!))) {
+        } else if (c.plan?.t1 != null && first === "t1") {
           // T1 traded since the first entry touch AFTER the entry gap/anchor formed: spent, even if price came back to entry
           // (no revive/re-alert). 10/19: a touch/T1 print from before the gap existed never counts.
           (c as { playedOut?: boolean }).playedOut = true;

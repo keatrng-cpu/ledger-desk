@@ -166,6 +166,8 @@ export interface TradePlan {
 
   /** The raid this setup is built on. */
   sweep: { price: number; t: number | null } | null;
+  /** #56: the entry array's formation time (SmcArray.t: inversion for an iFVG, else creation). */
+  entryFormedT?: number | null;
   /** Dealing range, for premium / equilibrium / discount shading. */
   range: { high: number; low: number; eq: number } | null;
   /** Named draw on liquidity, with its measured reach rate. */
@@ -517,6 +519,7 @@ export function buildTradePlan(input: BuildPlanInput): TradePlan | null {
     rr1,
     rr2,
     sweep: sweepExtreme != null ? { price: round2(sweepExtreme), t: sweepT } : null,
+    entryFormedT: Number.isFinite(entryArray.t) ? entryArray.t : null,
     range: range
       ? { high: round2(range.high), low: round2(range.low), eq: round2(range.eq) }
       : null,

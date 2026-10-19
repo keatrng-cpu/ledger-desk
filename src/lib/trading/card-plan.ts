@@ -154,6 +154,8 @@ export interface CardPlan {
 
   /** The raid wick itself, with its time. The stop sits just beyond this. */
   raid?: { price: number; t: number | null } | null;
+  /** #56: formation time (ms) of the entry gap — the played-out/stop scans start here. Gap's own time, else the raid's. */
+  entryFormedT?: number | null;
   /**
    * The PARTIAL — equilibrium of the IMPULSE LEG (item 1).
    *
@@ -382,6 +384,19 @@ export interface CardPlanExtras {
  * `scripts/build-evidence-pack.mjs`) is a LATER wave and was deliberately not
  * run here. Until it runs, the headline probability is stale.
  */
+/**
+ * Accuracy #56 (10/19 09:50 ET MNQ short tjr card): the entry gap's formation time — the newest plan array whose
+ * zone is the entry zone to the tick (SmcArray.t = inversion time for an iFVG, else creation), else the raid time.
+ */
+export function entryGapFormedT(plan: Pick<TradePlan, "entryZone" | "sweep"> & { entryFormedT?: number | null; arrays?: { top: number; bottom: number; t: number }[] }, tick = 0.25): number | null {
+  if (plan.entryFormedT != null && Number.isFinite(plan.entryFormedT)) return plan.entryFormedT;
+  const z = plan.entryZone; let best: number | null = null;
+  if (z) for (const a of plan.arrays ?? []) {
+    if (Math.abs(a.top - z.top) > tick + 1e-9 || Math.abs(a.bottom - z.bottom) > tick + 1e-9 || !Number.isFinite(a.t)) continue;
+    if (best == null || a.t > best) best = a.t;
+  }
+  return best ?? (plan.sweep?.t != null && Number.isFinite(plan.sweep.t) ? plan.sweep.t : null);
+}
 export function cardPlanFrom(plan: TradePlan, extras?: CardPlanExtras): CardPlan {
   const atr = plan.riskAtr != null && plan.riskAtr > 0 ? plan.riskAtr : null;
   const base: CardPlan = {
@@ -403,6 +418,7 @@ export function cardPlanFrom(plan: TradePlan, extras?: CardPlanExtras): CardPlan
     sweep: plan.sweep?.price ?? null,
     drawName: extras?.drawPool?.name ?? plan.draw?.name ?? null,
     raid: plan.sweep ? { price: plan.sweep.price, t: plan.sweep.t } : null,
+    entryFormedT: entryGapFormedT(plan),
     partial: extras?.partial ?? null,
     drawPool: extras?.drawPool ?? null,
     runnerPool: extras?.runnerPool ?? null,

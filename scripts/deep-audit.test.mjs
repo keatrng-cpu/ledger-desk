@@ -267,3 +267,46 @@ test("10/19 played-out: entryFormedTOf reads the plan, else the array matching t
   const ex = (await_fs()).readFileSync(new URL("../src/lib/smc/exec-context.ts", import.meta.url), "utf8");
   assert.ok(ex.includes("entryFormedT: g.kind === \"ifvg\" ? (g.invertedT ?? g.createdT) : g.createdT") && ex.includes("entryFormedT: gap.formedT ?? null"));
 });
+
+// ---- Accuracy #56 round 2 ----
+test("#56 cardPlanFrom sets entryFormedT: plan's entry array time, else matching array, else raid time", async () => {
+  const { cardPlanFrom, entryGapFormedT } = await import("../src/lib/trading/card-plan.ts");
+  const z = { top: 29745, bottom: 29733 };
+  const base = { symbol: "MNQ", side: "short", price: 29720, entry: 29739, entryZone: z, stop: 29760, riskPts: 21, riskTooTight: false, riskTooWide: false, riskAtr: null, riskOverCap: false,
+    t1: 29683.5, t2: null, rr1: 2.6, rr2: null, sweep: { price: 29758, t: et(925) }, range: null, draw: null, arrays: [] };
+  assert.equal(cardPlanFrom({ ...base, entryFormedT: et(933) }).entryFormedT, et(933));
+  assert.equal(entryGapFormedT({ ...base, arrays: [{ top: 29745, bottom: 29733, t: et(933) }, { top: 29800, bottom: 29790, t: et(940) }] }), et(933));
+  assert.equal(cardPlanFrom(base).entryFormedT, et(925));        // fallback: the raid
+  assert.equal(D.entryFormedTOf(cardPlanFrom({ ...base, entryFormedT: et(933) }), []), et(933));
+});
+test("#56 09:50 ET MNQ short tjr: T1 29683.5 printed before the 09:33 gap → not played out at 09:50 / 09:58", () => {
+  const t0 = et(900); const m = [];
+  for (let k = 0; k < 60; k++) { const t = t0 + k * 60_000; m.push(bar(t, 29700, 29705, 29695, 29700)); }
+  const at = (hm, h, l) => { const i = m.findIndex((b) => b.t === et(hm)); m[i] = bar(et(hm), (h + l) / 2, h, l, (h + l) / 2); };
+  at(910, 29740, 29680);     // old touch of entry + T1 print BEFORE the gap
+  at(933, 29745, 29733);     // gap formed
+  at(945, 29741, 29730);     // retest touches entry 29739
+  for (const hm of [950, 958]) {
+    const upto = m.filter((b) => b.t <= et(hm));
+    const po = D.playedOutBars(upto, 29739, et(933));
+    assert.equal(D.firstPrintOf(po, "short", 29760, 29683.5), null, String(hm));
+    assert.equal(D.firstPrintOf(D.playedOutBars(upto, 29739, null), "short", 29760, 29683.5), "t1");   // the bug (no anchor)
+  }
+});
+test("#56 stop → back through entry → T1 is a stop (1R loss), not 'played out'; T1 first stays played out", () => {
+  const t0 = et(950); const mk = (k, h, l) => bar(t0 + k * 60_000, (h + l) / 2, h, l, (h + l) / 2);
+  // MNQ long C entry 29697.75, stop 29680, T1 29740: touch 09:55, stop 10:03, back through entry 10:08, T1 10:13
+  const m = [mk(0, 29710, 29705), mk(5, 29700, 29695), mk(13, 29690, 29678), mk(18, 29705, 29695), mk(23, 29745, 29735)];
+  const po = D.playedOutBars(m, 29697.75, t0);
+  assert.equal(D.firstPrintOf(po, "long", 29680, 29740), "stop");
+  assert.equal(D.invalidationOf({ side: "long", price: 29742, entry: 29697.75, stop: 29680, sinceEntry: po }).invalid, true);
+  const m2 = [mk(0, 29710, 29705), mk(5, 29700, 29695), mk(13, 29745, 29735), mk(18, 29690, 29678)];
+  assert.equal(D.firstPrintOf(D.playedOutBars(m2, 29697.75, t0), "long", 29680, 29740), "t1");
+  const bd = _fs.readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
+  assert.ok(bd.includes("sinceEntry: poBars") && bd.includes('first === "t1"'));
+});
+test("#56 Nova names the missing layer as missing", async () => {
+  const { novaLine } = await import("../src/lib/trading/desk-listen.ts");
+  assert.equal(novaLine({ word: "STAND", missing: "POI in correct half" }), "STAND. Missing: POI in correct half.");
+  assert.equal(novaLine({ word: "TAKE", missing: "Sequence complete" }), "TAKE. Sequence complete.");
+});

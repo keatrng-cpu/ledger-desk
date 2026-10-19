@@ -117,9 +117,10 @@ export function playedOutBars(minute: OhlcBar[] | null | undefined, entry: numbe
 }
 
 /**
- * The formation time of the plan's entry anchor: the plan's own `entryFormedT` (set by every plan source in
- * build-desk / exec-context), else the newest array whose zone matches `entryZone` to the tick (iFVG → its
- * inversion time). Null when neither exists — the caller keeps the old scan.
+ * The formation time of the plan's entry anchor: the plan's own `entryFormedT` — set by the build-desk LTF-arm /
+ * iFVG-flip / planAt plans, exec-context, and cardPlanFrom (entry gap's time, else the raid time) — else the newest
+ * `rows` array (the caller passes mtfArrays: recent 1m-derived rows only) whose zone matches `entryZone` to the tick
+ * (iFVG → its inversion time). Null when neither exists — the caller keeps the old first-touch scan.
  */
 export function entryFormedTOf(plan: { entryFormedT?: number | null; entryZone?: { top: number; bottom: number } | null } | null | undefined,
   rows: { lo: number; hi: number; kind?: string; createdT: number; invertedT?: number | null }[] = [], tick = 0.25): number | null {
@@ -134,6 +135,19 @@ export function entryFormedTOf(plan: { entryFormedT?: number | null; entryZone?:
     if (Number.isFinite(t) && (best == null || t > best)) best = t;
   }
   return best;
+}
+
+/**
+ * Accuracy #56 (2): stop and T1 are judged on the SAME formation-anchored bars (playedOutBars); whichever prints
+ * first decides. Both on one bar → "stop" (conservative: a 1R loss is never graded as T1 traded).
+ */
+export function firstPrintOf(bars: OhlcBar[], side: "long" | "short", stop: number | null, t1: number | null): "stop" | "t1" | null {
+  const L = side === "long";
+  for (const b of bars) {
+    if (stop != null && (L ? b.l <= stop : b.h >= stop)) return "stop";
+    if (t1 != null && (L ? b.h >= t1 : b.l <= t1)) return "t1";
+  }
+  return null;
 }
 
 /** #12: the tape is stale when either book's quote lags more than maxLagSec. */
