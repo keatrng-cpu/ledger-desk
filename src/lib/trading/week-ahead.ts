@@ -504,9 +504,9 @@ export const WEEK_OCT19_OCT23: WeekPlan = {
     "Fri medium close. Next hard is Oct 28 FOMC 14:00.",
   ],
   outcomes: [
-    { p: 0.55, name: "Range under PWH", detail: "Tape stays under prior-week high, claims in-line, no new trend." },
-    { p: 0.25, name: "Failed reclaim", detail: "Probe toward PWH fades, downside extension under PWL." },
-    { p: 0.20, name: "Reclaim hold", detail: "Holds above Friday low and reclaims structure into the weekend." },
+    { p: 55, name: "Range under PWH", detail: "Tape stays under prior-week high, claims in-line, no new trend." },
+    { p: 25, name: "Failed reclaim", detail: "Probe toward PWH fades, downside extension under PWL." },
+    { p: 20, name: "Reclaim hold", detail: "Holds above Friday low and reclaims structure into the weekend." },
   ],
   days: [
     {
