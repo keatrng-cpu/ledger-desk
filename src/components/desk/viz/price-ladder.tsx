@@ -12,7 +12,7 @@
 import { cn } from "@/lib/utils";
 
 export interface LadderPlan {
-  side: "long" | "short";
+  side: "long" | "short" | null;
   entry: number;
   zone?: { top: number; bottom: number } | null;
   stop: number;
@@ -103,7 +103,7 @@ export function PriceLadder({
         className="relative w-full"
         style={{ height }}
         role="img"
-        aria-label={`Plan ladder: ${plan.side} entry ${fx(plan.entry)}, stop ${fx(plan.stop)}${plan.t1 != null ? `, T1 ${fx(plan.t1)}` : ""}${plan.t2 != null ? `, T2 ${fx(plan.t2)}` : ""}`}
+        aria-label={`Plan ladder: ${plan.side ?? "—"} entry ${fx(plan.entry)}, stop ${fx(plan.stop)}${plan.t1 != null ? `, T1 ${fx(plan.t1)}` : ""}${plan.t2 != null ? `, T2 ${fx(plan.t2)}` : ""}`}
       >
         {/* The rail. */}
         <div className="absolute inset-y-0 left-[34%] w-[18%] rounded bg-[var(--color-surface-2)]" />
@@ -213,7 +213,7 @@ export function ladderFrom(p: {
   const name = p.drawName ?? p.draw?.name ?? null;
   // 2026-10-19 08:2x CT: iFVG-flip plans arrive without `side`; `plan.side.toUpperCase()` threw and
   // took down PricePathBoard and SetupScanner. Use the card's side, else the stop's side of the entry.
-  const side = p.side ?? fallbackSide ?? (p.stop < p.entry ? "long" : "short");
+  const side = p.side ?? fallbackSide ?? ladderSideFromStop(p.entry, p.stop);
   return {
     plan: {
       side,
@@ -228,4 +228,10 @@ export function ladderFrom(p: {
     },
     t1Label: name ? `T1 ${name}` : "T1",
   };
+}
+
+/** Stop's side of the entry; null ('—') when the stop is missing, non-finite, or equal to the entry. */
+export function ladderSideFromStop(entry: number | null | undefined, stop: number | null | undefined): "long" | "short" | null {
+  if (entry == null || stop == null || !Number.isFinite(entry) || !Number.isFinite(stop) || stop === entry) return null;
+  return stop < entry ? "long" : "short";
 }
