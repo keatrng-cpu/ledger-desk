@@ -70,3 +70,26 @@ test("desk T1 freeze: armed freezes, later re-selection can't move it, unarmed u
   r = Z.t1Freeze(S, { ...base, t1: 7760, state: null }, now + 200_000); assert.equal(r.t1, 7775.25); assert.equal(r.frozen.state, "fired");
   r = Z.t1Freeze(S, { ...base, t1: 7760, state: null }, now + 86_400_000); assert.equal(r.frozen, null);
 });
+
+// Accuracy #56 MUST-FIX 1: the read-priority flip anchors at the real 1m close through the gap, never the poll time.
+test("#56 read-flipped ES short: invertedT = the 1m close-through (not nowMs); T1 traded after formation → played out", async () => {
+  const D = await import("../src/lib/smc/deep-audit.ts");
+  const bars = JSON.parse(readFileSync(new URL("./fixtures/es1m_1015.json", import.meta.url), "utf8"));
+  const now = Date.UTC(2026, 9, 15, 18, 3, 5);
+  const { f } = flipAt(bars, now, "short");
+  assert.ok(f.gap.invertedT < now, "anchor must not be the poll time");
+  assert.equal(f.gap.invertedT, Date.UTC(2026, 9, 15, 18, 2));       // the 13:02 CT 1m bar that closed through
+  // later poll (13:14 CT): entry 7781.75 touched at 13:02, EQL 7775.25 traded 13:04 → played out
+  const later = bars.filter((b) => b.t + 60_000 <= Date.UTC(2026, 9, 15, 18, 15));
+  const po = D.playedOutBars(later, f.entry, f.gap.invertedT);
+  assert.equal(po[0].t, Date.UTC(2026, 9, 15, 18, 2));
+  assert.ok(po.some((b) => b.l <= f.t1.price), "T1 in the scan → played out");
+  // the bug: anchoring at the later poll time skips the touch and T1 → live un-kill
+  const bug = D.playedOutBars(later, f.entry, Date.UTC(2026, 9, 15, 18, 10, 5));
+  assert.equal(bug.some((b) => b.l <= b.h && b.l <= f.entry && b.h >= f.entry), false);
+});
+test("#56 readFlipT: last closed 1m bar minus through1mAgeMin; createdT fallback", () => {
+  const t = Date.UTC(2026, 9, 15, 18, 0); const m = [0, 1, 2, 3].map((k) => mk(t + k * 60_000, 1, 1, 1, 1));
+  assert.equal(F.readFlipT(m, { through1mAgeMin: 2 }, t + 4 * 60_000 + 5_000), t + 60_000);
+  assert.equal(F.readFlipT([], { through1mAgeMin: null, createdT: 42 }, t), 42);
+});

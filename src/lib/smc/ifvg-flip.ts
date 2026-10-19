@@ -55,6 +55,14 @@ export function ifvgAgainst(arrays: WireArray[], side: Side, px: number | null |
   return [false, `no ${r.tfs.join("/")} ${mine} FVG being inverted`];
 }
 
+/** Accuracy #56 MUST-FIX 1: the real read-flip formation time = open of the 1m bar that closed through the nearest gap
+ *  (through1mAgeMin counts from that bar's close to the last closed 1m bar's close). Never the poll time. */
+export function readFlipT(minute: OhlcBar[] | null | undefined, g: Pick<WireArray, "through1mAgeMin"> & { createdT?: number }, nowMs: number): number {
+  const closed = (minute ?? []).filter((b) => b.t + 60_000 <= nowMs);
+  const last = closed[closed.length - 1];
+  if (last && g.through1mAgeMin != null) return last.t - g.through1mAgeMin * 60_000;
+  return g.createdT ?? (last ? last.t : nowMs);
+}
 export interface Pool { name: string; price: number }
 export interface IfvgFlip {
   side: Side; tf: ArrayTf; gap: { lo: number; hi: number; ce: number; invertedT: number; ageBars: number };
@@ -77,7 +85,7 @@ export function ifvgFlipOf(i: { symbol: string; side: Side; minute: OhlcBar[] | 
       const ce = +((g.lo + g.hi) / 2).toFixed(2); const stop = +(S ? far + r.stopAtr * a : far - r.stopAtr * a).toFixed(2); const risk = Math.abs(ce - stop);
       const ahead = i.targets.filter((p) => (S ? p.price < ce : p.price > ce) && Math.abs(p.price - ce) / risk >= r.minRr).sort((x, y) => (S ? y.price - x.price : x.price - y.price));
       const t1 = ahead[0] ?? null;
-      best = { side: i.side, tf: "5m", gap: { lo: g.lo, hi: g.hi, ce, invertedT: i.nowMs, ageBars: 0 }, entry: ce, entryEdge: S ? g.lo : g.hi, stop, dispAtr: 0, t1, t2: ahead[1] ?? null,
+      best = { side: i.side, tf: "5m", gap: { lo: g.lo, hi: g.hi, ce, invertedT: readFlipT(i.minute, g, i.nowMs), ageBars: 0 }, entry: ce, entryEdge: S ? g.lo : g.hi, stop, dispAtr: 0, t1, t2: ahead[1] ?? null,
         rr1: t1 ? +(Math.abs(t1.price - ce) / risk).toFixed(2) : null, why: `read flipped: ${gs.length} 5m ${S ? "bull" : "bear"} FVGs closed through on 1m - ${i.side} at the gap CE retest, stop beyond ${far}` };
     }
   }

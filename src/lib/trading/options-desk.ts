@@ -500,6 +500,26 @@ export function contractsWithinRisk(each: number, cap: number, riskBudget: numbe
 }
 
 /**
+ * Accuracy 10/19 (display only): why the swing card has no ticket, in the words of the check that refused it.
+ * Mirrors sizeProduct's single-leg path (toTicket's delta midpoint): with no priced level a ticket can fail on
+ * the debit (single > cap) or on RISK (contractsWithinRisk(...) === 0 — one contract's loss at the brake is over
+ * the sleeve risk budget). Only the first is "too rich". Changes no gate; text only.
+ */
+export function swingNoTicketWhy(i: { underlier: string; dte: number; spot: number; delta: number; iv: number; cap: number; riskBudget: number; hasLevel: boolean }): string {
+  const head = `${i.dte} DTE ${i.underlier}: no ticket`;
+  const single = estimateDebitContract(i.spot, i.dte, i.delta, i.iv);
+  if (i.hasLevel) return `${head} — no $90–$${i.cap} single at 0.35/0.30/0.22 delta, skip`;
+  const clock = brakeIsClock(i.dte);
+  const effCap = clock ? Math.min(i.cap, i.riskBudget) : i.cap;
+  if (single > 0 && single <= effCap && contractsWithinRisk(single, effCap, i.riskBudget) === 0) {
+    return `${head} — no priced level, and one contract's loss at the brake (~$${Math.round(single * EFFECTIVE_STOP_FRAC)}) is over the $${i.riskBudget} sleeve risk budget (0 contracts within risk). Not the $${i.cap} debit cap, skip`;
+  }
+  if (single > effCap && effCap < i.cap) return `${head} — no priced level and the brake is a clock at ${i.dte} DTE, so the debit is held to the $${i.riskBudget} sleeve risk budget; est $${Math.round(single)} is over it. Not the $${i.cap} debit cap, skip`;
+  if (single > effCap) return `${head} — too rich for $${i.cap} (est $${Math.round(single)}) — would need a lottery Δ, skip`;
+  return `${head} — no priced level and no single or vertical fits the $${i.riskBudget} sleeve risk budget, skip`;
+}
+
+/**
  * Is the premium brake a CLOCK at this DTE?
  *
  * The risk equivalence above rests entirely on the 15% brake being reachable
@@ -2020,6 +2040,7 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
   const watch = !smtUnconfirmed && (bearish || bullish) && blocks.length <= 1;
   const verdict: RhVerdict = armed ? "ARMED" : watch ? "WATCH" : "STAND";
   const spot = estimateSpot(underlier, esPx, nqPx, desk.proxies);
+  let smtPlan: TradePlan | null = null;
   let ticket =
     verdict !== "STAND"
       ? toTicket(
@@ -2037,8 +2058,8 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
             ? "Both books reclaim the sweep high = out. ES taking a high NQ refuses is still valid."
             : "Both books fail the hold low = out",
           ["Trim 50% at +50% of debit", "Do not buy SPY and QQQ together"],
-          // Size from the LEVEL: the futures plan this option expresses.
-          planForUnderlier(desk, underlier),
+          // Size from the LEVEL: the futures plan this option expresses (kept for the no-ticket reason below).
+          (smtPlan = planForUnderlier(desk, underlier)),
         )
       : null;
 
@@ -2048,7 +2069,8 @@ function smtLead(desk: DeskPayload, sleeve: RhSleeve, cap: number): RhStrategyCa
     else reasons.push("Size cut wanted but the ticket is already 1 contract — 1 is the floor.");
   }
   if (verdict !== "STAND" && !ticket) {
-    blocks.push(`5 DTE ${underlier} too rich for $${cap} — would need a lottery Δ, skip`);
+    // Accuracy 10/19: say the REAL block — usually the $150 sleeve risk budget with no priced level, not the debit.
+    blocks.push(swingNoTicketWhy({ underlier, dte: 5, spot, delta: 0.35, iv: IV[underlier], cap, riskBudget: rhRiskBudgetUsd(sleeve), hasLevel: smtPlan != null }));
   }
 
   return {

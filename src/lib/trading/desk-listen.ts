@@ -285,6 +285,11 @@ export interface DeskWire {
   };
 }
 
+/** Accuracy 10/19 (display only): blocks from the swing card (smt_lead, fixed 5 DTE) carry a "swing card:" prefix so they never read as today's intraday block. */
+export function swingLabeled(blocks: readonly string[], fromSwing: boolean): string[] {
+  return fromSwing ? blocks.map((b) => (/^swing card:/i.test(b) ? b : `swing card: ${b}`)) : [...blocks];
+}
+
 export function deskListenCard(desk: DeskPayload): DeskListenCard {
   const floor = evaluateOptionsDesk(desk);
   const armed = floor.best;
@@ -293,6 +298,9 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     floor.day.find((c) => c.verdict === "WATCH") ??
     floor.swing.find((c) => c.verdict === "WATCH") ??
     null;
+  // Accuracy 10/19: when no day card is WATCH/ARMED the Floor falls back to the swing card (smt_lead, 5 DTE);
+  // its blocks are labelled so they never read as today's intraday block.
+  const shownBlocks = swingLabeled(shown?.blocks ?? [], shown != null && (shown.horizon === "swing" || floor.swing.includes(shown)));
   const book = desk.smcMaster.oneBook;
   const judas = isJudasWindow(desk.clock.etHour, desk.clock.etMinute);
   const verdict = shown?.verdict ?? "STAND";
@@ -469,7 +477,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,
-      blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
+      blocks: [...tk.blocks, ...shownBlocks].slice(0, 4),
       ticketCheck: tk.flags,
       otherBookTicket: tk.contradicts && shown?.ticket ? { underlier: shown.ticket.underlier, side: shown.ticket.side, dte: shown.ticket.dteTarget, label: "Floor SMT other-book ticket — NOT the card's trade" } : null,
       ticket: shown?.ticket && !tk.contradicts
@@ -526,8 +534,8 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       who: "Vince",
       line: handed
         ? "Cleared. I hand this ticket to Grok. Grok hears this floor through the LedgerDesk connector and places it on Agentic."
-        : shown?.blocks?.[0]
-          ? `Not handed. ${shown.blocks[0]}`
+        : shownBlocks[0]
+          ? `Not handed. ${shownBlocks[0]}`
           : `Nothing to hand Grok. The floor is ${verdict}.`,
     },
     {
@@ -536,7 +544,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     },
     {
       who: "Nova",
-      line: book ? `${book.word}. ${book.missing}.` : "No book yet.",
+      line: book ? novaLine(book) : "No book yet.",
     },
     {
       who: "Gemma",
@@ -587,7 +595,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       id: shown?.id ?? null,
       verdict,
       band: shown?.pathBand ?? null,
-      blocks: [...tk.blocks, ...(shown?.blocks ?? [])].slice(0, 4),
+      blocks: [...tk.blocks, ...shownBlocks].slice(0, 4),
       ticket: shown?.ticket && !tk.contradicts
         ? {
             underlier: shown.ticket.underlier,
@@ -712,4 +720,9 @@ export function fix1016SeatNote(f: unknown): string | null {
   if (x.ltfPromote?.deskOk) parts.push(`LTF arm ${x.ltfPromote.promoted ? "promoted" : "would promote"} (needs Brain TAKE)`);
   if (x.runner?.runnerTarget != null) parts.push(`runner → ${x.runner.runnerTarget}${x.runner.mode === "live" ? "" : " (shadow)"}`);
   return parts.length ? `Post-mortem 10/16: ${parts.join(" · ")}` : null;
+}
+
+/** Accuracy #56 (3): Nova names the brain's first failing layer AS missing ("STAND. Missing: POI in correct half."), never as a pass. */
+export function novaLine(book: { word: string; missing: string }): string {
+  return !book.missing || book.missing === "Sequence complete" ? `${book.word}. Sequence complete.` : `${book.word}. Missing: ${book.missing}.`;
 }
