@@ -178,11 +178,12 @@ const m15 = Array.from({ length: 1600 }, (_, i) => ({
 // ── 6. The trailing bucket is never passed off as complete ─────────────────
 {
   // 15m bars ending at :15 leave a 4h bucket holding two bars out of sixteen.
+  // 2026-10-19: 4h buckets are Globex-anchored (18/22/02/06/10/14 ET), so the fixture starts at 07:00 UTC = 02:00 EST.
   // It must be flagged, not drawn with the shape of a closed 4h candle — the
   // same rule that stops the gateway flushing a partial minute as a bar.
   const oneBar = [
-    { t: Date.UTC(2024, 0, 1, 8, 0), o: 1, h: 2, l: 0, c: 1.5, v: 1 },
-    { t: Date.UTC(2024, 0, 1, 8, 15), o: 1.5, h: 2.5, l: 1, c: 2, v: 1 },
+    { t: Date.UTC(2024, 0, 1, 7, 0), o: 1, h: 2, l: 0, c: 1.5, v: 1 },
+    { t: Date.UTC(2024, 0, 1, 7, 15), o: 1.5, h: 2.5, l: 1, c: 2, v: 1 },
   ];
   const s4 = seriesFor("4h", oneBar, []);
   ok(s4.lastBarPartial === true, "a 4h bucket holding two 15m bars is flagged partial");
@@ -193,7 +194,7 @@ const m15 = Array.from({ length: 1600 }, (_, i) => ({
   const full = [];
   for (let i = 0; i < 16; i++) {
     full.push({
-      t: Date.UTC(2024, 0, 1, 8, 0) + i * 900000,
+      t: Date.UTC(2024, 0, 1, 7, 0) + i * 900000,
       o: 1,
       h: 2,
       l: 0,

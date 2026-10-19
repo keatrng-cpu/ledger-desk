@@ -32,6 +32,7 @@
 import type { OhlcBar } from "../market/types";
 import type { MarkKind } from "./setup-anticipation";
 import { resampleMs } from "./tf-ladder";
+import { bucketEnd } from "@/lib/market/minute-gaps";
 
 export type ChartTf = "1m" | "2m" | "3m" | "5m" | "15m" | "1h" | "4h";
 
@@ -212,8 +213,9 @@ function partial(
   }
   const start = bucketed[bucketed.length - 1]!.t;
   const lastSrc = src[src.length - 1]!.t;
-  const printed = Math.min(ms, lastSrc + srcMs - start);
-  const fill = Math.max(0, Math.min(1, printed / ms));
+  const span = bucketEnd(start, ms) - start; // 4h is Globex-anchored; the 14:00 ET bucket is 3h (fix 2026-10-19)
+  const printed = Math.min(span, lastSrc + srcMs - start);
+  const fill = Math.max(0, Math.min(1, printed / span));
   return { lastBarPartial: fill < 0.999, lastBarFill: +fill.toFixed(3) };
 }
 

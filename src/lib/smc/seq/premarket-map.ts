@@ -9,7 +9,7 @@
  * OB / breaker / rejection blocks on 5m–4h and 1D. Each array carries CE and both edges. Body closes decide
  * respect; wicks decide sweeps (fix 10 reads them live).
  */
-import { completeBuckets, LONDON_BLOCK_MIN, openMinutesInEtWindow, spansGap } from "@/lib/market/minute-gaps";
+import { bucketEnd, completeBuckets, LONDON_BLOCK_MIN, openMinutesInEtWindow, spansGap } from "@/lib/market/minute-gaps";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectFvgs, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { mtfArrays, type ArrayRow } from "../mtf-arrays";
@@ -56,7 +56,7 @@ export function resample(bars: OhlcBar[], ms: number): OhlcBar[] {
 /** Closed buckets only: a bucket counts once its whole span has closed at cutT. */
 export function closedBuckets(bars: OhlcBar[], ms: number, cutT: number): OhlcBar[] {
   // #19: a bucket missing a Globex-open source bar is dropped, not shown as that timeframe's candle.
-  return completeBuckets(bars, ms).filter((b) => b.t + ms <= cutT);
+  return completeBuckets(bars, ms).filter((b) => bucketEnd(b.t, ms) <= cutT); // 14:00 ET 4h bucket closes at 17:00 (fix 2026-10-19)
 }
 /** Session bars (18:00 ET roll) → one daily bar per session (the desk's "1D"). */
 export function sessionDaily(bars: OhlcBar[]): (OhlcBar & { key: string })[] {

@@ -11,6 +11,7 @@
  * or a continuation stack). Score = parts / 3. A read, never a gate.
  */
 import RULES from "../../../shared/desk-rules.json";
+import { bucketEnd, bucketStart } from "@/lib/market/minute-gaps";
 import type { OhlcBar } from "@/lib/market/types";
 import { detectSweeps, fractalSwings, rollingAtr } from "@/lib/trading/detectors";
 import { HTF_RUNGS, LTF_RUNGS, mtfArrays, rung, type ArrayTf } from "./mtf-arrays";
@@ -429,8 +430,8 @@ export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: num
   const closedOn = (tfMin: number) => {
     const ms = tfMin * 60_000;
     const out: { t: number; c: number }[] = [];
-    for (const b of m) { const k = Math.floor(b.t / ms) * ms; const L = out[out.length - 1]; if (L && L.t === k) L.c = b.c; else out.push({ t: k, c: b.c }); }
-    return out.filter((x) => x.t + ms <= lastEnd);
+    for (const b of m) { const k = bucketStart(b.t, ms); const L = out[out.length - 1]; if (L && L.t === k) L.c = b.c; else out.push({ t: k, c: b.c }); }
+    return out.filter((x) => bucketEnd(x.t, ms) <= lastEnd); // 4h: Globex anchor, 14:00 bucket ends 17:00 ET (fix 2026-10-19)
   };
   const series = rungs.map((r) => ({ r, min: CLEAR_RUNGS_MIN[r]!, bars: closedOn(CLEAR_RUNGS_MIN[r]!) }));
   let tMax = 0;
@@ -445,7 +446,7 @@ export function killClearedOf(m: OhlcBar[], side: Side, kills: Kill[]): { t: num
       if (!after.length) continue;
       seen++;
       const last = after[after.length - 1]!;
-      if (beyond(last.c)) { agree.push(s.r); slowest = Math.max(slowest, s.min); tk = Math.max(tk, last.t + s.min * 60_000); }
+      if (beyond(last.c)) { agree.push(s.r); slowest = Math.max(slowest, s.min); tk = Math.max(tk, bucketEnd(last.t, s.min * 60_000)); }
     }
     // ≥ minRungs rungs AND a majority of the rungs that closed since the kill, slowest ≥ 2m.
     if (agree.length < need || agree.length * 2 <= seen || slowest < 2) return null;
