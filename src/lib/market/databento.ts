@@ -52,17 +52,16 @@ const LABEL: Record<IndexSymbol, string> = {
   ES: "ES E-mini S&P (CME)",
 };
 
-let cachedApiKey: string | undefined;
+const API_KEY_FILE_CACHE_MS = 5_000;
+let cachedApiKey: { value: string; expiresAt: number } | undefined;
 
 /** Read key from process.env or workspace .env (dev sandbox). Never log the value. */
 async function readApiKey(): Promise<string> {
   if (typeof window !== "undefined") return "";
-  if (cachedApiKey !== undefined) return cachedApiKey;
   const fromEnv = process.env.DATABENTO_API_KEY?.trim();
-  if (fromEnv) {
-    cachedApiKey = fromEnv;
-    return cachedApiKey;
-  }
+  if (fromEnv) return fromEnv;
+  const now = Date.now();
+  if (cachedApiKey && cachedApiKey.expiresAt > now) return cachedApiKey.value;
   try {
     const [{ existsSync, readFileSync }, { join }] = await Promise.all([
       import("node:fs"),
@@ -75,8 +74,8 @@ async function readApiKey(): Promise<string> {
       if (m?.[1]) {
         const parsed = m[1].trim().replace(/^["']|["']$/g, "");
         if (parsed) {
-          cachedApiKey = parsed;
-          return cachedApiKey;
+          cachedApiKey = { value: parsed, expiresAt: now + API_KEY_FILE_CACHE_MS };
+          return cachedApiKey.value;
         }
       }
     }
@@ -85,6 +84,7 @@ async function readApiKey(): Promise<string> {
   }
   // Do not cache a miss: local development may add or update .env while the
   // server is running, and the next request should be able to discover it.
+  cachedApiKey = undefined;
   return "";
 }
 
