@@ -5,6 +5,7 @@
  * It never relaxes a gate: every check it lists must already pass upstream.
  */
 import { rule1D70Line } from "@/lib/trading/rule1-d70";
+import { freeDataSeatLine } from "@/lib/free-data/features";
 
 export interface MasterInput {
   card: {
@@ -33,6 +34,8 @@ export interface MasterInput {
   grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
   /** Grok SHADOW ADVISOR rows (seat line only; never a check). */
   grokAdvice?: import("@/lib/grok-reader/advisor").AdviceRow[];
+  /** Free data SHADOW read (shared/free-data.json): one narrative line, never a check. */
+  freeData?: import("@/lib/free-data/features").FreeDataRead | null;
   brainWord: string | null;
   brainBook: { symbol: string; side: string | null } | null;
   floorVerdict: string;
@@ -70,6 +73,8 @@ export function masterSeat(i: MasterInput): MasterSeat {
   for (const t of i.rule1 ?? []) if (t.ticketD70) narrative.push(rule1D70Line(t));
   for (const g of (i.grokSuggest ?? []).slice(0, 2)) narrative.push(`Grok suggestion (${g.mode}): ${g.symbol} ${g.side} @${g.entry} → desk review ${g.review.decision} [${g.review.route}]. Informational; never a check.`);
   for (const a of (i.grokAdvice ?? []).filter((x) => x.type !== "AGREE").slice(0, 2)) narrative.push(`Grok advisor (shadow): ${a.type} ${a.symbol} ${a.side}${a.entry != null ? ` @${a.entry}` : ""} [${a.reasonCode}]${a.blocker ? ` blocker "${a.blocker}"` : ""}. Log only; never a check.`);
+  const fd = freeDataSeatLine(i.freeData);   // free-data-1018: shadow facts, display only, no check
+  if (fd) narrative.push(fd);
   if (i.topDraw) narrative.push(`Draw: ${i.topDraw.name} ${i.topDraw.price}`);
   narrative.push(c.entry != null ? `Plan: entry ${c.entry}${c.entryResting ? " (resting)" : ""} · stop ${c.stopPx ?? "?"} · target ${c.target ?? "?"} · ${c.rr ?? "?"}R` : "Plan: no priced entry yet");
   const sameBook = i.brainBook?.symbol === c.symbol;

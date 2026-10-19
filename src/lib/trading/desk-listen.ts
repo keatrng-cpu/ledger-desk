@@ -130,6 +130,8 @@ export interface DeskWire {
   grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
   /** Grok SHADOW ADVISOR rows. Brain/Floor/watcher log them only (seat/log lines); never a check, never a fire. */
   grokAdvice?: import("@/lib/grok-reader/advisor").AdviceRow[];
+  /** Free data SHADOW read (shared/free-data.json). Watcher logs it to free_data_shadow.jsonl; nothing gates on it. */
+  freeData?: import("@/lib/free-data/features").FreeDataRead | null;
   strategy: {
     symbol: string;
     side: string;
@@ -365,6 +367,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
     rule1: (desk as { rule1?: import("./rule1").Rule1Ticket[] }).rule1 ?? [],
     ...(desk.grokAdvice?.length ? { grokAdvice: desk.grokAdvice.slice(0, 6) } : {}),
     ...((desk as { grokSuggest?: unknown[] }).grokSuggest?.length ? { grokSuggest: (desk as { grokSuggest: import("@/lib/grok-reader/suggest").SuggestionCard[] }).grokSuggest } : {}),
+    freeData: desk.freeData ?? null,
     strategy: top
       ? {
           symbol: top.symbol,
@@ -669,6 +672,7 @@ export function masterInputOf(
     rule1: wire.rule1 ?? [],
     grokSuggest: wire.grokSuggest ?? [],
     grokAdvice: wire.grokAdvice ?? [],
+    freeData: wire.freeData ?? null,
     brainWord: wire.brain.word,
     brainBook: wire.brain.book ?? null,
     floorVerdict: wire.floor.verdict,

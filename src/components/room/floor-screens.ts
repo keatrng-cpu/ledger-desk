@@ -78,6 +78,8 @@ export interface FloorScreens {
   tenYear: number | null;
   research: Partial<Record<Character, string[]>>;
   source: string;
+  /** free-data-1018 SHADOW line (FF next print / 07:30 CT window / VIX term). Null unless DESK_FREE_DATA is on. */
+  freeDataShadow?: string | null;
   synthetic: boolean;
   ledger: LedgerScreen | null;
   lab: LabRead | null;
@@ -694,6 +696,7 @@ function drawMonitor(id: string, ctx: Ctx, w: number, h: number, f: FloorFrame) 
         return textBlock(ctx, w, h, "MACRO", f.clockLabel, "#15803d", [
           ...f.screens.calendar.slice(0, 3).map((c) => `${c.timeEt} ${c.name}${c.status === "printed" ? " (printed)" : c.status === "next" ? " ← next" : ""}`),
           `VIX ${f.screens.vix != null && f.screens.vix > 0 ? f.screens.vix.toFixed(2) : "—"} · 10Y ${f.screens.tenYear != null ? f.screens.tenYear.toFixed(2) + "%" : "—"}`,
+          ...(f.screens.freeDataShadow ? [f.screens.freeDataShadow] : []),   // free-data-1018: shadow, behind DESK_FREE_DATA
           ...(research.Gemma ?? []).slice(0, 1),
         ]);
       return textBlock(ctx, w, h, "HEADLINES", f.screens.synthetic ? "drill" : "live", "#15803d", f.screens.news.slice(0, 4).map((n) => `${n.title} — ${n.source}`), 17);

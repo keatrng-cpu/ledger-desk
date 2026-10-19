@@ -9,6 +9,7 @@ import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
 import { kickGrokAdvisor, advisorEnabled, advisorSnapshot } from "@/lib/grok-reader/advisor";
 import { kickGrokReader, readerEnabled, grokReadsSnapshot, grokSuggestSnapshot, grokProposalsSnapshot, cardsLite, type GrokRead } from "@/lib/grok-reader/reader";
+import { freeDataEnabled, freeDataRead, type FreeDataRead } from "@/lib/free-data/features";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -138,6 +139,8 @@ export interface DeskPayload {
   /** Grok / detector improvement proposals, to be proven by backtest before any implementation. */
   grokProposals?: import("@/lib/grok-reader/suggest").GrokProposal[];
   rule1?: Array<import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane }>;
+  /** Free data feeds SHADOW read (shared/free-data.json, outside the rules hash): FF calendar + VIX term structure. Logged/shown only; no gate reads it. */
+  freeData?: FreeDataRead | null;
   fetchedAt: string;
   clock: SessionClock;
   left: SymbolSeries;
@@ -1158,9 +1161,13 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (tk) rule1.push(tk);
       } catch { /* shadow */ }
     }
+    // Free data feeds (shared/free-data.json): shadow facts only. Default OFF: not called at all unless DESK_FREE_DATA
+    // is exactly "1"/"true". When on: cached per instance, never throws, ≤0.4 s cold, negative cache after a failure.
+    const freeData = freeDataEnabled() ? await freeDataRead(Date.now()).catch(() => null) : null;
     const payload = {
       ok: true as const,
       rule1: withLane(rule1, Date.now()),   // shadow Rule 1 lane read (overnight-1016 #2); logged, never fires
+      freeData,
       fetchedAt: new Date().toISOString(),
       clock,
       left,
