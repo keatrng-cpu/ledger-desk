@@ -19,11 +19,28 @@ import { rollingAtr, fractalSwings } from "@/lib/trading/detectors";
 import { et } from "@/lib/smc/day-context";
 
 export type Bar = { t: number; o: number; h: number; l: number; c: number; v: number };
-export interface OptModel { delta: number; thetaPerMin: number; spread: number; ratio: number; premium: number }
+export interface OptModel {
+  delta: number;
+  thetaPerMin: number;
+  spread: number;
+  ratio: number;
+  premium: number;
+  /**
+   * Gamma per 1.0 of the OPTION's underlying (QQQ/SPY point), i.e. the change
+   * in delta per point. A long option is long gamma: the payoff is convex BOTH
+   * ways — a favourable move earns more than delta·move (delta grows into it)
+   * and an adverse move loses less than delta·move (delta bleeds away). The
+   * old linear model (gamma 0) understated both the winners and the survival
+   * of the losers; 0DTE ATM is where this is largest. Omit → 0 (linear, the
+   * pre-2026-10-19 behaviour).
+   */
+  gamma?: number;
+}
 export const DEFAULT_OPT: Record<string, OptModel> = {
-  // QQQ ≈ NQ/50, SPY ≈ ES/10; 0-1DTE ATM approximations (documented, not fitted)
-  MNQ: { delta: 0.5, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 50, premium: 1.2 },
-  ES: { delta: 0.5, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 10, premium: 1.2 },
+  // QQQ ≈ NQ/50, SPY ≈ ES/10; 0-1DTE ATM approximations (documented, not fitted).
+  // gamma: ATM 0DTE convexity per QQQ/SPY point (QQQ richer gamma than SPY per the live IV spread, 20% vs 17%).
+  MNQ: { delta: 0.5, gamma: 0.05, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 50, premium: 1.2 },
+  ES: { delta: 0.5, gamma: 0.04, thetaPerMin: 0.0015, spread: 0.02, ratio: 1 / 10, premium: 1.2 },
 };
 export interface Trade {
   symbol: string; side: "long" | "short"; t: number; entry: number; stop: number; target: number; rr: number;
@@ -56,10 +73,42 @@ export function resolve1m(m1: Bar[], i: number, side: "long" | "short", entry: n
   return j > i ? { outcome: (j === i + timeStopMin ? "time" : "open") as "time" | "open", j, px: m1[j]!.c } : { outcome: "open" as const, j: i, px: entry };
 }
 
-export function optionPnlPct(o: OptModel, side: "long" | "short", entry: number, exit: number, minutes: number): number {
+/**
+ * Long-option P&L as a fraction of the debit, over a holding window.
+ *  - directional: delta·move + ½·gamma·move²  (move in the option's underlying
+ *    points, favourable = +). The gamma term is +both ways: a long option is
+ *    long gamma, so it is added for winners and subtracted-less for losers.
+ *  - theta: when `minutesToExpiry` (minutes of option life left AT ENTRY) is
+ *    given, extrinsic value decays like √(time left) — shallow early, brutal in
+ *    the last hour, which is exactly the 0DTE curve the desk's own Knowledge
+ *    panel describes. Cost = premium·(1 − √((T0−minutes)/T0)). Without it the
+ *    model falls back to the old flat thetaPerMin·minutes (backward compatible).
+ *  - spread: one round-trip (buy the ask, sell the bid), as before.
+ * gamma omitted → 0 → the pre-2026-10-19 linear model exactly.
+ */
+export function optionPnlPct(
+  o: OptModel,
+  side: "long" | "short",
+  entry: number,
+  exit: number,
+  minutes: number,
+  minutesToExpiry?: number,
+): number {
   const move = (side === "long" ? exit - entry : entry - exit) * o.ratio;
-  const pnl = o.delta * move - o.thetaPerMin * minutes - o.spread;
-  return +(pnl / o.premium).toFixed(4);
+  const directional = o.delta * move + 0.5 * (o.gamma ?? 0) * move * move;
+  const theta =
+    minutesToExpiry != null && minutesToExpiry > 0
+      ? o.premium * (1 - Math.sqrt(Math.max(0, minutesToExpiry - minutes) / minutesToExpiry))
+      : o.thetaPerMin * minutes;
+  const pnl = directional - theta - o.spread;
+  // A long option cannot lose more than the debit.
+  return +(Math.max(pnl / o.premium, -1)).toFixed(4);
+}
+
+/** Minutes of 0DTE option life left at a bar: entry ET → 16:00 ET, floored at 1. */
+export function minutesToRthClose(tMs: number): number {
+  const e = et(tMs);
+  return Math.max(1, 16 * 60 - e.min);
 }
 
 export function replayDay(symbol: string, m1: Bar[], m15hist: Bar[], p: Params = {}): Trade[] {
@@ -97,7 +146,7 @@ export function replayDay(symbol: string, m1: Bar[], m15hist: Bar[], p: Params =
       const R = r.outcome === "open" ? null : +(((side === "long" ? r.px - entry : entry - r.px) / risk)).toFixed(2);
       const mins = r.j - i;
       out.push({ symbol, side, t: b.t, entry, stop: sp.stop, target: tgt, rr: sp.rr1!, exitT: m1[r.j]?.t ?? null, exitPx: r.px,
-        outcome: r.outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, entry, r.px, mins) : null,
+        outcome: r.outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, entry, r.px, mins, minutesToRthClose(b.t)) : null,
         why: `kill against ${k.against}: ${k.why[0] ?? ""}` });
       busyUntil = m1[r.j]?.t ?? b.t;
       break;
@@ -177,7 +226,7 @@ export function replayDayLtfArm(symbol: string, day: Bar[], hist: Bar[], p: Para
       const R = outcome === "open" ? null : +(((side === "long" ? px - a.entry : a.entry - px) / risk)).toFixed(2);
       const mins = (stopOnFill ? fill : r.j) - fill;
       out.push({ symbol, side, t: all[fill]!.t, entry: a.entry, stop: a.stop, target: a.t1.price, rr: a.rr1 ?? 0, exitT: all[stopOnFill ? fill : r.j]?.t ?? null, exitPx: px,
-        outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, a.entry, px, mins) : null, why: `ltfArm ${a.why}` });
+        outcome, r: R, minutes: mins, optPnlPct: DEFAULT_OPT[symbol] ? optionPnlPct(DEFAULT_OPT[symbol]!, side, a.entry, px, mins, minutesToRthClose(all[fill]!.t)) : null, why: `ltfArm ${a.why}` });
       busyUntil = all[stopOnFill ? fill : r.j]?.t ?? b.t;
       break;
     }
