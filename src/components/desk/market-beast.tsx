@@ -1,50 +1,46 @@
 /**
- * Market Beast — an event-triggered bias overlay (display-only, never a signal).
+ * Market Beast — event-triggered video overlay (display-only, never a signal).
  *
- * Fires a transient animation when the desk's bias changes:
- *   bull turn  → a green bull charges across the screen ("BULL RUN")
- *   bear turn  → a big red bear rears and growls ("BEAR")
- *   LTF flip   → the two clash and the winner knocks the other off ("BULLS/BEARS WIN")
+ * Real animated creatures (Grok image→video): a charging emerald bull, a rearing
+ * red bear, and two clash clips (bull-wins / bear-wins). Fires when a trade setup
+ * goes active — the setup's side charges the screen — and on a bias reversal the
+ * two clash and the new side wins.
  *
- * It is purely cosmetic: it reads a bias string the desk already computes and
- * draws over the top. It never reads or writes a plan, a grade, a gate or an
- * order. CSS does all the motion (styles.css .ld-beast*), GPU-composited and
- * disabled under prefers-reduced-motion (falls back to the banner alone).
- *
- * Idle cost is zero — nothing animates until an event id changes.
+ * Transparency: the clips are a glowing creature on black. `mix-blend-mode: screen`
+ * drops the black over the dark desk, and a radial edge-mask feathers the frame so
+ * there is no visible box. Partial opacity + the transient, charge-through motion
+ * mean it never persistently covers a card. Disabled under prefers-reduced-motion.
  */
 import { memo, useEffect, useRef, useState } from "react";
 
 export type BeastKind = "run" | "growl" | "clash";
 export interface BeastEvent {
   kind: BeastKind;
-  /** For a clash: which side won (the new bias). */
+  /** For a clash: which side won (the new bias / setup side). */
   winner?: "bull" | "bear";
   /** Bump to replay even when kind is unchanged. */
   id: number;
 }
 
-const DUR: Record<BeastKind, number> = { run: 1800, growl: 2000, clash: 2200 };
+const DUR: Record<BeastKind, number> = { run: 3600, growl: 3600, clash: 4600 };
 
-function layerClass(ev: BeastEvent | null): string {
-  if (!ev) return "ld-beast-layer";
+function srcFor(ev: BeastEvent): string {
+  if (ev.kind === "run") return "/beast/bull.mp4";
+  if (ev.kind === "growl") return "/beast/bear.mp4";
+  return ev.winner === "bear" ? "/beast/clash-bear.mp4" : "/beast/clash-bull.mp4";
+}
+function layerClass(ev: BeastEvent): string {
   if (ev.kind === "run") return "ld-beast-layer ld-beast-run";
   if (ev.kind === "growl") return "ld-beast-layer ld-beast-growl";
-  return `ld-beast-layer ld-beast-clash ${ev.winner === "bear" ? "ld-beast-clash-bear" : "ld-beast-clash-bull"}`;
+  return "ld-beast-layer ld-beast-clash";
 }
-
-function bannerFor(ev: BeastEvent | null): { text: string; cls: string } | null {
-  if (!ev) return null;
-  if (ev.kind === "run") return { text: "Bull run", cls: "up" };
+function bannerFor(ev: BeastEvent): { text: string; cls: string } {
+  if (ev.kind === "run") return { text: "Bull", cls: "up" };
   if (ev.kind === "growl") return { text: "Bear", cls: "down" };
   return ev.winner === "bear" ? { text: "Bears win", cls: "down" } : { text: "Bulls win", cls: "up" };
 }
 
-/**
- * The overlay. Pass a fresh `event` (new id) to play; it clears itself.
- * memo'd: the desk re-renders on every quote tick, but this only needs to react
- * when a new event arrives, so unchanged props skip it entirely.
- */
+/** The overlay. Pass a fresh `event` (new id) to play; it clears itself. */
 export const MarketBeast = memo(function MarketBeast({ event }: { event: BeastEvent | null }) {
   const [active, setActive] = useState<BeastEvent | null>(null);
   const timer = useRef<number | null>(null);
@@ -53,7 +49,7 @@ export const MarketBeast = memo(function MarketBeast({ event }: { event: BeastEv
     if (!event) return;
     setActive(event);
     if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setActive(null), DUR[event.kind] + 150);
+    timer.current = window.setTimeout(() => setActive(null), DUR[event.kind] + 200);
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
     };
@@ -63,55 +59,62 @@ export const MarketBeast = memo(function MarketBeast({ event }: { event: BeastEv
   const banner = bannerFor(active);
   return (
     <div className={layerClass(active)} aria-hidden="true">
-      {/* Realistic energy sprites (glow on black); `screen` blend drops the black. */}
-      <div className="ld-beast bull">
-        <img src="/beast/bull.jpg" alt="" draggable={false} />
+      <div className="ld-beast">
+        {/* key by id so a new event remounts the element and replays from frame 0 */}
+        <video key={active.id} src={srcFor(active)} autoPlay muted playsInline preload="auto" />
       </div>
-      <div className="ld-beast bear">
-        <img src="/beast/bear.jpg" alt="" draggable={false} />
-      </div>
-
-      <div className="ld-beast-impact" />
-      {banner ? <div className={`ld-beast-banner ${banner.cls}`}>{banner.text}</div> : null}
+      <div className={`ld-beast-banner ${banner.cls}`}>{banner.text}</div>
     </div>
   );
 });
 
-/** Normalize whatever the desk calls the bias into "bull" | "bear" | null. */
+/** Normalize whatever the desk calls a side/bias into "bull" | "bear" | null. */
 export function toSide(bias: unknown): "bull" | "bear" | null {
   const s = typeof bias === "string" ? bias.toLowerCase()
-    : bias && typeof bias === "object" ? String((bias as { dir?: unknown; bias?: unknown }).dir ?? (bias as { bias?: unknown }).bias ?? "").toLowerCase()
+    : bias && typeof bias === "object" ? String((bias as { dir?: unknown; bias?: unknown; side?: unknown }).dir ?? (bias as { bias?: unknown }).bias ?? (bias as { side?: unknown }).side ?? "").toLowerCase()
     : "";
   if (s.includes("bull") || s === "up" || s === "long") return "bull";
   if (s.includes("bear") || s === "down" || s === "short") return "bear";
   return null;
 }
 
+function useTransitions(key: unknown, side: "bull" | "bear" | null): BeastEvent | null {
+  const [event, setEvent] = useState<BeastEvent | null>(null);
+  const prevKey = useRef<unknown>(undefined);
+  const prevSide = useRef<"bull" | "bear" | null>(null);
+  const nextId = useRef(1);
+  useEffect(() => {
+    if (prevKey.current === undefined) {
+      prevKey.current = key;
+      prevSide.current = side;
+      return; // never fire on mount
+    }
+    if (key !== prevKey.current && side != null) {
+      const was = prevSide.current;
+      if (was && was !== side) setEvent({ kind: "clash", winner: side, id: nextId.current++ }); // reversal
+      else setEvent({ kind: side === "bull" ? "run" : "growl", id: nextId.current++ }); // new setup
+    }
+    prevKey.current = key;
+    if (side != null) prevSide.current = side;
+  }, [key, side]);
+  return event;
+}
+
 /**
- * Turn a single bias signal into beast events from its transitions:
- *   neutral/unknown → bull  → run ("BULL RUN")
- *   neutral/unknown → bear  → growl ("BEAR")
- *   bull ⇄ bear (a real reversal) → clash, winner = the new side ("BULLS/BEARS WIN")
- * The first render never fires. Pass the primary book's HTF bias; anything the
- * desk's bias field holds is accepted (see toSide) and an unreadable value is inert.
+ * Fire when a trade setup goes active: the setup's side charges the screen; a
+ * reversal from the last active side clashes. Pass a key that changes when a new
+ * setup appears (e.g. the card's `at`/id, or `${symbol}:${side}:${entry}`) and the
+ * setup's side. A null side (STAND / no setup) never fires.
+ */
+export function useSetupBeast(setupKey: unknown, side: unknown): BeastEvent | null {
+  return useTransitions(setupKey ?? null, toSide(side));
+}
+
+/**
+ * Fire on bias transitions (neutral→side charges; bull⇄bear reversal clashes).
+ * Kept for a bias-driven trigger; `useSetupBeast` is the setup-driven one.
  */
 export function useBiasBeast(bias: unknown): BeastEvent | null {
-  const [event, setEvent] = useState<BeastEvent | null>(null);
-  const prev = useRef<"bull" | "bear" | null | undefined>(undefined);
-  const nextId = useRef(1);
-
   const side = toSide(bias);
-  useEffect(() => {
-    const was = prev.current;
-    if (was !== undefined && side !== was && side != null) {
-      if (was === "bull" || was === "bear") {
-        setEvent({ kind: "clash", winner: side, id: nextId.current++ }); // reversal
-      } else {
-        setEvent({ kind: side === "bull" ? "run" : "growl", id: nextId.current++ }); // turn from neutral
-      }
-    }
-    prev.current = side;
-  }, [side]);
-
-  return event;
+  return useTransitions(side, side);
 }

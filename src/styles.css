@@ -382,55 +382,47 @@
 }
 
 /*
- * MARKET BEAST (2026-10-19) — event-triggered bias overlay, realistic sprites.
+ * MARKET BEAST (2026-10-19) — animated video overlay, transparent on the desk.
  *
- * A charging emerald bull on a bull turn, a rearing red bear on a bear turn, and
- * on a reversal the two clash and the winner knocks the other off. The art is a
- * glowing energy creature on pure black; `mix-blend-mode: screen` drops the black
- * so only the creature composites over the dark desk — no background removal.
- * Transient (fires on a change, clears itself), CSS transforms/opacity only (GPU),
- * fully disabled under prefers-reduced-motion (falls back to the banner).
+ * Real creature clips (glow on black). `mix-blend-mode: screen` drops the black
+ * over the dark desk and the radial mask feathers the frame edge, so there is no
+ * black box. Transient + partial opacity => never persistently covers a card.
+ * Fully disabled under prefers-reduced-motion (banner only).
  */
 .ld-beast-layer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
 .ld-beast { position: absolute; opacity: 0; will-change: transform, opacity; }
-.ld-beast img { display: block; mix-blend-mode: screen; }
-.ld-beast.bull { bottom: 6%; left: 0; width: min(46vw, 560px); }
-.ld-beast.bull img { width: 100%; height: auto; filter: drop-shadow(0 0 22px color-mix(in oklab, var(--color-up) 55%, transparent)); }
-.ld-beast.bear { bottom: 0; left: 50%; transform: translateX(-50%); }
-.ld-beast.bear img { height: 86vh; width: auto; filter: drop-shadow(0 0 26px color-mix(in oklab, var(--color-down) 50%, transparent)); }
-.ld-beast-banner { position: fixed; top: 12%; left: 50%; transform: translateX(-50%) translateY(-8px); font-family: var(--font-mono); font-weight: 700; letter-spacing: .2em; font-size: clamp(30px, 7vw, 76px); opacity: 0; z-index: 61; text-transform: uppercase; }
+.ld-beast video {
+  display: block; mix-blend-mode: screen; opacity: .95;
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 50%, transparent 82%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 50%, transparent 82%);
+}
+.ld-beast-banner {
+  position: fixed; top: 11%; left: 50%; transform: translateX(-50%) translateY(-8px);
+  font-family: var(--font-mono); font-weight: 700; letter-spacing: .2em;
+  font-size: clamp(28px, 6.5vw, 70px); opacity: 0; z-index: 61; text-transform: uppercase;
+}
 .ld-beast-banner.up { color: var(--color-up); text-shadow: 0 0 34px color-mix(in oklab, var(--color-up) 60%, transparent); }
 .ld-beast-banner.down { color: var(--color-down); text-shadow: 0 0 34px color-mix(in oklab, var(--color-down) 60%, transparent); }
-.ld-beast-impact { position: fixed; top: 50%; left: 50%; width: min(34vw, 360px); height: min(34vw, 360px); border-radius: 50%; background: radial-gradient(circle, #fff 0%, var(--color-primary) 28%, transparent 70%); opacity: 0; z-index: 62; }
 
-@keyframes ld-run { 0%{transform:translateX(-56vw)}10%{opacity:1}50%{transform:translateX(26vw) translateY(-12px)}90%{opacity:1}100%{transform:translateX(120vw);opacity:0} }
-@keyframes ld-bob { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
-@keyframes ld-growl { 0%{transform:translateX(-50%) translateY(70px) scale(.7);opacity:0}16%{transform:translateX(-50%) translateY(0) scale(1.04);opacity:1}22%,30%,38%{transform:translateX(calc(-50% - 9px)) scale(1.04)}26%,34%{transform:translateX(calc(-50% + 9px)) scale(1.04)}56%{transform:translateX(-50%) scale(1.1);opacity:1}86%{opacity:1}100%{transform:translateX(-50%) translateY(24px) scale(1.02);opacity:0} }
-@keyframes ld-chargeL { 0%{transform:translateX(-60vw)}18%{opacity:1}44%,100%{transform:translateX(2vw)} }
-@keyframes ld-chargeR { 0%{transform:translateX(60vw)}18%{opacity:1}44%,100%{transform:translateX(-2vw)} }
-@keyframes ld-winL { 0%,44%{transform:translateX(2vw)}60%{transform:translateX(8vw) scale(1.06)}100%{transform:translateX(130vw)} }
-@keyframes ld-loseR { 0%,44%{transform:translateX(-2vw)}58%{transform:translateX(6vw) rotate(6deg)}100%{transform:translateX(90vw) rotate(70deg);opacity:0} }
-@keyframes ld-winR { 0%,44%{transform:translateX(-2vw)}60%{transform:translateX(-8vw) scale(1.06)}100%{transform:translateX(-130vw)} }
-@keyframes ld-loseL { 0%,44%{transform:translateX(2vw)}58%{transform:translateX(-6vw) rotate(-6deg)}100%{transform:translateX(-90vw) rotate(-70deg);opacity:0} }
-@keyframes ld-impact { 0%,42%{opacity:0;transform:translate(-50%,-50%) scale(.2)}48%{opacity:.95;transform:translate(-50%,-50%) scale(1)}72%{opacity:0;transform:translate(-50%,-50%) scale(1.9)}100%{opacity:0} }
-@keyframes ld-beast-banner-in { 0%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.9)}30%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}82%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1.02)} }
+@keyframes ld-charge { 0% { opacity: 0; transform: translateX(-55vw); } 12% { opacity: .95; } 55% { transform: translateX(18vw); } 85% { opacity: .95; } 100% { opacity: 0; transform: translateX(120vw); } }
+@keyframes ld-center { 0% { opacity: 0; transform: translateX(-50%) translateY(40px) scale(.9); } 14% { opacity: .98; transform: translateX(-50%) translateY(0) scale(1); } 85% { opacity: .98; transform: translateX(-50%) translateY(0) scale(1); } 100% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(1.02); } }
+@keyframes ld-beast-banner-in { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(.9); } 30% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 82% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) scale(1.02); } }
 
-.ld-beast-run .bull { animation: ld-run 1900ms var(--ease-out-quint) forwards; }
-.ld-beast-run .bull img { animation: ld-bob .24s linear infinite; }
-.ld-beast-run .ld-beast-banner { animation: ld-beast-banner-in 1900ms var(--ease-out-quint) forwards; }
-.ld-beast-growl .bear { animation: ld-growl 2100ms var(--ease-out-quint) forwards; }
-.ld-beast-growl .ld-beast-banner { animation: ld-beast-banner-in 2100ms var(--ease-out-quint) forwards; }
-.ld-beast-clash .bull { left: 28%; animation: ld-chargeL 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash .bear { left: 52%; transform: none; animation: ld-chargeR 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash .ld-beast-impact { animation: ld-impact 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash .ld-beast-banner { animation: ld-beast-banner-in 2300ms var(--ease-out-quint) .95s forwards; }
-.ld-beast-clash-bull .bull { animation: ld-winL 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash-bull .bear { animation: ld-loseR 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash-bear .bull { animation: ld-loseL 2300ms var(--ease-out-quint) forwards; }
-.ld-beast-clash-bear .bear { animation: ld-winR 2300ms var(--ease-out-quint) forwards; }
+/* a trade setup went active: the side charges across the screen */
+.ld-beast-run .ld-beast { bottom: 6%; left: 0; height: 58vh; animation: ld-charge 3600ms var(--ease-out-quint) forwards; }
+.ld-beast-run .ld-beast video { height: 58vh; width: auto; }
+/* bear setup: rear up centre */
+.ld-beast-growl .ld-beast { bottom: 0; left: 50%; height: 86vh; animation: ld-center 3600ms var(--ease-out-quint) forwards; }
+.ld-beast-growl .ld-beast video { height: 86vh; width: auto; }
+/* reversal: the clash clip centre-stage */
+.ld-beast-clash .ld-beast { bottom: 3%; left: 50%; width: min(92vw, 1120px); animation: ld-center 4600ms var(--ease-out-quint) forwards; }
+.ld-beast-clash .ld-beast video { width: 100%; height: auto; }
+
+.ld-beast-run .ld-beast-banner,
+.ld-beast-growl .ld-beast-banner { animation: ld-beast-banner-in 3600ms var(--ease-out-quint) forwards; }
+.ld-beast-clash .ld-beast-banner { animation: ld-beast-banner-in 4600ms var(--ease-out-quint) .9s forwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-beast, .ld-beast-impact { display: none !important; }
-  .ld-beast-layer [class*="ld-"] { animation: none !important; }
+  .ld-beast { display: none !important; }
   .ld-beast-banner { animation: none !important; opacity: 1 !important; transition: opacity .2s; }
 }

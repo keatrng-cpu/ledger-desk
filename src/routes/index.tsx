@@ -39,7 +39,7 @@ import { TakeMomentsPanel } from "@/components/desk/take-moments-panel";
 import { markTakeAction, observeTakeMoments, tickMomentOutcomes } from "@/lib/trading/take-moments";
 import { LogSetupDialog } from "@/components/journal/log-setup-dialog";
 import { RhAccountStrip } from "@/components/desk/rh-account-strip";
-import { MarketBeast, useBiasBeast } from "@/components/desk/market-beast";
+import { MarketBeast, useSetupBeast } from "@/components/desk/market-beast";
 import { PaperBookPanel } from "@/components/desk/paper-book-panel";
 import { TradeDebriefPanel } from "@/components/desk/trade-debrief-panel";
 import {
@@ -929,7 +929,16 @@ const wordHold = createHysteresisState();
 function MasterplacePage() {
   const [desk, setDesk] = useState<DeskPayload | null>(null);
   // Cosmetic bias overlay (display-only): bull run / bear growl / clash on a reversal.
-  const beastEvent = useBiasBeast((desk?.bias?.left as { topDown?: unknown } | undefined)?.topDown);
+  // Market Beast (display-only): fire when a trade setup goes active — the top
+  // actionable scanner card's side charges the screen; a reversal clashes.
+  const topSetup = desk?.scan?.candidates?.[0] as
+    | { symbol?: string; side?: string; pathBand?: string | null; plan?: { entry?: number | null } | null }
+    | undefined;
+  const setupActive = Boolean(topSetup && /^(A\+|A|A-|B\+)$/.test(topSetup.pathBand ?? ""));
+  const beastEvent = useSetupBeast(
+    setupActive ? `${topSetup!.symbol}:${topSetup!.side}:${topSetup!.plan?.entry ?? ""}` : null,
+    setupActive ? topSetup!.side : null,
+  );
   const publishDesk = useDeskSynapse((s) => s.publishDesk);
   const publishRisk = useDeskSynapse((s) => s.publishRisk);
   const publishRiskGate = useDeskSynapse((s) => s.publishRiskGate);
