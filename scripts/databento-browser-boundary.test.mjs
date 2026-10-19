@@ -19,6 +19,23 @@ test("databento keeps Node fs/path behind the async server boundary", () => {
   assert.match(source, /cachedApiKey\.expiresAt > now/);
 });
 
+test("client-reachable hashers stay independent of node:crypto", () => {
+  const consumers = [
+    "src/lib/desk/rules-hash.ts",
+    "src/lib/journal/attest.ts",
+  ];
+
+  for (const path of consumers) {
+    const source = readFileSync(path, "utf8");
+    assert.match(source, /from ["']@\/lib\/hash\/sha256["']/, path);
+    assert.doesNotMatch(source, /["']node:crypto["']/, path);
+  }
+
+  const implementation = readFileSync("src/lib/hash/sha256.ts", "utf8");
+  assert.match(implementation, /from ["']@noble\/hashes\/sha2\.js["']/);
+  assert.doesNotMatch(implementation, /["']node:crypto["']/);
+});
+
 test("client-reachable synchronous consumers use the pure bars module", () => {
   for (const path of [
     "src/lib/trading/build-desk.ts",

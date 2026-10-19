@@ -34,6 +34,15 @@
   --color-chart-3: #94a3b8;
   --color-chart-4: #fbbf24;
 
+  --level-entry: var(--color-primary);
+  --level-stop: var(--color-down);
+  --level-target: var(--color-up);
+  --shadow-fg: var(--color-muted);
+  --shadow-bg: var(--color-surface-2);
+  --shadow-border: var(--color-border-strong);
+  --overlay-bg: color-mix(in oklab, #000 80%, transparent);
+  --floor-canvas: #0b1220;
+
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -270,6 +279,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .shimmer {
+      animation: none;
+    }
+    .pulse-enter {
       animation: none;
     }
     .ticker-crawl {
