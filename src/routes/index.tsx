@@ -147,6 +147,7 @@ import { pendingFillToast } from "@/components/desk/entry-trigger-panel";
 import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
+import { RhJournalPanel } from "@/components/desk/rh-journal-panel";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
 import { PathAlarmBar } from "@/components/desk/path-alarm-bar";
 import { LiveSessionCard } from "@/components/desk/live-session-card";
@@ -2316,6 +2317,7 @@ function MasterplacePage() {
                   <ApexSimPanel />
                   <EvidenceTable />
                   <AlertsPanel />
+                  <RhJournalPanel />
                   <AnalyticsPanel />
                   <DeskFold
                     title="Deep lab"

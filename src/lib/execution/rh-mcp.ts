@@ -281,6 +281,11 @@ export function mcpTooling(accessToken: string, fetchImpl: FetchLike = fetch): R
       if (!id) throw new Error("Robinhood did not return an order id.");
       return { id };
     },
+    // Read-only passthrough for the live chip + auto-journal. Order placement is
+    // NOT reachable here — only review()/place() build an order payload.
+    async raw(name: string, args: Record<string, unknown>) {
+      return unwrapData(await call(name, args));
+    },
   };
 }
 

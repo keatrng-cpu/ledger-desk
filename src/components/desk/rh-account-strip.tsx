@@ -5,24 +5,63 @@
 import { useEffect, useState } from "react";
 import { Wallet } from "lucide-react";
 import { useRhAccount } from "@/components/desk/use-entry-state";
-import { readRhAccount } from "@/lib/ui/rh-account";
+import { readRhAccount, reportRhAccount, type ManagerRhAccount } from "@/lib/ui/rh-account";
 import { RH_PREFERRED_ACCOUNT_MASK_LAST4 } from "@/lib/execution/manager-account";
 import { rhLinkStatus } from "@/lib/execution/rh-server";
 import { cn } from "@/lib/utils";
 
 const usd = (n: number) => (Number.isFinite(n) ? `$${n.toFixed(2)}` : "unknown");
 
+/** Live read from /api/rh/account (real BP/cash + today's realized P&L). */
+interface LiveRead {
+  ok: boolean;
+  linked: boolean;
+  account?: ManagerRhAccount | null;
+  dayRealized?: number | null;
+  dayRealizedPct?: number | null;
+}
+
+const REFRESH_MS = 30_000;
+
 export function RhAccountStrip({ className }: { className?: string }) {
   const a = useRhAccount();
   const r = a ? readRhAccount(a) : null;
   const c = r?.blocked ? "#ef4444" : "var(--color-primary)";
   const [linked, setLinked] = useState<boolean | null>(null);
+  const [live, setLive] = useState<LiveRead | null>(null);
 
   useEffect(() => {
     void rhLinkStatus()
       .then((s) => setLinked(s.linked))
       .catch(() => setLinked(false));
   }, []);
+
+  // Poll the live broker read and push it through reportRhAccount so the chip
+  // (and the Now hero, which reads the same block) show real BP/cash, not the
+  // baked-in snapshot. Stops erroring quietly when not connected.
+  useEffect(() => {
+    let alive = true;
+    const pull = async () => {
+      try {
+        const res = await fetch("/api/rh/account", { headers: { accept: "application/json" } });
+        const json = (await res.json()) as LiveRead;
+        if (!alive) return;
+        setLive(json);
+        if (json.linked) setLinked(true);
+        if (json.ok && json.account) reportRhAccount(json.account);
+      } catch {
+        /* keep the last value */
+      }
+    };
+    void pull();
+    const id = setInterval(() => void pull(), REFRESH_MS);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  const dayPnl = live?.dayRealized ?? null;
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
@@ -40,9 +79,20 @@ export function RhAccountStrip({ className }: { className?: string }) {
           <span className="font-mono">RH {r.who}</span>
           <span className="font-mono">· {r.line}</span>
           <span className="font-mono text-[11px] font-normal opacity-80">· cash {usd(a.cashUsd)}</span>
-          {a.isSnapshot && (
-            <span className="rounded bg-current/10 px-1.5 text-[10px] font-bold uppercase tracking-wide opacity-90">{r.freshness}</span>
+          {dayPnl != null && Number.isFinite(dayPnl) && (
+            <span
+              className="font-mono text-[11px] font-bold"
+              style={{ color: dayPnl >= 0 ? "var(--color-primary)" : "#ef4444" }}
+              title={live?.dayRealizedPct != null ? `today realized ${(live.dayRealizedPct * 100).toFixed(1)}%` : "today realized P&L (Robinhood)"}
+            >
+              · today {dayPnl >= 0 ? "+" : "−"}${Math.abs(dayPnl).toFixed(0)}
+            </span>
           )}
+          {a.isSnapshot ? (
+            <span className="rounded bg-current/10 px-1.5 text-[10px] font-bold uppercase tracking-wide opacity-90">{r.freshness}</span>
+          ) : live?.linked ? (
+            <span className="rounded bg-current/15 px-1.5 text-[10px] font-bold uppercase tracking-wide opacity-90" title={`live read ${r.freshness}`}>live</span>
+          ) : null}
           {r.wrongAccount && (
             <span className="text-[10px] font-bold uppercase text-[var(--color-warn)]">display only · trade account is ••••{RH_PREFERRED_ACCOUNT_MASK_LAST4}</span>
           )}

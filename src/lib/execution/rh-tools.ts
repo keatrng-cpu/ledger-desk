@@ -36,6 +36,13 @@ export interface RhTooling {
   place(order: RhOrder, refId: string): Promise<{ id: string }>;
   /** Account P&L today as a fraction, when the read included it. */
   dayPnlPct(): Promise<number | null>;
+  /**
+   * Raw read-only MCP call for the journal/stream (get_portfolio,
+   * get_realized_pnl, get_option_orders, get_pnl_trade_history, …). Returns the
+   * tool's own JSON (unwrapped). Optional: the env-token tooling may omit it.
+   * NEVER route an order through here — review()/place() are the only writers.
+   */
+  raw?(name: string, args: Record<string, unknown>): Promise<unknown>;
 }
 
 /** Stable UUID for one logical order. Retries resend this id. */
