@@ -231,6 +231,32 @@ export function spansGap(aT: number, bT: number, stepMs: number | null): boolean
   return false;
 }
 
+
+const FOUR_H_MS = 14_400_000;
+const ET_HM = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false });
+const sinceGlobexOpen = (t: number): number => {
+  const p = ET_HM.formatToParts(new Date(t));
+  const h = Number(p.find((x) => x.type === "hour")!.value) % 24, m = Number(p.find((x) => x.type === "minute")!.value);
+  return ((h * 60 + m - 18 * 60) % 1440 + 1440) % 1440;
+};
+/**
+ * Bucket start for a resample of `ms`. 4h buckets are anchored to the 18:00 ET Globex open, DST-aware
+ * (18:00, 22:00, 02:00, 06:00, 10:00, 14:00 ET), the same anchor as every-tf.ts sessionBucketStart.
+ * Every other size keeps the epoch floor (15m/30m/1h epoch buckets already line up with ET wall time).
+ * Fix 2026-10-19 (firing-audit-1019): epoch-floored 4h buckets were 20:00/00:00/04:00/08:00/12:00/16:00 ET in EDT
+ * (19:00/23:00/... in EST), so the gating 4h rung (mtf-context bias4h, 4h arrays, tf-ladder 4h) read a different
+ * candle than the chart, the every-TF facts and the morning-anatomy study.
+ */
+export function bucketStart(t: number, ms: number): number {
+  if (ms !== FOUR_H_MS) return Math.floor(t / ms) * ms;
+  return t - (t % 60_000) - (sinceGlobexOpen(t) % 240) * 60_000;
+}
+/** End of a bucket that starts at `start`: 4h buckets stop at the 17:00 ET halt (the 14:00 bucket is 3h). */
+export function bucketEnd(start: number, ms: number): number {
+  if (ms !== FOUR_H_MS) return start + ms;
+  return start + Math.min(ms, (23 * 60 - sinceGlobexOpen(start)) * 60_000);
+}
+
 /**
  * Resample `src` into `ms` buckets and DROP any bucket missing a Globex-open
  * source bar (a bucket built across a hole is not that timeframe's candle).
@@ -240,7 +266,7 @@ export function spansGap(aT: number, bT: number, stepMs: number | null): boolean
 export function completeBuckets<T extends { t: number; o: number; h: number; l: number; c: number; v?: number }>(src: T[], ms: number, srcMs = barStepMs(src)): T[] {
   const out: (T & { ts: number[] })[] = [];
   for (const b of src) {
-    const k = Math.floor(b.t / ms) * ms;
+    const k = bucketStart(b.t, ms);
     const L = out[out.length - 1];
     if (L && L.t === k) { L.h = Math.max(L.h, b.h); L.l = Math.min(L.l, b.l); L.c = b.c; L.v = (L.v ?? 0) + (b.v ?? 0); L.ts.push(b.t); }
     else out.push({ ...b, t: k, ts: [b.t] });
@@ -256,7 +282,7 @@ export function completeBuckets<T extends { t: number; o: number; h: number; l: 
     .filter((b) => {
       const have = new Set(b.ts);
       let run = 0;
-      for (let t = b.t; t < b.t + ms; t += srcMs) {
+      for (let t = b.t; t < bucketEnd(b.t, ms); t += srcMs) {
         if (have.has(t) || !globexOpenAt(t)) { run = 0; continue; }
         run += srcMs / MIN;
         if (run >= limit) return false;

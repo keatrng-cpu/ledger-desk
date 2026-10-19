@@ -64,6 +64,7 @@
 
 import type { OhlcBar } from "@/lib/market/types";
 import { etWallParts, etWallToEpochMs } from "./sessions";
+import { bucketStart, bucketEnd } from "@/lib/market/minute-gaps";
 
 export type Tf = "3M" | "1M" | "1w" | "1d" | "4h" | "1h" | "30m" | "15m" | "5m" | "3m" | "2m" | "1m";
 export type LadderBias = "bull" | "bear" | "neutral";
@@ -258,7 +259,7 @@ function periodKey(dateIso: string, tf: CalTf): string {
 export function resampleMs(bars: OhlcBar[], ms: number): OhlcBar[] {
   const out: OhlcBar[] = [];
   for (const b of bars) {
-    const t = Math.floor(b.t / ms) * ms;
+    const t = bucketStart(b.t, ms); // 4h: 18:00 ET Globex anchor (fix 2026-10-19)
     const last = out[out.length - 1];
     if (last && last.t === t) {
       last.h = Math.max(last.h, b.h);
@@ -532,7 +533,7 @@ export function buildTfLadder(input: LadderInput): TfLadder {
     }
     const ms = INTRADAY_MS[tf]!;
     const buckets = resampleMs(m15, ms);
-    const closed = buckets.filter((b) => b.t + ms <= nowMs);
+    const closed = buckets.filter((b) => bucketEnd(b.t, ms) <= nowMs);
     const cur = refMs != null ? buckets.find((b) => b.t <= refMs - 1 && refMs - 1 < b.t + ms) ?? null : null;
     reads.push(readRung(tf, closed, cur ? cur.o : null, ref, "15m"));
   }
