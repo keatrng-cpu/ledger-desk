@@ -22,7 +22,7 @@ export interface BeastEvent {
   id: number;
 }
 
-const DUR: Record<BeastKind, number> = { run: 3600, growl: 3600, clash: 4600 };
+const DUR: Record<BeastKind, number> = { run: 3500, growl: 3500, clash: 4000 };
 
 function srcFor(ev: BeastEvent): string {
   if (ev.kind === "run") return "/beast/bull.mp4";
