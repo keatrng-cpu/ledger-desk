@@ -380,3 +380,75 @@
   .ld-flash-down,
   .ld-rise { animation: none; }
 }
+
+/*
+ * MARKET BEAST (2026-10-19) — event-triggered bias overlay.
+ *
+ * A green bull charges across on a bullish trigger, a red bear rears and growls
+ * on a bearish one, and on an LTF bias flip the two clash and the winner knocks
+ * the other off. Transient (fires on a change, then clears) so it never obscures
+ * the desk or costs anything at idle; CSS transforms/opacity only (GPU), no
+ * layout thrash. Fully disabled under prefers-reduced-motion — the component
+ * falls back to a one-line banner there.
+ */
+.ld-beast-layer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.ld-beast { position: absolute; bottom: 8%; width: min(38vw, 420px); will-change: transform, opacity; opacity: 0;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.55)); }
+.ld-beast svg { width: 100%; height: auto; display: block; }
+.ld-beast.bull { filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-up) 60%, transparent)) drop-shadow(0 8px 24px rgba(0,0,0,.55)); }
+.ld-beast.bear { filter: drop-shadow(0 0 16px color-mix(in oklab, var(--color-down) 55%, transparent)) drop-shadow(0 10px 28px rgba(0,0,0,.6)); }
+.ld-beast.bull .fill { fill: var(--color-up); } .ld-beast.bull .stroke { stroke: var(--color-up); }
+.ld-beast.bear .fill { fill: var(--color-down); } .ld-beast.bear .stroke { stroke: var(--color-down); }
+.ld-beast-dust { position: absolute; bottom: 9%; width: 14px; height: 14px; border-radius: 50%;
+  background: color-mix(in oklab, var(--color-up) 40%, #0b0b0e); opacity: 0; filter: blur(1px); }
+.ld-beast-banner { position: fixed; top: 14%; left: 50%; transform: translateX(-50%) translateY(-8px);
+  font-family: var(--font-mono); font-weight: 700; letter-spacing: .18em; font-size: clamp(28px, 6vw, 64px);
+  opacity: 0; z-index: 61; text-transform: uppercase; }
+.ld-beast-banner.up { color: var(--color-up); text-shadow: 0 0 28px color-mix(in oklab, var(--color-up) 55%, transparent); }
+.ld-beast-banner.down { color: var(--color-down); text-shadow: 0 0 28px color-mix(in oklab, var(--color-down) 55%, transparent); }
+.ld-beast-impact { position: fixed; top: 50%; left: 50%; width: min(28vw, 300px); height: min(28vw, 300px); border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--color-primary) 30%, transparent 70%); opacity: 0; z-index: 62; }
+
+@keyframes ld-bull-run { 0%{transform:translateX(-46vw);opacity:0} 8%{opacity:1} 50%{transform:translateX(30vw) translateY(-10px)} 92%{opacity:1} 100%{transform:translateX(118vw);opacity:0} }
+@keyframes ld-legs { 0%,100%{transform:rotate(14deg)} 50%{transform:rotate(-14deg)} }
+@keyframes ld-legs2 { 0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(14deg)} }
+@keyframes ld-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes ld-dust { 0%{opacity:0;transform:translate(0,0) scale(.4)} 20%{opacity:.7} 100%{opacity:0;transform:translate(-60px,-24px) scale(1.6)} }
+@keyframes ld-bear-growl { 0%{transform:translateX(-50%) translateY(60px) scale(.6);opacity:0} 14%{transform:translateX(-50%) translateY(0) scale(1.06);opacity:1} 22%,30%,38%{transform:translateX(calc(-50% - 7px)) translateY(0) scale(1.06)} 26%,34%{transform:translateX(calc(-50% + 7px)) translateY(0) scale(1.06)} 55%{transform:translateX(-50%) translateY(0) scale(1.12);opacity:1} 85%{opacity:1} 100%{transform:translateX(-50%) translateY(20px) scale(1.04);opacity:0} }
+@keyframes ld-jaw { 0%,100%{transform:translateY(0) rotate(0)} 30%,60%{transform:translateY(10px) rotate(6deg)} }
+@keyframes ld-arm { 0%,55%{transform:rotate(0)} 70%{transform:rotate(-38deg)} 100%{transform:rotate(-10deg)} }
+@keyframes ld-charge-left { 0%{transform:translateX(-52vw);opacity:0} 18%{opacity:1} 42%,100%{transform:translateX(28vw)} }
+@keyframes ld-win-left { 0%,42%{transform:translateX(28vw)} 60%{transform:translateX(34vw) scale(1.08)} 100%{transform:translateX(120vw)} }
+@keyframes ld-lose-right { 0%,42%{transform:translateX(-28vw) scaleX(-1)} 58%{transform:translateX(-18vw) scaleX(-1) rotate(8deg)} 100%{transform:translateX(70vw) scaleX(-1) rotate(80deg);opacity:0} }
+@keyframes ld-win-right { 0%,42%{transform:translateX(-28vw) scaleX(-1)} 60%{transform:translateX(-34vw) scaleX(-1) scale(1.08)} 100%{transform:translateX(-120vw) scaleX(-1)} }
+@keyframes ld-lose-left { 0%,42%{transform:translateX(28vw)} 58%{transform:translateX(18vw) rotate(-8deg)} 100%{transform:translateX(-70vw) rotate(-80deg);opacity:0} }
+@keyframes ld-impact { 0%,40%{opacity:0;transform:translate(-50%,-50%) scale(.2)} 46%{opacity:.9;transform:translate(-50%,-50%) scale(1)} 70%{opacity:0;transform:translate(-50%,-50%) scale(1.8)} 100%{opacity:0} }
+@keyframes ld-beast-banner-in { 0%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.9)} 30%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} 80%{opacity:1} 100%{opacity:0;transform:translateX(-50%) translateY(-6px) scale(1.02)} }
+
+/* run */
+.ld-beast-run .bull { left: 0; animation: ld-bull-run 1800ms var(--ease-out-quint) forwards; }
+.ld-beast-run .bull .legFront { animation: ld-legs .22s linear infinite; transform-origin: top center; }
+.ld-beast-run .bull .legBack { animation: ld-legs2 .22s linear infinite; transform-origin: top center; }
+.ld-beast-run .bull .torso { animation: ld-bob .22s linear infinite; }
+.ld-beast-run .ld-beast-dust { animation: ld-dust .6s linear infinite; }
+.ld-beast-run .ld-beast-dust.d2 { animation-delay: .2s; } .ld-beast-run .ld-beast-dust.d3 { animation-delay: .4s; }
+.ld-beast-run .ld-beast-banner { animation: ld-beast-banner-in 1800ms var(--ease-out-quint) forwards; }
+/* growl */
+.ld-beast-growl .bear { left: 50%; animation: ld-bear-growl 2000ms var(--ease-out-quint) forwards; }
+.ld-beast-growl .bear .jaw { animation: ld-jaw 2000ms var(--ease-out-quint) forwards; transform-origin: center top; }
+.ld-beast-growl .bear .arm { animation: ld-arm 2000ms var(--ease-out-quint) forwards; transform-origin: 85% 20%; }
+.ld-beast-growl .ld-beast-banner { animation: ld-beast-banner-in 2000ms var(--ease-out-quint) forwards; }
+/* clash */
+.ld-beast-clash .bull { left: 0; } .ld-beast-clash .bear { left: 50%; }
+.ld-beast-clash .ld-beast-impact { animation: ld-impact 2200ms var(--ease-out-quint) forwards; }
+.ld-beast-clash .ld-beast-banner { animation: ld-beast-banner-in 2200ms var(--ease-out-quint) .9s forwards; }
+.ld-beast-clash-bull .bull { animation: ld-win-left 2200ms var(--ease-out-quint) forwards; }
+.ld-beast-clash-bull .bear { animation: ld-lose-right 2200ms var(--ease-out-quint) forwards; }
+.ld-beast-clash-bear .bull { animation: ld-lose-left 2200ms var(--ease-out-quint) forwards; }
+.ld-beast-clash-bear .bear { animation: ld-win-right 2200ms var(--ease-out-quint) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-beast, .ld-beast-dust, .ld-beast-impact { display: none !important; }
+  .ld-beast-layer [class*="ld-"] { animation: none !important; }
+  .ld-beast-banner { animation: none !important; opacity: 1 !important; transition: opacity .2s; }
+}
