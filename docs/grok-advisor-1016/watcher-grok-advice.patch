@@ -1,0 +1,41 @@
+diff --git a/watcher/grok_advice.py b/watcher/grok_advice.py
+new file mode 100644
+--- /dev/null
++++ b/watcher/grok_advice.py
+@@ -0,0 +1,33 @@
++"""Grok SHADOW ADVISOR log line for desk-watcher (ledger-desk PR #45 stack; changes together with
++src/lib/trading/desk-listen.ts `wire.grokAdvice` and src/lib/smc/master-seat.ts).
++
++LOG ONLY. Reads wire.grokAdvice[] (MISGRADED / WRONGLY_BLOCKED / NEW_SETUP rows) and writes one
++`grok_advice_seen` row per id to grok_advice_shadow.jsonl. It never fires, never blocks, never touches risk state
++and imports no order code. There is no env flag that changes this: Grok can never fire.
++"""
++import json, os, time
++
++FILE = "grok_advice_shadow.jsonl"
++KIND = "grok_advice_seen"
++
++
++def log_advice(wire, seen, log_dir="."):
++    out = []
++    for a in (wire or {}).get("grokAdvice") or []:
++        aid = a.get("id")
++        if not aid or aid in seen or a.get("type") == "AGREE":
++            continue
++        seen.add(aid)
++        row = {"kind": KIND, "id": aid, "type": a.get("type"), "symbol": a.get("symbol"), "side": a.get("side"),
++               "entry": a.get("entry"), "stop": a.get("stop"), "target": a.get("target"),
++               "reasonCode": a.get("reasonCode"), "blocker": a.get("blocker"), "mode": "shadow",
++               "fired": False, "ts": time.time()}
++        with open(os.path.join(log_dir, FILE), "a") as f:
++            f.write(json.dumps(row) + "\n")
++        out.append(row)
++    return out
+diff --git a/watcher/watcher.py b/watcher/watcher.py
+--- a/watcher/watcher.py
++++ b/watcher/watcher.py
+@@ (after the grok_suggest shadow hook in the poll loop) @@
++        try:
++            grok_advice.log_advice(wire, _grok_advice_seen, LOG_DIR)   # shadow log line only; never a fire
++        except Exception:
++            pass

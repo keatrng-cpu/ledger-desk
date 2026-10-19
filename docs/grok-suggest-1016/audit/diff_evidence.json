@@ -1,0 +1,2234 @@
+[
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 515,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30952.25,
+  "rr1": 0.12,
+  "fireB": false,
+  "r": 0.12,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 525,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30975.75,
+  "rr1": 0.54,
+  "fireB": false,
+  "r": 0.54,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 540,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30960.75,
+  "rr1": 0.51,
+  "fireB": false,
+  "r": 0.51,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 550,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30880.5,
+  "rr1": 1.5,
+  "fireB": true,
+  "r": -0.08,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 555,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 30888.5,
+  "rr1": 0.81,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 580,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30893.75,
+  "rr1": 0.91,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 665,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30963.75,
+  "rr1": 0.37,
+  "fireB": false,
+  "r": 0.37,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 680,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30956.5,
+  "rr1": 0.88,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 685,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30925.75,
+  "rr1": 0.86,
+  "fireB": false,
+  "r": 0.86,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 690,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 30924.75,
+  "rr1": 1.69,
+  "fireB": true,
+  "r": 1.69,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 735,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30895,
+  "rr1": 0.7,
+  "fireB": false,
+  "r": 0.7,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 875,
+  "side": "long",
+  "kind": "mss",
+  "entry": 30897,
+  "rr1": 0.01,
+  "fireB": false,
+  "r": 0.01,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 880,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30896.75,
+  "rr1": 1.02,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "MNQ",
+  "at": 900,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30896.25,
+  "rr1": 0.98,
+  "fireB": false,
+  "r": -0.21,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 510,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30619.25,
+  "rr1": 0.01,
+  "fireB": false,
+  "r": 0.01,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 520,
+  "side": "long",
+  "kind": "mss",
+  "entry": 30757.25,
+  "rr1": 0.01,
+  "fireB": false,
+  "r": 0.01,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 525,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30774.5,
+  "rr1": 0.58,
+  "fireB": false,
+  "r": 0.58,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 565,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30786,
+  "rr1": 0.75,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 720,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30739.75,
+  "rr1": 0.57,
+  "fireB": false,
+  "r": 0.57,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 725,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30732,
+  "rr1": 2.46,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 735,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30728.75,
+  "rr1": 0.21,
+  "fireB": false,
+  "r": 0.21,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 755,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30707.25,
+  "rr1": 3.9,
+  "fireB": true,
+  "r": 3.23,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 765,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30743.75,
+  "rr1": 1.8,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 790,
+  "side": "long",
+  "kind": "mss",
+  "entry": 30769.5,
+  "rr1": 0.14,
+  "fireB": false,
+  "r": 0.14,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": "10/13 13:10:05 CT sig-39e390f6baf666f2 band B q 0.5999 failing band,band_truth,q,actionable,blocks,verdict"
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 795,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30775.5,
+  "rr1": 0.21,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": "10/13 13:15:06 CT sig-652201098cb7379a band C q 0.4999 failing band,band_truth,q,actionable,ticket,verdict"
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 840,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30738.25,
+  "rr1": 1.34,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded C by base score, q 0.4999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/13 14:00:05 CT",
+   "gates_row": "10/13 14:00:05 CT sig-c5a767532170197e band C q 0.4999 failing band,band_truth,q,actionable,blocks,verdict",
+   "brain": "STAND MNQ short missing 'LTF reversal against short: 1m rejection wick at the low 30710.75 then a 1.2\u00d7ATR up displacement'",
+   "card": "pdi entry 30721.75 band C q 0.4999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "MNQ",
+  "at": 885,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30771.25,
+  "rr1": 1.16,
+  "fireB": true,
+  "r": 1.16,
+  "cause": "PROVEN: graded B by base score, q 0.5999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/13 14:45:03 CT",
+   "gates_row": "10/13 14:45:03 CT sig-cc248b23e38c8b25 band B q 0.5999 failing band,band_truth,q,actionable,ticket,verdict",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "ronan entry 30771 band B q 0.5999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 525,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30587,
+  "rr1": 1.7,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded C by base score, q 0.4047 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 08:45:07 CT",
+   "gates_row": "10/14 08:45:07 CT sig-d598467ac23758b8 band C q 0.4201 failing band,fast:persist,fast:geometry,fast:velocity",
+   "brain": "STAND ES long missing 'POI in correct half'",
+   "card": "ronan entry 30670.75 band C q 0.4047 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 540,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30474.75,
+  "rr1": 0.05,
+  "fireB": false,
+  "r": 0.05,
+  "cause": "PROVEN: graded C by base score, q 0.4087 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:00:06 CT",
+   "gates_row": "10/14 09:00:06 CT sig-45b64af9960fb3ac band C q 0.4087 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 30569.25 band C q 0.4087 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 540,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 30474.75,
+  "rr1": 0.09,
+  "fireB": false,
+  "r": 0.09,
+  "cause": "PROVEN: graded C by base score, q 0.4087 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:00:06 CT",
+   "gates_row": "10/14 09:00:06 CT sig-45b64af9960fb3ac band C q 0.4087 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 30569.25 band C q 0.4087 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 660,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30332,
+  "rr1": 0.42,
+  "fireB": false,
+  "r": 0.42,
+  "cause": "PROVEN: graded C by base score, q 0.3039 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:00:09 CT",
+   "gates_row": "10/14 11:00:09 CT sig-b2470245854ff95d band C q 0.3055 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND ES short missing 'POI in correct half'",
+   "card": "tjr entry 30481.75 band C q 0.3039 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 675,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30236.75,
+  "rr1": 0.03,
+  "fireB": false,
+  "r": 0.03,
+  "cause": "PROVEN: graded C by base score, q 0.3981 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:15:03 CT",
+   "gates_row": "10/14 11:15:03 CT sig-a272182b53c13d22 band C q 0.371 failing band,fast:persist,fast:agree,fast:velocity",
+   "brain": "STAND ES long missing 'HTF bias + DOL'",
+   "card": "tjr entry 30373.38 band C q 0.3981 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 680,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 30259.75,
+  "rr1": 0.69,
+  "fireB": false,
+  "r": 0.69,
+  "cause": "PROVEN: graded C by base score, q 0.4654 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:20:06 CT",
+   "gates_row": "10/14 11:20:06 CT sig-675cf5ff2cb5ee2d band C q 0.4654 failing band,fast:persist,fast:plan,fast:entry,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 30373.38 band C q 0.4654 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 710,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30281.5,
+  "rr1": 1.89,
+  "fireB": true,
+  "r": 1.89,
+  "cause": "PROVEN: graded B by base score, q 0.5999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:50:16 CT",
+   "gates_row": "10/14 11:50:03 CT sig-36452710c9c0cd67 band B q 0.5999 failing band,fast:persist,fast:velocity",
+   "brain": "STAND ES long missing 'HTF bias + DOL'",
+   "card": "tjr entry 30288 band B q 0.5999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 750,
+  "side": "short",
+  "kind": "mss",
+  "entry": 30178,
+  "rr1": 0.08,
+  "fireB": false,
+  "r": 0.08,
+  "cause": "PROVEN: graded C by base score, q 0.4999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 12:30:07 CT",
+   "gates_row": "10/14 12:30:07 CT sig-e3e2b127a08907e4 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "tjr entry 30249.5 band C q 0.4999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 750,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30178,
+  "rr1": 0.15,
+  "fireB": false,
+  "r": 0.15,
+  "cause": "PROVEN: graded C by base score, q 0.4999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 12:30:07 CT",
+   "gates_row": "10/14 12:30:07 CT sig-e3e2b127a08907e4 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "tjr entry 30249.5 band C q 0.4999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 770,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30174.25,
+  "rr1": 0.48,
+  "fireB": false,
+  "r": 0.48,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 860,
+  "side": "long",
+  "kind": "mss",
+  "entry": 30174.25,
+  "rr1": 0.18,
+  "fireB": false,
+  "r": 0.18,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 865,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30185.75,
+  "rr1": 0.26,
+  "fireB": false,
+  "r": 0.26,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 885,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30183.25,
+  "rr1": 1.67,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "MNQ",
+  "at": 885,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 30183.25,
+  "rr1": 3.17,
+  "fireB": true,
+  "r": -0.81,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 520,
+  "side": "long",
+  "kind": "mss",
+  "entry": 29829.75,
+  "rr1": 0.13,
+  "fireB": false,
+  "r": 0.13,
+  "cause": "PROVEN: graded C by base score, q 0.4546 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 08:40:07 CT",
+   "gates_row": "10/15 08:40:07 CT sig-ea7d46c3ece35ec1 band B q 0.5199 failing band,fast:persist,fast:entry",
+   "brain": "STAND MNQ short missing 'price 3.04\u00d7ATR past the level (> 0.5) \u2014 late, blocked'",
+   "card": "ronan entry 29824.5 band C q 0.4546 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 525,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 29819.5,
+  "rr1": 0.64,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 535,
+  "side": "short",
+  "kind": "mss",
+  "entry": 29639.25,
+  "rr1": 0,
+  "fireB": false,
+  "r": 0,
+  "cause": "PROVEN: graded C by base score, q 0.4999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 08:55:04 CT",
+   "gates_row": "10/15 08:55:04 CT sig-9a8782135d6c55a5 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "ronan entry 29717.75 band C q 0.4999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 540,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 29687,
+  "rr1": 1.56,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded C by base score, q 0.3104 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 09:00:06 CT",
+   "gates_row": "10/15 09:00:06 CT sig-51c915a4e3c1c22c band C q 0.3876 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND ES short missing 'POI in correct half'",
+   "card": "ronan entry 29782.25 band C q 0.3104 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 590,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 29905,
+  "rr1": 5.41,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded C by base score, q 0.4999 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 09:50:08 CT",
+   "gates_row": "10/15 09:50:03 CT sig-d38d8083c20a55d5 band A- q 0.6799 failing fast:persist,fast:agree,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "ronan entry 29883.88 band C q 0.4999 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 600,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 29970.5,
+  "rr1": 0.08,
+  "fireB": false,
+  "r": 0.08,
+  "cause": "PROVEN: graded C by base score, q 0.4784 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 10:00:07 CT",
+   "gates_row": "10/15 10:00:07 CT sig-2c0cd8116fbb404e band B q 0.5668 failing band,fast:persist,fast:entry",
+   "brain": "STAND ES long missing 'POI in correct half'",
+   "card": "ronan entry 29866.13 band C q 0.4784 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 630,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 29999.5,
+  "rr1": 1.11,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded B by base score, q 0.5818 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 10:30:04 CT",
+   "gates_row": "10/15 10:30:04 CT sig-dfea30e0029d5d1e band B q 0.5818 failing band,fast:persist,fast:entry",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "ronan entry 29937.88 band B q 0.5818 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 785,
+  "side": "short",
+  "kind": "mss",
+  "entry": 29990.5,
+  "rr1": 0.28,
+  "fireB": false,
+  "r": 0.28,
+  "cause": "UNPROVEN: row present, cause not explicit",
+  "evidence": {
+   "cards_row": "10/15 13:05:12 CT",
+   "gates_row": "10/15 13:05:12 CT sig-5341d090c7d55da6 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "tjr entry 29987.5 band C q 0.3692 q_scan 0.3556 actionable False",
+   "caps": [
+    "[discipline+mtf] Day context (-0.02): +0.02 daily bias short (premarket below PD mid, below weekly open, below PDL); -0.01 London swept Asia low \u2192 NY long; -0.03 Swing high (internal BSL) 29978: 2 5m closes beyond \u2014 breakout, not a sweep; -0.01 macro risk-on (DXY -0.51%, 10y -1.946%); +0.01 3/7 strategies within 0.05 of the best",
+    "[discipline+mtf] Displacement strength 0.34 (0.36\u00d7ATR5) -0.0064"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 790,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 29993.25,
+  "rr1": 0.57,
+  "fireB": false,
+  "r": 0.57,
+  "cause": "UNPROVEN: row present, cause not explicit",
+  "evidence": {
+   "cards_row": "10/15 13:10:07 CT",
+   "gates_row": "10/15 13:10:07 CT sig-5341d090c7d55da6 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "tjr entry 29993.13 band C q 0.3856 q_scan 0.3556 actionable False",
+   "caps": [
+    "[discipline+mtf] Day context (-0.02): +0.02 daily bias short (premarket below PD mid, below weekly open, below PDL); -0.01 London swept Asia low \u2192 NY long; -0.03 Swing high (internal BSL) 29978: 2 5m closes beyond \u2014 breakout, not a sweep; -0.01 macro risk-on (DXY -0.525%, 10y -1.946%); +0.01 3/7 strategies within 0.05 of the best"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 820,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 29979.75,
+  "rr1": 1.1,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 13:40:03 CT",
+   "gates_row": "10/15 13:40:03 CT sig-cd6be902a931be53 band C q 0.4999 failing band,fast:persist,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "pdi entry 29980.5 band C q 0.4999 q_scan 0.5849 actionable False",
+   "caps": [
+    "[discipline+mtf] LTF reversal against short \u2014 capped at C: 1m rejection wick at the low 29948 then a 2.6\u00d7ATR up displacement",
+    "[seal] Plan completed (15m ifvg \u2192 OR SD projection): entry 15m ifvg CE 29980.5; target from OR SD projection"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 845,
+  "side": "long",
+  "kind": "mss",
+  "entry": 30072.75,
+  "rr1": 0.03,
+  "fireB": false,
+  "r": 0.03,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:05:11 CT",
+   "gates_row": "10/15 14:05:11 CT sig-8871c975b887b445 band B q 0.5199 failing band,fast:persist,fast:velocity,second_entry_band",
+   "brain": "STAND ES short missing 'LTF shift + displacement'",
+   "card": "tjr entry 29979.38 band C q 0.3023 q_scan 0.8517 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] 2m bearish SMT: MNQ failed the HH ES made \u2014 long capped at B (was B+)",
+    "[seal] shadow:timing (no effect): quality-only q 0.99 (A+) vs live 0.3023 (C); C, missed, waiting for retest @ 30065.13 (1m IFVG 30064.5\u201330065.75 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 850,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30093,
+  "rr1": 0.06,
+  "fireB": false,
+  "r": 0.06,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:10:33 CT",
+   "gates_row": "10/15 14:10:33 CT sig-abb9ebc65c41f648 band C q 0.4999 failing band,fast:persist,fast:velocity,second_entry_band",
+   "brain": "STAND ES short missing 'LTF shift + displacement'",
+   "card": "tjr entry 29979.38 band C q 0.1171 q_scan 0.8517 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] 2m bearish SMT: MNQ failed the HH ES made \u2014 long capped at B (was B+)",
+    "[seal] shadow:timing (no effect): quality-only q 0.99 (A+) vs live 0.1171 (C); C, missed, waiting for retest @ 30079.38 (1m IFVG 30078.75\u201330080 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 860,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 30160,
+  "rr1": 0.36,
+  "fireB": false,
+  "r": 0.36,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:20:05 CT",
+   "gates_row": "10/15 14:20:05 CT sig-d7aaff155054ebf1 band C q 0.2361 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND ES short missing 'HTF bias + DOL'",
+   "card": "tjr entry 30014.63 band C q 0.0932 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[seal] shadow:timing (no effect): quality-only q 0.9213 (A+) vs live 0.0932 (C); C, missed, waiting for retest @ 30152 (1m FVG 30148\u201330156 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "MNQ",
+  "at": 875,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 30135,
+  "rr1": 1.46,
+  "fireB": true,
+  "r": 1.46,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:35:05 CT",
+   "gates_row": "10/15 14:35:05 CT sig-4572dba195ade91b band B q 0.5999 failing band,fast:persist,fast:entry,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "tjr entry 30083.88 band B q 0.5999 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] 3m bearish SMT: MNQ failed the HH ES made \u2014 long capped at B (was B+)",
+    "[seal] shadow:timing (no effect): quality-only q 0.9831 (A+) vs live 0.5999 (B); B, late, waiting for retest @ 30127 (retest of the broken entry zone 30040.75\u201330127)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 510,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 30025.25,
+  "rr1": 0.03,
+  "fireB": false,
+  "r": 0.03,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 08:30:44 CT",
+   "gates_row": "10/16 08:30:44 CT sig-e26f4844c54a55d7 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:agree",
+   "brain": "STAND ES long missing 'POI in correct half'",
+   "card": "tjr entry 30089.25 band C q 0.4999 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u2713 MTF \u2713 LTF \u00b7)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u2713 MTF \u2713 LTF \u00b7)",
+    "[discipline+mtf] LTF reversal against short \u2014 capped at C: 1m rejection wick at the low 30030.75 then a 3.0\u00d7ATR up displacement",
+    "[seal] shadow:timing (no effect): quality-only q 0.8054 (A+) vs live 0.4999 (C); C, late, waiting for retest @ 30014.63 (15m IFVG 29994.5\u201330034.75 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 515,
+  "side": "short",
+  "kind": "mss",
+  "entry": 29970,
+  "rr1": 0.06,
+  "fireB": false,
+  "r": 0.06,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 08:35:08 CT",
+   "gates_row": "10/16 08:35:08 CT sig-0a3a2fb09c6dfe6a band C q 0.4999 failing band,fast:persist,fast:entry",
+   "brain": "STAND ES short missing 'price 1.20\u00d7ATR past the level (> 0.5) \u2014 late, blocked'",
+   "card": "tjr entry 30089.25 band C q 0.3113 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)",
+    "[seal] shadow:timing (no effect): quality-only q 0.99 (A+) vs live 0.3113 (C); C, missed, waiting for retest @ 29980.5 (15m IFVG 29977.5\u201329983.5 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 520,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 29896.75,
+  "rr1": 0.29,
+  "fireB": false,
+  "r": 0.29,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 08:40:08 CT",
+   "gates_row": "10/16 08:40:08 CT sig-da8d4967f74ee483 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:agree",
+   "brain": "STAND ES long missing 'Draw on liquidity'",
+   "card": "tjr entry 30089.25 band C q 0.066 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 585,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 29912,
+  "rr1": 3.26,
+  "fireB": true,
+  "r": 3.26,
+  "cause": "PROVEN: card sealed C \u2014 played out/invalidated on its OLD entry (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 09:45:06 CT",
+   "gates_row": "10/16 09:45:06 CT sig-71ee654ebc829f0d band B q 0.6199 failing band,fast:persist,fast:agree",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 29892.75 band C q 0.4999 q_scan 0.817 actionable False",
+   "caps": [
+    "[discipline+mtf] Chop (overlap 0.85, range 4.17\u00d7ATR) \u2014 band capped at B+",
+    "[discipline+mtf] Displacement strength 0.26 (1.04\u00d7ATR5) -0.0096",
+    "[seal] Timing: B+, at entry (-0.23\u00d7ATR15)",
+    "[ltfArm cap] Played out: T1 29823.5 already traded since entry 29892.75 was first touched \u2014 capped at C, no alert",
+    "[ltfArm cap] Played out: T1 29823.5 already traded since entry 29892.75 was first touched \u2014 capped at C, no alert"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 600,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 29862.25,
+  "rr1": 1.83,
+  "fireB": true,
+  "r": 1.83,
+  "cause": "PROVEN: card sealed C \u2014 played out/invalidated on its OLD entry (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:00:08 CT",
+   "gates_row": "10/16 10:00:08 CT sig-f2d97936f9a5f0f5 band B q 0.5199 failing band,fast:persist,fast:agree",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 29892.75 band C q 0.4999 q_scan 0.8517 actionable False",
+   "caps": [
+    "[discipline+mtf] Chop (overlap 0.85, range 4.17\u00d7ATR) \u2014 band capped at B+",
+    "[discipline+mtf] R3 chase 0.07\u00d7ATR15 past CE \u2014 q \u00d70.9642 (timing.mode shadow)",
+    "[seal] shadow:timing (no effect): quality-only q 0.674 (A-) vs live 0.6499 (B+); B+, at entry",
+    "[ltfArm cap] Played out: T1 29823.5 already traded since entry 29892.75 was first touched \u2014 capped at C, no alert",
+    "[ltfArm cap] Played out: T1 29823.5 already traded since entry 29892.75 was first touched \u2014 capped at C, no alert"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 610,
+  "side": "short",
+  "kind": "mss",
+  "entry": 29701.25,
+  "rr1": 0,
+  "fireB": false,
+  "r": 0,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:10:07 CT",
+   "gates_row": "10/16 10:10:07 CT sig-c507a29108b9028b band C q 0.4179 failing band,fast:persist,fast:entry",
+   "brain": "STAND MNQ long missing 'Liquidity sweep'",
+   "card": "tjr entry 29892.75 band C q 0.1036 q_scan 0.9063 actionable False",
+   "caps": [
+    "[discipline+mtf] Chase 2.49\u00d7ATR past CE \u2014 4 band steps down",
+    "[discipline+mtf] R3 chase 2.49\u00d7ATR15 past CE \u2014 q \u00d70.0000 (timing.mode shadow)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 615,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 29716.5,
+  "rr1": 0.78,
+  "fireB": false,
+  "r": 0.78,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:15:22 CT",
+   "gates_row": "10/16 10:15:16 CT sig-3474d5f587158078 band C q 0.341 failing band,fast:persist,fast:agree",
+   "brain": "STAND MNQ long missing 'Liquidity sweep'",
+   "card": "tjr entry 29849.75 band C q 0.3 q_scan 0.8715 actionable False",
+   "caps": [
+    "[discipline+mtf] Chase 1.55\u00d7ATR past CE \u2014 3 band steps down",
+    "[discipline+mtf] R3 chase 1.55\u00d7ATR15 past CE \u2014 q \u00d70.2253 (timing.mode shadow)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "MNQ",
+  "at": 645,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 29720.25,
+  "rr1": 1.56,
+  "fireB": true,
+  "r": 1.56,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 515,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7864.25,
+  "rr1": 0.93,
+  "fireB": false,
+  "r": 0.93,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 515,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7864.25,
+  "rr1": 1.53,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 530,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7860,
+  "rr1": 0.15,
+  "fireB": false,
+  "r": 0.15,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 550,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7853,
+  "rr1": 0.01,
+  "fireB": false,
+  "r": 0.01,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 555,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7853.5,
+  "rr1": 0.73,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 575,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7854.5,
+  "rr1": 0.75,
+  "fireB": false,
+  "r": 0.75,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 680,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7864,
+  "rr1": 1.17,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 685,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7856.5,
+  "rr1": 0.18,
+  "fireB": false,
+  "r": 0.18,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 690,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7856.5,
+  "rr1": 0.62,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 705,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7856.5,
+  "rr1": 0.44,
+  "fireB": false,
+  "r": 0.44,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 735,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7854.25,
+  "rr1": 1.46,
+  "fireB": true,
+  "r": 1.46,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 810,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7849.25,
+  "rr1": 0.3,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 875,
+  "side": "long",
+  "kind": "mss",
+  "entry": 7853,
+  "rr1": 0.04,
+  "fireB": false,
+  "r": 0.04,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 880,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7854,
+  "rr1": 0.56,
+  "fireB": false,
+  "r": 0.56,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-12",
+  "sym": "ES",
+  "at": 900,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7856.75,
+  "rr1": 0.6,
+  "fireB": false,
+  "r": -0.07,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 510,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7849,
+  "rr1": 2.8,
+  "fireB": true,
+  "r": 2.8,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 515,
+  "side": "long",
+  "kind": "mss",
+  "entry": 7852.5,
+  "rr1": 0.56,
+  "fireB": false,
+  "r": 0.56,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 525,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7859.5,
+  "rr1": 4.33,
+  "fireB": true,
+  "r": 4.33,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 525,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7859.5,
+  "rr1": 1.25,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 630,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7836.75,
+  "rr1": 0.09,
+  "fireB": false,
+  "r": 0.09,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 675,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7844.25,
+  "rr1": 1.07,
+  "fireB": true,
+  "r": 1.07,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 745,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7846.75,
+  "rr1": 2.29,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 790,
+  "side": "long",
+  "kind": "mss",
+  "entry": 7854.75,
+  "rr1": 0.1,
+  "fireB": false,
+  "r": 0.1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": "10/13 13:10:05 CT sig-39e390f6baf666f2 band B q 0.5999 failing band,band_truth,q,actionable,blocks,verdict"
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 795,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7854.5,
+  "rr1": 0.5,
+  "fireB": false,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": "10/13 13:15:06 CT sig-652201098cb7379a band C q 0.4999 failing band,band_truth,q,actionable,ticket,verdict"
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 850,
+  "side": "long",
+  "kind": "mss",
+  "entry": 7856.75,
+  "rr1": 0.17,
+  "fireB": false,
+  "r": 0.17,
+  "cause": "PROVEN: graded C by base score, q 0.3258 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/13 14:10:04 CT",
+   "gates_row": "10/13 14:10:04 CT sig-754cdcdbf33083fe band B q 0.5275 failing band,band_truth,q,actionable,ticket,verdict",
+   "brain": "STAND ES short missing 'LTF shift + displacement'",
+   "card": "tjr entry 7847.5 band C q 0.3258 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 855,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7859.25,
+  "rr1": 0.08,
+  "fireB": false,
+  "r": 0.08,
+  "cause": "PROVEN: graded C by base score, q 0.1563 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/13 14:15:14 CT",
+   "gates_row": "10/13 14:15:14 CT sig-754cdcdbf33083fe band B q 0.5375 failing band,band_truth,q,actionable,ticket,verdict",
+   "brain": "STAND ES short missing 'LTF shift + displacement'",
+   "card": "tjr entry 7847.38 band C q 0.1563 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-13",
+  "sym": "ES",
+  "at": 870,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7857.75,
+  "rr1": 0.69,
+  "fireB": false,
+  "r": 0.69,
+  "cause": "PROVEN: graded C by base score, q 0.1567 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/13 14:30:04 CT",
+   "gates_row": "10/13 14:30:04 CT sig-2ee7f41aafd43310 band B q 0.5999 failing band,band_truth,q,actionable,blocks,verdict",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "tjr entry 7847.5 band C q 0.1567 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 525,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7827.5,
+  "rr1": 0.75,
+  "fireB": false,
+  "r": 0.75,
+  "cause": "PROVEN: graded C by base score, q 0.0508 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 08:45:07 CT",
+   "gates_row": "10/14 08:45:07 CT sig-d598467ac23758b8 band C q 0.4201 failing band,fast:persist,fast:geometry,fast:velocity",
+   "brain": "STAND ES long missing 'POI in correct half'",
+   "card": "ronan entry 7849.25 band C q 0.0508 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 540,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7807.75,
+  "rr1": 0.04,
+  "fireB": false,
+  "r": 0.04,
+  "cause": "PROVEN: graded C by base score, q 0.2673 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:00:06 CT",
+   "gates_row": "10/14 09:00:06 CT sig-45b64af9960fb3ac band C q 0.4087 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 7825.75 band C q 0.2673 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 540,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7807.75,
+  "rr1": 0.08,
+  "fireB": false,
+  "r": 0.08,
+  "cause": "PROVEN: graded C by base score, q 0.2673 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:00:06 CT",
+   "gates_row": "10/14 09:00:06 CT sig-45b64af9960fb3ac band C q 0.4087 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 7825.75 band C q 0.2673 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 545,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7808,
+  "rr1": 0.42,
+  "fireB": false,
+  "r": 0.42,
+  "cause": "PROVEN: graded C by base score, q 0.2556 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:05:03 CT",
+   "gates_row": "10/14 09:05:03 CT sig-229a0f0dac04e7bb band B q 0.591 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 7825.75 band C q 0.2556 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 580,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7797,
+  "rr1": 0.08,
+  "fireB": false,
+  "r": 0.08,
+  "cause": "PROVEN: graded C by base score, q 0.3311 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 09:40:07 CT",
+   "gates_row": "10/14 09:40:07 CT sig-c203670a2eee91f2 band C q 0.3311 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND ES short missing 'POI in correct half'",
+   "card": "ronan entry 7816.5 band C q 0.3311 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 660,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7782.5,
+  "rr1": 0.58,
+  "fireB": false,
+  "r": 0.58,
+  "cause": "PROVEN: graded C by base score, q 0.3055 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:00:09 CT",
+   "gates_row": "10/14 11:00:09 CT sig-b2470245854ff95d band C q 0.3055 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND ES short missing 'POI in correct half'",
+   "card": "ronan entry 7803.5 band C q 0.3055 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 675,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7767.75,
+  "rr1": 1.5,
+  "fireB": true,
+  "r": -0.15,
+  "cause": "PROVEN: graded C by base score, q 0.3606 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:15:03 CT",
+   "gates_row": "10/14 11:15:03 CT sig-a272182b53c13d22 band C q 0.371 failing band,fast:persist,fast:agree,fast:velocity",
+   "brain": "STAND ES long missing 'HTF bias + DOL'",
+   "card": "ronan entry 7788 band C q 0.3606 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 680,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7770.25,
+  "rr1": 0.64,
+  "fireB": false,
+  "r": 0.64,
+  "cause": "PROVEN: graded C by base score, q 0.4276 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:20:06 CT",
+   "gates_row": "10/14 11:20:06 CT sig-675cf5ff2cb5ee2d band C q 0.4654 failing band,fast:persist,fast:plan,fast:entry,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "ronan entry 7788 band C q 0.4276 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 705,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7776.25,
+  "rr1": 1.7,
+  "fireB": true,
+  "r": 1.7,
+  "cause": "PROVEN: graded C by base score, q 0.4232 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 11:45:28 CT",
+   "gates_row": "10/14 11:45:28 CT sig-36452710c9c0cd67 band B q 0.5999 failing band,fast:persist,fast:velocity",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 7788 band C q 0.4232 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 750,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7756.5,
+  "rr1": 0.07,
+  "fireB": false,
+  "r": 0.07,
+  "cause": "PROVEN: graded C by base score, q 0.4481 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/14 12:30:07 CT",
+   "gates_row": "10/14 12:30:07 CT sig-e3e2b127a08907e4 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:geometry,fast:velocity",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "ronan entry 7769.75 band C q 0.4481 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 800,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7756.75,
+  "rr1": 2.08,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 805,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7753.75,
+  "rr1": 1.5,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 860,
+  "side": "long",
+  "kind": "mss",
+  "entry": 7761,
+  "rr1": 1.5,
+  "fireB": true,
+  "r": 0.59,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 880,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7760.25,
+  "rr1": 1.63,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-14",
+  "sym": "ES",
+  "at": 885,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7764,
+  "rr1": 1.08,
+  "fireB": true,
+  "r": 1.08,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 525,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7741.5,
+  "rr1": 2.15,
+  "fireB": true,
+  "r": -1,
+  "cause": "UNPROVEN: no cards.log row at this moment",
+  "evidence": {
+   "cards_row": null,
+   "gates_row": null
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 535,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7719.25,
+  "rr1": 0.01,
+  "fireB": false,
+  "r": 0.01,
+  "cause": "PROVEN: graded C by base score, q 0.026 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 08:55:04 CT",
+   "gates_row": "10/15 08:55:04 CT sig-9a8782135d6c55a5 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "ronan entry 7738 band C q 0.026 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 550,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7746.25,
+  "rr1": 0.26,
+  "fireB": false,
+  "r": 0.26,
+  "cause": "PROVEN: graded C by base score, q 0.4982 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 09:10:06 CT",
+   "gates_row": "10/15 09:10:06 CT sig-3cb158fa22b974a4 band C q 0.4999 failing band,fast:persist,fast:velocity",
+   "brain": "STAND MNQ short missing 'LTF reversal against short: 5m IFVG bull (0b) against the short'",
+   "card": "patty entry 7747.38 band C q 0.4982 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 600,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7769,
+  "rr1": 0.06,
+  "fireB": false,
+  "r": 0.06,
+  "cause": "PROVEN: graded B by base score, q 0.5668 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 10:00:07 CT",
+   "gates_row": "10/15 10:00:07 CT sig-2c0cd8116fbb404e band B q 0.5668 failing band,fast:persist,fast:entry",
+   "brain": "STAND ES long missing 'POI in correct half'",
+   "card": "ronan entry 7757.75 band B q 0.5668 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 630,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7776,
+  "rr1": 1.19,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: graded C by base score, q 0.3419 < 0.60, no cap rows",
+  "evidence": {
+   "cards_row": "10/15 10:30:04 CT",
+   "gates_row": "10/15 10:30:04 CT sig-dfea30e0029d5d1e band B q 0.5818 failing band,fast:persist,fast:entry",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "ronan entry 7757.75 band C q 0.3419 q_scan None actionable False",
+   "caps": []
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 785,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7775,
+  "rr1": 0.2,
+  "fireB": false,
+  "r": 0.2,
+  "cause": "UNPROVEN: row present, cause not explicit",
+  "evidence": {
+   "cards_row": "10/15 13:05:12 CT",
+   "gates_row": "10/15 13:05:12 CT sig-5341d090c7d55da6 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "patty entry 7771.38 band C q 0.3119 q_scan 0.2787 actionable False",
+   "caps": [
+    "[discipline+mtf] Displacement strength 0.33 (0.33\u00d7ATR5) -0.0068"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 790,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7774.25,
+  "rr1": 0.38,
+  "fireB": false,
+  "r": 0.38,
+  "cause": "UNPROVEN: row present, cause not explicit",
+  "evidence": {
+   "cards_row": "10/15 13:10:07 CT",
+   "gates_row": "10/15 13:10:07 CT sig-5341d090c7d55da6 band C q 0.4999 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "patty entry 7771.38 band C q 0.3287 q_scan 0.2787 actionable False",
+   "caps": [
+    "[discipline+mtf] Day context (-0.01): +0.02 daily bias short (premarket below PD mid, below weekly open, below PDL); -0.03 Swing high (internal BSL) 7772.75: 2 5m closes beyond \u2014 breakout, not a sweep; -0.01 macro risk-on (DXY -0.525%, 10y -1.946%); +0.01 3/7 strategies within 0.05 of the best"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 820,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7771.75,
+  "rr1": 1.36,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 13:40:03 CT",
+   "gates_row": "10/15 13:40:03 CT sig-cd6be902a931be53 band C q 0.4999 failing band,fast:persist,fast:velocity,second_entry_band",
+   "brain": "STAND MNQ short missing 'Draw on liquidity'",
+   "card": "pdi entry 7778.5 band B q 0.5199 q_scan 0.5849 actionable False",
+   "caps": [
+    "[discipline+mtf] LTF reversal against short \u2014 capped at C: 1m rejection wick at the low 7765.5 then a 1.6\u00d7ATR up displacement",
+    "[seal] Continuation plan (fix 34): 22 stacked bear gaps on 1m/3m, newest 3m 7778.25\u20137778.75 CE 7778.5; displacement 1; T1 7760.25"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 860,
+  "side": "long",
+  "kind": "higherLow",
+  "entry": 7798.5,
+  "rr1": 0.24,
+  "fireB": false,
+  "r": 0.24,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:20:05 CT",
+   "gates_row": "10/15 14:20:05 CT sig-d7aaff155054ebf1 band C q 0.2361 failing band,fast:persist,fast:entry,fast:velocity,second_entry_band",
+   "brain": "STAND ES short missing 'HTF bias + DOL'",
+   "card": "tjr entry 7777 band C q 0.0812 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[seal] shadow:timing (no effect): quality-only q 0.9213 (A+) vs live 0.0812 (C); C, missed, waiting for retest @ 7798.38 (1h IFVG 7797.5\u20137799.25 CE)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-15",
+  "sym": "ES",
+  "at": 875,
+  "side": "long",
+  "kind": "htfGapTap",
+  "entry": 7793.5,
+  "rr1": 1.57,
+  "fireB": true,
+  "r": -1,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/15 14:35:05 CT",
+   "gates_row": "10/15 14:35:05 CT sig-4572dba195ade91b band B q 0.5999 failing band,fast:persist,fast:entry,second_entry_band",
+   "brain": "STAND MNQ long missing 'POI in correct half'",
+   "card": "tjr entry 7786.88 band C q 0.4999 q_scan 0.9213 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] LTF reversal against long \u2014 capped at C: 5m IFVG bear (0b) against the long; 1m rejection wick at the high 7799.75 then a 2.0\u00d7ATR down displacement",
+    "[seal] shadow:timing (no effect): quality-only q 0.7124 (A) vs live 0.4999 (C); C, at entry"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 515,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7792.75,
+  "rr1": 0.02,
+  "fireB": false,
+  "r": 0.02,
+  "cause": "PROVEN: card sealed C \u2014 played out/invalidated on its OLD entry (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 08:35:08 CT",
+   "gates_row": "10/16 08:35:08 CT sig-0a3a2fb09c6dfe6a band C q 0.4999 failing band,fast:persist,fast:entry",
+   "brain": "STAND ES short missing 'price 1.20\u00d7ATR past the level (> 0.5) \u2014 late, blocked'",
+   "card": "tjr entry 7805.25 band C q 0.4999 q_scan 0.817 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[seal] Reversal entry (fix 33): first bear IFVG after the 1m CHoCH (7799.5\u20137800.5); add-on at the 2nd gap CE 7800.88",
+    "[ltfArm cap] Played out: T1 7795.5 already traded since entry 7805.25 was first touched \u2014 capped at C, no alert",
+    "[ltfArm cap] Played out: T1 7795.5 already traded since entry 7805.25 was first touched \u2014 capped at C, no alert"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 520,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7787,
+  "rr1": 0.35,
+  "fireB": false,
+  "r": 0.35,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 08:40:08 CT",
+   "gates_row": "10/16 08:40:08 CT sig-da8d4967f74ee483 band C q 0.4999 failing band,fast:persist,fast:plan,fast:entry,fast:agree",
+   "brain": "STAND ES long missing 'Draw on liquidity'",
+   "card": "tjr entry 7805.25 band C q 0.2919 q_scan 0.8157 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 0.67 (HTF \u00b7 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] Reversal setup: 15m BSL sweep 7807.25 + LTF CHoCH bear \u2014 HTF released for the short (cap A-); 5/5 of 1m\u20135m broke bear within 10 bars"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 540,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7783.75,
+  "rr1": 0.38,
+  "fireB": false,
+  "r": 0.38,
+  "cause": "PROVEN: LTF arm/reversal cap (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 09:00:07 CT",
+   "gates_row": "10/16 09:00:07 CT sig-b68b3f492226f0ef band B+ q 0.6499 failing fast:persist,fast:entry",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 7796.75 band C q 0.1032 q_scan 0.9083 actionable False",
+   "caps": [
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] MTF align 1 (HTF \u2713 MTF \u2713 LTF \u2713)",
+    "[discipline+mtf] Reversal setup: 15m BSL sweep 7807.25 + LTF CHoCH bear \u2014 HTF released for the short (cap A-)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 600,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7784.5,
+  "rr1": 1.95,
+  "fireB": true,
+  "r": 1.95,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:00:08 CT",
+   "gates_row": "10/16 10:00:08 CT sig-f2d97936f9a5f0f5 band B q 0.5199 failing band,fast:persist,fast:agree",
+   "brain": "STAND MNQ short missing 'POI in correct half'",
+   "card": "tjr entry 7793.75 band C q 0.2303 q_scan 0.7822 actionable False",
+   "caps": [
+    "[discipline+mtf] Chase 1.57\u00d7ATR past CE \u2014 3 band steps down",
+    "[discipline+mtf] R3 chase 1.57\u00d7ATR15 past CE \u2014 q \u00d70.2126 (timing.mode shadow)",
+    "[discipline+mtf] LTF reversal against short \u2014 capped at C: 1m rejection wick at the low 7776.75 then a 1.1\u00d7ATR up displacement"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 610,
+  "side": "short",
+  "kind": "mss",
+  "entry": 7767.75,
+  "rr1": 0.03,
+  "fireB": false,
+  "r": 0.03,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:10:07 CT",
+   "gates_row": "10/16 10:10:07 CT sig-c507a29108b9028b band C q 0.4179 failing band,fast:persist,fast:entry",
+   "brain": "STAND MNQ long missing 'Liquidity sweep'",
+   "card": "tjr entry 7793.75 band C q 0.114 q_scan 0.802 actionable False",
+   "caps": [
+    "[discipline+mtf] Chase 2.75\u00d7ATR past CE \u2014 5 band steps down",
+    "[discipline+mtf] R3 chase 2.75\u00d7ATR15 past CE \u2014 q \u00d70.0000 (timing.mode shadow)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 615,
+  "side": "short",
+  "kind": "lowerHigh",
+  "entry": 7768.75,
+  "rr1": 0.91,
+  "fireB": false,
+  "r": 0.91,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 10:15:22 CT",
+   "gates_row": "10/16 10:15:16 CT sig-3474d5f587158078 band C q 0.341 failing band,fast:persist,fast:agree",
+   "brain": "STAND MNQ long missing 'Liquidity sweep'",
+   "card": "tjr entry 7783.75 band C q 0.3752 q_scan 0.802 actionable False",
+   "caps": [
+    "[discipline+mtf] Chase 1.35\u00d7ATR past CE \u2014 2 band steps down",
+    "[discipline+mtf] R3 chase 1.35\u00d7ATR15 past CE \u2014 q \u00d70.3257 (timing.mode shadow)"
+   ]
+  }
+ },
+ {
+  "day": "2026-10-16",
+  "sym": "ES",
+  "at": 680,
+  "side": "short",
+  "kind": "htfGapTap",
+  "entry": 7746.75,
+  "rr1": 1.7,
+  "fireB": true,
+  "r": -0.33,
+  "cause": "PROVEN: chase cap \u2014 entry anchored past (capReasons)",
+  "evidence": {
+   "cards_row": "10/16 11:20:06 CT",
+   "gates_row": "10/16 11:20:06 CT sig-c4125c4b29858d05 band C q 0.4999 failing band,fast:persist,fast:agree,fast:ifvg",
+   "brain": "STAND ES short missing 'POI in correct half'",
+   "card": "mechanical entry 7752.75 band C q 0.4999 q_scan 0.9193 actionable False",
+   "caps": [
+    "[discipline+mtf] R3 chase 0.46\u00d7ATR15 past CE \u2014 q \u00d70.7684 (timing.mode shadow)",
+    "[discipline+mtf] LTF reversal against short \u2014 capped at C: 5m IFVG bull (0b) against the short",
+    "[seal] shadow:timing (no effect): quality-only q 0.6506 (A-) vs live 0.4999 (C); C, near entry"
+   ]
+  }
+ }
+]

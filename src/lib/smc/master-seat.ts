@@ -29,6 +29,10 @@ export interface MasterInput {
   } | null;
   /** Rule 1 shadow tickets (read-only; the brain/Floor seat shows and logs them, never decides on them). */
   rule1?: import("@/lib/trading/rule1").Rule1Ticket[];
+  /** Grok suggestion cards (display only here; the seat never decides on them). */
+  grokSuggest?: import("@/lib/grok-reader/suggest").SuggestionCard[];
+  /** Grok SHADOW ADVISOR rows (seat line only; never a check). */
+  grokAdvice?: import("@/lib/grok-reader/advisor").AdviceRow[];
   brainWord: string | null;
   brainBook: { symbol: string; side: string | null } | null;
   floorVerdict: string;
@@ -63,7 +67,9 @@ export function masterSeat(i: MasterInput): MasterSeat {
   if (i.smtLead) narrative.push(`SMT ${i.smtLead.tf} ${i.smtLead.kind}: ${i.smtLead.leader} swept, ${i.smtLead.failing} held`);
   narrative.push(`Card: ${c.symbol} ${c.side} ${c.band ?? "?"} q ${c.q}${c.chop ? " · chop" : ""}${c.dispScore != null ? ` · displacement ${c.dispScore}` : ""}`);
   narrative.push(`Brain on this book: ${i.brainWord ?? "?"}${i.brainBook ? ` (${i.brainBook.symbol} ${i.brainBook.side ?? "-"})` : ""}`);
-  for (const t of i.rule1 ?? []) if (t.ticketD70) narrative.push(rule1D70Line(t));   // shadow Δ0.7 ticket (overnight-1016 #1); display only, no check
+  for (const t of i.rule1 ?? []) if (t.ticketD70) narrative.push(rule1D70Line(t));
+  for (const g of (i.grokSuggest ?? []).slice(0, 2)) narrative.push(`Grok suggestion (${g.mode}): ${g.symbol} ${g.side} @${g.entry} → desk review ${g.review.decision} [${g.review.route}]. Informational; never a check.`);
+  for (const a of (i.grokAdvice ?? []).filter((x) => x.type !== "AGREE").slice(0, 2)) narrative.push(`Grok advisor (shadow): ${a.type} ${a.symbol} ${a.side}${a.entry != null ? ` @${a.entry}` : ""} [${a.reasonCode}]${a.blocker ? ` blocker "${a.blocker}"` : ""}. Log only; never a check.`);
   if (i.topDraw) narrative.push(`Draw: ${i.topDraw.name} ${i.topDraw.price}`);
   narrative.push(c.entry != null ? `Plan: entry ${c.entry}${c.entryResting ? " (resting)" : ""} · stop ${c.stopPx ?? "?"} · target ${c.target ?? "?"} · ${c.rr ?? "?"}R` : "Plan: no priced entry yet");
   const sameBook = i.brainBook?.symbol === c.symbol;
