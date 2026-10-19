@@ -230,3 +230,9 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - ltfArm and reviewQuoteRetry both stay shadow pending a desk replay and Keaton's OK. The everyTf facts and the watcher `ltf_arm_validated` hard row stay.
 - RULES_HASH e1f704e02b438e98 → 0a692dc19944a8df.
 
+### 2026-10-19 — Client-reachable market code has an explicit Node boundary
+- **Status:** ADOPTED · **Decided by:** Keaton work order · **Source:** dev crash follow-up to PR #66
+- **Decision:** A module reachable from a client component may not evaluate a top-level `node:*` import. `market/databento.ts` loads `node:fs` and `node:path` only inside its async, `window`-guarded key reader; synchronous market math lives in the Node-free `market/bars.ts` module and is re-exported only for compatibility.
+- **Why:** Vite replaces Node built-ins in the browser with external stubs. Named top-level imports destructured those stubs during client module evaluation, so every dev page load crashed before the desk could render. The explicit boundary keeps server fetches and `.env` fallback intact while making client evaluation inert.
+- **Scope:** development/runtime boundary only. No change to `shared/desk-rules.json`, `RULES_HASH`, scores, gates, prices, or order authority.
+

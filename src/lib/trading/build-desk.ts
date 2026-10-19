@@ -72,7 +72,6 @@ import {
 } from "@/lib/market/live-gateway";
 import { crossBoth } from "@/lib/market/spot-cross";
 import {
-  aggregateBars,
   applyQuoteToLastBar,
   closedBars,
   mergeNewerBars,
@@ -82,6 +81,7 @@ import {
   stampSeriesFromBars,
   stitchLiveSession,
 } from "@/lib/market/freshest";
+import { aggregateBars } from "@/lib/market/bars";
 import {
   QUOTE_EXECUTION_MAX_LAG_SEC,
   type IndexSymbol,
@@ -387,7 +387,7 @@ async function load(
   // Include dataset in the key so flipping DATABENTO_DATASET cannot reuse
   // another feed's last-good bars under the same symbol/window.
   const databentoDataset = process.env.DATABENTO_DATASET || "GLBX.MDP3";
-  const databento = hasDatabentoKey()
+  const databento = (await hasDatabentoKey())
     ? budgetedLeg(
         `databento:${symbol}`,
         `databento:${symbol}:${range}:${minutes}:${databentoDataset}`,
@@ -1104,7 +1104,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           ? budget.line || "stale flag missing"
           : !quotesLive
           ? "Synthetic quote — no live print from gateway / Yahoo / Databento"
-          : hasDatabentoKey()
+          : await hasDatabentoKey()
             ? `Databento preferred (${feed}) · GLBX.MDP3 continuous`
             : "Yahoo only — set DATABENTO_API_KEY for CME",
       },

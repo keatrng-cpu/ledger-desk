@@ -13,7 +13,7 @@
  */
 
 import type { OhlcBar } from "@/lib/market/types";
-import { aggregateBars } from "@/lib/market/freshest";
+import { aggregateBars } from "@/lib/market/bars";
 import type { LiquidityTarget } from "./draw";
 import type { PbRead } from "./pb-entries";
 
