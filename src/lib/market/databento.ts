@@ -73,8 +73,11 @@ async function readApiKey(): Promise<string> {
       const text = readFileSync(envPath, "utf8");
       const m = text.match(/^DATABENTO_API_KEY=(.+)$/m);
       if (m?.[1]) {
-        cachedApiKey = m[1].trim().replace(/^["']|["']$/g, "");
-        return cachedApiKey;
+        const parsed = m[1].trim().replace(/^["']|["']$/g, "");
+        if (parsed) {
+          cachedApiKey = parsed;
+          return cachedApiKey;
+        }
       }
     }
   } catch {
