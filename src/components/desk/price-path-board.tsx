@@ -185,7 +185,7 @@ function BookCol({
           a second component to answer "where do I get in, where do I get out". */}
       {path && ladderPlan ? (
         <div className="mt-2 border-t border-[var(--color-border)] pt-2">
-          <PriceLadder {...ladderFrom(ladderPlan)} price={last} height={170} />
+          <PriceLadder {...ladderFrom(ladderPlan, path.side as "long" | "short")} price={last} height={170} />
         </div>
       ) : path ? (
         <div className="mt-1.5 grid grid-cols-2 gap-2 border-t border-[var(--color-border)] pt-1.5 font-mono text-[12px]">

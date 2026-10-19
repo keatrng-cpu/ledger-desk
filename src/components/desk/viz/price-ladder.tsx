@@ -179,7 +179,7 @@ export function PriceLadder({
         )}
       </div>
       <p className="mt-1 font-mono text-[11px] text-[var(--color-muted)]">
-        {plan.side.toUpperCase()}
+        {(plan.side ?? "—").toUpperCase()}
         {plan.riskPts != null ? ` · risk ${plan.riskPts.toFixed(2)}pt` : ""}
         {plan.rr1 != null
           ? ` · 1 : ${plan.rr1.toFixed(2)} to ${t1Label}`
@@ -197,7 +197,8 @@ export function PriceLadder({
 
 /** Either plan shape the desk prints (CardPlan / TradePlan) → the ladder's view. No numbers are derived. */
 export function ladderFrom(p: {
-  side: "long" | "short";
+  /** Absent on some server-built plans (iFVG-flip / LTF-arm plans in build-desk.ts) — see fallbackSide. */
+  side?: "long" | "short" | null;
   entry: number;
   entryZone: { top: number; bottom: number } | null;
   stop: number;
@@ -208,11 +209,14 @@ export function ladderFrom(p: {
   riskPts: number;
   drawName?: string | null;
   draw?: { name: string } | null;
-}): { plan: LadderPlan; t1Label: string } {
+}, fallbackSide?: "long" | "short" | null): { plan: LadderPlan; t1Label: string } {
   const name = p.drawName ?? p.draw?.name ?? null;
+  // 2026-10-19 08:2x CT: iFVG-flip plans arrive without `side`; `plan.side.toUpperCase()` threw and
+  // took down PricePathBoard and SetupScanner. Use the card's side, else the stop's side of the entry.
+  const side = p.side ?? fallbackSide ?? (p.stop < p.entry ? "long" : "short");
   return {
     plan: {
-      side: p.side,
+      side,
       entry: p.entry,
       zone: p.entryZone,
       stop: p.stop,
