@@ -264,5 +264,12 @@
     "actual": "\u2014",
     "vs": "none scheduled today",
     "note": "Fri. BLS Import Prices (Sep) +1.1% MoM. Fed G.17 Industrial Production +0.7% MoM. No labor/ISM. Sources: https://www.bls.gov/news.release/ximpim.nr0.htm ; https://www.federalreserve.gov/releases/g17/current/"
+  },
+  {
+    "date": "2026-10-19",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Mon. NAHB Housing Market Index 29 vs ~31 exp / 32 prior \u2014 not a stamp series. Next: Housing Starts & Permits Tue 8:30, claims Thu 8:30, flash PMI / UMich Fri. No labor/ISM."
   }
 ]
