@@ -534,7 +534,7 @@ export function buildTfLadder(input: LadderInput): TfLadder {
     const ms = INTRADAY_MS[tf]!;
     const buckets = resampleMs(m15, ms);
     const closed = buckets.filter((b) => bucketEnd(b.t, ms) <= nowMs);
-    const cur = refMs != null ? buckets.find((b) => b.t <= refMs - 1 && refMs - 1 < b.t + ms) ?? null : null;
+    const cur = refMs != null ? buckets.find((b) => b.t <= refMs - 1 && refMs - 1 < bucketEnd(b.t, ms)) ?? null : null;
     reads.push(readRung(tf, closed, cur ? cur.o : null, ref, "15m"));
   }
 
