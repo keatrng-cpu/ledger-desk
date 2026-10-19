@@ -10,14 +10,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, RefreshCw, Target, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Agg { n: number; wins: number; winRate: number; realizedTotal: number; avgRealized: number; avgRoi: number; avgHoldSecs: number }
+interface Agg { n: number; wins: number; winRate: number; realizedTotal: number; avgRealized: number; avgRoi: number; avgHoldSecs: number; avgSlippage: number | null }
 interface Analysis { overall: Agg; byBand: Record<string, Agg>; bySide: Record<string, Agg>; byKillzone: Record<string, Agg>; unbound: number }
 interface Row {
   id: string; underlying: string; option_type: string | null; strike: number | null; side: string; contracts: number;
   debit: number | null; credit: number | null; realized: number | null; roi: number | null; hold_secs: number | null;
   status: string; win: boolean | null; killzone: string | null;
   card_match: string | null; card_band: string | null; card_side: string | null; card_symbol: string | null;
-  plan_entry: number | null; plan_target: number | null; why: unknown; opened_at: string | null;
+  plan_entry: number | null; plan_target: number | null; slippage: number | null; why: unknown; opened_at: string | null;
 }
 interface Journal { ok: boolean; count: number; analysis: Analysis; rows: Row[]; error?: string }
 
@@ -106,6 +106,7 @@ export function RhJournalPanel() {
           <Stat label="Win rate" value={`${pct(a.winRate)} · ${a.wins}/${a.n}`} />
           <Stat label="Avg ROI" value={pct(a.avgRoi)} tone={a.avgRoi >= 0 ? "up" : "down"} />
           <Stat label="Avg hold" value={held(a.avgHoldSecs)} />
+          <Stat label="Avg slip" value={a.avgSlippage == null ? "—" : `${a.avgSlippage >= 0 ? "+" : ""}${a.avgSlippage.toFixed(2)} pt`} tone={a.avgSlippage == null ? undefined : a.avgSlippage <= 0 ? "up" : "down"} />
         </div>
       )}
 
@@ -175,6 +176,11 @@ function TradeRow({ r }: { r: Row }) {
             {r.plan_entry != null && (
               <span className="inline-flex items-center gap-0.5"><Target className="h-3 w-3" aria-hidden />{r.plan_entry}{r.plan_target != null ? `→${r.plan_target}` : ""}</span>
             )}
+            {r.slippage != null && (
+              <span title="entry slippage vs plan (underlier points; + = chased)" style={{ color: r.slippage <= 0 ? "var(--color-primary)" : "#ef4444" }}>
+                slip {r.slippage >= 0 ? "+" : ""}{r.slippage.toFixed(2)}
+              </span>
+            )}
           </>
         ) : (
           <span className="rounded bg-[var(--color-warn)]/15 px-1 text-[var(--color-warn)]">no card bound</span>
@@ -185,5 +191,5 @@ function TradeRow({ r }: { r: Row }) {
   );
 }
 
-function emptyAgg(): Agg { return { n: 0, wins: 0, winRate: 0, realizedTotal: 0, avgRealized: 0, avgRoi: 0, avgHoldSecs: 0 }; }
+function emptyAgg(): Agg { return { n: 0, wins: 0, winRate: 0, realizedTotal: 0, avgRealized: 0, avgRoi: 0, avgHoldSecs: 0, avgSlippage: null }; }
 function emptyAnalysis(): Analysis { return { overall: emptyAgg(), byBand: {}, bySide: {}, byKillzone: {}, unbound: 0 }; }

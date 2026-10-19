@@ -274,6 +274,33 @@ export function killzoneFor(ms: number): string {
   return "off";
 }
 
+/**
+ * Adverse-positive entry slippage in underlier points: how much worse than the
+ * card's planned entry the underlier actually was at the fill. Positive = worse
+ * (chased), negative = price came to you. Side-aware.
+ */
+export function computeSlippage(side: "long" | "short", planEntry: number | null, underlierAtFill: number | null): number | null {
+  if (planEntry == null || underlierAtFill == null || !Number.isFinite(planEntry) || !Number.isFinite(underlierAtFill)) return null;
+  return side === "long" ? underlierAtFill - planEntry : planEntry - underlierAtFill;
+}
+
+/** Underlier close from live_market_bars_1m at/just before `ms`, for the card's symbol (+aliases). */
+async function underlierAtFill(sql: Sql, symbol: string | null, ms: number | null): Promise<number | null> {
+  if (!symbol || ms == null) return null;
+  const aliases = [symbol, ...(symbol === "NQ" ? ["MNQ"] : symbol === "MNQ" ? ["NQ"] : symbol === "ES" ? ["MES"] : symbol === "MES" ? ["ES"] : [])];
+  try {
+    const rows = await sql.query<{ c: string | number }>(
+      `select c from live_market_bars_1m
+        where symbol = any($1) and bar_time <= $2
+        order by bar_time desc limit 1`,
+      [aliases, new Date(ms).toISOString()],
+    );
+    return rows.length ? n(rows[0].c) : null;
+  } catch {
+    return null;
+  }
+}
+
 interface CardRow {
   id: string;
   symbol: string;
@@ -380,6 +407,8 @@ export async function reconcileRhFills(
     const win = t.status === "closed" && realized != null ? realized > 0 : null;
     const hitTarget = win; // for a scalp the realized sign is the outcome; refined later vs plan_target
     const why = matched ? whyFromContext((card as CardRow).context) : null;
+    const planEntry = matched ? (card as CardRow).entry : null;
+    const slippage = matched ? computeSlippage(t.side, planEntry, await underlierAtFill(sql, (card as CardRow).symbol, t.openedAt)) : null;
     const row = {
       id,
       user_id: userId,
@@ -411,13 +440,13 @@ export async function reconcileRhFills(
       card_band: matched ? (card as CardRow).band : null,
       card_side: matched ? (card as CardRow).side : null,
       card_symbol: matched ? (card as CardRow).symbol : null,
-      plan_entry: matched ? (card as CardRow).entry : null,
+      plan_entry: planEntry,
       plan_stop: matched ? (card as CardRow).stop : null,
       plan_target: matched ? (card as CardRow).target : null,
       plan_rr: matched ? (card as CardRow).rr : null,
       why,
       card: matched ? (card as CardRow).context ?? null : null,
-      slippage: null,
+      slippage,
       hit_target: hitTarget,
       killzone: t.openedAt != null ? killzoneFor(t.openedAt) : null,
       notes: null,
@@ -468,6 +497,7 @@ export interface JournalAgg {
   avgRealized: number;
   avgRoi: number;
   avgHoldSecs: number;
+  avgSlippage: number | null;
 }
 
 export interface RhAnalysis {
@@ -478,13 +508,14 @@ export interface RhAnalysis {
   unbound: number;
 }
 
-function agg(rows: Array<{ realized: number | null; roi: number | null; hold_secs: number | null; win: boolean | null }>): JournalAgg {
+function agg(rows: Array<{ realized: number | null; roi: number | null; hold_secs: number | null; win: boolean | null; slippage?: number | null }>): JournalAgg {
   const closed = rows.filter((r) => r.realized != null);
   const nn = closed.length;
   const wins = closed.filter((r) => r.win === true).length;
   const realizedTotal = closed.reduce((s, r) => s + (r.realized ?? 0), 0);
   const roiVals = closed.map((r) => r.roi).filter((x): x is number => x != null);
   const holds = closed.map((r) => r.hold_secs).filter((x): x is number => x != null);
+  const slips = closed.map((r) => r.slippage).filter((x): x is number => x != null);
   return {
     n: nn,
     wins,
@@ -493,12 +524,13 @@ function agg(rows: Array<{ realized: number | null; roi: number | null; hold_sec
     avgRealized: nn ? realizedTotal / nn : 0,
     avgRoi: roiVals.length ? roiVals.reduce((s, x) => s + x, 0) / roiVals.length : 0,
     avgHoldSecs: holds.length ? Math.round(holds.reduce((s, x) => s + x, 0) / holds.length) : 0,
+    avgSlippage: slips.length ? slips.reduce((s, x) => s + x, 0) / slips.length : null,
   };
 }
 
 /** Aggregate the journal into the learning view: which cards actually pay. */
 export function analyzeRhJournal(
-  rows: Array<{ realized: number | null; roi: number | null; hold_secs: number | null; win: boolean | null; card_band: string | null; side: string | null; killzone: string | null; card_match: string | null }>,
+  rows: Array<{ realized: number | null; roi: number | null; hold_secs: number | null; win: boolean | null; slippage?: number | null; card_band: string | null; side: string | null; killzone: string | null; card_match: string | null }>,
 ): RhAnalysis {
   const groupBy = (key: (r: (typeof rows)[number]) => string | null): Record<string, JournalAgg> => {
     const buckets = new Map<string, typeof rows>();

@@ -38,6 +38,7 @@ async function get({ request }: { request: Request }): Promise<Response> {
         roi: r.roi as number | null,
         hold_secs: r.hold_secs as number | null,
         win: r.win as boolean | null,
+        slippage: r.slippage as number | null,
         card_band: r.card_band as string | null,
         side: r.side as string | null,
         killzone: r.killzone as string | null,

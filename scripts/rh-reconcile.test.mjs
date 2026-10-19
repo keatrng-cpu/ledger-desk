@@ -5,7 +5,7 @@
  * returns. Run: node --import tsx scripts/rh-reconcile.test.mjs
  */
 import assert from "node:assert/strict";
-import { roundTripsFromOrders, attachRealized, pnlTradesFrom, analyzeRhJournal, killzoneFor } from "../src/lib/journal/rh-reconcile.ts";
+import { roundTripsFromOrders, attachRealized, pnlTradesFrom, analyzeRhJournal, killzoneFor, computeSlippage } from "../src/lib/journal/rh-reconcile.ts";
 
 // ---- real get_option_orders payload (2026-10-19), trimmed to used fields ----
 const orders = {
@@ -74,8 +74,14 @@ assert.equal(a.overall.realizedTotal, 144);
 assert.equal(a.overall.winRate, 1);
 assert.equal(a.unbound, 2);
 
-// killzone: 13:56 ET -> nyLunch? 13:56 = 836 min -> nyPm (>=810). sanity only.
-assert.ok(["nyAm", "nyLunch", "nyPm"].includes(killzoneFor(put.openedAt)));
+// killzone: 13:56 UTC = 09:56 ET -> nyAm.
+assert.equal(killzoneFor(put.openedAt), "nyAm");
+
+// slippage: adverse-positive, side-aware. long chased up (+2), short filled worse (+1).
+assert.equal(computeSlippage("long", 100, 102), 2); // paid 2 pts up
+assert.equal(computeSlippage("short", 100, 99), 1); // sold 1 pt lower than plan
+assert.equal(computeSlippage("long", 100, 98), -2); // price came to you
+assert.equal(computeSlippage("long", null, 102), null);
 
 console.log("rh-reconcile.test: OK");
 console.log(`  put  +${put.realized}  (3x QQQ 718P ${put.debit}->${put.credit}, hold ${put.holdSecs}s, ${killzoneFor(put.openedAt)})`);
