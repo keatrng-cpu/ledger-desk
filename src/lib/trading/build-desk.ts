@@ -6,7 +6,7 @@ import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
-import { freeDataRead, type FreeDataRead } from "@/lib/free-data/features";
+import { freeDataEnabled, freeDataRead, type FreeDataRead } from "@/lib/free-data/features";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -1149,8 +1149,9 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (tk) rule1.push(tk);
       } catch { /* shadow */ }
     }
-    // Free data feeds (shared/free-data.json): shadow facts only; cached per instance, never throws, ≤1.2 s cold.
-    const freeData = await freeDataRead(Date.now()).catch(() => null);
+    // Free data feeds (shared/free-data.json): shadow facts only. Default OFF: not called at all unless DESK_FREE_DATA
+    // is exactly "1"/"true". When on: cached per instance, never throws, ≤0.4 s cold, negative cache after a failure.
+    const freeData = freeDataEnabled() ? await freeDataRead(Date.now()).catch(() => null) : null;
     const payload = {
       ok: true as const,
       rule1: withLane(rule1, Date.now()),   // shadow Rule 1 lane read (overnight-1016 #2); logged, never fires

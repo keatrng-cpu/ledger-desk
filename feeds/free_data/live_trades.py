@@ -4,8 +4,9 @@ LOG-ONLY. Writes one JSON line per CLOSED bar to <out_dir>/live_bars.jsonl. Neve
 gate. Bars are bucketed on ts_recv (parity with Databento ohlcv-1m, see bars.py) and closed by the next trade or by
 the wall clock passing end + closeGraceMs.
 
-Cost: live GLBX.MDP3 is included in the account's Databento Standard plan (flat monthly, no per-message billing for
-CME since 2025-04-16); see docs/free-data-1018/README.md for how that was established. Network: the Live API is raw
+Cost: live GLBX.MDP3 is believed to be flat-fee on the account's Databento Standard plan (no per-message billing for
+CME since 2025-04-16). That CANNOT be verified by API (get_cost covers historical only), so live is refused unless
+DATABENTO_LIVE_ALLOWED=1 is set explicitly; see docs/free-data-1018/README.md. Network: the Live API is raw
 TCP on port 13000 (glbx-mdp3.lsg.databento.com). `preflight()` checks reachability first; hosts that only allow 443
 egress (the box) cannot run this -- use the replay mode there.
 
@@ -25,6 +26,16 @@ from . import load_config
 from .bars import TradeBarBuilder, side_char
 
 LIVE_HOST, LIVE_PORT = "glbx-mdp3.lsg.databento.com", 13000
+LIVE_ALLOW_ENV = "DATABENTO_LIVE_ALLOWED"
+
+
+def live_allowed(env=None) -> tuple[bool, str]:
+    """Explicit opt-in: live only when DATABENTO_LIVE_ALLOWED is exactly "1" (live cost is not API-verifiable)."""
+    v = (os.environ if env is None else env).get(LIVE_ALLOW_ENV)
+    if v == "1":
+        return True, f"{LIVE_ALLOW_ENV}=1"
+    return False, (f"refusing to start Databento LIVE: set {LIVE_ALLOW_ENV}=1 to allow (live is flat-fee on the "
+                   "Standard plan per Databento pricing, but that is not verifiable by API)")
 
 
 def preflight(timeout=5.0) -> tuple[bool, str]:
@@ -90,6 +101,10 @@ def replay(path: str, out_dir: str | None, cfg=None, echo=False):
 
 
 def run_live(out_dir: str, cfg=None):  # pragma: no cover - needs TCP 13000
+    ok, why = live_allowed()
+    if not ok:
+        print(why, file=sys.stderr, flush=True)
+        return 3
     import databento as db
     cfg = cfg or load_config()
     ok, why = preflight()

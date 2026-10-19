@@ -16,3 +16,14 @@ def test_router_maps_continuous_ids_and_emits_closed_bars_only():
     assert sorted((b.symbol, b.interval_s, b.delta) for b in got) == [("ES", 30, 2), ("NQ", 30, -1)]
     r.trade(10252, t0 + 61 * NS, 7781.0, 1, "A")          # closes ES 1m
     assert ("ES", 60, 2, 2) in [(b.symbol, b.interval_s, b.delta, b.cvd) for b in got]
+
+
+def test_live_refuses_without_explicit_allow(monkeypatch):
+    from feeds.free_data import live_trades as lt
+    for v in (None, "", "0", "true", "yes"):
+        env = {} if v is None else {"DATABENTO_LIVE_ALLOWED": v}
+        assert lt.live_allowed(env)[0] is False
+    assert lt.live_allowed({"DATABENTO_LIVE_ALLOWED": "1"})[0] is True
+    monkeypatch.delenv("DATABENTO_LIVE_ALLOWED", raising=False)
+    monkeypatch.setattr(lt, "preflight", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not connect")))
+    assert lt.run_live("/nonexistent") == 3                        # refused before any import / socket / session

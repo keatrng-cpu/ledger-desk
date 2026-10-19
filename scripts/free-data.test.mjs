@@ -6,7 +6,7 @@ register();
 const f = await import("../src/lib/free-data/features.ts");
 const ms = await import("../src/lib/smc/master-seat.ts");
 const ON = { DESK_FREE_DATA: "1" };
-const FF = JSON.parse(readFileSync("feeds/free_data/tests/fixtures/ff_thisweek_20261018.json", "utf8"));
+const FF = JSON.parse(readFileSync("feeds/free_data/tests/fixtures/ff_synthetic_week.json", "utf8"));
 const ct = (y, mo, d, h, mi) => Date.parse(`${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}:00-05:00`);
 
 test("parseNum + raw surprise sign (same cases as the Python twin)", () => {
@@ -16,13 +16,17 @@ test("parseNum + raw surprise sign (same cases as the Python twin)", () => {
   assert.equal(f.surpriseSign("1.30M", "1.30M"), 0); assert.equal(f.surpriseSign(null, "1.30M"), null);
 });
 
-test("FF normalize: 10/20 Housing Starts is 07:30 CT, forecast 1.30M, Low impact (outside USD high/medium scope)", () => {
+test("FF normalize (synthetic fixture): 10/20 Housing Starts is 07:30 CT, forecast 1.11M, Low impact (outside USD high/medium scope)", () => {
   const rows = f.normalizeFf(FF);
   const hs = rows.find((r) => r.title === "Housing Starts");
-  assert.equal(hs.dateCt, "2026-10-20"); assert.equal(hs.timeCt, "07:30"); assert.equal(hs.forecast, "1.30M"); assert.equal(hs.previous, "1.28M");
-  assert.equal(hs.forecastNum, 1_300_000); assert.equal(hs.surpriseSign, null); assert.equal(hs.inScope, false);
+  assert.equal(hs.dateCt, "2026-10-20"); assert.equal(hs.timeCt, "07:30"); assert.equal(hs.forecast, "1.11M"); assert.equal(hs.previous, "1.09M");
+  assert.equal(hs.forecastNum, 1_110_000); assert.equal(hs.surpriseSign, null); assert.equal(hs.inScope, false);
   assert.ok(rows.filter((r) => r.inScope).every((r) => r.country === "USD" && ["High", "Medium"].includes(r.impact)));
   assert.equal(f.nextPrint(rows, ct(2026, 10, 18, 23, 0)).title, "Unemployment Claims");
+  const bp = rows.find((r) => r.title === "Building Permits");
+  assert.equal(bp.forecastNum, null); assert.equal(bp.surpriseSign, null);                // empty forecast
+  const dst = rows.find((r) => r.title === "Synthetic DST Edge Print");
+  assert.equal(dst.dateCt, "2026-11-02"); assert.equal(dst.timeCt, "07:30");              // CST after the 11/01 fall-back
 });
 
 test("print window: 07:25–07:45 CT around 07:30 CT USD prints, shadow only", () => {
@@ -100,19 +104,27 @@ test("free data enabled only by DESK_FREE_DATA exactly \"1\" or \"true\"", async
   f._resetFreeDataCache();
 });
 
+test("cold-cache cost: short wait, then a negative cache stops repeated waits after a failure", async () => {
+  f._resetFreeDataCache();
+  assert.equal(f.COLD_WAIT_MS <= 500, true);
+  const boom = async () => { throw new Error("down"); };
+  const t0 = Date.now();
+  await f.freeDataRead(t0, boom, 50, ON); await new Promise((r) => setTimeout(r, 10));
+  const slow = () => new Promise(() => {});                    // would hang forever
+  const s0 = Date.now();
+  const r = await f.freeDataRead(t0 + 1000, slow, 5000, ON);     // within negative-cache TTL → no cold wait
+  assert.ok(Date.now() - s0 < 200, "negative cache skipped the cold wait"); assert.equal(r.ff, null);
+  f._resetFreeDataCache();
+});
+
 test("Brain seat: freeData adds one narrative line and never changes verdict or checks", () => {
   const base = { card: { symbol: "ES", side: "long", band: "A", q: 0.7, actionable: true, entry: 7780, entryResting: false, stopPx: 7770, target: 7800, rr: 2, chop: false, bias1h: "bull", bias4h: "bull", dispScore: 1, ltfKilled: false, reversal: null },
     rule1: [], brainWord: "LONG", brainBook: { symbol: "ES", side: "long" }, floorVerdict: "TAKE", align: 0.8, smtLead: null, shockActive: false, topDraw: null, governor: "normal" };
   const fd = { mode: "shadow", live: false, asOf: "x", ff: { source: "cache", usdScoped: [], nextPrint: null, printWindow: { flag: true, events: ["Housing Starts"] }, actualsAvailable: false },
     vix: { date: "2026-10-16", ...f.vixRatios(19.99, 20.12, 20.5) } };
-  const prev = process.env.DESK_FREE_DATA;
-  delete process.env.DESK_FREE_DATA;
-  const off = ms.masterSeat({ ...base, freeData: fd });
-  assert.equal(off.narrative.some((l) => l.startsWith("Free data")), false);   // default OFF: no Brain line
-  process.env.DESK_FREE_DATA = "1";
-  let a, b;
-  try { a = ms.masterSeat(base); b = ms.masterSeat({ ...base, freeData: fd }); }
-  finally { if (prev === undefined) delete process.env.DESK_FREE_DATA; else process.env.DESK_FREE_DATA = prev; }
+  const off = ms.masterSeat({ ...base, freeData: null });             // default OFF: freeDataRead → null → no Brain line
+  assert.equal(off.narrative.some((l) => l.startsWith("Free data")), false);
+  const a = ms.masterSeat(base), b = ms.masterSeat({ ...base, freeData: fd });
   assert.equal(b.verdict, a.verdict); assert.deepEqual(b.checks, a.checks); assert.deepEqual(b.failed, a.failed); assert.deepEqual(b.cautions, a.cautions);
   assert.equal(b.narrative.length, a.narrative.length + 1);
   assert.match(b.narrative.find((l) => l.startsWith("Free data")), /shadow, no gate.*print window ON.*VIX 19.99.*flat, front inverted/);

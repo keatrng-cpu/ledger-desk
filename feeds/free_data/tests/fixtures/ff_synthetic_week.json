@@ -1,0 +1,8 @@
+[
+ {"title":"Housing Starts","country":"USD","date":"2026-10-20T08:30:00-04:00","impact":"Low","forecast":"1.11M","previous":"1.09M"},
+ {"title":"Building Permits","country":"USD","date":"2026-10-20T08:30:00-04:00","impact":"Low","forecast":"","previous":"1.40M"},
+ {"title":"Unemployment Claims","country":"USD","date":"2026-10-22T08:30:00-04:00","impact":"High","forecast":"222K","previous":"219K"},
+ {"title":"Flash Manufacturing PMI","country":"USD","date":"2026-10-23T09:45:00-04:00","impact":"Medium","forecast":"50.5","previous":"49.8"},
+ {"title":"Synthetic Trade Balance","country":"EUR","date":"2026-10-21T05:00:00-04:00","impact":"Medium","forecast":"12.0B","previous":"11.4B"},
+ {"title":"Synthetic DST Edge Print","country":"USD","date":"2026-11-02T08:30:00-05:00","impact":"High","forecast":"0.3%","previous":""}
+]

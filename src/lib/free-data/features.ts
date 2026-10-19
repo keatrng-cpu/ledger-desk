@@ -114,13 +114,17 @@ export function termStructure(s: { VIX: Record<string, number>; VIX9D: Record<st
 }
 
 /** Release Watch: free data is OFF unless DESK_FREE_DATA is exactly "1" or "true" (unset, "0", anything else → off). */
-export function freeDataEnabled(env: Record<string, string | undefined> = process.env): boolean {
+export function freeDataEnabled(env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {}): boolean {
   const v = env.DESK_FREE_DATA;
   return v === "1" || v === "true";
 }
 
-export function freeDataSeatLine(r: FreeDataRead | null | undefined, env: Record<string, string | undefined> = process.env): string | null {
-  if (!r || !freeDataEnabled(env)) return null;
+/**
+ * Brain/Floor line. The server gate is freeDataRead (desk.freeData is null unless the flag is on), so in the browser
+ * (no process.env) a null read means off. Pass `env` to apply the flag again explicitly (server/tests).
+ */
+export function freeDataSeatLine(r: FreeDataRead | null | undefined, env?: Record<string, string | undefined>): string | null {
+  if (!r || (env && !freeDataEnabled(env))) return null;
   const parts: string[] = [];
   const n = r.ff?.nextPrint;
   if (n) parts.push(`next USD print ${n.title} ${n.dateCt} ${n.timeCt} CT${n.forecast ? ` f ${n.forecast}` : ""}`);
@@ -131,11 +135,16 @@ export function freeDataSeatLine(r: FreeDataRead | null | undefined, env: Record
 
 // ---- per-instance polite cache ------------------------------------------------------------------------------
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
-const cache: { ffAt: number; ffRows: FfRow[] | null; ffBackoffUntil: number; vixAt: number; vix: Parameters<typeof termStructure>[0] | null; inflight: Promise<void> | null } =
-  { ffAt: 0, ffRows: null, ffBackoffUntil: 0, vixAt: 0, vix: null, inflight: null };
+const cache: { ffAt: number; ffRows: FfRow[] | null; ffBackoffUntil: number; vixAt: number; vix: Parameters<typeof termStructure>[0] | null; inflight: Promise<void> | null; coldFailUntil: number } =
+  { ffAt: 0, ffRows: null, ffBackoffUntil: 0, vixAt: 0, vix: null, inflight: null, coldFailUntil: 0 };
+
+/** After a refresh that leaves the cache empty, builds stop waiting on the cold path for this long (negative cache). */
+export const COLD_FAIL_TTL_MS = 5 * 60_000;
+/** Default cold-start wait inside a desk build (was 1.2 s). */
+export const COLD_WAIT_MS = 400;
 
 export function _resetFreeDataCache(): void {
-  Object.assign(cache, { ffAt: 0, ffRows: null, ffBackoffUntil: 0, vixAt: 0, vix: null, inflight: null });
+  Object.assign(cache, { ffAt: 0, ffRows: null, ffBackoffUntil: 0, vixAt: 0, vix: null, inflight: null, coldFailUntil: 0 });
 }
 
 async function refresh(nowMs: number, f: Fetcher): Promise<void> {
@@ -180,11 +189,18 @@ export function freeDataFromCache(nowMs: number): FreeDataRead {
  * Never throws, never blocks long: a warm instance answers from cache and refreshes in the background; a cold one
  * waits at most `coldWaitMs` for the first fill. Default OFF: null (no FF/Cboe fetch) unless freeDataEnabled(env).
  */
-export async function freeDataRead(nowMs = Date.now(), f: Fetcher = fetch, coldWaitMs = 1200, env: Record<string, string | undefined> = process.env): Promise<FreeDataRead | null> {
+export async function freeDataRead(nowMs = Date.now(), f: Fetcher = fetch, coldWaitMs = COLD_WAIT_MS, env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {}): Promise<FreeDataRead | null> {
   if (!freeDataEnabled(env)) return null;
   try {
-    if (!cache.inflight) cache.inflight = refresh(nowMs, f).finally(() => { cache.inflight = null; });
-    if (!cache.ffRows && !cache.vix) await Promise.race([cache.inflight, new Promise((r) => setTimeout(r, coldWaitMs))]);
+    if (!cache.inflight) cache.inflight = refresh(nowMs, f).catch(() => {}).finally(() => {
+      cache.inflight = null;
+      if (!cache.ffRows && !cache.vix) cache.coldFailUntil = nowMs + COLD_FAIL_TTL_MS;   // negative cache
+    });
+    if (!cache.ffRows && !cache.vix && nowMs >= cache.coldFailUntil) {
+      let t: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([cache.inflight, new Promise((r) => { t = setTimeout(r, coldWaitMs); })]);
+      if (t) clearTimeout(t);
+    }
     return freeDataFromCache(nowMs);
   } catch {
     return null;

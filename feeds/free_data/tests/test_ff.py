@@ -8,7 +8,7 @@ import pytest
 from feeds.free_data import ff_calendar as ff
 
 CT = ZoneInfo("America/Chicago")
-FIX = os.path.join(os.path.dirname(__file__), "fixtures", "ff_thisweek_20261018.json")
+FIX = os.path.join(os.path.dirname(__file__), "fixtures", "ff_synthetic_week.json")   # synthetic, made-up values (no FF export)
 
 
 def rows():
@@ -32,9 +32,9 @@ def test_surprise_sign():
 def test_normalize_ct_and_housing_starts_row():
     r = [x for x in rows() if x["title"] == "Housing Starts"][0]
     assert r["ts_ct"] == "2026-10-20T07:30:00-05:00" and r["time_ct"] == "07:30" and r["date_ct"] == "2026-10-20"
-    assert r["forecast"] == "1.30M" and r["forecast_num"] == 1_300_000 and r["previous"] == "1.28M"
+    assert r["forecast"] == "1.11M" and r["forecast_num"] == 1_110_000 and r["previous"] == "1.09M"
     assert r["actual"] is None and r["surprise_sign"] is None
-    assert r["impact"] == "Low" and r["in_scope"] is False   # FF rates it Low -> outside the USD high/medium scope
+    assert r["impact"] == "Low" and r["in_scope"] is False   # fixture rates it Low -> outside the USD high/medium scope
 
 
 def test_scope_is_usd_high_medium():
@@ -65,6 +65,8 @@ class _Resp:
         self.status_code, self._b, self.headers = code, body, headers or {}
 
     def json(self):
+        if isinstance(self._b, str):
+            raise ValueError("not json")
         return self._b
 
 
@@ -102,3 +104,49 @@ def test_fetch_error_falls_back_to_cache(tmp_path):
             raise ConnectionError("down")
     ev, m = ff.fetch(str(tmp_path), now=5000.0, session=Boom())
     assert m["source"] == "cache-after-error" and len(ev) == len(body)
+
+
+def test_empty_forecast_and_dst_edge():
+    rs = rows()
+    bp = [x for x in rs if x["title"] == "Building Permits"][0]
+    assert bp["forecast"] is None and bp["forecast_num"] is None and bp["surprise_sign"] is None
+    d = [x for x in rs if x["title"] == "Synthetic DST Edge Print"][0]
+    assert d["ts_ct"] == "2026-11-02T07:30:00-06:00" and d["time_ct"] == "07:30"   # CST after the 11/01 fall-back
+    assert ff.print_window(rs, datetime(2026, 11, 2, 7, 26, tzinfo=CT))[0] is True
+    assert ff.next_print(rs, datetime(2026, 10, 24, 0, 0, tzinfo=CT))["title"] == "Synthetic DST Edge Print"
+    assert all(x["country"] == "USD" for x in ff.scoped(rs))   # EUR medium row is out of scope
+
+
+DENIED = "<html><head><title>Request Denied</title></head><body>Request Denied</body></html>"
+
+
+def test_200_request_denied_html_serves_stale_and_backs_off(tmp_path):
+    body = json.load(open(FIX))
+    ff.fetch(str(tmp_path), now=1000.0, session=_Sess(_Resp(200, body)))
+    s = _Sess(_Resp(200, DENIED))
+    ev, m = ff.fetch(str(tmp_path), now=5000.0, session=s)
+    assert len(ev) == len(body) and m["status"] == "stale" and m["error"] == "denied-html"
+    ev, m = ff.fetch(str(tmp_path), now=5100.0, session=s)
+    assert s.calls == 1 and m["source"] == "cache-backoff"          # no hammering after a denial
+
+
+def test_request_denied_without_cache_is_empty_not_raise(tmp_path):
+    ev, m = ff.fetch(str(tmp_path), now=1000.0, session=_Sess(_Resp(200, DENIED)))
+    assert ev == [] and m["status"] == "empty"
+
+
+def test_304_with_no_cache_is_empty_and_clears_validators(tmp_path):
+    (tmp_path / "ff_calendar_meta.json").write_text(json.dumps({"etag": "x", "last_modified": "y"}))
+    ev, m = ff.fetch(str(tmp_path), now=1000.0, session=_Sess(_Resp(304)))
+    assert ev == [] and m["status"] == "empty" and m["error"] == "304-no-cache"
+    assert "etag" not in json.load(open(tmp_path / "ff_calendar_meta.json"))
+
+
+def test_corrupt_meta_and_cache_never_raise(tmp_path):
+    (tmp_path / "ff_calendar_meta.json").write_text("{not json")
+    (tmp_path / "ff_calendar_thisweek.json").write_text("[trunc")
+    ev, m = ff.fetch(str(tmp_path), now=1000.0, session=_Sess(_Resp(500)))
+    assert ev == [] and m["status"] == "empty"
+    body = json.load(open(FIX))
+    ev, m = ff.fetch(str(tmp_path), now=2000.0, session=_Sess(_Resp(200, body)))
+    assert m["status"] == "ok" and len(ev) == len(body)

@@ -22,7 +22,9 @@ the score, any gate, the fire path, order review or the news gate. Config lives 
 ## Blocker: the box cannot open a Databento Live socket
 The Live API is raw TCP on port 13000 (`glbx-mdp3.lsg.databento.com`). The box only allows egress on port 443, so connecting
 times out (`live_trades.preflight()` reports this). `feeds/free_data/live_trades.py` is ready to run on a host that can reach
-port 13000. Until then:
+port 13000. **Explicit guard:** it refuses to start unless `DATABENTO_LIVE_ALLOWED=1` is set (exit 3, before any import,
+socket or session). Live is flat-fee on the Standard plan per Databento's published pricing, but that is **not verifiable by
+API** (`get_cost` only prices historical), so turning live on is a deliberate human step. Until then:
 - **Live 1m OHLCV on the box:** the gateway's `live_market_bars_1m`, read over Supabase REST. This is the same Databento Live
   session, about 1–2 s after the close, at $0 extra.
 - **Aggressor delta and CVD on the box:** historical trades, cost-checked at $0. They lag about 7–10 min (the historical
@@ -34,12 +36,12 @@ port 13000. Until then:
 | `feeds/free_data/bars.py` | Builds 30s and 1m bars from trades, with delta from the aggressor side (`B` +, `A` −, `N` 0) and session CVD that resets at 18:00 ET. It emits closed bars only. Bars bucket on `ts_recv`, which matches Databento ohlcv-1m exactly: 180 of 180 ES/NQ bars on 10/16 08:30–10:00 CT. Bucketing on `ts_event` gave 6 mismatches. |
 | `feeds/free_data/dbguard.py` | The only historical pull path. It allows GLBX.MDP3 only, enforces a schema allow-list, and limits L1 to the last 360 days. It runs `get_cost` with the identical arguments before every pull and aborts unless the cost is exactly 0. Results are cached under `/workspace/data/databento/`, and each cost is logged to `cost_log.jsonl`. |
 | `feeds/free_data/live_trades.py` | Live trades → bars runner (port 13000 hosts), with a replay mode for DBN files. |
-| `feeds/free_data/ff_calendar.py` | FF weekly JSON: cached, at most one fetch per 15 min, backs off on 429 (Retry-After, else 30 min), and falls back to the cache on error. Times are normalized to CT. Scope is USD High/Medium. Shows forecast, previous and actual, plus the surprise sign. Also adds the shadow 07:30 CT print-window flag (−5/+15 min). |
+| `feeds/free_data/ff_calendar.py` | FF weekly JSON (never raises: a 200 "Request Denied" HTML page, a 304 with no cache, corrupt meta or cache all return stale or empty rows plus `status` ok/stale/empty): cached, at most one fetch per 15 min, backs off on 429 (Retry-After, else 30 min), and falls back to the cache on error. Times are normalized to CT. Scope is USD High/Medium. Shows forecast, previous and actual, plus the surprise sign. Also adds the shadow 07:30 CT print-window flag (−5/+15 min). |
 | `feeds/free_data/vix.py` | Cboe VIX / VIX9D / VIX3M CSVs → VIX9D/VIX and VIX/VIX3M ratios, a regime label, and a front-end inversion flag. Closed days only: today's row is used only after 15:30 CT. |
 | `feeds/free_data/xasset.py` | ZN / 6E: closed 1m bars, 30 and 60 min % change. |
-| `feeds/free_data/snapshot.py` | Writes `free-features.json` for the watcher shadow row. |
-| `src/lib/free-data/features.ts` | TS twin for the desk: `card.freeData` → wire `freeData`, a Brain (master seat) narrative line, and a Floor `freeDataShadow` line. It caches per instance, never throws, waits ≤ 1.2 s on a cold start, and is **OFF by default**: it fetches Forex Factory / Cboe and emits Brain/Floor lines only when `DESK_FREE_DATA` is exactly `1` or `true` (unset, `0` or anything else = off). |
-| `docs/free-data-1018/watcher-free-data.patch` | Adds `watcher/free_data.py` plus a daemon hook. It writes one `free_data_shadow.jsonl` row per minute (desk freeData plus local order flow and xasset). It does no broker or gate work. |
+| `feeds/free_data/snapshot.py` | Writes `free-features.json` for the watcher shadow row. The ZN/6E window is floored to the hour (closed bars only), so there is one cache file, one `get_cost` call and one `cost_log` row per hour, not per minute; old xasset DBN caches are pruned (newest 6 kept; `cost_log.jsonl` is never pruned). |
+| `src/lib/free-data/features.ts` | TS twin for the desk: `card.freeData` → wire `freeData`, a Brain (master seat) narrative line, and a Floor `freeDataShadow` line (rendered on the Floor's MACRO screen). It caches per instance, never throws, waits ≤ 0.4 s on a cold start (and not at all for 5 min after a failed cold fill: negative cache), and is **OFF by default**: it fetches Forex Factory / Cboe and emits Brain/Floor lines only when `DESK_FREE_DATA` is exactly `1` or `true` (unset, `0` or anything else = off). |
+| `docs/free-data-1018/watcher-free-data.patch` | Adds `watcher/free_data.py` plus a daemon hook. It writes one `free_data_shadow.jsonl` row per minute (desk freeData plus local order flow and xasset), only when `DESK_FREE_DATA` is `1`/`true`. The file rotates daily (UTC day of its first row) or at 20 MB, keeping 7 rotated files. It does no broker or gate work. |
 
 **FF limitation.** The free FF feed has no `actual` field (checked JSON and XML on 2026-10-18), so the surprise sign stays `null`
 unless an actual shows up. FF rates the 10/20 07:30 CT Housing Starts (forecast 1.30M, previous 1.28M) as **Low**. It is outside
@@ -72,3 +74,9 @@ merge of #52 into this branch is reported in the PR body. The RULES_HASH test he
   VIX ratios and closed-day rule, the cost guard (non-zero aborts before download, cache, 12-month refusal), and live router.
 - `node --test scripts/free-data.test.mjs`: the TS twin (default-off with zero fetches, enabled only by `1`/`true`), plus the Brain verdict and checks staying unchanged when freeData is added.
 - Watcher: `tests/test_free_data_shadow.py` (in the patch), including default-off and enabled-by-`1`/`true` tests.
+
+## Test fixture
+`feeds/free_data/tests/fixtures/ff_synthetic_week.json` is a **synthetic** six-event week with made-up values (USD High/Medium/
+Low, a 07:30 CT print, an empty forecast, an out-of-scope EUR row and a post-DST 11/02 print). The earlier verbatim FF export
+(`ff_thisweek_20261018.json`) was removed because FF's terms bar redistribution; it remains in this branch's history
+(commit 7939d7f3) until a squash-merge or rewrite, which is pending Keaton's direct confirmation.

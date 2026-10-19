@@ -509,6 +509,7 @@ function runLiveCycle(desk: DeskPayload) {
       calendar: calendarFor(nowMs),
       vix: st.pulse.vix,
       tenYear: st.pulse.tenYear,
+      freeDataShadow: read.freeDataShadow ?? null,
       // The desk already refuses every card on a synthetic feed; say so on the TVs too.
       source:
         desk.feed === "synthetic"

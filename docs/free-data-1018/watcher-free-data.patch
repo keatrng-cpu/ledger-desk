@@ -1,24 +1,24 @@
-From d8ca8743c3efec197bdfccc76b110bf2dfbc93a6 Mon Sep 17 00:00:00 2001
+From ea1607c60096197d6d691a6b950cbd91c44660d7 Mon Sep 17 00:00:00 2001
 From: Grok Bot <grokbot@users.noreply.github.com>
-Date: Sun, 18 Oct 2026 23:33:28 -0500
+Date: Sun, 18 Oct 2026 23:41:13 -0500
 Subject: [PATCH] free-data-1018: free_data_shadow.jsonl logger (desk freeData
  + local feature snapshot), shadow only, default OFF (DESK_FREE_DATA exactly
- 1/true); RULES_HASH unchanged 9eeed9b4083700cb
+ 1/true), daily/20 MB rotation; RULES_HASH unchanged 9eeed9b4083700cb
 
 ---
- tests/test_free_data_shadow.py | 102 +++++++++++++++++++++++++++++++++
- watcher/daemon.py              |  10 ++++
- watcher/free_data.py           |  75 ++++++++++++++++++++++++
- 3 files changed, 187 insertions(+)
+ tests/test_free_data_shadow.py | 123 +++++++++++++++++++++++++++++++++
+ watcher/daemon.py              |  10 +++
+ watcher/free_data.py           | 110 +++++++++++++++++++++++++++++
+ 3 files changed, 243 insertions(+)
  create mode 100644 tests/test_free_data_shadow.py
  create mode 100644 watcher/free_data.py
 
 diff --git a/tests/test_free_data_shadow.py b/tests/test_free_data_shadow.py
 new file mode 100644
-index 0000000..0ab1354
+index 0000000..380fb9d
 --- /dev/null
 +++ b/tests/test_free_data_shadow.py
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,123 @@
 +import copy
 +import json
 +import os
@@ -121,6 +121,27 @@ index 0000000..0ab1354
 +        assert free_data.enabled() is True
 +        assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, {}, NOW + i * 60_000, str(tmp_path / "x")) is not None
 +    assert len(open(tmp_path / free_data.FILE).read().splitlines()) == 2
++
++
++def test_rotation_daily_size_cap_and_retention(tmp_path, monkeypatch):
++    monkeypatch.setenv("DESK_FREE_DATA", "1")
++    p = tmp_path / free_data.FILE
++    day1 = 1792502760.0                          # 2026-10-20 12:26 UTC
++    p.write_text(json.dumps({"ts": int(day1 * 1000)}) + "\n")
++    assert free_data.rotate(str(tmp_path), int(day1 * 1000) + 60_000) is None          # same day, small -> no rotate
++    dst = free_data.rotate(str(tmp_path), int((day1 + 86400) * 1000))                  # next day -> rotate
++    assert dst and dst.endswith("free_data_shadow.20261020.jsonl") and not p.exists()
++    p.write_text("y" * 50)
++    assert free_data.rotate(str(tmp_path), int(time.time() * 1000), max_bytes=10)      # size cap
++    for i in range(10):
++        (tmp_path / f"free_data_shadow.2026090{i}.jsonl").write_text("z")
++    p.write_text("y" * 50)
++    free_data.rotate(str(tmp_path), int(time.time() * 1000), max_bytes=10, keep=3)
++    rotated = [f for f in os.listdir(tmp_path) if f.startswith("free_data_shadow.") and f != free_data.FILE]
++    assert len(rotated) == 3
++    st = {}
++    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, int(time.time() * 1000), str(tmp_path / "x"))
++    assert len(p.read_text().splitlines()) == 1
 diff --git a/watcher/daemon.py b/watcher/daemon.py
 index 05ca657..048f0aa 100644
 --- a/watcher/daemon.py
@@ -151,10 +172,10 @@ index 05ca657..048f0aa 100644
          kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
 diff --git a/watcher/free_data.py b/watcher/free_data.py
 new file mode 100644
-index 0000000..13cc786
+index 0000000..a017558
 --- /dev/null
 +++ b/watcher/free_data.py
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,110 @@
 +"""Free data feeds SHADOW logger (ledger-desk shared/free-data.json, docs/free-data-1018).
 +
 +Once per closed minute, appends one row to free_data_shadow.jsonl with: the desk's free-data read (card wire
@@ -172,6 +193,8 @@ index 0000000..13cc786
 +SNAPSHOT_DEFAULT = "/workspace/data/free-feeds/free-features.json"
 +MAX_SNAPSHOT_AGE_S = 1800
 +ENABLE_ENV = "DESK_FREE_DATA"
++MAX_BYTES = 20 * 1024 * 1024    # size cap per file
++KEEP_ROTATED = 7                # rotated files kept (about a week at daily rotation)
 +
 +
 +def enabled(env=None):
@@ -216,6 +239,38 @@ index 0000000..13cc786
 +    }
 +
 +
++def rotate(path_dir, now_ms, max_bytes=MAX_BYTES, keep=KEEP_ROTATED):
++    """Daily (UTC day of the file's first row `ts`) or size-capped rotation: free_data_shadow.<YYYYMMDD[-HHMMSS]>.jsonl.
++    Keeps the newest `keep` rotated files. Never raises."""
++    p = os.path.join(path_dir, FILE)
++    try:
++        if not os.path.exists(p):
++            return None
++        st = os.stat(p)
++        try:
++            with open(p, encoding="utf-8") as f:
++                first_ts = json.loads(f.readline())["ts"] / 1000.0
++        except (ValueError, KeyError, TypeError):
++            first_ts = st.st_mtime
++        day = time.strftime("%Y%m%d", time.gmtime(first_ts))
++        if day == time.strftime("%Y%m%d", time.gmtime(now_ms / 1000.0)) and st.st_size < max_bytes:
++            return None
++        tag = day if st.st_size < max_bytes else time.strftime("%Y%m%d-%H%M%S", time.gmtime(now_ms / 1000.0))
++        dst = os.path.join(path_dir, FILE.replace(".jsonl", f".{tag}.jsonl"))
++        if os.path.exists(dst):
++            dst = dst.replace(".jsonl", f".{int(now_ms)}.jsonl")
++        os.replace(p, dst)
++        old = sorted(f for f in os.listdir(path_dir) if f.startswith("free_data_shadow.") and f != FILE)
++        for f in old[:-keep] if keep else old:
++            try:
++                os.remove(os.path.join(path_dir, f))
++            except OSError:
++                pass
++        return dst
++    except OSError:
++        return None
++
++
 +def log(path_dir, card, state, now_ms=None, snapshot_path=None):
 +    """Append at most one row per minute. `state` is a dict the caller keeps (holds the last minute logged).
 +    Default OFF: returns None and writes nothing unless enabled()."""
@@ -227,6 +282,7 @@ index 0000000..13cc786
 +        return None
 +    state["minute"] = minute
 +    row = record(card, now_ms, snapshot_path)
++    rotate(path_dir, now_ms)
 +    with open(os.path.join(path_dir, FILE), "a", encoding="utf-8") as f:
 +        f.write(json.dumps(row, default=str) + "\n")
 +    return row

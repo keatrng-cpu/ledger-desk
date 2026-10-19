@@ -100,57 +100,110 @@ def next_print(rows, now_ct: datetime, scoped_only=True):
     return None
 
 
+def _read_json(p, default):
+    """Corrupt / truncated / wrong-type JSON never raises: returns `default`."""
+    try:
+        with open(p) as f:
+            v = json.load(f)
+        return v if isinstance(v, type(default)) else default
+    except (OSError, ValueError):
+        return default
+
+
+def _save_meta(meta_p, meta):
+    try:
+        tmp = meta_p + ".part"
+        with open(tmp, "w") as f:
+            json.dump(meta, f)
+        os.replace(tmp, meta_p)
+    except OSError:
+        pass
+
+
 def fetch(cache_dir: str, now: float | None = None, session=None, cfg=None):
-    """Return (events, meta). meta.source in {cache, network, cache-after-error, cache-backoff}."""
+    """Return (events, meta). NEVER raises (snapshot.build relies on it; parity with TS refresh(): keep last good).
+    meta.source in {cache, network, cache-after-error, cache-backoff}; meta.status is a flag:
+    ok | stale (served cache after a failure) | empty (failure and no usable cache)."""
     c = (cfg or load_config())["ffCalendar"]
     now = now or time.time()
-    os.makedirs(cache_dir, exist_ok=True)
     path = os.path.join(cache_dir, "ff_calendar_thisweek.json")
     meta_p = os.path.join(cache_dir, "ff_calendar_meta.json")
-    meta = json.load(open(meta_p)) if os.path.exists(meta_p) else {}
-
-    def cached(src):
-        ev = json.load(open(path)) if os.path.exists(path) else []
-        return ev, {**meta, "source": src}
-
-    if os.path.exists(path) and now - os.path.getmtime(path) < c["minFetchIntervalS"]:
-        return cached("cache")
-    if now < float(meta.get("backoff_until", 0)):
-        return cached("cache-backoff")
-    if session is None:
-        import requests
-        session = requests
-    headers = {"User-Agent": UA}
-    if meta.get("etag"):
-        headers["If-None-Match"] = meta["etag"]
-    if meta.get("last_modified"):
-        headers["If-Modified-Since"] = meta["last_modified"]
     try:
-        r = session.get(c["url"], headers=headers, timeout=10)
-    except Exception as ex:  # network error -> cache
-        meta["last_error"] = repr(ex)[:200]
-        json.dump(meta, open(meta_p, "w"))
-        return cached("cache-after-error")
-    meta["last_status"], meta["last_attempt"] = r.status_code, now
-    if r.status_code == 429:
-        ra = r.headers.get("Retry-After")
-        wait = float(ra) if ra and str(ra).isdigit() else float(c["backoff429S"])
-        meta["backoff_until"] = now + max(wait, float(c["minFetchIntervalS"]))
-        json.dump(meta, open(meta_p, "w"))
-        return cached("cache-backoff")
-    if r.status_code == 304:
+        os.makedirs(cache_dir, exist_ok=True)
+    except OSError:
+        pass
+    meta = _read_json(meta_p, {})
+    if os.path.exists(meta_p) and not meta:
+        meta = {"meta_reset": "corrupt meta ignored"}
+
+    def cached(src, err=None):
+        ev = _read_json(path, [])
+        out = {**meta, "source": src}
+        out["status"] = "ok" if src in ("cache", "network") and ev else ("stale" if ev else "empty")
+        if err:
+            out["error"] = err
+        return ev, out
+
+    try:
+        has_cache = bool(_read_json(path, []))
+        if has_cache and now - os.path.getmtime(path) < c["minFetchIntervalS"]:
+            return cached("cache")
+        try:
+            backoff = float(meta.get("backoff_until", 0) or 0)
+        except (TypeError, ValueError):
+            backoff = 0.0
+        if now < backoff:
+            return cached("cache-backoff")
+        if session is None:
+            import requests
+            session = requests
+        headers = {"User-Agent": UA}
+        if has_cache:   # conditional GET only when a 304 could be served from cache
+            if meta.get("etag"):
+                headers["If-None-Match"] = meta["etag"]
+            if meta.get("last_modified"):
+                headers["If-Modified-Since"] = meta["last_modified"]
+        try:
+            r = session.get(c["url"], headers=headers, timeout=10)
+        except Exception as ex:  # network error -> cache
+            meta["last_error"] = repr(ex)[:200]
+            _save_meta(meta_p, meta)
+            return cached("cache-after-error", "network")
+        meta["last_status"], meta["last_attempt"] = r.status_code, now
+        if r.status_code == 429:
+            ra = r.headers.get("Retry-After")
+            wait = float(ra) if ra and str(ra).isdigit() else float(c["backoff429S"])
+            meta["backoff_until"] = now + max(wait, float(c["minFetchIntervalS"]))
+            _save_meta(meta_p, meta)
+            return cached("cache-backoff", "429")
+        if r.status_code == 304:
+            if not has_cache:   # 304 but nothing to serve: drop validators so the next try is a full GET
+                meta.pop("etag", None); meta.pop("last_modified", None)
+                _save_meta(meta_p, meta)
+                return cached("cache-after-error", "304-no-cache")
+            os.utime(path, (now, now))
+            _save_meta(meta_p, meta)
+            return cached("cache")
+        if r.status_code != 200:
+            _save_meta(meta_p, meta)
+            return cached("cache-after-error", f"http-{r.status_code}")
+        try:
+            ev = r.json()   # FF answers 200 with an HTML "Request Denied" page when it throttles
+        except Exception:
+            ev = None
+        if not isinstance(ev, list):
+            meta["last_error"] = "non-json 200 (Request Denied?)"
+            meta["backoff_until"] = now + float(c["minFetchIntervalS"])
+            _save_meta(meta_p, meta)
+            return cached("cache-after-error", "denied-html")
+        tmp = path + ".part"
+        with open(tmp, "w") as f:
+            json.dump(ev, f)
+        os.replace(tmp, path)
         os.utime(path, (now, now))
-        json.dump(meta, open(meta_p, "w"))
-        return cached("cache")
-    if r.status_code != 200:
-        json.dump(meta, open(meta_p, "w"))
-        return cached("cache-after-error")
-    ev = r.json()
-    tmp = path + ".part"
-    with open(tmp, "w") as f:
-        json.dump(ev, f)
-    os.replace(tmp, path)
-    os.utime(path, (now, now))
-    meta.update(etag=r.headers.get("ETag"), last_modified=r.headers.get("Last-Modified"), fetched_at=now, backoff_until=0)
-    json.dump(meta, open(meta_p, "w"))
-    return ev, {**meta, "source": "network"}
+        meta.update(etag=r.headers.get("ETag"), last_modified=r.headers.get("Last-Modified"), fetched_at=now, backoff_until=0)
+        meta.pop("last_error", None)
+        _save_meta(meta_p, meta)
+        return ev, {**meta, "source": "network", "status": "ok"}
+    except Exception as ex:   # last resort: never raise into snapshot.build
+        return cached("cache-after-error", f"unexpected:{ex.__class__.__name__}")
