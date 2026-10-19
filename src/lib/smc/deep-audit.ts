@@ -98,6 +98,44 @@ export function barsSinceEntry(minute: OhlcBar[] | null | undefined, entry: numb
   return w.slice(-fallback);
 }
 
+/**
+ * Played-out scan, 10/19 fix (Accuracy 08:55 ET: MNQ short continuation demoted on a T1 that printed at 07:34 ET,
+ * an hour BEFORE its entry gap formed at 08:38 ET). The bars that can play a card out start at the LATER of
+ *   - the entry gap / plan anchor's formation bar (`formedT`, ms), and
+ *   - the first entry touch at or after that formation.
+ * A touch or a T1 print from before the setup existed never counts. No touch since formation → the last
+ * `fallback` bars since formation (T1 running away unfilled is still a miss). `formedT` null → the old
+ * first-touch-in-window scan (barsSinceEntry "first"), so a plan without an anchor keeps today's behavior.
+ */
+export function playedOutBars(minute: OhlcBar[] | null | undefined, entry: number | null, formedT: number | null | undefined, lookback = 240, fallback = 30): OhlcBar[] {
+  if (formedT == null || !Number.isFinite(formedT)) return barsSinceEntry(minute, entry, lookback, fallback, "first");
+  const m = minute ?? [];
+  if (!m.length || entry == null) return [];
+  const w = m.slice(-lookback).filter((b) => b.t >= formedT);
+  const i = w.findIndex((b) => b.l <= entry && b.h >= entry);
+  return i >= 0 ? w.slice(i) : w.slice(-fallback);
+}
+
+/**
+ * The formation time of the plan's entry anchor: the plan's own `entryFormedT` (set by every plan source in
+ * build-desk / exec-context), else the newest array whose zone matches `entryZone` to the tick (iFVG → its
+ * inversion time). Null when neither exists — the caller keeps the old scan.
+ */
+export function entryFormedTOf(plan: { entryFormedT?: number | null; entryZone?: { top: number; bottom: number } | null } | null | undefined,
+  rows: { lo: number; hi: number; kind?: string; createdT: number; invertedT?: number | null }[] = [], tick = 0.25): number | null {
+  if (!plan) return null;
+  if (plan.entryFormedT != null && Number.isFinite(plan.entryFormedT)) return plan.entryFormedT;
+  const z = plan.entryZone;
+  if (!z) return null;
+  let best: number | null = null;
+  for (const r of rows) {
+    if (Math.abs(r.lo - z.bottom) > tick + 1e-9 || Math.abs(r.hi - z.top) > tick + 1e-9) continue;
+    const t = r.kind === "ifvg" ? (r.invertedT ?? r.createdT) : r.createdT;
+    if (Number.isFinite(t) && (best == null || t > best)) best = t;
+  }
+  return best;
+}
+
 /** #12: the tape is stale when either book's quote lags more than maxLagSec. */
 export const STALE_TAPE_SEC = 30;
 export function tapeStale(lags: (number | null | undefined)[], maxLagSec = STALE_TAPE_SEC): boolean {

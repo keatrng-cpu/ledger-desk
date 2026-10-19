@@ -194,7 +194,7 @@ test("Accuracy PR #19: missing price = unknown (not valid); T1-then-back-to-entr
   assert.equal(last.some((x) => x.h >= 102), false);   // last-touch slice forgets T1 (the revive bug)
   assert.equal(first.some((x) => x.h >= 102), true);   // first-touch slice keeps it played out
   const bd = (await_fs()).readFileSync(new URL("../src/lib/trading/build-desk.ts", import.meta.url), "utf8");
-  assert.ok(bd.includes('barsSinceEntry(minute, entry, 240, 30, "first")') && bd.includes("playedOut = true") && bd.includes("priceUnknown = true"));
+  assert.ok(bd.includes("playedOutBars(minute, entry, formedT)") && bd.includes("playedOut = true") && bd.includes("priceUnknown = true"));
   // brain STAND covers played-out / unknown; re-sort is stable (only dead cards move)
   assert.ok(bd.includes("x.invalidated || x.staleTape || x.playedOut || x.priceUnknown"));
   assert.ok(bd.includes("payload.scan.candidates.sort((a, b) => Number(isDead(a)) - Number(isDead(b)));"));
@@ -217,4 +217,53 @@ test("owner rule: rule off keeps the pre-rule lanes; 0DTE live allows 2 contract
   const src = (await_fs()).readFileSync(new URL("../src/lib/trading/options-desk.ts", import.meta.url), "utf8");
   assert.ok(src.includes("INTRADAY.live ? INTRADAY.dte : 1,") && src.includes("INTRADAY.live ? INTRADAY.dte : 0,"));
   assert.ok(src.includes("if (dte <= 0) return INTRADAY.live ? 2 : 1;"));
+});
+
+// 10/19 played-out fix (Accuracy 08:55 ET): MNQ short continuation, entry 29763.5 = CE of the 1m bear gap
+// 29761.5–29765.5 (formed ~08:38 ET), T1 29667. Entry first touched 06:39 ET, London low 29665.25 at 07:34 ET,
+// low since the gap 29742.75. The old scan (first touch in 240 bars) called it played out.
+const et = (hm) => Date.UTC(2026, 9, 19, 4 + Math.floor(hm / 100), hm % 100); // EDT = UTC-4
+const tape1019 = (gapHm, touchHm, t1Hm) => {
+  const m = [];
+  for (let t = et(630); t <= et(855); t += 60_000) m.push(bar(t, 29790, 29795, 29785, 29790)); // drifting above entry
+  const at = (hm, h, l) => { const i = m.findIndex((b) => b.t === et(hm)); m[i] = bar(et(hm), (h + l) / 2, h, l, (h + l) / 2); };
+  at(touchHm, 29770, 29760);                    // entry 29763.5 touched
+  at(t1Hm, 29690, 29665.25);                    // London low through T1 29667
+  at(gapHm, 29761.5, 29745);                    // the gap's 3rd candle (high = gap bottom 29761.5)
+  return m;
+};
+test("10/19 played-out (a): touch, T1, THEN the gap forms, entry retested → NOT played out", () => {
+  const m = tape1019(838, 639, 734);
+  const i = m.findIndex((b) => b.t === et(845)); m[i] = bar(et(845), 29755, 29764, 29742.75, 29750); // 08:45 retest, low 29742.75
+  const formedT = et(838);
+  const t1Hit = (bars) => bars.some((b) => b.l <= 29667);
+  assert.equal(t1Hit(D.barsSinceEntry(m, 29763.5, 240, 30, "first")), true);  // the bug: scan reaches back to 06:39
+  const po = D.playedOutBars(m, 29763.5, formedT);
+  assert.equal(po[0].t, et(845));                                               // starts at the first touch after formation
+  assert.equal(t1Hit(po), false);
+  assert.equal(Math.min(...po.map((b) => b.l)), 29742.75);
+  // gap formed, no touch yet: the post-formation fallback never reaches the 07:34 low either
+  const m2 = tape1019(838, 639, 734);
+  assert.equal(t1Hit(D.playedOutBars(m2, 29763.5, formedT)), false);
+});
+test("10/19 played-out (b): gap forms, entry touched, THEN T1 trades → still played out", () => {
+  const m = tape1019(632, 639, 734);
+  const po = D.playedOutBars(m, 29763.5, et(632));
+  assert.equal(po[0].t, et(639));
+  assert.equal(po.some((b) => b.l <= 29667), true);
+  // T1 then back to entry stays played out (Accuracy PR #19 kept)
+  const j = m.findIndex((b) => b.t === et(800)); m[j] = bar(et(800), 29763, 29766, 29760, 29763);
+  assert.equal(D.playedOutBars(m, 29763.5, et(632)).some((b) => b.l <= 29667), true);
+  // no anchor → the old first-touch scan, unchanged
+  assert.deepEqual(D.playedOutBars(m, 29763.5, null), D.barsSinceEntry(m, 29763.5, 240, 30, "first"));
+});
+test("10/19 played-out: entryFormedTOf reads the plan, else the array matching the entry zone", () => {
+  assert.equal(D.entryFormedTOf({ entryFormedT: 123, entryZone: { top: 2, bottom: 1 } }, []), 123);
+  const rows = [{ lo: 29761.5, hi: 29765.5, kind: "fvg", createdT: et(838) }, { lo: 29700, hi: 29710, kind: "fvg", createdT: et(900) },
+    { lo: 29761.5, hi: 29765.5, kind: "ifvg", createdT: et(600), invertedT: et(700) }];
+  assert.equal(D.entryFormedTOf({ entryZone: { top: 29765.5, bottom: 29761.5 } }, rows), et(838));
+  assert.equal(D.entryFormedTOf({ entryZone: { top: 1, bottom: 0 } }, rows), null);
+  assert.equal(D.entryFormedTOf({ entryZone: null }, rows), null);
+  const ex = (await_fs()).readFileSync(new URL("../src/lib/smc/exec-context.ts", import.meta.url), "utf8");
+  assert.ok(ex.includes("entryFormedT: g.kind === \"ifvg\" ? (g.invertedT ?? g.createdT) : g.createdT") && ex.includes("entryFormedT: gap.formedT ?? null"));
 });

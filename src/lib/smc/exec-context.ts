@@ -157,6 +157,8 @@ export interface ContinuationPlan {
   atr: number | null;
   resting: boolean;
   why: string;
+  /** 10/19 played-out fix: when the entry gap / anchor formed (ms). The played-out scan starts here, never before. */
+  entryFormedT?: number | null;
 }
 
 /**
@@ -231,6 +233,7 @@ export function continuationPlan(
     stopWhy: originOk ? `the ${g.tf} candle that formed the gap ${originPx}` : swing != null ? `the last 3m swing ${side === "short" ? "high (LH)" : "low (HL)"} ${swing}` : `the ${g.tf} gap's far edge ${edge}`,
     riskPts, t1: tA, t2: tB === tA ? null : tB, rr1: rr(tA), rr2: rr(tB === tA ? null : tB), atr: +atr.toFixed(2), resting,
     why: `${rows.length} stacked ${dir} gaps on 1m/3m, newest ${g.tf} ${g.lo}–${g.hi} CE ${entry}; displacement ${disp}; T1 ${tA}${tA !== t1 ? ` (stepped out to external; ranked T1 ${t1} was < 1R)` : ""}`,
+    entryFormedT: g.kind === "ifvg" ? (g.invertedT ?? g.createdT) : g.createdT,
   };
 }
 
@@ -240,7 +243,7 @@ export function continuationPlan(
  * continuation plan. Null without a ranked draw beyond the entry.
  */
 export function planAt(
-  symbol: string, side: Side, gap: { lo: number; hi: number; ce: number }, stopRef: number, stopWhy: string,
+  symbol: string, side: Side, gap: { lo: number; hi: number; ce: number; formedT?: number | null }, stopRef: number, stopWhy: string,
   price: number | null, draws: RankedDraw[], atr: number | null, why: string, extra: RankedDraw[] = [],
 ): ContinuationPlan | null {
   if (price == null || atr == null || !(atr > 0)) return null;
@@ -268,6 +271,7 @@ export function planAt(
     symbol, side, entry, entryZone: { top: gap.hi, bottom: gap.lo }, stop, stopWhy, riskPts,
     t1, t2, rr1: rr(t1), rr2: rr(t2), atr: +atr.toFixed(2),
     resting: Math.abs(price - entry) > CONT_MIN_STOP_ATR * atr, why,
+    entryFormedT: gap.formedT ?? null,
   };
 }
 
@@ -304,12 +308,12 @@ export function completePlan(i: CompleteInput): { plan: CompletedPlan | null; mi
   if (atr == null || !(atr > 0)) return { plan: null, missing: "no ATR15" };
   const dir = side === "long" ? "bull" : "bear";
   const pull = (lo: number, hi: number) => (side === "short" ? hi >= price : lo <= price); // zone at/above price for a short
-  type Z = { lo: number; hi: number; ce: number; src: string; createdT?: number; tf?: string };
+  type Z = { lo: number; hi: number; ce: number; src: string; createdT?: number; tf?: string; formedT?: number };
   const zones: Z[] = [];
   for (const r of mtfArrays(i.symbol, i.minute, i.bars15)) {
     if (r.dir !== dir || r.mitigated || !pull(r.lo, r.hi)) continue;
     if (!["1m", "2m", "3m", "4m", "5m", "15m"].includes(r.tf)) continue; // Keaton: 1m–15m
-    zones.push({ lo: r.lo, hi: r.hi, ce: r.ce, src: `${r.tf} ${r.kind}`, createdT: r.createdT, tf: r.tf });
+    zones.push({ lo: r.lo, hi: r.hi, ce: r.ce, src: `${r.tf} ${r.kind}`, createdT: r.createdT, tf: r.tf, formedT: r.kind === "ifvg" ? (r.invertedT ?? r.createdT) : r.createdT });
   }
   for (const b of i.blocks) {
     if ((b.kind !== "ob" && b.kind !== "breaker") || b.dir !== dir || !pull(b.lo, b.hi)) continue;
@@ -349,7 +353,7 @@ export function completePlan(i: CompleteInput): { plan: CompletedPlan | null; mi
   if (!pool.length) { pool = i.sd.filter(beyond); targetSrc = "OR SD projection"; }
   if (!pool.length) { pool = sess.filter(beyond); targetSrc = "session high/low"; }
   if (!pool.length) return { plan: null, missing: "no target beyond the entry (no ranked draw, SD projection or session extreme)" };
-  const p = planAt(i.symbol, side, { lo: z.lo, hi: z.hi, ce: entry }, ref, stopWhy, price, pool, atr, `entry ${z.src} CE ${entry}; target from ${targetSrc}`, targetSrc === "ranked draw" ? i.sd.filter(beyond) : []);
+  const p = planAt(i.symbol, side, { lo: z.lo, hi: z.hi, ce: entry, formedT: z.formedT ?? null }, ref, stopWhy, price, pool, atr, `entry ${z.src} CE ${entry}; target from ${targetSrc}`, targetSrc === "ranked draw" ? i.sd.filter(beyond) : []);
   if (!p) return { plan: null, missing: "plan did not price" };
   return { plan: { ...p, entrySrc: z.src, targetSrc }, missing: null };
 }

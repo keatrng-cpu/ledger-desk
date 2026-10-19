@@ -21,7 +21,7 @@ import { atr15Of, mtfArrays } from "@/lib/smc/mtf-arrays";
 import * as fx16 from "@/lib/smc/fix1016";
 import { buildLadderWire } from "@/lib/smc/seq/ladder-wire";
 import type { LadderWire } from "@/lib/smc/seq/ladder";
-import { barsSinceEntry, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
+import { barsSinceEntry, entryFormedTOf, playedOutBars, invalidationOf, pinKey, pinLevels, roundPlan, stopText, tapeStale, STALE_TAPE_SEC, type PlanLike } from "@/lib/smc/deep-audit";
 import { sharedDeskBuild } from "@/lib/trading/desk-tick-cache";
 import { resampleMs as resample5 } from "@/lib/trading/tf-ladder";
 import { completePlan, sanePlan, continuationPlan, planAt, sdDraws, displacementStrength, exitPlanOf, rankDraws, type RankedDraw } from "@/lib/smc/exec-context";
@@ -1590,7 +1590,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
             const rr = (t: number | null | undefined) => (t == null ? null : +(Math.abs(t - a.entry) / risk).toFixed(2));
             c.entryPx = a.entry;
             c.plan = { ...(c.plan ?? {}), entry: a.entry, entryZone: a.zone ?? null, stop: a.stop, stopWhy: `re-anchored (${a.src})`, riskPts: +risk.toFixed(2), t1: a.t1, t2: a.t2 ?? null,
-              rr1: rr(a.t1), rr2: rr(a.t2), resting: true, why: `re-anchor: ${d.why}`, entrySrc: a.src } as never;
+              rr1: rr(a.t1), rr2: rr(a.t2), resting: true, why: `re-anchor: ${d.why}`, entrySrc: a.src, entryFormedT: a.t } as never;
             c.invalidation = `Stop ${a.stop.toFixed(2)} — re-anchored (${a.src})`;
             latePlanned.add(c);
             // desk/brain/Floor unity: the brain's book on this symbol+side prices the same re-anchored plan.
@@ -1621,7 +1621,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         const win = minute.slice(-(ch.structure!.ageBars * tfMin + 15), -1);
         if (!win.length) continue;
         const swept = side === "short" ? Math.max(...win.map((b) => b.h)) : Math.min(...win.map((b) => b.l));
-        const plan = planAt(c.symbol, side, first, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
+        const plan = planAt(c.symbol, side, { ...first, formedT: first.kind === "ifvg" ? (first.invertedT ?? first.createdT) : first.createdT }, swept, `the swept ${side === "short" ? "high" : "low"} ${swept}`,
           (isL ? lq : rq)?.price ?? null, rankDraws(isL ? payload.draws.left : payload.draws.right, isL ? closedL : closedR),
           atr15Of(isL ? closedL : closedR), `first ${want} IFVG after the ${ch.tf} CHoCH (${first.lo}–${first.hi})`,
           sdFor(isL));
@@ -1697,7 +1697,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.entryPx = a.entry;
         c.plan = { entry: a.entry, entryZone: { top: a.gap.hi, bottom: a.gap.lo }, stop: a.stop, stopWhy: `one tick past the ${a.tf} sweep wick ${a.sweep.wick}`, riskPts: +risk.toFixed(2),
           t1: a.t1.price, t2: a.t2?.price ?? null, rr1: rr(a.t1.price), rr2: rr(a.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
-          why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}` } as never;
+          why: a.why, entrySrc: `${a.tf} ${a.gap.kind}`, targetSrc: `next real pool ${a.t1.name}`, entryFormedT: a.gap.t } as never;
         c.invalidation = `Stop ${a.stop.toFixed(2)} — one tick past the ${a.tf} sweep wick`;
         c.reasons.push(`Plan from LTF arm: entry ${a.entry} (${a.tf} ${a.gap.kind} CE), stop ${a.stop}, T1 ${a.t1.name} ${a.t1.price}`);
       }
@@ -1710,7 +1710,7 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         c.entryPx = f.entry;
         c.plan = { entry: f.entry, entryZone: { top: f.gap.hi, bottom: f.gap.lo }, stop: f.stop, stopWhy: `beyond the ${f.tf} iFVG ${f.gap.lo}–${f.gap.hi}`, riskPts: +risk.toFixed(2),
           t1: f.t1.price, t2: f.t2?.price ?? null, rr1: rr(f.t1.price), rr2: rr(f.t2?.price ?? null), atr: atr15Of(c.symbol === left.symbol ? closedL : closedR), resting: true,
-          why: f.why, entrySrc: `${f.tf} iFVG`, targetSrc: `next real pool ${f.t1.name}` } as never;
+          why: f.why, entrySrc: `${f.tf} iFVG`, targetSrc: `next real pool ${f.t1.name}`, entryFormedT: f.gap.invertedT } as never;
         c.reasons.push(`Plan from iFVG flip: entry ${f.entry} (${f.tf} iFVG CE), stop ${f.stop}, T1 ${f.t1.name} ${f.t1.price}`);
       }
       for (const c of payload.scan.candidates) {
@@ -2074,6 +2074,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         });
         if (es) (c as { entryState?: unknown }).entryState = es;
         const inv = invalidationOf({ side, price, entry, stop: c.plan?.stop ?? null, atr, sinceEntry: since });
+        // 10/19 played-out fix: the scan starts at the entry gap/anchor's formation (plan.entryFormedT, else the matching array).
+        // Held (hysteresis) levels whose entry left the plan's zone belong to an older anchor → no anchor, old scan (conservative).
+        const pz = (c.plan as { entryZone?: { top: number; bottom: number } | null } | null)?.entryZone ?? null;
+        const anchorOk = c.plan?.t1 != null && entry != null && (!pz || (entry >= pz.bottom - 0.25 && entry <= pz.top + 0.25));
+        const pfT = (c.plan as { entryFormedT?: number | null } | null)?.entryFormedT;
+        const formedT = !anchorOk ? null : entryFormedTOf(c.plan as never, pfT != null ? [] : (mtfArrays(c.symbol, minute, closed) as never));
         const kill = (why: string) => {
           if (c.actionable) c.actionable = false;
           qWrite(c as never, "pathBand" as never, capBand(c.pathBand, "C") as never, "dead:card (invalidated/played out/stale tape)");
@@ -2090,11 +2096,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
           (c as { priceUnknown?: boolean }).priceUnknown = true;
           if (c.actionable) c.actionable = false;
           c.reasons.push(inv.why!);
-        } else if (c.plan?.t1 != null && barsSinceEntry(minute, entry, 240, 30, "first").some((b) => (side === "long" ? b.h >= c.plan!.t1! : b.l <= c.plan!.t1!))) {
-          // T1 traded since the first entry touch in the window: spent, even if price came back to entry (no revive/re-alert)
+        } else if (c.plan?.t1 != null && playedOutBars(minute, entry, formedT).some((b) => (side === "long" ? b.h >= c.plan!.t1! : b.l <= c.plan!.t1!))) {
+          // T1 traded since the first entry touch AFTER the entry gap/anchor formed: spent, even if price came back to entry
+          // (no revive/re-alert). 10/19: a touch/T1 print from before the gap existed never counts.
           (c as { playedOut?: boolean }).playedOut = true;
           if (es) (c as { entryState?: unknown }).entryState = { ...es, state: "missed", label: `${c.pathBand ?? "—"}, played out (T1 traded)` };
-          kill(`Played out: T1 ${c.plan.t1} already traded since entry ${entry} was first touched — capped at C, no alert`);
+          kill(`Played out: T1 ${c.plan.t1} already traded since entry ${entry} was first touched${formedT != null ? ` after its anchor formed (${new Date(formedT).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false }).slice(0, 5)} ET)` : ""} — capped at C, no alert`);
         }
         if (stale) {
           (c as { staleTape?: boolean }).staleTape = true;
