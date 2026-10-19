@@ -236,10 +236,16 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - ltfArm and reviewQuoteRetry both stay shadow pending a desk replay and Keaton's OK. The everyTf facts and the watcher `ltf_arm_validated` hard row stay.
 - RULES_HASH e1f704e02b438e98 → 0a692dc19944a8df.
 
-
 ## 2026-10-19 07:51 CT — PR #55 4h Globex anchor approved to go live (Keaton)
 - **Approval (verbatim):** "Yes, I approve PR #55 (4h Globex anchor) going live today after Accuracy and Release Watch GO, swapped while flat."
 - **Change:** 4h candles move from UTC/epoch-floored buckets to the CME Globex anchor (18:00/22:00/02:00/06:00/10:00/14:00 ET, DST-aware); the 14:00 ET bucket ends at the 17:00 ET halt. Covers completeBuckets, mtf-arrays, tf-ladder, chart partial fill, killClearedOf (kill.clear rungs), premarket closedBuckets.
 - **Context approved against (Accuracy Jul–Aug replay):** 4h bias flips on 17% of MNQ reads and 12% of ES reads; the HTF gate flips on about 7% of checks (383/5,248, 21 of 41 sessions).
 - **Conditions:** Accuracy Review GO and Release Watch GO; swap while flat.
 - Code only: `shared/desk-rules.json` byte-identical, **RULES_HASH stays `0a692dc19944a8df`**.
+
+### 2026-10-19 — Client-reachable market code has an explicit Node boundary
+- **Status:** ADOPTED · **Decided by:** Keaton work order · **Source:** dev crash follow-up to PR #66
+- **Decision:** A module reachable from a client component may not evaluate a top-level `node:*` import. `market/databento.ts` loads `node:fs` and `node:path` only inside its async, `window`-guarded key reader; synchronous market math lives in the Node-free `market/bars.ts` module and is re-exported only for compatibility.
+- **Why:** Vite replaces Node built-ins in the browser with external stubs. Named top-level imports destructured those stubs during client module evaluation, so every dev page load crashed before the desk could render. The explicit boundary keeps server fetches and `.env` fallback intact while making client evaluation inert.
+- **Scope:** development/runtime boundary only. No change to `shared/desk-rules.json`, `RULES_HASH`, scores, gates, prices, or order authority.
+

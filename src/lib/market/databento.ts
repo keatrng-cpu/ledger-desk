@@ -6,9 +6,10 @@
  * Set DATABENTO_API_KEY in the environment. Never commit the key.
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { aggregateBars, frontQuarterly } from "./bars";
 import type { IndexSymbol, LiveQuote, OhlcBar, SymbolSeries } from "./types";
+
+export { aggregateBars, frontQuarterly } from "./bars";
 
 const DATABENTO_URL = "https://hist.databento.com/v0/timeseries.get_range";
 const DEFAULT_DATASET = process.env.DATABENTO_DATASET || "GLBX.MDP3";
@@ -51,58 +52,48 @@ const LABEL: Record<IndexSymbol, string> = {
   ES: "ES E-mini S&P (CME)",
 };
 
+const API_KEY_FILE_CACHE_MS = 5_000;
+let cachedApiKey: { value: string; expiresAt: number } | undefined;
+
 /** Read key from process.env or workspace .env (dev sandbox). Never log the value. */
-function readApiKey(): string {
+async function readApiKey(): Promise<string> {
+  if (typeof window !== "undefined") return "";
   const fromEnv = process.env.DATABENTO_API_KEY?.trim();
   if (fromEnv) return fromEnv;
+  const now = Date.now();
+  if (cachedApiKey && cachedApiKey.expiresAt > now) return cachedApiKey.value;
   try {
+    const [{ existsSync, readFileSync }, { join }] = await Promise.all([
+      import("node:fs"),
+      import("node:path"),
+    ]);
     const envPath = join(process.cwd(), ".env");
     if (existsSync(envPath)) {
       const text = readFileSync(envPath, "utf8");
       const m = text.match(/^DATABENTO_API_KEY=(.+)$/m);
-      if (m?.[1]) return m[1].trim().replace(/^["']|["']$/g, "");
+      if (m?.[1]) {
+        const parsed = m[1].trim().replace(/^["']|["']$/g, "");
+        if (parsed) {
+          cachedApiKey = { value: parsed, expiresAt: now + API_KEY_FILE_CACHE_MS };
+          return cachedApiKey.value;
+        }
+      }
     }
   } catch {
     /* ignore */
   }
+  // Do not cache a miss: local development may add or update .env while the
+  // server is running, and the next request should be able to discover it.
+  cachedApiKey = undefined;
   return "";
 }
 
-export function hasDatabentoKey(): boolean {
-  return Boolean(readApiKey());
+export async function hasDatabentoKey(): Promise<boolean> {
+  return Boolean(await readApiKey());
 }
 
 function authHeader(key: string): string {
   return `Basic ${Buffer.from(`${key}:`).toString("base64")}`;
-}
-
-const MONTH_CODE = ["H", "M", "U", "Z"] as const; // Mar Jun Sep Dec
-
-/** Third Friday of (year, month0) in UTC. */
-function thirdFriday(year: number, month0: number): Date {
-  const first = new Date(Date.UTC(year, month0, 1));
-  const firstFridayDay = 1 + ((5 - first.getUTCDay() + 7) % 7);
-  return new Date(Date.UTC(year, month0, firstFridayDay + 14));
-}
-
-/**
- * Front quarterly contract by the rule Yahoo ES=F / NQ=F follow: the front is the nearest
- * quarterly (H/M/U/Z) whose 3rd-Friday expiry is still more than 8 days away. The roll lands on
- * the Thursday 8 days before expiry (CME equity-index roll date — 2026-09-10 for ESU6→ESZ6).
- * Exported so the gateway and tests can assert the same answer. `now` is injectable for tests.
- */
-export function frontQuarterly(root: string, now: Date = new Date()): string {
-  const t = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  let y = now.getUTCFullYear();
-  for (let i = 0; i < 8; i++) {
-    const q = Math.floor(now.getUTCMonth() / 3) + i; // quarter index from current quarter
-    const year = y + Math.floor(q / 4);
-    const month0 = (q % 4) * 3 + 2; // 2,5,8,11
-    const expiry = thirdFriday(year, month0).getTime();
-    const rollDate = expiry - 8 * 86_400_000;
-    if (t < rollDate) return `${root}${MONTH_CODE[q % 4]}${year % 10}`;
-  }
-  throw new Error("frontQuarterly: no contract found");
 }
 
 /** Raw CME symbol for the desk symbol, e.g. ES → "ESZ6" during the Sep-2026 roll week. */
@@ -218,30 +209,6 @@ function daysFor(range: "1d" | "5d" | "1mo" | "3mo"): number {
   return 95;
 }
 
-/** Aggregate 1m bars to N-minute OHLC. */
-export function aggregateBars(bars: OhlcBar[], minutes: number): OhlcBar[] {
-  if (minutes <= 1 || bars.length === 0) return bars;
-  const ms = minutes * 60_000;
-  const out: OhlcBar[] = [];
-  let bucket = -1;
-  let cur: OhlcBar | null = null;
-  for (const b of bars) {
-    const k = Math.floor(b.t / ms) * ms;
-    if (k !== bucket || !cur) {
-      if (cur) out.push(cur);
-      bucket = k;
-      cur = { t: k, o: b.o, h: b.h, l: b.l, c: b.c, v: b.v };
-    } else {
-      cur.h = Math.max(cur.h, b.h);
-      cur.l = Math.min(cur.l, b.l);
-      cur.c = b.c;
-      cur.v += b.v;
-    }
-  }
-  if (cur) out.push(cur);
-  return out;
-}
-
 function parseCsv(text: string, maxBars: number = MAX_BARS): OhlcBar[] {
   const lines = text.split(/\r?\n/).filter((l) => l.length > 0);
   if (lines.length < 2) return [];
@@ -333,7 +300,7 @@ export async function fetchDatabentoBars(
   range: "1d" | "5d" | "1mo" | "3mo" = "1mo",
   intervalMinutes: number = 15,
 ): Promise<SymbolSeries | null> {
-  const key = readApiKey();
+  const key = await readApiKey();
   if (!key) return null;
 
   let { start, end } = rangeIso(daysFor(range));
@@ -410,7 +377,7 @@ export async function fetchDatabentoAbsoluteRange(
   endMs: number,
   intervalMinutes: number = 1,
 ): Promise<SymbolSeries | null> {
-  const key = readApiKey();
+  const key = await readApiKey();
   if (!key) return null;
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
     return null;
@@ -563,7 +530,7 @@ export async function fetchBacktestLayers(
   startMs: number,
   endMs: number,
 ): Promise<BacktestLayers | null> {
-  const key = readApiKey();
+  const key = await readApiKey();
   if (!key) return null;
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
     return null;
