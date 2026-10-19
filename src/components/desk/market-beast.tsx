@@ -63,45 +63,12 @@ export const MarketBeast = memo(function MarketBeast({ event }: { event: BeastEv
   const banner = bannerFor(active);
   return (
     <div className={layerClass(active)} aria-hidden="true">
-      {/* BULL */}
-      <div className="ld-beast bull" style={{ left: 0 }}>
-        <svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg">
-          <g className="torso">
-            <path className="fill" d="M40 70 q30 -28 86 -24 q34 2 60 14 q22 10 22 24 q0 10 -12 12 l-16 2 q4 14 -2 24 l-14 0 q-2 -12 -8 -18 q-30 8 -62 2 q-4 10 -10 16 l-14 0 q-2 -14 2 -24 q-22 -8 -24 -34 q0 -6 4 -12 z" />
-            <path className="fill" d="M196 72 q22 -2 32 10 q8 10 2 22 q-6 10 -20 10 q-14 0 -22 -12 q-6 -10 -2 -20 q4 -8 10 -10 z" />
-            <path className="stroke" fill="none" strokeWidth="6" strokeLinecap="round" d="M214 70 q10 -16 2 -30 M230 86 q18 -8 20 -26" />
-            <circle cx="214" cy="86" r="3" fill="#09090b" />
-            <circle cx="232" cy="104" r="2.4" fill="#09090b" />
-          </g>
-          <g className="legBack"><rect className="fill" x="58" y="96" width="11" height="40" rx="5" /></g>
-          <g className="legBack"><rect className="fill" x="78" y="98" width="11" height="40" rx="5" /></g>
-          <g className="legFront"><rect className="fill" x="150" y="96" width="11" height="42" rx="5" /></g>
-          <g className="legFront"><rect className="fill" x="170" y="98" width="11" height="40" rx="5" /></g>
-          <path className="stroke" fill="none" strokeWidth="5" strokeLinecap="round" d="M40 72 q-18 6 -20 26 q-1 10 6 16" />
-        </svg>
+      {/* Realistic energy sprites (glow on black); `screen` blend drops the black. */}
+      <div className="ld-beast bull">
+        <img src="/beast/bull.jpg" alt="" draggable={false} />
       </div>
-      <div className="ld-beast-dust d1" style={{ left: "4vw" }} />
-      <div className="ld-beast-dust d2" style={{ left: "7vw" }} />
-      <div className="ld-beast-dust d3" style={{ left: "10vw" }} />
-
-      {/* BEAR */}
-      <div className="ld-beast bear" style={{ left: "50%", transform: "translateX(-50%)" }}>
-        <svg viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
-          <path className="fill" d="M70 176 q-14 -40 -8 -78 q6 -42 48 -46 q42 -4 52 36 q8 34 -2 88 l-18 0 q-6 -34 -4 -58 q-20 10 -40 2 q0 30 -6 56 z" />
-          <circle className="fill" cx="112" cy="44" r="30" />
-          <circle className="fill" cx="90" cy="20" r="10" /><circle className="fill" cx="134" cy="20" r="10" />
-          <path className="fill" d="M98 50 q14 8 30 0 q2 10 -2 16 l-26 0 q-4 -8 -2 -16z" />
-          <g className="jaw">
-            <path className="fill" d="M100 66 q12 10 24 0 q0 10 -12 12 q-12 -2 -12 -12z" />
-            <path d="M102 66 l3 6 l3 -6z" fill="#fff" /><path d="M114 66 l3 6 l3 -6z" fill="#fff" />
-          </g>
-          <path className="stroke" strokeWidth="4" strokeLinecap="round" d="M98 40 l10 4 M126 40 l-10 4" />
-          <circle cx="103" cy="46" r="3" fill="#09090b" /><circle cx="121" cy="46" r="3" fill="#09090b" />
-          <g className="arm">
-            <path className="fill" d="M150 70 q30 -10 40 8 q6 12 -4 22 l-10 -6 q4 -8 -2 -12 q-12 -6 -28 2z" />
-            <path className="stroke" strokeWidth="4" strokeLinecap="round" fill="none" d="M186 92 l10 8 M182 98 l9 9 M177 103 l7 10" />
-          </g>
-        </svg>
+      <div className="ld-beast bear">
+        <img src="/beast/bear.jpg" alt="" draggable={false} />
       </div>
 
       <div className="ld-beast-impact" />
