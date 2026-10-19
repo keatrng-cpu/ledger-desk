@@ -126,6 +126,8 @@ export interface DeskWire {
   latency?: import("@/lib/desk/push-shadow").CardLatency | null;
   /** Rule 1 SHADOW tickets (shared/rule1.json). The watcher logs would-fire only; never an order. */
   rule1: import("./rule1").Rule1Ticket[];
+  /** Free data SHADOW read (shared/free-data.json). Watcher logs it to free_data_shadow.jsonl; nothing gates on it. */
+  freeData?: import("@/lib/free-data/features").FreeDataRead | null;
   strategy: {
     symbol: string;
     side: string;
@@ -342,6 +344,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       right: { symbol: desk.quotes.right.symbol, price: desk.quotes.right.price, source: desk.quotes.right.source, lagSec: desk.quotes.right.lagSec },
     },
     rule1: (desk as { rule1?: import("./rule1").Rule1Ticket[] }).rule1 ?? [],
+    freeData: desk.freeData ?? null,
     strategy: top
       ? {
           symbol: top.symbol,
@@ -639,6 +642,7 @@ export function masterInputOf(
         }
       : null,
     rule1: wire.rule1 ?? [],
+    freeData: wire.freeData ?? null,
     brainWord: wire.brain.word,
     brainBook: wire.brain.book ?? null,
     floorVerdict: wire.floor.verdict,

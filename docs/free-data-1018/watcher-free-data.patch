@@ -1,0 +1,202 @@
+From 2600e5733b2d79634c01fbecdf28439cc58ec1c9 Mon Sep 17 00:00:00 2001
+From: Grok Bot <grokbot@users.noreply.github.com>
+Date: Sun, 18 Oct 2026 23:06:32 -0500
+Subject: [PATCH] free-data-1018: free_data_shadow.jsonl logger (desk freeData
+ + local feature snapshot), shadow only; RULES_HASH unchanged 9eeed9b4083700cb
+
+---
+ tests/test_free_data_shadow.py | 80 ++++++++++++++++++++++++++++++++++
+ watcher/daemon.py              | 10 +++++
+ watcher/free_data.py           | 65 +++++++++++++++++++++++++++
+ 3 files changed, 155 insertions(+)
+ create mode 100644 tests/test_free_data_shadow.py
+ create mode 100644 watcher/free_data.py
+
+diff --git a/tests/test_free_data_shadow.py b/tests/test_free_data_shadow.py
+new file mode 100644
+index 0000000..583989e
+--- /dev/null
++++ b/tests/test_free_data_shadow.py
+@@ -0,0 +1,80 @@
++import copy
++import json
++import os
++import time
++
++from watcher import free_data
++
++FD = {"mode": "shadow", "live": False, "asOf": "2026-10-20T12:26:00.000Z",
++      "ff": {"source": "cache", "usdScoped": [], "actualsAvailable": False,
++             "nextPrint": {"title": "Housing Starts", "dateCt": "2026-10-20", "timeCt": "07:30", "forecast": "1.30M", "previous": "1.28M", "actual": None, "surpriseSign": None},
++             "printWindow": {"flag": True, "events": ["Housing Starts", "Building Permits"]}},
++      "vix": {"date": "2026-10-16", "vix": 19.99, "vix9d": 20.12, "vix3m": 20.5, "vix9dVix": 1.0065, "vixVix3m": 0.9751, "regime": "flat", "frontInverted": True}}
++NOW = 1792502760000   # 2026-10-20 07:26 CT
++
++
++def test_record_reads_desk_free_data_and_never_orders(tmp_path):
++    r = free_data.record({"wire": {"freeData": FD}}, NOW, str(tmp_path / "none.json"))
++    assert r["broker"] is False and r["orders"] == 0 and r["mode"] == "shadow"
++    assert r["print_window"] is True and r["next_print"]["title"] == "Housing Starts" and r["next_print"]["forecast"] == "1.30M"
++    assert r["vix"]["regime"] == "flat" and r["vix"]["frontInverted"] is True
++    assert r["local_snapshot"] is False and r["orderflow"] is None
++
++
++def test_missing_free_data_is_tolerated(tmp_path):
++    r = free_data.record({}, NOW, str(tmp_path / "none.json"))
++    assert r["desk_read"] is False and r["print_window"] is None and r["vix"] is None
++    assert free_data.record(None, NOW, None)["desk_read"] is False
++
++
++def test_local_snapshot_orderflow_and_staleness(tmp_path):
++    p = tmp_path / "free-features.json"
++    p.write_text(json.dumps({"asOf": "x", "orderflow": {"ES": {"60s": {"start_ct": "07:25", "delta": -84, "cvd": -5347}, "30s": {"start_ct": "07:25:30", "delta": -8}}},
++                             "xasset": {"ZN": {"close": 110.5}}}))
++    r = free_data.record({"wire": {"freeData": FD}}, int(time.time() * 1000), str(p))
++    assert r["orderflow"]["ES"] == {"bar_1m": "07:25", "delta_1m": -84, "cvd": -5347, "bar_30s": "07:25:30", "delta_30s": -8}
++    assert r["xasset"]["ZN"]["close"] == 110.5
++    old = time.time() - free_data.MAX_SNAPSHOT_AGE_S - 5
++    os.utime(p, (old, old))
++    assert free_data.record({}, int(time.time() * 1000), str(p))["local_snapshot"] is False
++
++
++def test_once_per_minute(tmp_path):
++    st = {}
++    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, NOW, str(tmp_path / "x")) is not None
++    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, NOW + 30_000, str(tmp_path / "x")) is None
++    assert free_data.log(str(tmp_path), {"wire": {"freeData": FD}}, st, NOW + 60_000, str(tmp_path / "x")) is not None
++    assert len(open(tmp_path / free_data.FILE).read().splitlines()) == 2
++
++
++def test_module_has_no_broker_import_and_does_not_touch_gates():
++    src = open(free_data.__file__).read()
++    code = src.split('"""', 2)[2]
++    assert "import broker" not in code and "from .broker" not in code and "from . import broker" not in code
++    assert "gates" not in code and "RULES" not in code
++
++
++def test_gates_identical_with_and_without_free_data():
++    """The shadow block on the card must not change a single gate row."""
++    from watcher import gates
++    here = os.path.dirname(__file__)
++    card = json.load(open(os.path.join(here, "fixtures", "card_live_watch.json")))
++    with_fd = copy.deepcopy(card); with_fd.setdefault("wire", {})["freeData"] = FD
++    a = gates.snapshot(card); b = gates.snapshot(with_fd)
++    assert a == b
++
++
++def test_daemon_hook_logs_and_never_raises(tmp_path):
++    from watcher import daemon
++
++    class Cfg:
++        def path(self, p):
++            return str(tmp_path / p) if p else str(tmp_path)
++
++    logged = []
++    w = daemon.Watcher.__new__(daemon.Watcher)
++    w.cfg = Cfg(); w.log = lambda kind, **kw: logged.append(kind)
++    w._free_data_shadow({"wire": {"freeData": FD}}, NOW)
++    w._free_data_shadow("not a card", NOW + 60_000)
++    assert "free_data_shadow_error" not in logged
++    assert len(open(tmp_path / free_data.FILE).read().splitlines()) == 2
+diff --git a/watcher/daemon.py b/watcher/daemon.py
+index 05ca657..048f0aa 100644
+--- a/watcher/daemon.py
++++ b/watcher/daemon.py
+@@ -76,6 +76,7 @@ class Watcher:
+         key = gates.signal_key(snap, et_date)
+         nm = now_ms(); snap["_now_ms"] = nm
+         self._rule1_shadow(card, nm)
++        self._free_data_shadow(card, nm)
+         self._fast(snap)
+         prev = self.state.get("band_streak")
+         bs = gates.band_streak_next(prev, snap); self.state["band_streak"] = bs; snap["band_streak"] = bs["n"]
+@@ -739,6 +740,15 @@ class Watcher:
+         except Exception as e:
+             self.log("rule1_shadow_error", error=str(e))
+ 
++    def _free_data_shadow(self, card, now):
++        """Free data feeds (ledger-desk shared/free-data.json): one log row per minute. Shadow only: no broker, no gate."""
++        try:
++            from . import free_data
++            st = self.__dict__.setdefault("_fd_state", {})
++            free_data.log(self.cfg.path(""), card, st, now)
++        except Exception as e:
++            self.log("free_data_shadow_error", error=str(e))
++
+     def _gate_log(self, key, snap, g, dayst, broker=False):
+         from . import hygiene
+         kept, quiet = hygiene.compact_gates(g)   # deep-audit #7: always-true shadow:/soft: rows become counters
+diff --git a/watcher/free_data.py b/watcher/free_data.py
+new file mode 100644
+index 0000000..f1c0494
+--- /dev/null
++++ b/watcher/free_data.py
+@@ -0,0 +1,65 @@
++"""Free data feeds SHADOW logger (ledger-desk shared/free-data.json, docs/free-data-1018).
++
++Once per closed minute, appends one row to free_data_shadow.jsonl with: the desk's free-data read (card wire
++`freeData`: next USD print, 07:30 CT print-window flag, VIX term structure) and, when present and fresh, the local
++feature snapshot written by ledger-desk feeds/free_data (order-flow delta / session CVD of the last CLOSED 30s/1m
++bars, ZN/6E 1m reads). LOG-ONLY: it never imports the broker, never touches the snapshot the gates read, never
++changes a gate, the fire path or the rules hash. The news gate (gates.news_blackout) is unchanged.
++"""
++import json
++import os
++import time
++
++FILE = "free_data_shadow.jsonl"
++SNAPSHOT_ENV = "FREE_FEATURES_PATH"
++SNAPSHOT_DEFAULT = "/workspace/data/free-feeds/free-features.json"
++MAX_SNAPSHOT_AGE_S = 1800
++
++
++def _local(path, now_s):
++    try:
++        if not path or not os.path.exists(path) or now_s - os.path.getmtime(path) > MAX_SNAPSHOT_AGE_S:
++            return None
++        with open(path, encoding="utf-8") as f:
++            return json.load(f)
++    except (OSError, ValueError):
++        return None
++
++
++def record(card, now_ms, snapshot_path=None):
++    card = card if isinstance(card, dict) else {}
++    fd = (card.get("wire") or {}).get("freeData") or card.get("freeData") or {}
++    ff = fd.get("ff") or {}
++    nxt = ff.get("nextPrint") or {}
++    vix = fd.get("vix") or {}
++    loc = _local(snapshot_path or os.environ.get(SNAPSHOT_ENV, SNAPSHOT_DEFAULT), now_ms / 1000.0) or {}
++    of = {}
++    for sym, lanes in (loc.get("orderflow") or {}).items():
++        b = (lanes or {}).get("60s") or {}
++        h = (lanes or {}).get("30s") or {}
++        of[sym] = {"bar_1m": b.get("start_ct"), "delta_1m": b.get("delta"), "cvd": b.get("cvd"),
++                   "bar_30s": h.get("start_ct"), "delta_30s": h.get("delta")}
++    return {
++        "ts": now_ms, "kind": "free_data_shadow", "mode": "shadow", "broker": False, "orders": 0,
++        "desk_read": bool(fd),
++        "print_window": (ff.get("printWindow") or {}).get("flag"),
++        "print_window_events": (ff.get("printWindow") or {}).get("events") or [],
++        "next_print": {k: nxt.get(k) for k in ("title", "dateCt", "timeCt", "forecast", "previous", "actual", "surpriseSign")} if nxt else None,
++        "vix": {k: vix.get(k) for k in ("date", "vix", "vix9dVix", "vixVix3m", "regime", "frontInverted")} if vix else None,
++        "orderflow": of or None,
++        "xasset": loc.get("xasset"),
++        "local_snapshot": bool(loc), "local_as_of": loc.get("asOf"),
++    }
++
++
++def log(path_dir, card, state, now_ms=None, snapshot_path=None):
++    """Append at most one row per minute. `state` is a dict the caller keeps (holds the last minute logged)."""
++    now_ms = now_ms or int(time.time() * 1000)
++    minute = now_ms // 60_000
++    if state.get("minute") == minute:
++        return None
++    state["minute"] = minute
++    row = record(card, now_ms, snapshot_path)
++    with open(os.path.join(path_dir, FILE), "a", encoding="utf-8") as f:
++        f.write(json.dumps(row, default=str) + "\n")
++    return row
+-- 
+2.47.3
+

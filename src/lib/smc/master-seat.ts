@@ -5,6 +5,7 @@
  * It never relaxes a gate: every check it lists must already pass upstream.
  */
 import { rule1D70Line } from "@/lib/trading/rule1-d70";
+import { freeDataSeatLine } from "@/lib/free-data/features";
 
 export interface MasterInput {
   card: {
@@ -29,6 +30,8 @@ export interface MasterInput {
   } | null;
   /** Rule 1 shadow tickets (read-only; the brain/Floor seat shows and logs them, never decides on them). */
   rule1?: import("@/lib/trading/rule1").Rule1Ticket[];
+  /** Free data SHADOW read (shared/free-data.json): one narrative line, never a check. */
+  freeData?: import("@/lib/free-data/features").FreeDataRead | null;
   brainWord: string | null;
   brainBook: { symbol: string; side: string | null } | null;
   floorVerdict: string;
@@ -64,6 +67,8 @@ export function masterSeat(i: MasterInput): MasterSeat {
   narrative.push(`Card: ${c.symbol} ${c.side} ${c.band ?? "?"} q ${c.q}${c.chop ? " · chop" : ""}${c.dispScore != null ? ` · displacement ${c.dispScore}` : ""}`);
   narrative.push(`Brain on this book: ${i.brainWord ?? "?"}${i.brainBook ? ` (${i.brainBook.symbol} ${i.brainBook.side ?? "-"})` : ""}`);
   for (const t of i.rule1 ?? []) if (t.ticketD70) narrative.push(rule1D70Line(t));   // shadow Δ0.7 ticket (overnight-1016 #1); display only, no check
+  const fd = freeDataSeatLine(i.freeData);   // free-data-1018: shadow facts, display only, no check
+  if (fd) narrative.push(fd);
   if (i.topDraw) narrative.push(`Draw: ${i.topDraw.name} ${i.topDraw.price}`);
   narrative.push(c.entry != null ? `Plan: entry ${c.entry}${c.entryResting ? " (resting)" : ""} · stop ${c.stopPx ?? "?"} · target ${c.target ?? "?"} · ${c.rr ?? "?"}R` : "Plan: no priced entry yet");
   const sameBook = i.brainBook?.symbol === c.symbol;

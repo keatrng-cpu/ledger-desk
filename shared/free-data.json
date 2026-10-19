@@ -1,0 +1,41 @@
+{
+  "version": "2026-10-18",
+  "mode": "shadow",
+  "live": false,
+  "note": "Free data feeds, LOG-ONLY. Kept OUT of shared/desk-rules.json so RULES_HASH is unchanged. No gate, score or order path reads any field here.",
+  "orderflow": {
+    "dataset": "GLBX.MDP3",
+    "schema": "trades",
+    "symbols": ["ES", "NQ"],
+    "intervalsS": [30, 60],
+    "closeGraceMs": 1500,
+    "sessionOpenEt": "18:00",
+    "aggressor": { "B": 1, "A": -1, "N": 0 }
+  },
+  "historical": {
+    "allowedSchemas": ["trades", "tbbo", "mbp-1", "ohlcv-1s", "ohlcv-1m"],
+    "l1Schemas": ["trades", "tbbo", "mbp-1"],
+    "l1MaxAgeDays": 360,
+    "maxCostUsd": 0,
+    "cacheDir": "/workspace/data/databento"
+  },
+  "ffCalendar": {
+    "url": "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+    "minFetchIntervalS": 900,
+    "backoff429S": 1800,
+    "countries": ["USD"],
+    "impacts": ["High", "Medium"],
+    "printWindow": { "timesCt": ["07:30"], "beforeMin": 5, "afterMin": 15, "countries": ["USD"] }
+  },
+  "vix": {
+    "urls": {
+      "VIX": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+      "VIX9D": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv",
+      "VIX3M": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv"
+    },
+    "minFetchIntervalS": 21600,
+    "settleCt": "15:30",
+    "regime": { "backwardationAt": 1.0, "flatFrom": 0.9, "frontInvertedAt": 1.0 }
+  },
+  "crossAsset": { "symbols": ["ZN", "6E"], "schema": "ohlcv-1m", "lookbacksMin": [30, 60] }
+}

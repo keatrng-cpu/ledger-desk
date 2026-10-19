@@ -6,6 +6,7 @@ import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
 import { primaryForPoll, keepOtherBook, PRIMARY_HYSTERESIS, primaryHysteresisLive } from "./primary-hysteresis";
 import { rule1Ticket, type Rule1Ticket } from "./rule1";
 import { withLane } from "./rule1-lane";
+import { freeDataRead, type FreeDataRead } from "@/lib/free-data/features";
 import { capStage, trackCard, preSeal, resolveWhy } from "./cap-attribution";
 import { setQSource, qWrite } from "./q-source";
 import { applyDayNudge } from "./day-nudge";
@@ -127,6 +128,8 @@ export interface DeskPayload {
   ok: true;
   /** Rule 1 SHADOW tickets (shared/rule1.json, outside the rules hash). Logged by brain/Floor/watcher; never fired. */
   rule1?: Array<import("./rule1").Rule1Ticket & { lane?: import("./rule1-lane").Rule1Lane }>;
+  /** Free data feeds SHADOW read (shared/free-data.json, outside the rules hash): FF calendar + VIX term structure. Logged/shown only; no gate reads it. */
+  freeData?: FreeDataRead | null;
   fetchedAt: string;
   clock: SessionClock;
   left: SymbolSeries;
@@ -1146,9 +1149,12 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
         if (tk) rule1.push(tk);
       } catch { /* shadow */ }
     }
+    // Free data feeds (shared/free-data.json): shadow facts only; cached per instance, never throws, ≤1.2 s cold.
+    const freeData = await freeDataRead(Date.now()).catch(() => null);
     const payload = {
       ok: true as const,
       rule1: withLane(rule1, Date.now()),   // shadow Rule 1 lane read (overnight-1016 #2); logged, never fires
+      freeData,
       fetchedAt: new Date().toISOString(),
       clock,
       left,
