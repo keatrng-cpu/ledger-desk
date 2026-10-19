@@ -4,6 +4,11 @@
  * Tools read the scanner, floor, and brain. They do not see the account.
  */
 import type { DeskListenCard } from "@/lib/trading/desk-listen";
+import RULES from "../../../shared/desk-rules.json";
+import { RULES_HASH } from "./rules-hash";
+import LATEST_BACKTEST from "../../../ai/backtest/latest.json";
+import { CONFLUENCE_KNOWLEDGE } from "@/lib/aplus/confluence";
+import LADDER_CAL from "@/lib/smc/seq/ladder-calibration.json";
 
 export const MCP_PROTOCOL = "2025-03-26";
 
@@ -26,6 +31,24 @@ const TOOLS = [
   {
     name: "read_brain",
     description: "SMC brain: one book, TAKE / WAIT / STAND, and the missing layer.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "read_rules",
+    description:
+      "The desk's full rule set (shared/desk-rules.json) with its RULES_HASH — the non-negotiable gates: band edges, min stop ATR, R:R floors, kill params, displacement-vs-R:R, session windows. For engineering the engine, not a live market read.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "read_backtest",
+    description:
+      "The latest walk-forward backtest summary (ai/backtest/latest.json): per-split and per-symbol hit rate, avg R, sum R, avg option %, with the train/holdout/skipped session lists. The raw trades array is omitted; the trade count is given.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "read_calibration",
+    description:
+      "Scoring calibration: the confluence knowledge (sample size, best score, per-component fire %, hot/cold components, lessons) and the ladder calibration metadata (method, input bars, train/holdout windows). The engine's measured self-knowledge.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
@@ -66,6 +89,19 @@ function slice(card: DeskListenCard, name: ToolName): unknown {
   if (name === "read_floor") return { at: card.at, clock: card.clock, floor: card.floor, said: card.said, optionMarks: card.optionMarks, wire };
   if (name === "read_brain") return { at: card.at, clock: card.clock, brain: card.brain, optionMarks: card.optionMarks, wire };
   return card;
+}
+
+/** Codex-oriented static reads: the engine's rules, backtest and calibration (not the live card). */
+const STATIC_TOOLS = new Set(["read_rules", "read_backtest", "read_calibration"]);
+function readStatic(name: string): unknown {
+  if (name === "read_rules") return { rulesHash: RULES_HASH, rules: RULES };
+  if (name === "read_backtest") {
+    const b = LATEST_BACKTEST as Record<string, unknown> & { trades?: unknown[] };
+    const { trades, ...rest } = b;
+    return { ...rest, tradeCount: Array.isArray(trades) ? trades.length : 0 };
+  }
+  const cal = LADDER_CAL as { method?: unknown; inputs?: unknown; train?: unknown; holdout?: unknown };
+  return { confluence: CONFLUENCE_KNOWLEDGE, ladder: { method: cal.method, inputs: cal.inputs, train: cal.train, holdout: cal.holdout } };
 }
 
 function result(id: unknown, value: unknown): McpReply {
@@ -112,6 +148,14 @@ export async function handleMcpMessage(
         return result(msg.id, { content: [{ type: "text", text: JSON.stringify(saved) }], isError: false });
       } catch (err) {
         const why = err instanceof Error ? err.message : "Report failed";
+        return result(msg.id, { content: [{ type: "text", text: why }], isError: true });
+      }
+    }
+    if (STATIC_TOOLS.has(name as string)) {
+      try {
+        return result(msg.id, { content: [{ type: "text", text: JSON.stringify(readStatic(name as string)) }], isError: false });
+      } catch (err) {
+        const why = err instanceof Error ? err.message : "Read failed";
         return result(msg.id, { content: [{ type: "text", text: why }], isError: true });
       }
     }
