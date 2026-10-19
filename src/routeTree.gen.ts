@@ -18,6 +18,7 @@ import { Route as ApiCronChecklistRouteImport } from './routes/api/cron/checklis
 import { Route as ApiCronExecFlattenRouteImport } from './routes/api/cron/exec-flatten'
 import { Route as ApiCronNewsCalendarRouteImport } from './routes/api/cron/news-calendar'
 import { Route as ApiCronReviewRouteImport } from './routes/api/cron/review'
+import { Route as ApiCronRhJournalRouteImport } from './routes/api/cron/rh-journal'
 import { Route as ApiCronRhManageRouteImport } from './routes/api/cron/rh-manage'
 import { Route as ApiCronRoomStepRouteImport } from './routes/api/cron/room-step'
 import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
@@ -31,8 +32,10 @@ import { Route as ApiDeskJournalRouteImport } from './routes/api/desk/journal'
 import { Route as ApiDeskWatcherRouteImport } from './routes/api/desk/watcher'
 import { Route as ApiEngineHeartbeatRouteImport } from './routes/api/engine/heartbeat'
 import { Route as ApiEngineJournalRouteImport } from './routes/api/engine/journal'
+import { Route as ApiRhAccountRouteImport } from './routes/api/rh/account'
 import { Route as ApiRhCallbackRouteImport } from './routes/api/rh/callback'
 import { Route as ApiRhConnectRouteImport } from './routes/api/rh/connect'
+import { Route as ApiRhJournalRouteImport } from './routes/api/rh/journal'
 import { Route as ApiRoomCycleRouteImport } from './routes/api/room/cycle'
 
 const IndexRoute = IndexRouteImport.update({
@@ -78,6 +81,11 @@ const ApiCronNewsCalendarRoute = ApiCronNewsCalendarRouteImport.update({
 const ApiCronReviewRoute = ApiCronReviewRouteImport.update({
   id: '/api/cron/review',
   path: '/api/cron/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronRhJournalRoute = ApiCronRhJournalRouteImport.update({
+  id: '/api/cron/rh-journal',
+  path: '/api/cron/rh-journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCronRhManageRoute = ApiCronRhManageRouteImport.update({
@@ -145,6 +153,11 @@ const ApiEngineJournalRoute = ApiEngineJournalRouteImport.update({
   path: '/api/engine/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRhAccountRoute = ApiRhAccountRouteImport.update({
+  id: '/api/rh/account',
+  path: '/api/rh/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRhCallbackRoute = ApiRhCallbackRouteImport.update({
   id: '/api/rh/callback',
   path: '/api/rh/callback',
@@ -153,6 +166,11 @@ const ApiRhCallbackRoute = ApiRhCallbackRouteImport.update({
 const ApiRhConnectRoute = ApiRhConnectRouteImport.update({
   id: '/api/rh/connect',
   path: '/api/rh/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRhJournalRoute = ApiRhJournalRouteImport.update({
+  id: '/api/rh/journal',
+  path: '/api/rh/journal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRoomCycleRoute = ApiRoomCycleRouteImport.update({
@@ -171,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -184,8 +203,10 @@ export interface FileRoutesByFullPath {
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/account': typeof ApiRhAccountRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
   '/api/rh/connect': typeof ApiRhConnectRoute
+  '/api/rh/journal': typeof ApiRhJournalRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesByTo {
@@ -198,6 +219,7 @@ export interface FileRoutesByTo {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -211,8 +233,10 @@ export interface FileRoutesByTo {
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/account': typeof ApiRhAccountRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
   '/api/rh/connect': typeof ApiRhConnectRoute
+  '/api/rh/journal': typeof ApiRhJournalRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRoutesById {
@@ -226,6 +250,7 @@ export interface FileRoutesById {
   '/api/cron/exec-flatten': typeof ApiCronExecFlattenRoute
   '/api/cron/news-calendar': typeof ApiCronNewsCalendarRoute
   '/api/cron/review': typeof ApiCronReviewRoute
+  '/api/cron/rh-journal': typeof ApiCronRhJournalRoute
   '/api/cron/rh-manage': typeof ApiCronRhManageRoute
   '/api/cron/room-step': typeof ApiCronRoomStepRoute
   '/api/cron/weekly': typeof ApiCronWeeklyRoute
@@ -239,8 +264,10 @@ export interface FileRoutesById {
   '/api/desk/watcher': typeof ApiDeskWatcherRoute
   '/api/engine/heartbeat': typeof ApiEngineHeartbeatRoute
   '/api/engine/journal': typeof ApiEngineJournalRoute
+  '/api/rh/account': typeof ApiRhAccountRoute
   '/api/rh/callback': typeof ApiRhCallbackRoute
   '/api/rh/connect': typeof ApiRhConnectRoute
+  '/api/rh/journal': typeof ApiRhJournalRoute
   '/api/room/cycle': typeof ApiRoomCycleRoute
 }
 export interface FileRouteTypes {
@@ -255,6 +282,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -268,8 +296,10 @@ export interface FileRouteTypes {
     | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/account'
     | '/api/rh/callback'
     | '/api/rh/connect'
+    | '/api/rh/journal'
     | '/api/room/cycle'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -282,6 +312,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -295,8 +326,10 @@ export interface FileRouteTypes {
     | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/account'
     | '/api/rh/callback'
     | '/api/rh/connect'
+    | '/api/rh/journal'
     | '/api/room/cycle'
   id:
     | '__root__'
@@ -309,6 +342,7 @@ export interface FileRouteTypes {
     | '/api/cron/exec-flatten'
     | '/api/cron/news-calendar'
     | '/api/cron/review'
+    | '/api/cron/rh-journal'
     | '/api/cron/rh-manage'
     | '/api/cron/room-step'
     | '/api/cron/weekly'
@@ -322,8 +356,10 @@ export interface FileRouteTypes {
     | '/api/desk/watcher'
     | '/api/engine/heartbeat'
     | '/api/engine/journal'
+    | '/api/rh/account'
     | '/api/rh/callback'
     | '/api/rh/connect'
+    | '/api/rh/journal'
     | '/api/room/cycle'
   fileRoutesById: FileRoutesById
 }
@@ -337,6 +373,7 @@ export interface RootRouteChildren {
   ApiCronExecFlattenRoute: typeof ApiCronExecFlattenRoute
   ApiCronNewsCalendarRoute: typeof ApiCronNewsCalendarRoute
   ApiCronReviewRoute: typeof ApiCronReviewRoute
+  ApiCronRhJournalRoute: typeof ApiCronRhJournalRoute
   ApiCronRhManageRoute: typeof ApiCronRhManageRoute
   ApiCronRoomStepRoute: typeof ApiCronRoomStepRoute
   ApiCronWeeklyRoute: typeof ApiCronWeeklyRoute
@@ -350,8 +387,10 @@ export interface RootRouteChildren {
   ApiDeskWatcherRoute: typeof ApiDeskWatcherRoute
   ApiEngineHeartbeatRoute: typeof ApiEngineHeartbeatRoute
   ApiEngineJournalRoute: typeof ApiEngineJournalRoute
+  ApiRhAccountRoute: typeof ApiRhAccountRoute
   ApiRhCallbackRoute: typeof ApiRhCallbackRoute
   ApiRhConnectRoute: typeof ApiRhConnectRoute
+  ApiRhJournalRoute: typeof ApiRhJournalRoute
   ApiRoomCycleRoute: typeof ApiRoomCycleRoute
 }
 
@@ -418,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/review'
       fullPath: '/api/cron/review'
       preLoaderRoute: typeof ApiCronReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/rh-journal': {
+      id: '/api/cron/rh-journal'
+      path: '/api/cron/rh-journal'
+      fullPath: '/api/cron/rh-journal'
+      preLoaderRoute: typeof ApiCronRhJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cron/rh-manage': {
@@ -511,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEngineJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rh/account': {
+      id: '/api/rh/account'
+      path: '/api/rh/account'
+      fullPath: '/api/rh/account'
+      preLoaderRoute: typeof ApiRhAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/rh/callback': {
       id: '/api/rh/callback'
       path: '/api/rh/callback'
@@ -523,6 +576,13 @@ declare module '@tanstack/react-router' {
       path: '/api/rh/connect'
       fullPath: '/api/rh/connect'
       preLoaderRoute: typeof ApiRhConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rh/journal': {
+      id: '/api/rh/journal'
+      path: '/api/rh/journal'
+      fullPath: '/api/rh/journal'
+      preLoaderRoute: typeof ApiRhJournalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/room/cycle': {
@@ -545,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronExecFlattenRoute: ApiCronExecFlattenRoute,
   ApiCronNewsCalendarRoute: ApiCronNewsCalendarRoute,
   ApiCronReviewRoute: ApiCronReviewRoute,
+  ApiCronRhJournalRoute: ApiCronRhJournalRoute,
   ApiCronRhManageRoute: ApiCronRhManageRoute,
   ApiCronRoomStepRoute: ApiCronRoomStepRoute,
   ApiCronWeeklyRoute: ApiCronWeeklyRoute,
@@ -558,8 +619,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeskWatcherRoute: ApiDeskWatcherRoute,
   ApiEngineHeartbeatRoute: ApiEngineHeartbeatRoute,
   ApiEngineJournalRoute: ApiEngineJournalRoute,
+  ApiRhAccountRoute: ApiRhAccountRoute,
   ApiRhCallbackRoute: ApiRhCallbackRoute,
   ApiRhConnectRoute: ApiRhConnectRoute,
+  ApiRhJournalRoute: ApiRhJournalRoute,
   ApiRoomCycleRoute: ApiRoomCycleRoute,
 }
 export const routeTree = rootRouteImport

@@ -147,6 +147,8 @@ import { pendingFillToast } from "@/components/desk/entry-trigger-panel";
 import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
+import { RhJournalPanel } from "@/components/desk/rh-journal-panel";
+import { RhLiveBlock } from "@/components/desk/rh-live-block";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
 import { PathAlarmBar } from "@/components/desk/path-alarm-bar";
 import { LiveSessionCard } from "@/components/desk/live-session-card";
@@ -2014,16 +2016,19 @@ function MasterplacePage() {
               {cat === "invest" && <InvestPanel />}
               {cat === "news" && <NewsTab />}
               {(cat === "predict" || cat === "mead") && (
-                <Suspense
-                  fallback={
-                    <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                      <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
-                      Opening the analyzer…
-                    </div>
-                  }
-                >
-                  <PmAnalyzer />
-                </Suspense>
+                <div className="space-y-3">
+                  <RhLiveBlock variant="predict" />
+                  <Suspense
+                    fallback={
+                      <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                        <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary)]" />
+                        Opening the analyzer…
+                      </div>
+                    }
+                  >
+                    <PmAnalyzer />
+                  </Suspense>
+                </div>
               )}
               {cat === "discuss" && <DiscussTab desk={desk} />}
               {cat === "floor" && (
@@ -2335,6 +2340,7 @@ function MasterplacePage() {
                   <ApexSimPanel />
                   <EvidenceTable />
                   <AlertsPanel />
+                  <RhJournalPanel />
                   <AnalyticsPanel />
                   <DeskFold
                     title="Deep lab"

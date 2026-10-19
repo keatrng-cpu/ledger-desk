@@ -43,6 +43,7 @@ import { latestJudgement, subscribeKill } from "@/lib/invest/kill-store";
 import { uncoveredUnderliers } from "@/lib/invest/rh-bridge";
 import { snapshotCapturedAt } from "@/lib/invest/universe";
 import { KillWatchPanel } from "@/components/desk/kill-watch-panel";
+import { RhLiveBlock } from "@/components/desk/rh-live-block";
 import { SweepCard } from "@/components/invest/sweep-card";
 import { HabitCard } from "@/components/invest/habit-card";
 import { BookCard } from "@/components/invest/book-card";
@@ -200,6 +201,8 @@ export function InvestPanel() {
         <span>Waiting <span className="font-medium tabular-nums">{queue.waitingUsd > 0 ? `$${queue.waitingUsd.toFixed(2)}` : "—"}</span></span>
         <span>Next <span className="font-medium">{next.ticker ?? next.sleeve}</span></span>
       </div>
+
+      <RhLiveBlock variant="invest" />
 
       <details className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-[11px] leading-relaxed text-[var(--color-muted)]">
         <summary className="cursor-pointer">Years, not minutes. This tab does not read the option floor.</summary>
