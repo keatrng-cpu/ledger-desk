@@ -1389,7 +1389,7 @@ function SetupCard({
             Plan · limit at CE · {c.plan.riskPts.toFixed(2)}pt risk
             {c.plan.riskAtr != null ? ` · ${c.plan.riskAtr.toFixed(2)}×ATR` : ""}
           </p>
-          <PriceLadder {...ladderFrom(c.plan)} price={tape?.bars?.at(-1)?.c ?? null} height={180} />
+          <PriceLadder {...ladderFrom(c.plan, c.side as "long" | "short")} price={tape?.bars?.at(-1)?.c ?? null} height={180} />
           {/* The same level the paper book exits on (exit-rules.ts): before
               T1, a 15m CLOSE through it is out — a wick is not. */}
           {FAILED_HOLD_ENABLED && (
