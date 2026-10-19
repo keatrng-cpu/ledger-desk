@@ -454,7 +454,123 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
   ],
 };
 
-const PLANS: WeekPlan[] = [WEEK_OCT12_OCT16, WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
+
+/** Week of Oct 19 – Oct 23 2026. Housing Tue, claims Thu, flash PMI / UMich Fri. No ISM / JOLTS / ADP / NFP. FOMC Oct 28 next. */
+export const WEEK_OCT19_OCT23: WeekPlan = {
+  id: "2026-10-19",
+  weekLabel: "Oct 19 – Oct 23, 2026",
+  weekStart: "2026-10-19",
+  weekEnd: "2026-10-23",
+  headline:
+    "Quiet week into FOMC. Housing Starts Tue 8:30, claims Thu 8:30, flash PMI / UMich Fri. No ISM, JOLTS, ADP, or NFP. Oct 28 FOMC next hard event.",
+  htfBias:
+    "Prior week (Oct 12–16) tape already in the seed: NQ high Mon ~31,290 / low Fri 29,268.75; ES high early ~7,887 / low Fri 7,676. Hot CPI/PPI already printed. Do not invent CWH/CWL.",
+  po3: "Mon quiet range-build. Tue housing is not the raid. Wed light. Thu claims distributes. Fri flash PMI / UMich is a medium close, not NFP.",
+  macro:
+    "Sep NFP already printed +29k, U 4.2%. CPI Sep +0.6% m/m / +3.7% y/y, core +0.3% / +2.6%. PPI +1.3% m/m hot. Claims last Thu 199k vs 200k. No labor or ISM this week. Housing Starts & Permits Tue 8:30. Claims Thu 8:30. S&P Flash PMI Fri 9:45, UMich Sentiment Fri 10:00. Oct 28 FOMC is next. FedWatch Oct hike odds retreated to ~15% after Warsh comments (WSJ Oct 16), down from post-CPI spike near 50% and ~28% the day prior.",
+  asymmetry:
+    "Selective into claims. Flatten before the weekend. blake_mech longs stay paper. PATH floor 0.65.",
+  nq: {
+    settle: 29391.5,
+    rangeLo: 29268.75,
+    rangeHi: 31290,
+    pwh: 31290,
+    pwl: 29268.75,
+    eq: 30279.375,
+    drawUp: "Prior-week 31,290 — only if tape reclaims and holds",
+    drawDown: "Prior-week 29,268.75 already the Fri low; next SSL under that",
+    note: "PWH/PWL = Oct 12–16 week (NQ high ~31,290 Mon / low 29,268.75 Fri). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+  },
+  es: {
+    settle: 7703,
+    rangeLo: 7676,
+    rangeHi: 7887,
+    pwh: 7887,
+    pwl: 7676,
+    eq: 7781.5,
+    drawUp: "Prior-week ~7,887",
+    drawDown: "Prior-week 7,676",
+    note: "PWH/PWL = Oct 12–16 ES week (high early ~7,887 / low Fri 7,676). Live CWH/CWL from bars. No fake live prints.",
+  },
+  filters: [
+    "±15 min: Housing Tue 8:30 · claims Thu 8:30 · flash PMI Fri 9:45 · UMich Fri 10:00",
+    "No entry 8:15–8:45 Tue or Thu",
+    "Flatten into the weekend. No multi-day swing into FOMC.",
+    "Judas on. One book. PATH floor 0.65.",
+  ],
+  ops: [
+    "Mon quiet — do not force. Housing Tue is not a raid.",
+    "Claims Thu is the only medium blackout.",
+    "Fri medium close. Next hard is Oct 28 FOMC 14:00.",
+  ],
+  outcomes: [
+    { p: 0.55, name: "Range under PWH", detail: "Tape stays under prior-week high, claims in-line, no new trend." },
+    { p: 0.25, name: "Failed reclaim", detail: "Probe toward PWH fades, downside extension under PWL." },
+    { p: 0.20, name: "Reclaim hold", detail: "Holds above Friday low and reclaims structure into the weekend." },
+  ],
+  days: [
+    {
+      date: "2026-10-19",
+      weekday: "Mon",
+      dailyBias: "Quiet open. Prior week closed under its high. Not a new HTF trend.",
+      kind: "range_build",
+      news: [],
+      likelyTape: "No high-impact print. NQ opens under prior-week high 31,290, above Fri low 29,268.75. ES under prior-week high ~7,887, above Fri low 7,676. Range-build until housing.",
+      trade: "A+ only if MSS + IFVG already there. Do not force the open. No multi-day into FOMC.",
+      skipIf: "No MSS + IFVG. Chop. Already looking at the weekend.",
+      pathNote: "PWH/PWL seed unchanged. Next is Tue housing 8:30.",
+    },
+    {
+      date: "2026-10-20",
+      weekday: "Tue",
+      dailyBias: "Housing is not the raid. Still under prior-week high.",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "Housing Starts & Permits (Sep)", impact: "high", note: "Census 8:30 ET. Not ISM / JOLTS / ADP / claims / NFP." }],
+      likelyTape: "Housing is interest-rate sensitive but not the primary raid. Prior-week extremes remain the reference.",
+      trade: "Blackout 8:15–8:45. Mechanical only if MSS + IFVG already there after 9:00. Do not chase.",
+      skipIf: "No MSS + IFVG. Housing miss or beat does not change the HTF seed.",
+      pathNote: "PWH/PWL seed unchanged. Next is Thu claims 8:30.",
+    },
+    {
+      date: "2026-10-21",
+      weekday: "Wed",
+      dailyBias: "Light. No labor or inflation print.",
+      kind: "range_build",
+      news: [],
+      likelyTape: "No high-impact print. Tape continues under prior-week high unless a reclaim already held.",
+      trade: "A+ only if MSS + IFVG already there. Do not force. No swing into claims.",
+      skipIf: "No MSS + IFVG. Chop.",
+      pathNote: "PWH/PWL seed unchanged. Next is Thu claims 8:30 blackout.",
+    },
+    {
+      date: "2026-10-22",
+      weekday: "Thu",
+      dailyBias: "Claims is the blackout. Not a labor-break expected.",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL week ending Oct 17. Prev 199k, exp ~200k. Not NFP." }],
+      likelyTape: "Claims near 200k is not a new trend. Prior-week extremes still the reference unless already taken.",
+      trade: "Blackout 8:15–8:45. Mechanical only if MSS + IFVG already there after 9:00. Do not carry a loser into Friday.",
+      skipIf: "No MSS + IFVG. Already booked the week. Chop.",
+      pathNote: "PWH/PWL seed unchanged. Next is Fri flash PMI / UMich.",
+    },
+    {
+      date: "2026-10-23",
+      weekday: "Fri",
+      dailyBias: "Medium close. Not NFP. Flatten into the weekend.",
+      kind: "selective",
+      news: [
+        { timeEt: "09:45", name: "S&P Flash PMI (Oct)", impact: "medium", note: "S&P Global 9:45 ET. Not NFP." },
+        { timeEt: "10:00", name: "UMich Sentiment (Oct F)", impact: "medium", note: "UMich 10:00 ET. Not NFP." },
+      ],
+      likelyTape: "Flash PMI and UMich are not the raid. Prior-week extremes remain the reference.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Flatten into the weekend unless BE. Do not swing into FOMC.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into next week.",
+      pathNote: "PWH/PWL seed unchanged. Next hard print is Oct 28 FOMC 14:00.",
+    },
+  ],
+};
+
+const PLANS: WeekPlan[] = [WEEK_OCT19_OCT23, WEEK_OCT12_OCT16, WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
