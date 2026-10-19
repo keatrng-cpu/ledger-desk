@@ -9,12 +9,14 @@ import { closedByFeed, feedClockRead } from "../smc-unity";
 import { premarketMapCached } from "./premarket-map";
 import { scenarios } from "./scenarios";
 import { ladderBook, ladderText, LADDER_METHOD, type LadderWire } from "./ladder";
+import { gradeBook, gradeRow, type LadderBookGrade } from "./ladder-grade";
 import type { Side } from "./rules";
 
 type DeskLike = Pick<DeskPayload, "left" | "right" | "quotes" | "levels" | "mtf" | "scan">;
 export function buildLadderWire(desk: DeskLike): LadderWire | null {
   try {
     const books: LadderWire["books"] = {};
+    const grades: Record<string, LadderBookGrade> = {};
     const rows: string[] = [];
     for (const side of ["left", "right"] as const) {
       const sym = desk[side].symbol;
@@ -33,6 +35,10 @@ export function buildLadderWire(desk: DeskLike): LadderWire | null {
       const card = top ? { side: top.side as Side, entry: plan?.entry ?? (top as { entryPx?: number | null }).entryPx ?? null, stop: plan?.stop ?? null } : null;
       const b = ladderBook({ symbol: sym, price: q.price, nowMs, hourly, daily, minuteClosed: closed1m, map, scen: scenarios(map), card });
       books[sym] = b;
+      // Shadow measured-probability grade (ladder-grade.ts): every card carries pWin / reach / EV, logged as a row.
+      grades[sym] = gradeBook(b);
+      const gr = gradeRow(sym, grades[sym]);
+      if (gr) rows.push(gr);
       if (b.ltfFlip?.stage === "PROMOTED") rows.push(`${sym} LTF flip → ${b.ltfFlip.side} promoted (entry ${b.ltfFlip.entry}, stop ${b.ltfFlip.stop}), ${b.ltfFlip.demotes} demoted`);
       for (const n of b.noUpgrade) if (top && top.side === n.side) rows.push(`${sym} ${n.why} (card ${top.side} band ${top.pathBand ?? "?"})`);
       if (b.cardCheck && !b.cardCheck.valid) rows.push(`${sym} card plan ${b.cardCheck.side} invalid: ${b.cardCheck.why}`);
@@ -40,7 +46,7 @@ export function buildLadderWire(desk: DeskLike): LadderWire | null {
     // Desk-side guard: every ladder row is tagged display-only so no consumer (watcher shadow:seq:ladder, MCP, Grok)
     // can mistake it for an order. The watcher logs deskSeq.rows as shadow rows and never gates on them
     // (scripts/watcher-tests/test_ladder_rows_inert.py).
-    return { mode: "shadow", displayOnly: true, method: LADDER_METHOD, books, rows: rows.map((r) => `[display-only, never an order] ${r}`) };
+    return { mode: "shadow", displayOnly: true, method: LADDER_METHOD, books, grades, rows: rows.map((r) => `[display-only, never an order] ${r}`) };
   } catch {
     return null; // display layer must never break the card
   }

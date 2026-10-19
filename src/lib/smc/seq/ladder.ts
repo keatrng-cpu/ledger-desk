@@ -63,7 +63,15 @@ export interface LtfFlip {
   fvg: { tf: "1m" | "3m"; lo: number; hi: number; ce: number; t: number } | null; inversionT: number | null;
   entry: number | null; stop: number | null; targets: { touch: number; r: number }[]; why: string[];
 }
-export interface LadderWire { mode: "shadow"; displayOnly: true; method: string; books: Record<string, LadderBook>; rows: string[] }
+export interface LadderWire {
+  mode: "shadow";
+  displayOnly: true;
+  method: string;
+  books: Record<string, LadderBook>;
+  rows: string[];
+  /** Shadow measured-probability grade per book (ladder-grade.ts). Display-only. */
+  grades?: Record<string, import("./ladder-grade").LadderBookGrade>;
+}
 export interface CardCheck { symbol: string; side: Side; entry: number; stop: number; price: number; valid: boolean; why: string | null }
 
 // --------------------------------------------------------------------------------------------- bar helpers
