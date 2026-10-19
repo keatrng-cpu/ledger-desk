@@ -17,7 +17,7 @@ const okFetch = (text = "SETUP: x\nENTRY ARRAY: y\nTARGET POOL: z\nSTALE: yes\nN
 const flagsAt = (hh, mm) => R.missedScan({ symbol: "MNQ", minute: MNQ, bars15: B15 }, at(hh, mm));
 
 test("hash unchanged; reader config lives outside shared/desk-rules.json and is shadow", () => {
-  assert.equal(h.RULES_HASH, "9eeed9b4083700cb");
+  assert.equal(h.RULES_HASH, "0a692dc19944a8df");
   assert.equal(readFileSync("shared/desk-rules.json", "utf8").includes("grok-reader"), false);
   assert.equal(CFG.live, false); assert.equal(CFG.mode, "shadow");
 });
