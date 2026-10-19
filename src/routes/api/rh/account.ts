@@ -52,6 +52,7 @@ async function handle(): Promise<Response> {
 
     let dayRealized: number | null = null;
     let dayRealizedPct: number | null = null;
+    let equityPositions: Array<{ symbol: string; quantity: number; avgCost: number | null }> = [];
     if (tooling.raw) {
       try {
         const pnl = (await tooling.raw("get_realized_pnl", { account_number: RH_PREFERRED_ACCOUNT_NUMBER, span: "day" })) as Record<string, unknown>;
@@ -60,10 +61,33 @@ async function handle(): Promise<Response> {
       } catch {
         /* realized is a nice-to-have; the chip still updates without it */
       }
+      try {
+        // Live investing holdings for the Invest tab. Empty is a valid answer.
+        const eq = await tooling.raw("get_equity_positions", { account_number: RH_PREFERRED_ACCOUNT_NUMBER });
+        const rows = Array.isArray((eq as { results?: unknown })?.results)
+          ? (eq as { results: unknown[] }).results
+          : Array.isArray(eq)
+            ? (eq as unknown[])
+            : Array.isArray((eq as { positions?: unknown })?.positions)
+              ? (eq as { positions: unknown[] }).positions
+              : [];
+        equityPositions = rows
+          .map((raw) => {
+            const p = raw as Record<string, unknown>;
+            return {
+              symbol: String(p.symbol ?? p.chain_symbol ?? p.ticker ?? ""),
+              quantity: num(p.quantity) ?? 0,
+              avgCost: num(p.average_buy_price ?? p.average_price ?? p.avg_cost),
+            };
+          })
+          .filter((p) => p.symbol && p.quantity > 0);
+      } catch {
+        /* investing holdings are optional */
+      }
     }
 
     return jsonResponse(
-      { ok: true, linked: true, account, breakdown, dayRealized, dayRealizedPct, asOf: account.asOf },
+      { ok: true, linked: true, account, breakdown, dayRealized, dayRealizedPct, equityPositions, asOf: account.asOf },
       200,
       { "cache-control": "no-store" },
     );
