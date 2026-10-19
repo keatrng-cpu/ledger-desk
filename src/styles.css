@@ -380,3 +380,51 @@
   .ld-flash-down,
   .ld-rise { animation: none; }
 }
+
+/*
+ * MARKET BEAST (2026-10-19) — full-screen animated video overlay, transparent.
+ *
+ * Real creature clips (glow on black). `mix-blend-mode: screen` drops the black
+ * over the dark desk and the radial mask feathers the frame — no box, cards stay
+ * readable. On an active setup the side charges STRAIGHT ACROSS THE MIDDLE at
+ * full-screen size (~3.5s); a reversal plays the clash clip centre-stage.
+ * Disabled under prefers-reduced-motion (banner only).
+ */
+.ld-beast-layer { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.ld-beast { position: absolute; opacity: 0; will-change: transform, opacity; }
+.ld-beast video {
+  display: block; mix-blend-mode: screen; opacity: .95;
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 52%, transparent 84%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 52%, transparent 84%);
+}
+.ld-beast-banner {
+  position: fixed; top: 9%; left: 50%; transform: translateX(-50%) translateY(-8px);
+  font-family: var(--font-mono); font-weight: 700; letter-spacing: .2em;
+  font-size: clamp(30px, 7vw, 76px); opacity: 0; z-index: 61; text-transform: uppercase;
+}
+.ld-beast-banner.up { color: var(--color-up); text-shadow: 0 0 36px color-mix(in oklab, var(--color-up) 60%, transparent); }
+.ld-beast-banner.down { color: var(--color-down); text-shadow: 0 0 36px color-mix(in oklab, var(--color-down) 60%, transparent); }
+
+/* full-screen horizontal charge through the vertical centre */
+@keyframes ld-charge { 0% { opacity: 0; transform: translate(-72vw, -50%); } 12% { opacity: .95; } 55% { transform: translate(12vw, -50%); } 86% { opacity: .95; } 100% { opacity: 0; transform: translate(128vw, -50%); } }
+/* clash fills centre-stage */
+@keyframes ld-clash { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.92); } 14% { opacity: .98; transform: translate(-50%, -50%) scale(1); } 86% { opacity: .98; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.03); } }
+@keyframes ld-beast-banner-in { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(.9); } 30% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 84% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) scale(1.02); } }
+
+/* a trade setup went active: the side charges straight across the middle, full-screen */
+.ld-beast-run .ld-beast,
+.ld-beast-growl .ld-beast { top: 50%; left: 0; height: 94vh; animation: ld-charge 3500ms var(--ease-out-quint) forwards; }
+.ld-beast-run .ld-beast video,
+.ld-beast-growl .ld-beast video { height: 94vh; width: auto; }
+/* reversal: the clash clip centre-stage, full width */
+.ld-beast-clash .ld-beast { top: 50%; left: 50%; width: min(150vw, 1700px); animation: ld-clash 4000ms var(--ease-out-quint) forwards; }
+.ld-beast-clash .ld-beast video { width: 100%; height: auto; }
+
+.ld-beast-run .ld-beast-banner,
+.ld-beast-growl .ld-beast-banner { animation: ld-beast-banner-in 3500ms var(--ease-out-quint) forwards; }
+.ld-beast-clash .ld-beast-banner { animation: ld-beast-banner-in 4000ms var(--ease-out-quint) .8s forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-beast { display: none !important; }
+  .ld-beast-banner { animation: none !important; opacity: 1 !important; transition: opacity .2s; }
+}
