@@ -1,1 +1,1 @@
-PLACEHOLDER
+$(cat /tmp/correct-week-ahead.ts)
