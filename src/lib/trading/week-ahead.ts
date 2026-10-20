@@ -1,1 +1,1 @@
-$(cat /tmp/correct-week-ahead.ts)
+FULL_CONTENT_FROM_FILE
