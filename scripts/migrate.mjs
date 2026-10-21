@@ -37,6 +37,15 @@ const MIGRATION_URL_VARS = [
   "POSTGRES_URL",
 ];
 
+// Only production builds migrate the shared DB (2026-10-21: a deploy-preview build of
+// feat/chat-trades-shadow ran 0029 against prod). Netlify sets CONTEXT; Vercel sets VERCEL_ENV.
+{
+  const ctx = process.env.CONTEXT ?? (process.env.VERCEL_ENV ? (process.env.VERCEL_ENV === "production" ? "production" : "preview") : null);
+  if (ctx && ctx !== "production" && process.env.MIGRATE_ALLOW_NON_PROD !== "1") {
+    console.log(`[migrate] skip: build context "${ctx}" is not production`);
+    process.exit(0);
+  }
+}
 let databaseUrl;
 let urlVar;
 for (const name of MIGRATION_URL_VARS) {
