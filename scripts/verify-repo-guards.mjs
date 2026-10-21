@@ -290,6 +290,7 @@ for (const [path] of FLOORS) {
     // by scripts/eval-desk-seq-f2378.mts. Promoting it to the live rank is a rules change needing Keaton's call
     // (deskSeq.calibrate mode), so it stays scripts-only until then.
     "src/lib/smc/seq/calibrate.ts",
+    "src/lib/smc/seq/ladder-grade.ts", // #60 baselined until wired (Design Atelier req)
   ]);
   // 2026-10-12: auth/verify.server.ts and market/tape-trust.ts came off — both now
   // imported from live src/ paths (inventory refresh; guards unchanged).
