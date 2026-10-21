@@ -278,5 +278,12 @@
     "actual": "Starts 1.221M / -5.2% MoM; Permits 1.400M / -0.2%",
     "vs": "exp ~1.30M / 1.39M; Aug rev 1.288M / 1.403M",
     "note": "Census CB26-162. Soft starts (third straight monthly decline, lowest in 4 months). SF starts 859k -4.6%. Not a labor-break or PATH trigger. No ISM/JOLTS/ADP/claims/NFP today."
+  },
+  {
+    "date": "2026-10-21",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Wed. Pending Home Sales Sep -7.3% MoM (record low) \u2014 not a stamp series. Next: claims Thu 8:30, flash PMI / UMich Fri. No labor/ISM."
   }
 ]
