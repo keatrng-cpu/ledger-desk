@@ -69,5 +69,25 @@ console.log("\nmeeting: Sterling flags the armed path on an ARMED Floor");
   if (!lines.length) console.log("  lines:", said);
 }
 
+console.log("\nagenticReadLiveFirst (live Agentic read, seed fallback)");
+{
+  const SEED = acct.RH_AGENTIC_DESK_READ;
+  const now = Date.UTC(2026, 9, 21, 17, 0, 0);
+  const ago = (m) => new Date(now - m * 60_000).toISOString();
+  const live = { source: "rh_live", isSnapshot: false, accountNumber: SEED.accountNumber, cashUsd: 1228.97, optionsBuyingPowerUsd: 1228.97, asOf: ago(9), agenticAllowed: true, optionLevel: "option_level_2" };
+  const f = acct.agenticReadLiveFirst;
+  const isSeed = (r) => r.buyingPower === SEED.buyingPower && r.cash === SEED.cash && /stale seed/.test(r.label);
+  check("9-min-old read uses live BP", [f(live, now).buyingPower, f(live, now).cash], [1228.97, 1228.97]);
+  check("11-min-old read -> stale seed", isSeed(f({ ...live, asOf: ago(11) }, now)), true);
+  check("asOf 2 min in future -> seed", isSeed(f({ ...live, asOf: ago(-2) }, now)), true);
+  check("isSnapshot -> seed", isSeed(f({ ...live, isSnapshot: true }, now)), true);
+  check("wrong account -> seed", isSeed(f({ ...live, accountNumber: "415577477" }, now)), true);
+  for (const bad of [NaN, null, "1228.97"]) {
+    check(`cash ${String(bad)} -> seed`, isSeed(f({ ...live, cashUsd: bad }, now)), true);
+    check(`BP ${String(bad)} -> seed`, isSeed(f({ ...live, optionsBuyingPowerUsd: bad }, now)), true);
+  }
+  check("null input -> seed", isSeed(f(null, now)), true);
+}
+
 console.log(`\nfloor-rh-account: ${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
