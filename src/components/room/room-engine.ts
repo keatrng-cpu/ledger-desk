@@ -72,7 +72,8 @@ import type { Void } from "@/lib/room/exec/executor";
 import { execAfterCycle, execFlatten } from "./exec-bridge";
 import { researchShelf } from "@/lib/room/research";
 // RH Individual account on the desk (Keaton 2026-10-06) — context for the seats, never a ticket.
-import { RH_AGENTIC_DESK_READ } from "@/lib/execution/rh-account";
+import { agenticReadLiveFirst } from "@/lib/execution/rh-account";
+import { getRhAccount } from "@/lib/ui/rh-account";
 import { consensus } from "@/lib/room/debate";
 import { clockEt, contractName } from "@/lib/room/format";
 import { roomManagerFeed } from "@/lib/room/manager-room-feed";
@@ -131,10 +132,12 @@ function saveGoal(g: GoalSpec) {
 
 /* ── Frame building ─────────────────────────────────────────────────────── */
 
-const RESEARCH_LINES = (() => {
-  const shelf = researchShelf(RH_AGENTIC_DESK_READ, RH_AGENTIC_DESK_READ.asOfMs);
+/** Research shelf from the live Agentic read (seed only as a labelled stale fallback). Recomputed per frame. */
+function researchLines(nowMs: number): FloorScreens["research"] {
+  const acct = agenticReadLiveFirst(getRhAccount(), nowMs);
+  const shelf = researchShelf(acct, nowMs);
   return Object.fromEntries(Object.entries(shelf).map(([k, notes]) => [k, notes.map((n) => n.line)])) as FloorScreens["research"];
-})();
+}
 
 function etClockLabel(nowMs: number): string {
   const p = etWallParts(nowMs);
@@ -242,7 +245,7 @@ export function frameFromCycle(args: {
     screens: {
       ...args.screens,
       book: bookScreen(args.book),
-      research: RESEARCH_LINES,
+      research: researchLines(args.nowMs),
       ledger: ledgerScreenOf(args.cycle),
       lab: args.lab,
       lenses,
@@ -452,7 +455,7 @@ function runLiveCycle(desk: DeskPayload) {
   const input = toRoomInput(book, market);
   const read = readDeskForRoom(desk, od, exitWatchOf(book), nowMs, st.pulse.tenYear);
   const lab = labRead(asLab(book.lab), book.closed);
-  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: RH_AGENTIC_DESK_READ }, nowMs);
+  const cycle = runRoomCycle(input, { desk: read, ledger: ledgerOf(book), minds: st.minds, lab, rhAccount: agenticReadLiveFirst(getRhAccount(), nowMs) }, nowMs);
   const bookBefore = book;
   book = applyCycle(book, cycle, nowMs);
   book = applyLab(book, cycle, market, read, nowMs, st.goal);

@@ -90,3 +90,20 @@ export const RH_DESK_ACCOUNT_SNAPSHOT: RhAccountSnapshot = {
   asOfMs: Date.UTC(2026, 9, 6, 1, 46, 0),
   source: "desk_snapshot",
 };
+
+/**
+ * Live-first Agentic read (fix 2026-10-21: Floor stuck at the 10-06 $996.12 seed).
+ * Uses the newest rh_live block reported by /api/rh/account when it is the
+ * Agentic account and <= maxAgeMs old; otherwise the seed, relabelled stale.
+ */
+export function agenticReadLiveFirst(
+  live: { source?: string; isSnapshot?: boolean; accountNumber: string | null; cashUsd: number; optionsBuyingPowerUsd: number; asOf: string; agenticAllowed: boolean; optionLevel: string | null } | null | undefined,
+  nowMs: number,
+  maxAgeMs = 10 * 60_000,
+): RhAccountSnapshot {
+  const t = live ? Date.parse(live.asOf) : NaN;
+  if (live && live.source === "rh_live" && !live.isSnapshot && Number.isFinite(live.cashUsd) && t <= nowMs + 60_000 && live.accountNumber === RH_AGENTIC_DESK_READ.accountNumber && Number.isFinite(t) && nowMs - t <= maxAgeMs && Number.isFinite(live.optionsBuyingPowerUsd)) {
+    return { ...RH_AGENTIC_DESK_READ, cash: live.cashUsd, buyingPower: live.optionsBuyingPowerUsd, optionsBuyingPower: live.optionsBuyingPowerUsd, agenticAllowed: live.agenticAllowed, optionLevel: live.optionLevel, asOfMs: t };
+  }
+  return { ...RH_AGENTIC_DESK_READ, label: `${RH_AGENTIC_DESK_READ.label} (stale seed)` };
+}
