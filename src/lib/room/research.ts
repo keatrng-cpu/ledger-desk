@@ -1,4 +1,3 @@
-import { CHAT_PRIORS, CHAT_TRADES } from "@/lib/trading/chat-trades-data";
 /**
  * What the floor's people have READ — the desk's own measured research,
  * split by whose job it is to quote it.
@@ -31,6 +30,7 @@ import { CHAT_PRIORS, CHAT_TRADES } from "@/lib/trading/chat-trades-data";
  * rhArmedPathNote). The numbers come from the account snapshot passed in, never
  * written here.
  */
+import { CHAT_PRIORS, CHAT_TRADES } from "@/lib/trading/chat-trades-data";
 
 import { EVIDENCE, type EvidenceBucket } from "@/lib/trading/evidence";
 import { HIT_ODDS_MODEL } from "@/lib/trading/hit-odds-model";
@@ -260,7 +260,7 @@ export function chatPriorNote(): ResearchNote {
   const n = CHAT_TRADES.length, w = CHAT_TRADES.filter((t) => (t.pnl ?? 0) > 0).length;
   return {
     id: "chat_prior",
-    line: `Keaton's chat trades: ${w}/${n} winners. ${p.map((x) => `${x.tag.replace("_", " ")} ${x.wins}/${x.n}`).join(", ")} — sweep, SMT and LTF inversion are what he takes; a card missing them is not his trade. Shadow only.`,
+    line: `Keaton's chat trades: ${w}/${n} winners. ${p.map((x) => `${x.tag.replace("_", " ")} ${x.wins}/${x.n}`).join(", ")} — these are the traits his chat trades share so far (small sample). Shadow context only; not a take or skip signal.`,
     source: "data/chat-trades · chat-trades.ts chatSetupPriors",
   };
 }
