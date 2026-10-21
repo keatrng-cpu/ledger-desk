@@ -17,3 +17,5 @@ create table if not exists chat_trades (
   created_at timestamptz not null default now()
 );
 create index if not exists chat_trades_day on chat_trades (user_id, day_key);
+
+alter table chat_trades enable row level security;
