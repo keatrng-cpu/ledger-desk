@@ -25,6 +25,7 @@ import { Route as ApiCronWeeklyRouteImport } from './routes/api/cron/weekly'
 import { Route as ApiCronWeeklyCostRouteImport } from './routes/api/cron/weekly-cost'
 import { Route as ApiDeskCardRouteImport } from './routes/api/desk/card'
 import { Route as ApiDeskCardStreamRouteImport } from './routes/api/desk/card-stream'
+import { Route as ApiDeskChatTradesRouteImport } from './routes/api/desk/chat-trades'
 import { Route as ApiDeskFastRouteImport } from './routes/api/desk/fast'
 import { Route as ApiDeskFillsRouteImport } from './routes/api/desk/fills'
 import { Route as ApiDeskHandoffRouteImport } from './routes/api/desk/handoff'
@@ -118,6 +119,11 @@ const ApiDeskCardStreamRoute = ApiDeskCardStreamRouteImport.update({
   path: '/api/desk/card-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeskChatTradesRoute = ApiDeskChatTradesRouteImport.update({
+  id: '/api/desk/chat-trades',
+  path: '/api/desk/chat-trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeskFastRoute = ApiDeskFastRouteImport.update({
   id: '/api/desk/fast',
   path: '/api/desk/fast',
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
+  '/api/desk/chat-trades': typeof ApiDeskChatTradesRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/fills': typeof ApiDeskFillsRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
+  '/api/desk/chat-trades': typeof ApiDeskChatTradesRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/fills': typeof ApiDeskFillsRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/api/cron/weekly-cost': typeof ApiCronWeeklyCostRoute
   '/api/desk/card': typeof ApiDeskCardRoute
   '/api/desk/card-stream': typeof ApiDeskCardStreamRoute
+  '/api/desk/chat-trades': typeof ApiDeskChatTradesRoute
   '/api/desk/fast': typeof ApiDeskFastRoute
   '/api/desk/fills': typeof ApiDeskFillsRoute
   '/api/desk/handoff': typeof ApiDeskHandoffRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
+    | '/api/desk/chat-trades'
     | '/api/desk/fast'
     | '/api/desk/fills'
     | '/api/desk/handoff'
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
+    | '/api/desk/chat-trades'
     | '/api/desk/fast'
     | '/api/desk/fills'
     | '/api/desk/handoff'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/api/cron/weekly-cost'
     | '/api/desk/card'
     | '/api/desk/card-stream'
+    | '/api/desk/chat-trades'
     | '/api/desk/fast'
     | '/api/desk/fills'
     | '/api/desk/handoff'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   ApiCronWeeklyCostRoute: typeof ApiCronWeeklyCostRoute
   ApiDeskCardRoute: typeof ApiDeskCardRoute
   ApiDeskCardStreamRoute: typeof ApiDeskCardStreamRoute
+  ApiDeskChatTradesRoute: typeof ApiDeskChatTradesRoute
   ApiDeskFastRoute: typeof ApiDeskFastRoute
   ApiDeskFillsRoute: typeof ApiDeskFillsRoute
   ApiDeskHandoffRoute: typeof ApiDeskHandoffRoute
@@ -508,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeskCardStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/desk/chat-trades': {
+      id: '/api/desk/chat-trades'
+      path: '/api/desk/chat-trades'
+      fullPath: '/api/desk/chat-trades'
+      preLoaderRoute: typeof ApiDeskChatTradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/desk/fast': {
       id: '/api/desk/fast'
       path: '/api/desk/fast'
@@ -612,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronWeeklyCostRoute: ApiCronWeeklyCostRoute,
   ApiDeskCardRoute: ApiDeskCardRoute,
   ApiDeskCardStreamRoute: ApiDeskCardStreamRoute,
+  ApiDeskChatTradesRoute: ApiDeskChatTradesRoute,
   ApiDeskFastRoute: ApiDeskFastRoute,
   ApiDeskFillsRoute: ApiDeskFillsRoute,
   ApiDeskHandoffRoute: ApiDeskHandoffRoute,
@@ -628,7 +649,6 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
 import type { getRouter } from './router.tsx'
 import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {

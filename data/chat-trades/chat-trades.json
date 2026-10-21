@@ -1,6 +1,150 @@
 [
- {"id":"chat-2026-10-19-B","day":"2026-10-19","setup":"B-LONG","symbol":"QQQ","side":"long","contract":"QQQ 2026-10-19 719C","qty":2,"entry_ct":"09:13:19","entry":1.85,"exits":[{"qty":1,"px":2.14,"tag":"T1 719.40"},{"qty":1,"px":2.43,"tag":"runner"}],"pnl":87,"trigger":"QQQ 1m close 718.54>718.40 + SPY 767.32>767.05","src":"live-tape/armed-trade.log, session-1019.md"},
- {"id":"chat-2026-10-20-E","day":"2026-10-20","setup":"E-LONG","symbol":"QQQ","side":"long","contract":"QQQ 2026-10-20 713C","qty":1,"entry_ct":"08:51:22","entry":2.36,"exits":[{"qty":1,"px":3.10,"tag":"exit"}],"pnl":74,"trigger":"Setup E (armed_e.py)","note":"armed-trade.log 08:54:17 prints proceeds $0/P&L -236 (logging bug); true +74 per owner","src":"session-1020.md"},
- {"id":"chat-2026-10-21-H","day":"2026-10-21","setup":"H-LONG","symbol":"QQQ","side":"long","contract":"QQQ 2026-10-21 722C","qty":2,"entry_ct":"08:46:45","entry":2.48,"exits":[],"pnl":75,"trigger":"sweep 719.72/721.04 lows + SPY SMT + 1m close reclaim","src":"session-1021.md, armed_h.py"},
- {"id":"chat-2026-10-21-L","day":"2026-10-21","setup":"L-LONG","symbol":"QQQ","side":"long","contract":"QQQ 2026-10-21 722C","qty":2,"entry":2.09,"exits":[{"qty":1,"px":2.37,"tag":"T1"},{"qty":1,"px":2.53,"tag":"runner"}],"pnl":72,"trigger":"SMT SPY LL 768.40 vs QQQ HL 720.09 + 5m inversion + green displacement 1m close >721.60","src":"session-1021.md, armed_l.py"}
+ {
+  "id": "chat-2026-10-19-B",
+  "day": "2026-10-19",
+  "setup": "B-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-19 719C",
+  "qty": 2,
+  "entry_ct": "09:13:19",
+  "entry": 1.85,
+  "exits": [
+   {
+    "qty": 1,
+    "px": 2.14,
+    "tag": "T1 719.40"
+   },
+   {
+    "qty": 1,
+    "px": 2.43,
+    "tag": "runner"
+   }
+  ],
+  "pnl": 87,
+  "trigger": "QQQ 1m close 718.54>718.40 + SPY 767.32>767.05",
+  "src": "live-tape/armed-trade.log, session-1019.md",
+  "t1": 719.4,
+  "stop": 717.3
+ },
+ {
+  "id": "chat-2026-10-20-E",
+  "day": "2026-10-20",
+  "setup": "E-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-20 713C",
+  "qty": 1,
+  "entry_ct": "08:51:22",
+  "entry": 2.36,
+  "exits": [
+   {
+    "qty": 1,
+    "px": 3.1,
+    "tag": "exit"
+   }
+  ],
+  "pnl": 74,
+  "trigger": "Setup E (armed_e.py)",
+  "note": "armed-trade.log 08:54:17 prints proceeds $0/P&L -236 (logging bug); true +74 per owner",
+  "src": "session-1020.md",
+  "stop": 710.3,
+  "t1": 714.6,
+  "runner": 715.5
+ },
+ {
+  "id": "chat-2026-10-21-H",
+  "day": "2026-10-21",
+  "setup": "H-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-21 722C",
+  "qty": 2,
+  "entry_ct": "08:46:45",
+  "entry": 2.48,
+  "exits": [
+   {
+    "qty": 1,
+    "px": 2.83,
+    "tag": "T1 722.40",
+    "ct": "08:48:09"
+   },
+   {
+    "qty": 1,
+    "px": null,
+    "tag": "runner (manual, Keaton)",
+    "ct": "08:48:40"
+   }
+  ],
+  "pnl": 75,
+  "trigger": "sweep 719.72/721.04 lows + SPY SMT + 1m close reclaim",
+  "src": "session-1021.md, armed_h.py",
+  "stop": 719.72,
+  "t1": 722.4,
+  "runner": 723.07,
+  "sweep": 719.72,
+  "u_entry": 721.89
+ },
+ {
+  "id": "chat-2026-10-21-L",
+  "day": "2026-10-21",
+  "setup": "L-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-21 722C",
+  "qty": 2,
+  "entry": 2.09,
+  "exits": [
+   {
+    "qty": 1,
+    "px": 2.37,
+    "tag": "T1",
+    "ct": "09:32:20"
+   },
+   {
+    "qty": 1,
+    "px": 2.53,
+    "tag": "runner (Keaton)",
+    "ct": "09:33:41"
+   }
+  ],
+  "pnl": 72,
+  "trigger": "SMT SPY LL 768.40 vs QQQ HL 720.09 + 5m inversion + green displacement 1m close >721.60",
+  "src": "session-1021.md, armed_l.py",
+  "entry_ct": "09:27:17",
+  "stop": 720.09,
+  "t1": 722.46,
+  "runner": 723.2,
+  "sweep": 720.09,
+  "smt": "SPY LL 768.40 vs QQQ HL 720.09"
+ },
+ {
+  "id": "chat-2026-10-21-M",
+  "day": "2026-10-21",
+  "setup": "M-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-21 724C",
+  "qty": 2,
+  "entry_ct": "10:22:20",
+  "entry": 1.67,
+  "debit": 334,
+  "proceeds": 364,
+  "exits": [
+   {
+    "qty": 2,
+    "px": 1.82,
+    "tag": "manual close (Keaton), total $364",
+    "ct": "10:24:44"
+   }
+  ],
+  "pnl": 30,
+  "stop": 723.2,
+  "t1": 724.6,
+  "runner": 725.0,
+  "sweep": 724.0,
+  "u_entry": 723.86,
+  "trigger": "two-sided M: SPY 5m>771.40 & QQQ 5m>724.00 then green 1m close > prior high (1m 723.79)",
+  "src": "armed-trade.log 10:22-10:25 + correction"
+ }
 ]

@@ -1,3 +1,4 @@
+import { CHAT_PRIORS, CHAT_TRADES } from "@/lib/trading/chat-trades-data";
 /**
  * What the floor's people have READ — the desk's own measured research,
  * split by whose job it is to quote it.
@@ -253,6 +254,17 @@ export function pick<T>(xs: (T | null)[], seed: number): T | null {
 }
 
 /** The notes each person carries, for their monitor and the Research panel. */
+/** Chat-trade priors (shadow): what Keaton's own chat trades say about sweep / SMT / LTF inversion. Informs, never permits. */
+export function chatPriorNote(): ResearchNote {
+  const p = CHAT_PRIORS.filter((x) => x.tag !== "long" && x.tag !== "short");
+  const n = CHAT_TRADES.length, w = CHAT_TRADES.filter((t) => (t.pnl ?? 0) > 0).length;
+  return {
+    id: "chat_prior",
+    line: `Keaton's chat trades: ${w}/${n} winners. ${p.map((x) => `${x.tag.replace("_", " ")} ${x.wins}/${x.n}`).join(", ")} — sweep, SMT and LTF inversion are what he takes; a card missing them is not his trade. Shadow only.`,
+    source: "data/chat-trades · chat-trades.ts chatSetupPriors",
+  };
+}
+
 export function researchShelf(
   rhAccount?: RhAccountSnapshot | null,
   nowMs: number = Date.now(),
@@ -262,11 +274,11 @@ export function researchShelf(
   const acct = rhAccount === undefined ? null : rhAccountNote(rhAccount);
   const armed = rhAccount === undefined ? null : rhArmedPathNote(rhAccount, nowMs);
   return {
-    Nova: keep([baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote(), rhLiveMandateNote(), acct]),
+    Nova: keep([chatPriorNote(), baselineNote(), bandNote(), qNote(), oddsNote(), scannerMandateNote(), rhLiveMandateNote(), acct]),
     Vince: keep([fillTierNote(), smcMandateNote(), rhLiveMandateNote(), acct]),
     Sterling: keep([inducementNote(), mitigationNote(), eventNote(), scannerMandateNote(), rhLiveMandateNote(), acct, armed]),
     Gemma: keep([sessionNote(), smcMandateNote(), rhLiveMandateNote(), acct]),
-    Jax: keep([takeWordNote(), scannerMandateNote(), rhLiveMandateNote(), acct, armed]),
+    Jax: keep([chatPriorNote(), takeWordNote(), scannerMandateNote(), rhLiveMandateNote(), acct, armed]),
   };
 }
 

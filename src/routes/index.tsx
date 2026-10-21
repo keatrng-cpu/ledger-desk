@@ -149,6 +149,7 @@ import { considerEntryAlarm } from "@/lib/alerts/path-alarm";
 import { SnapshotReview } from "@/components/desk/snapshot-review";
 import { ShadowOrderReview } from "@/components/desk/shadow-order-review";
 import { RhJournalPanel } from "@/components/desk/rh-journal-panel";
+import { ChatTradesPanel } from "@/components/desk/chat-trades-panel";
 import { RhLiveBlock } from "@/components/desk/rh-live-block";
 import { AlertsPanel } from "@/components/desk/alerts-panel";
 import { PathAlarmBar } from "@/components/desk/path-alarm-bar";
@@ -2360,6 +2361,7 @@ function MasterplacePage() {
                   <EvidenceTable />
                   <AlertsPanel />
                   <RhJournalPanel />
+                  <ChatTradesPanel />
                   <AnalyticsPanel />
                   <DeskFold
                     title="Deep lab"
