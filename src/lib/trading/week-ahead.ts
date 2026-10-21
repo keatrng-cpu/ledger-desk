@@ -317,12 +317,12 @@ export const WEEK_OCT5_OCT9: WeekPlan = {
       likelyTape: "Claims 197k vs 200k. NQ session 30,792.50–31,466 last ~31,005 failed back through PWH 31,282.50 and closed under it (Tue high 31,616.50 untouched). ES 7,783–7,858.25 last ~7,820 lost seed PWH 7,810 intraday, last near it. PWL untouched both. Failed hold, not a new HTF trend.",
       trade: "Blackout done. Mechanical only if MSS + IFVG already there. Do not chase the NQ fail back under PWH. Do not carry a loser into Friday.",
       skipIf: "No MSS + IFVG. NQ failed to hold PWH. Already booked the week.",
-      pathNote: "PWH/PWL seed unchanged. Next is Fri UMich 10:00.",
+      pathNote: "PWH/PWL seed unchanged. Next session UMich blackout Fri 9:45–10:15. Mon Oct 12 cash closed. CPI Wed Oct 14.",
     },
     {
       date: "2026-10-09",
       weekday: "Fri",
-      dailyBias: "UMich soft. No new week extreme. Not a new HTF trend.",
+      dailyBias: "Soft UMich. No new week extreme. Not a new HTF trend.",
       kind: "selective",
       news: [{ timeEt: "10:00", name: "UMich Sentiment (Oct P)", impact: "medium", note: "UMich official prelim 46.3 vs ~47.6–48.0 / Sep F 48.1. Current conditions 44.7 record low. 1y infl 4.7% from 4.6%." }],
       likelyTape: "UMich soft. NQ session 30,953–31,266.50 last ~31,110.50 stayed under PWH 31,282.50 and above Thu week low 30,792.50. ES 7,817–7,870.50 last ~7,863 stayed under Tue week high 7,897.50, above Mon week low 7,760.25. No new week extreme. Not a new HTF trend.",
@@ -366,92 +366,96 @@ export const WEEK_OCT12_OCT16: WeekPlan = {
     pwh: 7897.5,
     pwl: 7760.25,
     eq: 7828.88,
-    drawUp: "Prior-week 7,897.50 — only if tape is already there",
-    drawDown: "Prior-week 7,760.25 then next SSL",
-    note: "PWH/PWL = Oct 5–9 ES week (high Tue 7,897.50 / low Mon 7,760.25). Live CWH/CWL from bars. No fake live prints.",
+    drawUp: "Prior-week 7,897.50",
+    drawDown: "Prior-week 7,760.25",
+    note: "PWH/PWL = Oct 5–9 ES week (7,897.50 Tue / 7,760.25 Mon). Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
-    "±15 min: CPI Wed 8:30 · Beige Book Wed 14:00 · PPI/retail/claims Thu 8:30 · import Fri 8:30",
-    "No entry 8:15–8:45 Wed or Thu",
-    "Flatten before 13:45 Wed. No multi-day swing into FOMC.",
+    "±15 min: CPI Wed 8:30 · Beige Book Wed 14:00 · PPI/retail/claims Thu 8:30 · import prices Fri 8:30",
+    "No entry 8:00–8:45 Wed or Thu",
+    "Flatten before 13:45 Wed. No multi-day swing into CPI.",
     "Judas on. One book. PATH floor 0.65.",
   ],
   ops: [
-    "Mon holiday — do not force",
-    "Tue post-holiday range-build",
-    "Wed CPI 8:15–8:45 stand; flatten 13:45",
-    "Thu PPI/retail/claims 8:15–8:45 stand",
-    "Fri import 8:15–8:45 stand",
+    "Mon cash closed — Globex fake, do not treat Asia as HTF",
+    "Tue post-holiday until range is in",
+    "Wed stand 8:00–8:45; A+ only after 9:45; flatten before Beige Book if open",
+    "Thu 8:15–8:45 stand",
+    "Fri 8:15–8:45 stand",
   ],
   outcomes: [
     { p: 40, name: "Hot CPI", detail: "October hike repricing. NQ-lead lower only after BSL raid + MSS. Do not fade the first CPI spike." },
-    { p: 35, name: "In-line CPI", detail: "Two-way inside last week's box. Stand unless A+. CPI is the swing." },
+    { p: 35, name: "In-line CPI", detail: "Two-way inside last week's box. Stand unless A+. Beige Book is not a fresh tick before 14:00." },
     { p: 25, name: "Soft CPI", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
   ],
   days: [
     {
       date: "2026-10-12",
       weekday: "Mon",
-      dailyBias: "Holiday. Globex only.",
+      dailyBias: "Holiday. Cash closed. Globex is not HTF.",
       kind: "holiday",
       news: [],
-      likelyTape: "Cash closed. Globex not the week's range.",
-      trade: "Do not force. No mechanical on holiday Globex.",
-      skipIf: "Holiday. No cash.",
-      pathNote: "Not a session. Next is Tue post-holiday.",
+      likelyTape: "Columbus Day. Cash closed. Prior week NQ 30,792.50–31,616.50 / ES 7,760.25–7,897.50 still the box. Do not invent a range from Asia.",
+      trade: "No cash entry. Do not treat Globex as the week's raid.",
+      skipIf: "Anything that looks like a clean high/low in thin Globex.",
+      pathNote: "PWH/PWL seed is last week. Next is Tue post-holiday.",
     },
     {
       date: "2026-10-13",
       weekday: "Tue",
-      dailyBias: "Post-holiday range-build.",
+      dailyBias: "Post-holiday range-build. Not the week's raid.",
       kind: "range_build",
-      news: [],
-      likelyTape: "Post-holiday. No high-impact. Tape builds the week's range.",
-      trade: "Mechanical only if MSS + IFVG. Do not force.",
-      skipIf: "No MSS + IFVG. Chop.",
-      pathNote: "PWH/PWL seed is last week. Next is Wed CPI 8:30.",
+      news: [{ timeEt: "10:00", name: "Existing Home Sales (Sep)", impact: "medium", note: "NAR 10:00 ET. Consensus cluster ~3.96M vs Aug 3.98M. Not a PATH trigger. NFIB 6:00 is premarket." }],
+      likelyTape: "Post-holiday Judas. NQ has already taken PWL 30,792.50 (CWL under prior low); CWH still under PWH 31,616.50. ES still inside 7,760.25–7,897.50. Existing home sales is not the raid.",
+      trade: "Mechanical only if they sweep last week H/L with MSS. Do not chase the open.",
+      skipIf: "No raid of prior-week H/L. Chop, or already booked.",
+      pathNote: "Sunday inside-week story until CPI. Next is Wed CPI 8:30.",
     },
     {
       date: "2026-10-14",
       weekday: "Wed",
-      dailyBias: "Hot CPI. Not a new HTF trend.",
+      dailyBias: "Hot CPI. Core hot. NQ failed under PWH, took PWL. Not a new HTF trend.",
       kind: "event",
-      news: [{ timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS official +0.6% m/m / +3.7% y/y, core +0.3% / +2.6%. Headline in-line, core hot. Gasoline drove." }],
-      likelyTape: "CPI hot core. NQ session ~30,078–30,891.50 last ~30,182.75 failed back under PWH 31,616.50. ES ~7,741–7,879.75 last ~7,770.25 under PWH 7,897.50. No PWL take. Hot print, not a new HTF trend.",
-      trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase. Flatten before 13:45 if holding.",
-      skipIf: "No MSS + IFVG. Already booked. Do not carry into Beige Book.",
-      pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims.",
+      news: [
+        { timeEt: "08:30", name: "CPI (Sep)", impact: "high", note: "BLS USDL-26-1574. +0.6% m/m / +3.7% y/y vs ~0.6%/3.6%; core +0.3% / +2.6% vs ~0.2%/2.5%. Gasoline +9.1% half the headline. Hot core." },
+        { timeEt: "14:00", name: "Beige Book", impact: "medium", note: "Fed official 14:00 ET. Not the blackout. Flatten before 13:45 if holding." },
+      ],
+      likelyTape: "CPI hot core. NQ session ~30,078–30,891.50 closed ~30,186 (16:00 ET), took PWL 30,792.50, no PWH take (week high still Mon ~31,289). ES still inside prior box. Hot-print fade, not a new HTF trend. Hike odds ~25% after.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Do not chase the fail under PWL. Flatten before Beige Book if open. Do not carry into Thu.",
+      skipIf: "No MSS + IFVG. Already booked the CPI move. Anything open at 13:45.",
+      pathNote: "PWH/PWL seed unchanged. Next is Thu PPI/retail/claims 8:30 blackout.",
     },
     {
       date: "2026-10-15",
       weekday: "Thu",
-      dailyBias: "Hot PPI, soft control group. Not a new HTF trend.",
-      kind: "event",
+      dailyBias: "Hot PPI. Retail gas-driven. NQ extended under PWL. Not a new HTF trend.",
+      kind: "selective",
       news: [
-        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 199k vs 200k. In-line." },
-        { timeEt: "08:30", name: "PPI (Sep)", impact: "high", note: "BLS +1.3% MoM / +6.3% YoY; core +0.7%. Hot." },
-        { timeEt: "08:30", name: "Retail Sales (Sep)", impact: "high", note: "Census +0.8% MoM / +6.3% YoY; control +0.1%. Gasoline drove." },
+        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL official. 199k vs exp 200k, prev 198k rev. Week ending Oct 10. 4-wk 198.5k. Continuing 1.710M. In-line." },
+        { timeEt: "08:30", name: "PPI (Sep)", impact: "high", note: "BLS USDL-26-1576. +1.3% m/m / +6.3% y/y vs ~0.5%/5.4%; core +0.7%. Goods +2.6% (energy +10.8%). Largest MoM since Mar 2022. Hot." },
+        { timeEt: "08:30", name: "Retail Sales (Sep)", impact: "high", note: "Census CB26-165. +0.8% m/m / +6.3% y/y vs ~0.3%; prev 1.3% rev. Control +0.1%. Gasoline stations +6.4% drove the beat. Not a demand boom." },
       ],
-      likelyTape: "PPI hot, retail control soft. NQ session ~29,622.50–30,196.75 last ~30,143.75. ES ~7,717.25–7,801.75 last ~7,791. Under prior-week highs. Not a new HTF trend.",
-      trade: "Blackout done. Mechanical only if MSS + IFVG already there. Do not chase.",
-      skipIf: "No MSS + IFVG. Already booked the week.",
-      pathNote: "PWH/PWL seed unchanged. Next is Fri import prices.",
+      likelyTape: "PPI hot, retail gas-driven, claims in-line. NQ session ~29,622.50–30,196.75 last ~30,160–30,180 extended under PWL 30,792.50 (week high still Mon ~31,289). ES ~7,717–7,792 took PWL 7,760.25, no PWH take. Downside extension after hot CPI, not a new HTF trend.",
+      trade: "Blackout done. Mechanical only if MSS + IFVG already there after 9:45. Do not chase the NQ extension under PWL. Do not carry a loser into Friday.",
+      skipIf: "No MSS + IFVG. Already booked the week. Chop.",
+      pathNote: "PWH/PWL seed unchanged. Next is Fri import prices 8:30. Hike odds ~25–30% after the prints (faded from post-CPI spike).",
     },
     {
       date: "2026-10-16",
       weekday: "Fri",
-      dailyBias: "Medium close. Not NFP. Flatten.",
+      dailyBias: "Medium close. Not NFP. Flatten into the weekend.",
       kind: "selective",
-      news: [{ timeEt: "08:30", name: "Import/Export Price Indexes (Sep)", impact: "medium", note: "BLS +1.1% MoM. Not NFP." }],
-      likelyTape: "Import prices not the raid. NQ Fri low 29,268.75 took PWL 30,792.50. ES Fri low 7,676 near PWL 7,760.25. No new HTF trend.",
-      trade: "Blackout done. A+ only if MSS + IFVG. Flatten into the weekend unless BE.",
-      skipIf: "No MSS + IFVG. Already took the week.",
-      pathNote: "PWH/PWL seed unchanged. Next is Mon Oct 19 quiet.",
+      news: [{ timeEt: "08:30", name: "Import/Export Price Indexes (Sep)", impact: "medium", note: "BLS 8:30 ET. Not NFP. IP 9:15 is not the blackout." }],
+      likelyTape: "Import prices is not the raid. Prior-week extremes still the reference unless CPI already took them.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Flatten into the weekend unless BE.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into next week.",
+      pathNote: "PWH/PWL seed unchanged. Next hard print is housing next week then Oct 28 FOMC.",
     },
   ],
 };
 
-/** Week of Oct 19 – Oct 23 2026. Quiet into FOMC. Housing Tue, claims Thu, flash/UMich Fri. No ISM/JOLTS/ADP/NFP. */
+
+/** Week of Oct 19 – Oct 23 2026. Housing Tue, claims Thu, flash PMI / UMich Fri. No ISM / JOLTS / ADP / NFP. FOMC Oct 28 next. */
 export const WEEK_OCT19_OCT23: WeekPlan = {
   id: "2026-10-19",
   weekLabel: "Oct 19 – Oct 23, 2026",
@@ -495,39 +499,34 @@ export const WEEK_OCT19_OCT23: WeekPlan = {
     "Judas on. One book. PATH floor 0.65.",
   ],
   ops: [
-    "Mon quiet — do not force",
-    "Tue housing is not a must-take",
-    "Wed light",
-    "Thu claims 8:15–8:45 stand",
-    "Fri flash/UMich 9:45–10:15 stand",
+    "Mon quiet — do not force. Housing Tue is not a raid.",
+    "Claims Thu is the only medium blackout.",
+    "Fri medium close. Next hard is Oct 28 FOMC 14:00.",
   ],
   outcomes: [
-    { p: 40, name: "Claims soft, tape holds",
-    detail: "Inside-week continues. Stand unless A+." },
-    { p: 35, name: "In-line",
-    detail: "Two-way under prior-week high." },
-    { p: 25, name: "Claims hot or reclaim fails",
-    detail: "Do not invent a trend. Flatten." },
+    { p: 55, name: "Range under PWH", detail: "Tape stays under prior-week high, claims in-line, no new trend." },
+    { p: 25, name: "Failed reclaim", detail: "Probe toward PWH fades, downside extension under PWL." },
+    { p: 20, name: "Reclaim hold", detail: "Holds above Friday low and reclaims structure into the weekend." },
   ],
   days: [
     {
       date: "2026-10-19",
       weekday: "Mon",
-      dailyBias: "Quiet. No print.",
+      dailyBias: "Quiet open. Prior week closed under its high. Not a new HTF trend.",
       kind: "range_build",
       news: [],
-      likelyTape: "No high-impact. Tape builds under prior-week high.",
-      trade: "Mechanical only if MSS + IFVG. Do not force.",
-      skipIf: "No MSS + IFVG. Chop.",
-      pathNote: "PWH/PWL seed is last week. Next is Tue housing 8:30.",
+      likelyTape: "No high-impact print. NQ opens under prior-week high 31,290, above Fri low 29,268.75. ES under prior-week high ~7,887, above Fri low 7,676. Range-build until housing.",
+      trade: "A+ only if MSS + IFVG already there. Do not force the open. No multi-day into FOMC.",
+      skipIf: "No MSS + IFVG. Chop. Already looking at the weekend.",
+      pathNote: "PWH/PWL seed unchanged. Next is Tue housing 8:30.",
     },
     {
       date: "2026-10-20",
       weekday: "Tue",
-      dailyBias: "Housing soft. Not a new HTF trend.",
+      dailyBias: "Housing is not the raid. Still under prior-week high.",
       kind: "selective",
-      news: [{ timeEt: "08:30", name: "Housing Starts (Sep)", impact: "high", note: "Census CB26-162. Starts 1.221M / -5.2% vs ~1.30M; Permits 1.400M / -0.2%. Soft." }],
-      likelyTape: "Housing soft. NQ session ~29,391–29,903 vs PWH 31,290 / PWL 29,268.75. ES ~7,704–7,791 vs 7,887 / 7,676. Soft print does not invent a trend.",
+      news: [{ timeEt: "08:30", name: "Housing Starts & Permits (Sep)", impact: "high", note: "Census 8:30 ET. Not ISM / JOLTS / ADP / claims / NFP." }],
+      likelyTape: "Housing Starts 1.221M vs ~1.30M (soft, third straight decline). NQ this week ~29,202–30,007 tagged PWL 29,268.75, under PWH 31,290. ES ~7,677.50–7,791.50 near PWL 7,676, under PWH 7,887. Soft housing not a new HTF trend.",
       trade: "Blackout done. Mechanical only if MSS + IFVG already there after 9:00. Do not chase the PWL tag. Soft print does not change the seed.",
       skipIf: "No MSS + IFVG. Housing soft does not invent a trend. Already booked.",
       pathNote: "PWH/PWL seed unchanged. NQ took PWL slightly; ES near it. Next is Thu claims 8:30.",
@@ -580,7 +579,63 @@ function addDays(dateKey: string, n: number): string {
   return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
 }
 
-function isPrep(key: string, weekStart: string, t: number): boolean {
+export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
+  const dateKey = etDateKey(now);
+  for (const plan of PLANS) {
+    const prepDay = addDays(plan.weekStart, -1);
+    if (dateKey < prepDay || dateKey > plan.weekEnd) continue;
+    const stamped = stampPrints(plan, dateKey);
+    const today = stamped.days.find((d) => d.date === dateKey) ?? null;
+    const next = stamped.days.find((d) => d.date > dateKey) ?? null;
+    const phase = dateKey < plan.weekStart ? "prep" : dateKey > plan.weekEnd ? "done" : "live";
+    return {
+      plan: stamped,
+      dateKey,
+      today,
+      next,
+      phase,
+      focus: today ?? next,
+      live: false,
+      refreshedAt: now.toISOString(),
+    };
+  }
+  return null;
+}
+
+export function weekDayFor(dateKey: string): WeekDayPlan | null {
+  for (const plan of PLANS) {
+    const hit = plan.days.find((d) => d.date === dateKey);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
+  if (!read?.focus) return null;
+  const tag = read.today ? "TODAY" : "NEXT";
+  return `${tag} ${read.focus.weekday} · ${read.focus.dailyBias}`;
+}
+
+function stampPrints(plan: WeekPlan, dateKey: string): WeekPlan {
+  const days = plan.days.map((d) => {
+    if (d.date > dateKey) return d;
+    const prints = PRINTS.filter((p) => p.date === d.date);
+    if (!prints.length) return d;
+    const news = d.news.map((n) => {
+      const hit = prints.find((p) => p.name.toLowerCase().includes(n.name.split(" ")[0].toLowerCase()) || n.name.toLowerCase().includes(p.name.split(" ")[0].toLowerCase()));
+      if (!hit) return n;
+      return { ...n, actual: hit.actual, vs: hit.vs, note: hit.note || n.note };
+    });
+    return { ...d, news, printed: true };
+  });
+  return { ...plan, days };
+}
+
+function barInWeek(t: number, weekStart: string, weekEnd: string, today: string): boolean {
+  const key = etDateKey(new Date(t));
+  if (key > today) return false;
+  if (key > weekEnd) return false;
+  if (key >= weekStart) return true;
   const prep = addDays(weekStart, -1);
   return key === prep && new Date(t).getUTCHours() >= 18;
 }
@@ -653,29 +708,4 @@ export function overlayWeekAhead(
   const today = nextPlan.days.find((d) => d.date === read.dateKey) ?? null;
   const next = nextPlan.days.find((d) => d.date > read.dateKey) ?? null;
   return { ...read, plan: nextPlan, today, next, focus: today ?? next, live: Boolean(nq.live || es.live), refreshedAt: now.toISOString() };
-}
-
-function barInWeek(t: number, weekStart: string, weekEnd: string, today: string): boolean {
-  const key = etDateKey(new Date(t));
-  if (key < weekStart || key > weekEnd) return false;
-  if (key > today) return false; // no lookahead
-  return true;
-}
-
-export function readWeekAhead(now = new Date()): WeekAheadRead | null {
-  const key = etDateKey(now);
-  const plan = PLANS.find((p) => key >= p.weekStart && key <= p.weekEnd) ?? null;
-  if (!plan) return null;
-  const today = plan.days.find((d) => d.date === key) ?? null;
-  const next = plan.days.find((d) => d.date > key) ?? null;
-  return {
-    plan,
-    dateKey: key,
-    today,
-    next,
-    phase: today ? "live" : "prep",
-    focus: today ?? next,
-    live: false,
-    refreshedAt: now.toISOString(),
-  };
 }
