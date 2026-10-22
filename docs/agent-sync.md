@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `18a784c`. Fetched origin. Local main matches origin.
+HEAD `2d8565d`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `f49c064`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `18a784c`.
+Bookmark was `18a784c`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `2d8565d`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `2d8565d` | 2026-10-22T15:16 | session-partner: 11:00 ET close-out — canary clean, trade-log flagged | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `18a784c` | 2026-10-22T14:18 | agent-sync: bookmark claude at f49c064 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f49c064` | 2026-10-22T14:18 | agent-sync: bookmark claude at 6fe7b66; log 10:00 ET canary check-in | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `6fe7b66` | 2026-10-22T07:24 | Merge pull request #82 from keatrng-cpu/fix/restore-week-ahead-1022 | — |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `18a784c`.
 | `0642b22` | 2026-10-21T15:52 | Stamp Oct 21: no ISM/JOLTS/ADP/claims/NFP printed | M src/data/week-prints.json |
 | `97a970d` | 2026-10-21T13:20 | Merge pull request #78 from keatrng-cpu/feat/chat-trades-shadow | — |
 | `089e21b` | 2026-10-21T13:19 | Merge pull request #79 from keatrng-cpu/fix/rh-balance-live | — |
-| `ffc37dd` | 2026-10-21T12:54 | migrate: only production build context migrates the shared DB (preview/branch builds skip) | M scripts/migrate.mjs |
 
 ## New files in those commits
 
