@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `f49c064`. Fetched origin. Local main matches origin.
+HEAD `18a784c`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `6fe7b66`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `f49c064`.
+Bookmark was `f49c064`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `18a784c`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `18a784c` | 2026-10-22T14:18 | agent-sync: bookmark claude at f49c064 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f49c064` | 2026-10-22T14:18 | agent-sync: bookmark claude at 6fe7b66; log 10:00 ET canary check-in | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `6fe7b66` | 2026-10-22T07:24 | Merge pull request #82 from keatrng-cpu/fix/restore-week-ahead-1022 | — |
 | `8ec3595` | 2026-10-22T07:15 | fix: restore week-ahead.ts byte-exact from d6cbcb11 (gutted by bc42d469/f8505bf5/0467fc58) | M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `f49c064`.
 | `97a970d` | 2026-10-21T13:20 | Merge pull request #78 from keatrng-cpu/feat/chat-trades-shadow | — |
 | `089e21b` | 2026-10-21T13:19 | Merge pull request #79 from keatrng-cpu/fix/rh-balance-live | — |
 | `ffc37dd` | 2026-10-21T12:54 | migrate: only production build context migrates the shared DB (preview/branch builds skip) | M scripts/migrate.mjs |
-| `0699f27` | 2026-10-21T12:46 | rh live-first: tests in verify-floor-rh-account; research shelf reads live Agentic read | M scripts/verify-floor-rh-account.mjs, M src/components/room/room-engine.ts |
 
 ## New files in those commits
 

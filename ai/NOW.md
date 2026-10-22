@@ -14,12 +14,13 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
-## Session-partner check-in (2026-10-22, 10:00 ET scheduled run)
+## Session-partner check-in (2026-10-22, 11:00 ET scheduled run — close-out)
 
-- Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines (not the truncation failure). Local `main` was 21 commits behind `origin/main` (stale at `b4c2246`) at session start; fast-forwarded to `6fe7b66`.
-- Recurring issue still live: `week-ahead.ts` was gutted again this morning (`bc42d46`/`f8505bf5`/`0467fc5`, ~07:10 UTC) and already restored byte-exact + merged (`8ec3595` → `6fe7b66`, PR #82) before this check. Third known occurrence after 09-04/09-20/09-25 — whatever process keeps truncating this file on restamp is not fixed, only being caught and reverted after the fact.
-- `docs/agent-sync.json`'s `grok` bookmark (`2c413e9f86...`) is not a valid object in this history (`fatal: Not a valid object name`) — stale/orphaned reference, worth Grok re-bookmarking on its next sync run.
+- Integrity canary clean again: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `18a784c` (agent-sync bookmark commits on top of PR #82's `6fe7b66`); no new truncation since the 10:00 ET check.
+- `src/data/trade-log.json` holds **1** logged trade (`trades` array) against thousands of backtested trades — still the binding constraint on every measurement this desk makes. Flagged to trader per CLAUDE.md close-out protocol; no log command run (that's the trader's four fields, not ours).
 - No code, scoring, or gate changes this session — narration/discipline only, per CLAUDE.md.
+
+Prior (10:00 ET run): recurring `week-ahead.ts` truncation (3rd occurrence after 09-04/09-20/09-25) caught and restored same morning (`8ec3595`→`6fe7b66`, PR #82) before that check; `docs/agent-sync.json`'s `grok` bookmark was a dangling SHA, worth Grok re-bookmarking.
 
 ## Read order (every session)
 

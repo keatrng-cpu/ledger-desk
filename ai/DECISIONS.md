@@ -274,3 +274,9 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - **Secondary finding:** `docs/agent-sync.json`'s `grok` bookmark (`2c413e9f86...`) fails `git show`/`cat-file` as a valid object in current history — stale/orphaned reference. Not fixed here (not this session's bookmark to own); noting for Grok's next `agent-sync.mjs --agent grok` run.
 - **No action taken on scoring, gates, config.ts, or the order path.** Session was narration/discipline only per CLAUDE.md; committed only `docs/agent-sync.json`/`docs/agent-sync.md` (claude bookmark → `6fe7b66`) and this memory update.
 
+## 2026-10-22 — NY AM session-partner run: 11:00 ET close-out, trade-log still ~empty
+- **Status:** OBSERVED, no code change. **Source:** scheduled "Ledger Desk - NY AM session partner" run, 11:00 ET close-out branch.
+- **Integrity canary:** still clean (`week-ahead.ts` 711 / `month-ahead.ts` 535 lines), no new truncation since the 10:00 ET check an hour earlier. `main` at `18a784c`.
+- **Close-out check:** `src/data/trade-log.json` holds 1 logged trade. This remains the binding constraint on every measurement the desk makes (per CLAUDE.md), so flagged to the trader rather than acted on — logging today's trades/skips is the trader's call, not this session's.
+- **No action taken on scoring, gates, config.ts, or the order path.** Narration/discipline only.
+
