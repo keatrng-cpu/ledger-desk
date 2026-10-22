@@ -267,3 +267,10 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - **Why:** Vite replaces Node built-ins in the browser with external stubs. Named top-level imports destructured those stubs during client module evaluation, so every dev page load crashed before the desk could render. The explicit boundary keeps server fetches and `.env` fallback intact while making client evaluation inert.
 - **Scope:** development/runtime boundary only. No change to `shared/desk-rules.json`, `RULES_HASH`, scores, gates, prices, or order authority.
 
+## 2026-10-22 — NY AM session-partner run: canary clean, recurring week-ahead.ts truncation flagged again (Claude, scheduled)
+- **Status:** OBSERVED, no code change. **Source:** scheduled "Ledger Desk - NY AM session partner" run, 10:00 ET branch.
+- **Integrity canary:** `week-ahead.ts` 711 lines / `month-ahead.ts` 535 lines — healthy. Local `main` was stale 21 commits behind `origin/main` (`b4c2246`) at session start; fast-forwarded to `6fe7b66` (no local commits lost — only the working-tree `docs/agent-sync.*` bookmark files were pending).
+- **Recurring failure, 4th known occurrence:** `week-ahead.ts` was gutted again at ~2026-10-22T07:10 UTC (`bc42d46`/`f8505bf5`/`0467fc5`) and restored byte-exact + merged (`8ec3595` → `6fe7b66`, PR #82) before this check ran. Same failure mode as 2026-09-04, 09-20, 09-25. Flagging again because the restamp/truncation bug that causes this has not been root-caused — only caught and reverted each time via PR.
+- **Secondary finding:** `docs/agent-sync.json`'s `grok` bookmark (`2c413e9f86...`) fails `git show`/`cat-file` as a valid object in current history — stale/orphaned reference. Not fixed here (not this session's bookmark to own); noting for Grok's next `agent-sync.mjs --agent grok` run.
+- **No action taken on scoring, gates, config.ts, or the order path.** Session was narration/discipline only per CLAUDE.md; committed only `docs/agent-sync.json`/`docs/agent-sync.md` (claude bookmark → `6fe7b66`) and this memory update.
+

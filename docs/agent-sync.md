@@ -2,44 +2,36 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `2c413e9`. Fetched origin. Local main matches origin.
+HEAD `6fe7b66`. Fetched origin. Local main matches origin.
 
-## Since grok last looked
+## Since claude last looked
 
-Bookmark was `e1d0fb0`. 2 commit(s) landed after it.
-Bookmark after this run: `grok` → `2c413e9`.
+Bookmark was `6fe7b66`. 15 commit(s) landed after it.
+Bookmark after this run: `claude` → `6fe7b66`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
-| `2c413e9` | 2026-10-10T20:30 | let a correct half and a same-bar raid complete the sequence | M .ai/locator.md, M CLAUDE.md, M docs/code-index.md, M src/components/desk/calibration-panel.tsx, M src/components/desk/setup-scanner.tsx, M src/lib/trading/conditions.ts, M src/lib/trading/detectors.ts, M src/lib/trading/draw.ts, M src/lib/trading/gate-tuning.ts, M src/lib/trading/ghost-book.ts, M src/lib/trading/scanner.ts, M src/lib/trading/smc-master.ts, M src/lib/trading/strategy-grade.ts, M src/lib/trading/veteran-brain.ts, M src/routes/index.tsx |
-| `54d1d21` | 2026-10-10T17:25 | agent-sync: bookmark grok at the study commit | M docs/agent-sync.json, M docs/agent-sync.md |
-| `e1d0fb0` | 2026-10-10T17:25 | let the closed room study the long board and the prediction book | M .ai/locator.md, M docs/code-index.md, A scripts/verify-off-hours-study.mjs, M src/components/room/floor-screens.ts, M src/components/room/room-engine.ts, M src/data/floor-layout.json, M src/lib/room/agents.ts, M src/lib/room/live-talk.ts, M src/lib/room/live-types.ts, M src/lib/room/live-voices-invest.ts, M src/lib/room/live-voices.ts, M src/lib/room/live-world.ts, A src/lib/room/off-hours-study.ts, A src/lib/room/off-hours.ts |
-| `2bec8d3` | 2026-10-10T10:44 | floor: get the hair off the eyes, size the head to the body, stop the owner skating | M src/components/room/floor-proto-avatars.ts, M src/components/room/floor-scene.ts |
-| `2ad10c7` | 2026-10-09T23:36 | floor: bake the Manager's glass office, the swing TV, the ticker and the clocks | M public/floor/office.glb, M src/data/floor-layout.json |
-| `6a8734a` | 2026-10-09T23:16 | read capex and share count off the durability row's yahoo legs | M src/lib/invest/long-board.ts |
-| `101c437` | 2026-10-09T23:12 | Merge remote-tracking branch 'origin/main' | — |
-| `d31b38f` | 2026-10-09T23:12 | Blender is connected: 5.2.2 plus the Blender Lab MCP add-on | M .claude/skills/desk-data/SKILL.md, M CLAUDE.md |
-| `1ebede6` | 2026-10-10T04:05 | make the Invest tab one path: dollars, then names, then the record | M src/components/desk/invest-panel.tsx, M src/components/invest/funnel-card.tsx, M src/components/invest/ipo-card.tsx, M src/components/invest/long-board.tsx, M src/components/invest/research-card.tsx, M src/components/invest/screen-table.tsx |
-| `6edd7bd` | 2026-10-10T03:43 | rebalance the sweep so VTI's tech weight is not bought twice | M src/components/room/floor-screens.ts, M src/lib/invest/funnel.ts |
-| `81a7dac` | 2026-10-09T20:52 | Restamp Fri Oct 9: UMich 46.3, no new week extreme. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `c1de6ce` | 2026-10-09T20:48 | keep seated gestures in the chair and show the sweep split on the funnel | M src/components/room/floor-scene.ts, M src/components/room/floor-screens.ts |
-| `6070c4c` | 2026-10-09T20:40 | split the surviving sweep across the long sleeves | M .ai/locator.md, A scripts/verify-funnel.mjs, M src/components/desk/invest-panel.tsx, A src/components/invest/funnel-card.tsx, A src/lib/invest/funnel.ts |
-| `e96f5ac` | 2026-10-09T20:33 | make the Invest tab readable: filter the board, fold the fine print | M src/components/desk/invest-panel.tsx, M src/components/invest/long-board.tsx, M src/components/invest/research-card.tsx, M src/components/invest/screen-table.tsx |
-| `a783d08` | 2026-10-09T20:32 | add a long board to the Invest tab that ranks and does not buy | M .ai/locator.md, A scripts/verify-long-board.mjs, M src/components/desk/invest-panel.tsx, A src/components/invest/long-board.tsx, M src/components/room/invest-office-panel.tsx, A src/lib/invest/long-board.ts, M src/lib/invest/marks.ts |
+| `6fe7b66` | 2026-10-22T07:24 | Merge pull request #82 from keatrng-cpu/fix/restore-week-ahead-1022 | — |
+| `8ec3595` | 2026-10-22T07:15 | fix: restore week-ahead.ts byte-exact from d6cbcb11 (gutted by bc42d469/f8505bf5/0467fc58) | M src/lib/trading/week-ahead.ts |
+| `0467fc5` | 2026-10-22T07:10 | fix: restore week-ahead.ts with accurate Oct 19-23 NQ range ~29,202-30,113 and FedWatch ~16% hike | M src/lib/trading/week-ahead.ts |
+| `f8505bf` | 2026-10-22T07:10 | fix: restore full week-ahead.ts with updated Oct 19-23 range and odds | M src/lib/trading/week-ahead.ts |
+| `bc42d46` | 2026-10-22T07:10 | week-ahead: update Oct 19-23 NQ weekly range prose to ~29,202–30,113 and FedWatch odds ~16%/84% | M src/lib/trading/week-ahead.ts |
+| `d6cbcb1` | 2026-10-21T16:13 | Merge pull request #81 from keatrng-cpu/fix/restore-week-ahead-1021 | — |
+| `25db1a0` | 2026-10-21T16:00 | fix: restore week-ahead.ts byte-exact from 0642b22e (gutted 0c84958c, rewritten 01a7c5a6) + 1-line Oct 21 restamp; correct Pending Home Sales note | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `01a7c5a` | 2026-10-21T15:54 | Restamp Oct 21: NQ/ES stayed inside prior-week PWH/PWL, Sunday quiet-week holds | M src/lib/trading/week-ahead.ts |
+| `0c84958` | 2026-10-21T15:52 | Restamp Oct 21: session stayed inside prior-week box, Sunday quiet-week holds | M src/lib/trading/week-ahead.ts |
+| `0642b22` | 2026-10-21T15:52 | Stamp Oct 21: no ISM/JOLTS/ADP/claims/NFP printed | M src/data/week-prints.json |
+| `97a970d` | 2026-10-21T13:20 | Merge pull request #78 from keatrng-cpu/feat/chat-trades-shadow | — |
+| `089e21b` | 2026-10-21T13:19 | Merge pull request #79 from keatrng-cpu/fix/rh-balance-live | — |
+| `ffc37dd` | 2026-10-21T12:54 | migrate: only production build context migrates the shared DB (preview/branch builds skip) | M scripts/migrate.mjs |
+| `0699f27` | 2026-10-21T12:46 | rh live-first: tests in verify-floor-rh-account; research shelf reads live Agentic read | M scripts/verify-floor-rh-account.mjs, M src/components/room/room-engine.ts |
+| `87dcd1a` | 2026-10-21T12:37 | research: chat prior note wording descriptive; import below doc comment | M src/lib/room/research.ts |
 
 ## New files in those commits
 
-- `scripts/verify-off-hours-study.mjs` in `e1d0fb0`
-- `src/lib/room/off-hours-study.ts` in `e1d0fb0`
-- `src/lib/room/off-hours.ts` in `e1d0fb0`
-- `scripts/verify-funnel.mjs` in `6070c4c`
-- `src/components/invest/funnel-card.tsx` in `6070c4c`
-- `src/lib/invest/funnel.ts` in `6070c4c`
-- `scripts/verify-long-board.mjs` in `a783d08`
-- `src/components/invest/long-board.tsx` in `a783d08`
-- `src/lib/invest/long-board.ts` in `a783d08`
+None.
 
 ## Before you edit
 
@@ -47,4 +39,3 @@ Bookmark after this run: `grok` → `2c413e9`.
 - A file in the table is unseen until you have read its diff: `git show SHA -- path`.
 - Do not redo a commit already on main. Do not revert the other agent's commit to land yours.
 - Push to `main` when the change is done, then run this script once more so the bookmark matches what you pushed.
-- claude last bookmarked `4283811`.
