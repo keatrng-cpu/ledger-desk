@@ -1066,12 +1066,18 @@ diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cas
 +]
 diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 --- a/tests/test_chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/test_chat_sweep.py	2026-10-23 01:08:41.563671500 -0500
-@@ -0,0 +1,466 @@
++++ b/tests/test_chat_sweep.py	2026-10-23 01:24:59.831671500 -0500
+@@ -0,0 +1,514 @@
 +"""chatSweep twin: same fixture as ledger-desk scripts/chat-sweep.test.mjs (scripts/fixtures/chat-sweep-cases.json)."""
 +import json, os, pytest
 +from watcher import chat_sweep as cs, gates
 +from watcher.config import Config
++
++@pytest.fixture(autouse=True)
++def _chat_live(request, monkeypatch):
++    """chatSweep SHIPS in shadow / manageLive false. Management tests run with both on; tests marked shadow keep the shipped rules."""
++    if "shadow" in request.node.name: return
++    monkeypatch.setitem(cs.CS, "mode", "live"); monkeypatch.setitem(cs.CS, "manageLive", True)
 +
 +CASES = json.load(open(os.path.join(os.path.dirname(__file__), "fixtures", "chat-sweep-cases.json")))
 +
@@ -1212,6 +1218,7 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +    from watcher import exitsafe as ex
 +    me._ladder_close = lambda pos, qty, md, act: dm.Watcher._ladder_close(me, pos, qty, md, act)
 +    me._chat_be_move = lambda pos, et: dm.Watcher._chat_be_move(me, pos, et)
++    me._resolve_open_closes = lambda pos, held: dm.Watcher._resolve_open_closes(me, pos, held)
 +    monkeypatch.setattr(ex, "run_ladder", lambda g, qty, fb, **k: _fake_ladder(b, g, qty))
 +    return dm, me, b, alerts, logs
 +
@@ -1534,15 +1541,56 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +    assert [o["id"] for o in out] == ["match", "noacct", "acct-url"]
 +    assert out[0] == {"id": "match", "state": "queued", "qty": 2, "trigger": "stop"}
 +    assert b.open_close_orders("OPT9") == []
++
++
++# ---- Accuracy round 6: ships in shadow; nothing changes the live fire, sizing or exits ----
++def test_shadow_shipped_rules_manage_off():
++    assert gates.RULES["chatSweep"]["mode"] == "shadow" and gates.RULES["chatSweep"]["manageLive"] is False
++    assert not cs.live() and not cs.manage_live() and gates.RULES_HASH == "63ec3d05ca3f9995"
++
++def test_shadow_gate_row_passes_without_a_print():
++    ok = cs.gate_row({"chat_sweep": None})
++    assert ok[1] is True and "shadow" in ok[2]                       # fire unchanged: a missing/unprinted verdict never blocks
++
++@pytest.mark.parametrize("mode,flag", [("shadow", False), ("shadow", True), ("live", False)])
++def test_shadow_management_off_unless_live_and_flag(monkeypatch, mode, flag):
++    monkeypatch.setitem(cs.CS, "mode", mode); monkeypatch.setitem(cs.CS, "manageLive", flag)
++    for px in (713.31, 713.8, 712.0):
++        pos = _pos(qty=3)
++        assert cs.manage(pos, px) is None                             # falls straight through: legacy exits only
++        assert not pos.get("chat_trim_pending") and not pos.get("chat_be_request")
++
++def test_shadow_exits_identical_to_no_chat():
++    from watcher.config import Config
++    from datetime import datetime
++    et = datetime(2026, 10, 22, 10, 30, tzinfo=gates.ET)
++    for mark, px in ((2.6, 713.8), (2.1, 713.31), (0.4, 711.0), (2.0, 712.95)):
++        a = _pos(qty=3, entry=2.0, contract={"id": "x", "exp": "2026-10-23"}, opened_ms=0)
++        b = _pos(qty=3, entry=2.0, contract={"id": "x", "exp": "2026-10-23"}, opened_ms=0, chat_sweep=None)
++        assert gates.manage_action(a, mark, Config(), et, px) == gates.manage_action(b, mark, Config(), et, px)
++
++
++# ---- Accuracy round 6 (b): the safety pre-check clears the blocked-stop flag only via the 2-read proof ----
++def test_safety_precheck_single_empty_read_keeps_blocked_flag(tmp_path, monkeypatch):
++    from datetime import datetime
++    w, b, dm = _live(tmp_path, monkeypatch)
++    b.open_close_orders = lambda _id: []
++    pos = w.state["position"]
++    pos["chat_oc_empty_at"] = None
++    q = dm.Watcher._chat_safety_preflight(w, pos, 2, "0DTE flat")
++    assert q == 2 and pos.get("resting_stop_blocked") and pos.get("chat_oc_empty_at")      # one empty read: flag kept
++    t = {"now": time.time() + 3}; monkeypatch.setattr(dm.time, "time", lambda: t["now"])
++    dm.Watcher._chat_safety_preflight(w, pos, 2, "0DTE flat")
++    assert not pos.get("resting_stop_blocked")                                               # 2nd empty read >= 2s: proven
 diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
 --- a/tests/test_every_tf_ltf_arm.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/tests/test_every_tf_ltf_arm.py	2026-10-23 00:30:12.907671500 -0500
++++ b/tests/test_every_tf_ltf_arm.py	2026-10-23 01:23:46.179671500 -0500
 @@ -10,7 +10,7 @@
      assert gates.RULES["ltfArm"]["mode"] == "shadow" and gates.RULES["ltfArm"]["allTfKills"]["mode"] == "shadow" and gates.RULES["ltfArm"]["validatedOnly"] is True
      assert gates.RULES["ltfArm"]["tfs"][-1] == "1D" and gates.RULES["everyTf"]["tfs"] == ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]
      assert gates.MTF_VALIDATED == ()
 -    assert gates.RULES_HASH == "0a692dc19944a8df"
-+    assert gates.RULES_HASH == "eeb84801a0b5c5b2"  # 2026-10-22 chatSweep (was 0a692dc19944a8df)
++    assert gates.RULES_HASH == "63ec3d05ca3f9995"  # 2026-10-23 chatSweep shadow + manageLive off (was eeb84801a0b5c5b2 live; before 0a692dc19944a8df)
      assert F.review_soft_max_age_s() == 3.0 and gates.RULES["fire"]["orderReviewMaxAgeS"] == 1
  
  def test_ltf_armed_card_refused_when_nothing_validated():
@@ -1560,7 +1608,7 @@ diff -ruN a/tests/test_fix1016.py b/tests/test_fix1016.py
  PROM = {"deskOk": True, "why": ["band B+ >= B+", "1h bear 4h bear agree"], "plan": {"entry": 29930.63, "stop": 29944.25}}
 diff -ruN a/tests/test_gates.py b/tests/test_gates.py
 --- a/tests/test_gates.py	2026-10-18 16:28:58.201755499 -0500
-+++ b/tests/test_gates.py	2026-10-23 00:30:12.911671500 -0500
++++ b/tests/test_gates.py	2026-10-23 01:24:59.831671500 -0500
 @@ -185,9 +185,11 @@
      cfg.allow_a_minus = allow_am
      assert ("brain" not in fails(gates.evaluate_fire(brain_snap(band, word), cfg, NOW, {}, broker(), CAL))) == ok
@@ -1589,34 +1637,51 @@ diff -ruN a/tests/test_gates.py b/tests/test_gates.py
  def test_cap_650_in_gates(cfg):
      s = gates.snapshot(load("card_aplus_armed.json"))
      q = lambda a: broker(quote={"ask": a, "bid": a - 0.05, "asOfMs": NOW - 1000})
-@@ -447,3 +451,11 @@
+@@ -447,3 +451,28 @@
  def test_card_t1_rr_under_one_refused(cfg):     # 13:01 CT ES case (risk 10.88pt, T1 0.52R)
      c = load("card_aplus_armed.json"); c["wire"]["strategy"]["rr1"] = 0.52
      assert "t1_rr" in fails(gates.evaluate_fire(gates.snapshot(c), cfg, NOW, {"entries": 0}, broker(), CAL))
 +
 +
-+def test_chat_sweep_live_refuses_one_contract_cut(cfg):
-+    """chatSweep live (2026-10-22): the same gateHand-cut A+ WAIT card sizes 1ct ($325 cap) and refuses — min 2 contracts."""
++def test_chat_sweep_live_refuses_one_contract_cut(cfg, monkeypatch):
++    """chatSweep live + manageLive (not shipped; 2026-10-23 ships shadow): the gateHand-cut A+ WAIT card sizes 1ct and refuses."""
++    from watcher import chat_sweep
++    monkeypatch.setitem(chat_sweep.CS, "mode", "live"); monkeypatch.setitem(chat_sweep.CS, "manageLive", True)
 +    g = gates.evaluate_fire(brain_snap("A+", "WAIT"), cfg, NOW, {}, broker(), CAL)
 +    row = [r for r in g if r[0] == "sizing"]
 +    assert row and row[0][1] is False and "chatSweep min 2" in row[0][2] and not gates.all_pass(g)
 +    assert [r for r in g if r[0] == "chat_sweep"][0][1] is True
++
++
++@pytest.mark.parametrize("mode,flag", [("shadow", False), ("live", False), ("shadow", True)])
++def test_chat_sweep_shadow_or_manage_off_never_changes_sizing(cfg, monkeypatch, mode, flag):
++    """Shipped shadow (and live without manageLive): the same 1ct card's sizing row and fire verdict are untouched."""
++    from watcher import chat_sweep
++    monkeypatch.setitem(chat_sweep.CS, "mode", "shadow"); monkeypatch.setitem(chat_sweep.CS, "manageLive", False)
++    base = gates.evaluate_fire(brain_snap("A+", "WAIT"), cfg, NOW, {}, broker(), CAL)
++    monkeypatch.setitem(chat_sweep.CS, "mode", mode); monkeypatch.setitem(chat_sweep.CS, "manageLive", flag)
++    g = gates.evaluate_fire(brain_snap("A+", "WAIT"), cfg, NOW, {}, broker(), CAL)
++    row = [r for r in g if r[0] == "sizing"][0]
++    assert row[1] is True and "chatSweep min" not in row[2]
++    strip = lambda gg: [r for r in gg if r[0] != "chat_sweep"]
++    if mode == "shadow": assert g == base and gates.all_pass(g) == gates.all_pass(base)
++    else: assert [r for r in strip(g) if r[0] == "sizing"] == [r for r in strip(base) if r[0] == "sizing"]
 diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
 --- a/tests/test_review_quote_refetch.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/tests/test_review_quote_refetch.py	2026-10-23 00:30:12.911671500 -0500
++++ b/tests/test_review_quote_refetch.py	2026-10-23 01:23:46.179671500 -0500
 @@ -21,7 +21,7 @@
  
  def test_threshold_still_1s_and_hash_unchanged():
      assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
 -    assert gates.RULES_HASH == "0a692dc19944a8df"   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
-+    assert gates.RULES_HASH == "eeb84801a0b5c5b2"  # 2026-10-22 chatSweep (was 0a692dc19944a8df)   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
++    assert gates.RULES_HASH == "63ec3d05ca3f9995"  # 2026-10-23 chatSweep shadow + manageLive off (was eeb84801a0b5c5b2 live; before 0a692dc19944a8df)   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
  
  def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 --- a/watcher/chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/watcher/chat_sweep.py	2026-10-23 00:46:41.371671500 -0500
-@@ -0,0 +1,171 @@
++++ b/watcher/chat_sweep.py	2026-10-23 01:23:46.147671500 -0500
+@@ -0,0 +1,176 @@
 +"""Chat sweep (Keaton 2026-10-22 21:56 CT, "Make the desk trade like chat"; shared rules `chatSweep`).
 +
 +Twin of ledger-desk src/lib/smc/chat-sweep.ts and of live-tape armed_s.py (setup) / armed_r.py (last-6-bar stop).
@@ -1640,7 +1705,12 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +TRIM_TERMINAL = {"filled", "partially_filled", "cancelled", "canceled", "rejected", "failed", "expired", "done"}
 +
 +def live():
++    """Fire gate + chat plan: mode 'live'. In 'shadow' the watcher only logs/annotates (gate row passes, says shadow)."""
 +    return CS.get("mode") == "live"
++
++def manage_live():
++    """Min-contracts sizing, T1 half trim and break-even stop management: ONLY mode 'live' AND manageLive true (default off)."""
++    return live() and CS.get("manageLive") is True
 +
 +def unit(symbol, px, R=CS):
 +    return 1.0 if str(symbol).upper() in R["etfSymbols"] else px / R["unitRefPx"]
@@ -1745,7 +1815,7 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +      chat_be_done / fut_stop = ref; if it cannot and the position is PROVEN unprotected, it sets chat_be_failclosed (and has already sold inline); no-sell outcomes use chat_be_recheck instead.
 +    - While a trim is pending (<= TRIM_PENDING_S) profit-taking rules are held; loss/stop exits still run (gates.manage_action, trim cancelled first); the break-even exit sells only pos['qty'] (filled, held)."""
 +    cs = pos.get("chat_sweep")
-+    if not live() or not isinstance(cs, dict) or pos.get("fut_ref") is None: return None
++    if not manage_live() or not isinstance(cs, dict) or pos.get("fut_ref") is None: return None
 +    q = int(pos.get("qty") or 0)
 +    if q <= 0: return ("hold", 0, "no filled qty")
 +    pend = pos.get("chat_trim_pending")
@@ -1790,7 +1860,7 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +    return None   # everything else (incl. break-even set / pending) falls through to the older exit rules
 diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 --- a/watcher/daemon.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/daemon.py	2026-10-23 01:08:23.459671500 -0500
++++ b/watcher/daemon.py	2026-10-23 01:24:01.239671500 -0500
 @@ -10,6 +10,11 @@
  
  def now_ms(): return int(time.time() * 1000)
@@ -1812,7 +1882,7 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
                                    "walk_step": 0, "walk_at": time.time(), "quote_at_fire": {k: q.get(k) for k in ("bid", "ask", "delta", "theta", "iv")},
                                    "premium_stop_pct": gates.premium_stop_pct(snap.get("targets"))}
          self.alert(f"PLACED {n}x {c['symbol']} {c['exp']} {c['strike']}{c['type'][0].upper()} @ {lim} ({how}) key={key} stop={fut_stop} ({stop_why})", result=res)
-@@ -512,6 +517,255 @@
+@@ -512,6 +517,260 @@
              self.log("resting_stop_failed", reason=str(e)); self.alert(f"RESTING STOP FAILED ({e}) — script-watched stop still active"); self.save(); return
          self.save()
  
@@ -1847,6 +1917,34 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 +            return fail("replacement stop has no order id")
 +        return True, f"broker stop {pos['resting_stop_id']} at {pos.get('resting_stop_px')} for {held}ct (break-even {pos['opt_stop']})"
 +
++    def _resolve_open_closes(self, pos, held):
++        """Broker read of the working close orders. Returns 'working' (a close/stop is live -> adopt, no sell),
++        'none' (PROVEN no working close) or None (not proven -> stays uncertain). Fail closed: an empty read proves
++        'none' only when (a) two consecutive reads >= OC_EMPTY_GAP_S apart are both empty, (b) the position read
++        confirms the contracts are still held, and (c) every tracked stop id we expect is terminal by order_state."""
++        from . import exitsafe
++        f = getattr(self.broker, "open_close_orders", None)
++        if f is None: return None
++        try: oc = [o for o in (f(pos["contract"]["id"]) or []) if o.get("state") not in exitsafe.TERMINAL]
++        except Exception as e: self.log("open_close_orders_failed", reason=str(e)[:160]); pos["chat_oc_empty_at"] = None; return None
++        if oc:
++            pos["chat_oc_empty_at"] = None
++            stop = next((o for o in oc if o.get("trigger") == "stop"), None)
++            if stop and stop.get("id"):
++                pos.update(resting_stop_id=stop["id"], resting_stop_blocked=None, resting_stop_qty=stop.get("qty") or held)
++            return "working"
++        if held <= 0: return None
++        for sid in {x for x in (pos.get("resting_stop_id"), pos.get("chat_be_prev_stop_id")) if x}:
++            try: sst = self.broker.order_state(sid)
++            except Exception as e: self.log("resting_stop_state_failed", reason=str(e)[:160]); return None
++            if sst not in exitsafe.TERMINAL: return None
++        now = time.time(); first = pos.get("chat_oc_empty_at")
++        if first is None or now - first < OC_EMPTY_GAP_S:
++            if first is None: pos["chat_oc_empty_at"] = now
++            self.log("open_close_orders_empty", confirm="first read" if first is None else "too soon", held=held); return None
++        pos["chat_oc_empty_at"] = None
++        return "none"
++
 +    def _chat_safety_preflight(self, pos, qty, why):
 +        """Before a safety exit (flat-by / 0DTE / ticket stop / loss) during an unresolved chat re-check: re-read the
 +        broker. Returns the qty to sell (<= held) or 0. Working closes RH reports are cancelled+confirmed first (the
@@ -1877,7 +1975,9 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 +            try: held, _a = self.broker.position_qty(pos["contract"]["id"]); held = int(held or 0)
 +            except Exception: return 0
 +            if held <= 0: return 0
-+            pos["resting_stop_blocked"] = None
++        # the blocked-stop flag clears ONLY via the 2-read proof (never on a single empty read)
++        if pos.get("resting_stop_blocked") and self._resolve_open_closes(pos, held) == "none":
++            pos["resting_stop_blocked"] = None; self.log("chat_be_uncertain_cleared", note="safety pre-check: 2-read proof")
 +        if oc is None: self.alert(f"SAFETY EXIT ({why}) during an unresolved chat re-check — RH open orders unreadable; selling held {held}ct only — check RH for duplicate close")
 +        pos["qty"] = held
 +        return min(int(qty or held), held)
@@ -1951,32 +2051,7 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 +                           f"unprotected; flat-by / 0DTE / ticket stop / loss exits still run; it sells the moment it is proven "
 +                           f"held with no working stop. CHECK RH NOW.")
 +            return outcome
-+        def resolve_open_closes(held):
-+            """Broker read of the working close orders. Returns 'working' (a close/stop is live -> adopt, no sell),
-+            'none' (PROVEN no working close) or None (not proven -> stays uncertain). Fail closed: an empty read proves
-+            'none' only when (a) two consecutive reads >= OC_EMPTY_GAP_S apart are both empty, (b) the position read
-+            confirms the contracts are still held, and (c) every tracked stop id we expect is terminal by order_state."""
-+            f = getattr(self.broker, "open_close_orders", None)
-+            if f is None: return None
-+            try: oc = [o for o in (f(pos["contract"]["id"]) or []) if o.get("state") not in exitsafe.TERMINAL]
-+            except Exception as e: self.log("open_close_orders_failed", reason=str(e)[:160]); pos["chat_oc_empty_at"] = None; return None
-+            if oc:
-+                pos["chat_oc_empty_at"] = None
-+                stop = next((o for o in oc if o.get("trigger") == "stop"), None)
-+                if stop and stop.get("id"):
-+                    pos.update(resting_stop_id=stop["id"], resting_stop_blocked=None, resting_stop_qty=stop.get("qty") or held)
-+                return "working"
-+            if held <= 0: return None
-+            for sid in {x for x in (pos.get("resting_stop_id"), pos.get("chat_be_prev_stop_id")) if x}:
-+                try: sst = self.broker.order_state(sid)
-+                except Exception as e: self.log("resting_stop_state_failed", reason=str(e)[:160]); return None
-+                if sst not in exitsafe.TERMINAL: return None
-+            now = time.time(); first = pos.get("chat_oc_empty_at")
-+            if first is None or now - first < OC_EMPTY_GAP_S:
-+                if first is None: pos["chat_oc_empty_at"] = now
-+                self.log("open_close_orders_empty", confirm="first read" if first is None else "too soon", held=held); return None
-+            pos["chat_oc_empty_at"] = None
-+            return "none"
++        resolve_open_closes = lambda held: self._resolve_open_closes(pos, held)
 +        if not recheck: self.log("chat_be_stop_failed", signal=pos.get("signal"), reason=why)
 +        try: held, _a = self.broker.position_qty(pos["contract"]["id"]); held = int(held or 0)
 +        except Exception as e:
@@ -2068,7 +2143,7 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
      def _check_resting_stop(self, pos, qty, et):
          """Every manage cycle: keep the resting stop matched to the live position.
          filled -> recorded; expired/cancelled/rejected (gfd expiry at the close, manual cancel) -> re-placed unless
-@@ -659,6 +913,10 @@
+@@ -659,6 +918,10 @@
              self.alert("position no longer open on RH — clearing state" + (" (resting stop filled)" if pos.get("resting_stop_id") else "")); self.state["position"] = None; return
          pos["qty"] = qty
          self._check_resting_stop(pos, qty, et)
@@ -2079,7 +2154,7 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
          mark, md = self.broker.spread_mark(pos["contract"]) if pos["contract"].get("spread_short") else self.broker.mark(pos["contract"]["id"])
          fut_px = None
          try: fut_px = gates.snapshot(self.fetch())["tape_prices"].get(pos.get("fut_symbol"))
-@@ -674,9 +932,17 @@
+@@ -674,9 +937,17 @@
          pos["live"] = {"mark": mark, "fut_px": fut_px, "at": time.time(), "action": act, "why": why}
          self._status(mode="manage")
          if act == "hold": return
@@ -2098,7 +2173,7 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
          bid = float((md or {}).get("bid_price") or 0)
          px = round(max(0.01, mark if act == "trim" else (bid or mark or 0.01)), 2)   # trim at mark, exits at bid
          from . import exitsafe
-@@ -688,6 +954,10 @@
+@@ -688,6 +959,10 @@
            try: res = self.broker.sell(pos["contract"], qty, px)
            except BrokerRefused as e: self.log("manage_blocked", reason=str(e)); return
          if isinstance(res, dict) and res.get("filled_qty"): qty = int(res["filled_qty"])   # book what the ORDERS filled, not the lagged RH qty
@@ -2111,15 +2186,16 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
          pos.setdefault("exit_orders", []).append((res or {}).get("id") if isinstance(res, dict) else None)
 diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
 --- a/watcher/desk-rules.json	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/desk-rules.json	2026-10-23 00:30:12.911671500 -0500
-@@ -1154,5 +1154,30 @@
++++ b/watcher/desk-rules.json	2026-10-23 01:23:46.103671500 -0500
+@@ -1154,5 +1154,31 @@
      "_doc": "MTF->LTF inversion setups (audit /workspace/audits/mtf-ltf-inversion, 2026-10-17). `validated` lists the setup ids that passed the pre-declared live-wire test (family walk-forward OOS > 0 AND untouched holdout R/trade > 0, $/wk > 0, n >= 20, futures net of costs). Empty = nothing passed: ltfArm arms are computed and shown but never fire. Never add an id here without re-running that test.",
      "mode": "live",
      "validated": []
 +  },
 +  "chatSweep": {
-+    "_doc": "Keaton 2026-10-22 21:56 CT: 'Make the desk trade like chat'. Desk, Brain, Floor and desk-watcher read this one block. Setup: the session high/low (set before the last 3 closed 1m bars) is wick-swept within the last 3 closed 1m bars, then the newest closed 1m bar closes back inside AND beyond the prior 2 bars' extreme with body >= dispBodyAvg x the 10-bar avg range; partner book same color; newest closed 5m not against (tolerance fiveMinTolPts). Both sides scored every read; a side arms only when it prints. Stop = sweep wick (or last-6-bar extreme if further) +/- stopPadPts, refused if > maxStopPts from entry. Min 2 contracts; half off at T1; stop to break-even at T1 or beTriggerPts in favour. Points are QQQ/SPY points; other symbols scale by px / unitRefPx (QQQ 711.75, the 10/22 sweep low). Reference: live-tape armed_s.py / armed_r.py. Closed bars only.",
-+    "mode": "live",
++    "_doc": "Keaton 2026-10-22 21:56 CT: 'Make the desk trade like chat'. Desk, Brain, Floor and desk-watcher read this one block. Setup: the session high/low (set before the last 3 closed 1m bars) is wick-swept within the last 3 closed 1m bars, then the newest closed 1m bar closes back inside AND beyond the prior 2 bars' extreme with body >= dispBodyAvg x the 10-bar avg range; partner book same color; newest closed 5m not against (tolerance fiveMinTolPts). Both sides scored every read; a side arms only when it prints. Stop = sweep wick (or last-6-bar extreme if further) +/- stopPadPts, refused if > maxStopPts from entry. Min 2 contracts; half off at T1; stop to break-even at T1 or beTriggerPts in favour. Points are QQQ/SPY points; other symbols scale by px / unitRefPx (QQQ 711.75, the 10/22 sweep low). Reference: live-tape armed_s.py / armed_r.py. Closed bars only. SHIPS IN SHADOW (Accuracy 2026-10-23, pending Keaton verbatim approval): mode 'shadow' = read, log and annotate only (no plan/actionable change, no fire gate). mode 'live' = the print gates the fire and sets the chat plan. manageLive (default false) additionally turns on the min-contracts sizing check, the T1 half trim and the break-even stop management; they apply ONLY when mode is 'live' AND manageLive is true.",
++    "mode": "shadow",
++    "manageLive": false,
 +    "sessionStartEt": "09:30",
 +    "entryEndEt": "11:30",
 +    "sweepBars": 3,
@@ -2145,7 +2221,7 @@ diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
  }
 diff -ruN a/watcher/gates.py b/watcher/gates.py
 --- a/watcher/gates.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/gates.py	2026-10-23 00:46:41.363671500 -0500
++++ b/watcher/gates.py	2026-10-23 01:23:46.147671500 -0500
 @@ -113,6 +113,8 @@
          # ltfArm live + validatedOnly: the card is LTF-armed / the desk's verdict on whether that arm may fire
          "ltf_armed": strat.get("ltfArmed") is True,
@@ -2170,7 +2246,7 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
      _nh, _hw = _fch.htf_size(nct, snap, cfg)                          # unblock-2: HTF-opposed + LTF reversal -> half (no-op when the size cut already halved caps)
      if _hw and _nh != nct: why = f"{_nh}ct after {_hw}; was " + why; nct = _nh
 +    from . import chat_sweep as _csz
-+    if nct is not None and _csz.live():
++    if nct is not None and _csz.manage_live():
 +        _okc, _wc = _csz.size_ok(nct)
 +        if not _okc: why += f"; {_wc} — 2x not affordable, no fire"; nct = None
      add("sizing", nct is not None, why)
