@@ -1066,8 +1066,8 @@ diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cas
 +]
 diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 --- a/tests/test_chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/test_chat_sweep.py	2026-10-22 22:08:22.779671500 -0500
-@@ -0,0 +1,47 @@
++++ b/tests/test_chat_sweep.py	2026-10-22 22:33:56.351671500 -0500
+@@ -0,0 +1,112 @@
 +"""chatSweep twin: same fixture as ledger-desk scripts/chat-sweep.test.mjs (scripts/fixtures/chat-sweep-cases.json)."""
 +import json, os
 +from watcher import chat_sweep as cs, gates
@@ -1107,14 +1107,79 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +def test_min_two_contracts():
 +    assert cs.size_ok(1)[0] is False and cs.size_ok(2)[0] is True and cs.size_ok(None)[0] is False
 +
-+def test_manage_half_at_t1_and_be():
-+    pos = dict(fut_side="long", fut_ref=712.95, fut_stop=711.65, fut_t1=713.8, qty=3, chat_sweep=dict(t1=713.8, beTrigger=0.35))
-+    a = cs.manage(pos, 713.31); assert a[0] == "hold" and pos["fut_stop"] == 712.95 and pos["be_moved"]
-+    a = cs.manage(pos, 713.8); assert a[:2] == ("trim", 1)
-+    pos2 = dict(fut_side="short", fut_ref=712.6, fut_stop=713.65, fut_t1=711.75, qty=2, chat_sweep=dict(t1=711.75, beTrigger=0.35))
-+    assert cs.manage(pos2, 711.7)[:2] == ("trim", 1) and pos2["fut_stop"] == 712.6
-+    assert cs.manage(pos2, 712.7)[0] == "exit"
++def _pos(**kw):
++    p = dict(fut_side="long", fut_ref=712.95, fut_stop=711.65, fut_t1=713.8, qty=3, chat_sweep=dict(t1=713.8, beTrigger=0.35))
++    p.update(kw); return p
 +
++def test_one_contract_t1_never_trims_to_zero():
++    pos = _pos(qty=1)
++    a = cs.manage(pos, 713.8)
++    assert a[0] == "hold" and a[1] == 0 and pos["chat_be_request"] and not pos.get("chat_trim_pending")
++    assert pos["fut_stop"] == 711.65   # stop only REQUESTED; the daemon moves the broker stop
++
++def test_be_only_after_trim_fill_confirmed():
++    pos = _pos(qty=3)
++    assert cs.manage(pos, 713.8)[:2] == ("trim", 1)
++    assert pos["chat_trim_pending"] == {"qty": 1, "target_qty": 2} and not pos.get("chat_be_request") and pos["fut_stop"] == 711.65
++    a = cs.manage(pos, 713.9)            # broker still shows 3 held: not filled
++    assert a[0] == "hold" and "pending" in a[2] and not pos.get("chat_be_request")
++    pos["qty"] = 2                       # broker qty dropped -> fill confirmed
++    a = cs.manage(pos, 713.9)
++    assert a[0] == "hold" and pos["chat_be_request"] and pos["chat_trim_pending"] is None and pos["trimmed"]
++
++def test_pending_trim_blocks_be_exit_no_oversell():
++    pos = _pos(qty=3, chat_be_done=True, chat_trim_pending={"qty": 1, "target_qty": 2})
++    a = cs.manage(pos, 712.0)            # through break-even while the trim is still working
++    assert a[0] == "hold" and a[1] == 0
++
++def test_be_exit_sells_only_remaining_filled_qty():
++    pos = _pos(qty=2, chat_t1=True, trimmed=True, chat_be_request=True, chat_be_done=True)
++    assert cs.manage(pos, 712.9) == ("exit", 2, "break-even stop 712.95 hit (px 712.9); selling the 2 filled contract(s) left")
++
++def test_failclosed_exits_remaining():
++    pos = _pos(qty=2, chat_be_request=True, chat_be_failclosed="broker resting stop disabled")
++    a = cs.manage(pos, 713.0); assert a[0] == "exit" and a[1] == 2
++
++def test_loss_early_no_zero_risk_after_be():
++    from datetime import datetime
++    from watcher.config import Config
++    pos = _pos(qty=1, entry=2.0, contract={"id": "x", "exp": "2026-10-23"}, fut_stop=712.95, fut_stop_orig=711.65,
++               chat_be_done=True, be_moved=True, opened_ms=0, chat_t1=True, chat_be_request=True)
++    et = datetime(2026, 10, 22, 10, 30, tzinfo=gates.ET)
++    act, q, why = gates.manage_action(pos, 2.1, Config(), et, 713.0)   # must not raise / divide by zero / early-cut
++    assert "early" not in why
++    pos2 = _pos(qty=1, entry=2.0, contract={"id": "x", "exp": "2026-10-23"}, fut_stop=712.95, opened_ms=0, chat_sweep=None, be_moved=True)
++    gates.manage_action(pos2, 2.1, Config(), et, 713.0)                 # risk 0 (stop == ref): skipped, no ZeroDivisionError
++
++def test_min_contracts_is_one_config_value(monkeypatch):
++    assert cs.min_contracts() == gates.RULES["chatSweep"]["minContracts"]
++    monkeypatch.setitem(cs.CS, "minContracts", 1)
++    assert cs.size_ok(1)[0] is True
++
++# ---- daemon break-even: REAL broker stop replace via a FAKE broker (no real orders) ----
++def _dm(monkeypatch, held=2, resting=True):
++    from tests.test_exitsafe import FakeBroker, _daemon_stub
++    b = FakeBroker(held=held); dm, me, alerts, logs = _daemon_stub(b, monkeypatch)
++    if not resting: monkeypatch.setenv("EXIT_SAFE_RESTING_STOP", "0")
++    b.mark = lambda _id: (2.5, {"bid_price": "2.5"})
++    from watcher import exitsafe as ex
++    monkeypatch.setattr(ex.time, "sleep", lambda s: None)
++    return dm, me, b, alerts, logs
++
++def test_daemon_be_replaces_broker_stop(monkeypatch):
++    dm, me, b, alerts, logs = _dm(monkeypatch)
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0}
++    me._place_resting_stop(pos); old = pos["resting_stop_id"]; assert b.orders[old][2][0] == 1.0
++    ok, why = dm.Watcher._chat_be_move(me, pos, None)
++    assert ok, why
++    assert b.states[old] == "cancelled" and pos["resting_stop_id"] != old
++    k, q, args = b.orders[pos["resting_stop_id"]]; assert k == "stop" and q == 2 and args[0] == 2.0   # stop at entry premium
++
++def test_daemon_be_fails_closed_without_broker_stop(monkeypatch):
++    dm, me, b, alerts, logs = _dm(monkeypatch, resting=False)
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0}
++    ok, why = dm.Watcher._chat_be_move(me, pos, None)
++    assert not ok and "disabled" in why and not b.sends()
 diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
 --- a/tests/test_every_tf_ltf_arm.py	2026-10-19 07:21:29.610018716 -0500
 +++ b/tests/test_every_tf_ltf_arm.py	2026-10-22 22:06:54.659671500 -0500
@@ -1196,8 +1261,8 @@ diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 --- a/watcher/chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/watcher/chat_sweep.py	2026-10-22 22:06:54.655671500 -0500
-@@ -0,0 +1,126 @@
++++ b/watcher/chat_sweep.py	2026-10-22 22:33:20.867671500 -0500
+@@ -0,0 +1,152 @@
 +"""Chat sweep (Keaton 2026-10-22 21:56 CT, "Make the desk trade like chat"; shared rules `chatSweep`).
 +
 +Twin of ledger-desk src/lib/smc/chat-sweep.ts and of live-tape armed_s.py (setup) / armed_r.py (last-6-bar stop).
@@ -1301,32 +1366,58 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +        return ("chat_sweep", False, f"card stop {sp} is not the chat stop {stop}")
 +    return ("chat_sweep", True, f"chat sweep {snap.get('side')} printed: entry {entry} stop {stop} T1 {p.get('t1')}")
 +
++def min_contracts():
++    """ONE config value (shared rules chatSweep.minContracts). Keaton is deciding min 2 vs the B+ 1-contract rung:
++    either answer is a one-line change to shared/desk-rules.json (+ the watcher copy)."""
++    return int(CS["minContracts"])
++
 +def size_ok(nct):
-+    """Min 2 contracts for a chat-sweep fire (armed_s/armed_r: 'ABORT 2x not affordable')."""
++    """Min contracts for a chat-sweep fire (armed_s/armed_r: 'ABORT 2x not affordable')."""
 +    if nct is None: return False, "no size"
-+    return (nct >= CS["minContracts"], f"{nct}ct (chatSweep min {CS['minContracts']})")
++    m = min_contracts()
++    return (nct >= m, f"{nct}ct (chatSweep min {m})")
 +
 +def manage(pos, px):
-+    """Half off at T1, stop to break-even at T1 or beTrigger in favour. Returns (action, qty, why) or None (fall through)."""
++    """Pure state machine (no broker calls). Returns (action, qty, why) or None (fall through to the legacy rules).
++    - T1: qty >= 2 -> trim floor(qty * t1Frac) (>= 1, never 0) and wait for the fill; qty < 2 -> no trim, stop move only.
++    - Break-even is REQUESTED (pos['chat_be_request']) only after the trim fill is confirmed (broker qty dropped to the
++      target) or at +beTrigger in favour. The daemon moves the BROKER stop (cancel-confirm-replace) and only then sets
++      chat_be_done / fut_stop = ref; if it cannot, it sets chat_be_failclosed and this exits the remaining filled qty.
++    - While a trim is pending nothing else sells (no oversell); the break-even exit sells only pos['qty'] (filled, held)."""
 +    cs = pos.get("chat_sweep")
-+    if not live() or not isinstance(cs, dict) or px is None or pos.get("fut_ref") is None: return None
++    if not live() or not isinstance(cs, dict) or pos.get("fut_ref") is None: return None
++    q = int(pos.get("qty") or 0)
++    if q <= 0: return ("hold", 0, "no filled qty")
++    pend = pos.get("chat_trim_pending")
++    if pend:
++        if q <= int(pend["target_qty"]):
++            pos["chat_trim_pending"] = None; pos["chat_t1"] = True; pos["chat_be_request"] = True; pos["trimmed"] = True
++            return ("hold", 0, f"chat T1 trim fill confirmed ({pend['qty']}ct, {q} left): break-even stop requested")
++        return ("hold", 0, f"chat T1 trim of {pend['qty']} pending (held {q}, want {pend['target_qty']}) — nothing else sells")
++    if pos.get("chat_be_failclosed"):
++        return ("exit", q, f"break-even broker stop not possible ({pos['chat_be_failclosed']}) — fail closed, exit {q}")
++    if px is None: return None
 +    L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]; fav = (px - ref) if L else (ref - px)
 +    t1 = pos.get("fut_t1") if pos.get("fut_t1") is not None else cs.get("t1")
 +    be = cs.get("beTrigger") or CS["beTriggerPts"]
 +    if t1 is not None and not pos.get("chat_t1") and ((px >= t1) if L else (px <= t1)):
-+        pos["chat_t1"] = True; pos["fut_stop"] = ref; pos["be_moved"] = True
-+        n = int(pos["qty"] * CS["t1Frac"]) if pos["qty"] >= 2 else 0
-+        if n and not pos.get("trimmed"): return ("trim", n, f"chat T1 {t1}: half off ({n}), stop -> break-even {ref}")
-+        return ("hold", 0, f"chat T1 {t1} on 1 contract: stop -> break-even {ref}")
-+    if not pos.get("be_moved") and fav + 1e-9 >= be:
-+        pos["fut_stop"] = ref; pos["be_moved"] = True
-+        return ("hold", 0, f"+{fav:.2f} >= {be}: stop -> break-even {ref}")
-+    if pos.get("be_moved") and ((px <= ref) if L else (px >= ref)):
-+        return ("exit", pos["qty"], f"break-even stop {ref} hit (px {px})")
++        n = int(q * CS["t1Frac"]) if q >= 2 else 0
++        if n >= 1 and not pos.get("trimmed"):
++            pos["chat_trim_pending"] = {"qty": n, "target_qty": q - n}
++            return ("trim", n, f"chat T1 {t1}: half off ({n} of {q}); stop moves to break-even after the fill")
++        pos["chat_t1"] = True; pos["chat_be_request"] = True
++        return ("hold", 0, f"chat T1 {t1} with {q} contract(s): no trim, break-even stop requested")
++    if not pos.get("chat_be_request") and fav + 1e-9 >= be:
++        pos["chat_be_request"] = True
++        return ("hold", 0, f"+{fav:.2f} >= {be}: break-even stop requested")
++    if pos.get("chat_be_done") and ((px <= ref) if L else (px >= ref)):
++        return ("exit", q, f"break-even stop {ref} hit (px {px}); selling the {q} filled contract(s) left")
++    if pos.get("chat_be_request") or pos.get("chat_be_done"):
++        return ("hold", 0, "chat: break-even " + ("set" if pos.get("chat_be_done") else "pending broker stop"))
 +    return None
 diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 --- a/watcher/daemon.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/daemon.py	2026-10-22 22:03:40.659671500 -0500
++++ b/watcher/daemon.py	2026-10-22 22:33:20.871671500 -0500
 @@ -461,7 +461,7 @@
                                    "fut_side": snap["side"], "fut_symbol": snap["symbol"],
                                    "fut_stop": fut_stop, "fut_stop_why": stop_why,
@@ -1336,6 +1427,57 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
                                    "walk_step": 0, "walk_at": time.time(), "quote_at_fire": {k: q.get(k) for k in ("bid", "ask", "delta", "theta", "iv")},
                                    "premium_stop_pct": gates.premium_stop_pct(snap.get("targets"))}
          self.alert(f"PLACED {n}x {c['symbol']} {c['exp']} {c['strike']}{c['type'][0].upper()} @ {lim} ({how}) key={key} stop={fut_stop} ({stop_why})", result=res)
+@@ -512,6 +512,32 @@
+             self.log("resting_stop_failed", reason=str(e)); self.alert(f"RESTING STOP FAILED ({e}) — script-watched stop still active"); self.save(); return
+         self.save()
+ 
++    def _chat_be_move(self, pos, et):
++        """chatSweep break-even: move the BROKER stop to the option entry premium (cancel-confirm-replace of the resting
++        stop, clamped under the bid by _place_resting_stop). Returns (ok, why). Never an in-memory-only move: no broker
++        resting-stop path, a cancel that won't confirm, or a replace without an order id -> (False, why) = fail closed."""
++        from . import exitsafe
++        if pos["contract"].get("spread_short"): return False, "spread position has no resting stop"
++        if not exitsafe.resting_stop_enabled(): return False, "broker resting stop disabled (EXIT_SAFE_RESTING_STOP off)"
++        if pos.get("resting_stop_blocked"): return False, f"resting stop blocked ({pos['resting_stop_blocked']})"
++        if self.stopped(): return False, "STOP present — no broker order"
++        held = int(pos.get("qty") or 0)
++        if held <= 0: return False, "no filled qty"
++        prev = pos.get("opt_stop"); pos["opt_stop"] = round(float(pos["entry"]), 2)
++        oid = pos.get("resting_stop_id")
++        if oid:
++            try: st2 = self._close_guard(pos).clear()
++            except Exception as e:
++                pos["opt_stop"] = prev; return False, f"old stop {oid} cancel not confirmed ({str(e)[:120]})"
++            if st2 == "filled":
++                self._book_resting_stop_fill(pos, oid, et); pos["resting_stop_id"] = None
++                return False, f"old stop {oid} filled before the replace"
++            pos["resting_stop_id"] = None
++        self._place_resting_stop(pos, held, force=True)
++        if not pos.get("resting_stop_id"):
++            return False, "replacement stop has no order id"
++        return True, f"broker stop {pos['resting_stop_id']} at {pos.get('resting_stop_px')} for {held}ct (break-even {pos['opt_stop']})"
++
+     def _check_resting_stop(self, pos, qty, et):
+         """Every manage cycle: keep the resting stop matched to the live position.
+         filled -> recorded; expired/cancelled/rejected (gfd expiry at the close, manual cancel) -> re-placed unless
+@@ -659,6 +685,17 @@
+             self.alert("position no longer open on RH — clearing state" + (" (resting stop filled)" if pos.get("resting_stop_id") else "")); self.state["position"] = None; return
+         pos["qty"] = qty
+         self._check_resting_stop(pos, qty, et)
++        if pos.get("chat_be_request") and not pos.get("chat_be_done") and not pos.get("chat_be_failclosed") and not pos.get("chat_trim_pending"):
++            okb, whyb = self._chat_be_move(pos, et)
++            if okb:
++                pos.setdefault("fut_stop_orig", pos.get("fut_stop"))
++                pos.update(chat_be_done=True, fut_stop=pos.get("fut_ref"), be_moved=True)
++                self.log("chat_be_stop", signal=pos.get("signal"), note=whyb)
++            else:
++                pos["chat_be_failclosed"] = whyb
++                self.log("chat_be_stop_failed", signal=pos.get("signal"), reason=whyb)
++                self.alert(f"CHAT BREAK-EVEN: broker stop not moved ({whyb}) — fail closed, exiting the remaining {qty}ct")
++            self.save()
+         mark, md = self.broker.spread_mark(pos["contract"]) if pos["contract"].get("spread_short") else self.broker.mark(pos["contract"]["id"])
+         fut_px = None
+         try: fut_px = gates.snapshot(self.fetch())["tape_prices"].get(pos.get("fut_symbol"))
 diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
 --- a/watcher/desk-rules.json	2026-10-19 07:21:29.610018716 -0500
 +++ b/watcher/desk-rules.json	2026-10-22 22:03:03.127671500 -0500
@@ -1372,7 +1514,7 @@ diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
  }
 diff -ruN a/watcher/gates.py b/watcher/gates.py
 --- a/watcher/gates.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/gates.py	2026-10-22 22:03:40.659671500 -0500
++++ b/watcher/gates.py	2026-10-22 22:33:20.871671500 -0500
 @@ -113,6 +113,8 @@
          # ltfArm live + validatedOnly: the card is LTF-armed / the desk's verdict on whether that arm may fire
          "ltf_armed": strat.get("ltfArmed") is True,
@@ -1403,7 +1545,7 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
      add("sizing", nct is not None, why)
      if nct is None:
          if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")
-@@ -974,6 +981,9 @@
+@@ -974,9 +981,15 @@
          hit = underlying_px >= lvl if pos.get("fut_side") == "short" else underlying_px <= lvl
          if hit:
              return "exit", pos["qty"], f"ticket stop {lvl} hit (px {underlying_px})"
@@ -1412,4 +1554,20 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
 +    if _cm: return _cm
      # loss.early / loss.target.beFrac: futures-side management (pos carries fut_ref, fut_stop, fut_t1, opened_ms)
      if underlying_px is not None and pos.get("fut_ref") is not None and pos.get("fut_stop") is not None:
-         L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]; risk = abs(ref - pos["fut_stop"])
+-        L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]; risk = abs(ref - pos["fut_stop"])
++        L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]
++        # risk from the ORIGINAL stop: after a break-even move fut_stop == ref, so abs(ref - fut_stop) would be 0
++        _so = pos.get("fut_stop_orig") if pos.get("fut_stop_orig") is not None else pos["fut_stop"]
++        risk = abs(ref - _so)
+         fav = (underlying_px - ref) if L else (ref - underlying_px)
+         pos["fut_mfe"] = max(pos.get("fut_mfe") or 0.0, fav)
+         t1 = pos.get("fut_t1")
+@@ -986,7 +999,7 @@
+         if pos.get("be_moved") and ((underlying_px <= ref) if L else (underlying_px >= ref)):
+             return "exit", pos["qty"], f"breakeven stop {ref} hit (px {underlying_px})"
+         op = pos.get("opened_ms"); now = et_dt.timestamp() * 1000
+-        if op is not None and risk > 0 and (now - op) / 60000 >= LOSS["early"]["minutes"] and pos["fut_mfe"] / risk < LOSS["early"]["minR"]:
++        if op is not None and risk > 0 and not pos.get("chat_be_done") and (now - op) / 60000 >= LOSS["early"]["minutes"] and pos["fut_mfe"] / risk < LOSS["early"]["minR"]:
+             _w = f"no {LOSS['early']['minR']}R in {LOSS['early']['minutes']}m (best {pos['fut_mfe'] / risk:.2f}R) — early cut"
+             if loss_mode("early") == "live": return "exit", pos["qty"], _w
+             if not pos.get("shadow_early"):
