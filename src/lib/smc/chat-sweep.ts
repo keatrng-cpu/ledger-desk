@@ -110,18 +110,25 @@ export function chatSweepRead(i: { symbol: string; minute: CsBar[]; partner: CsB
 }
 
 /** Contracts check: the setup needs at least minContracts (2) affordable, else it does not fire. */
+/** minContracts is ONE config value (chatSweep.minContracts); Keaton deciding min 2 vs B+ 1ct = a one-line change. */
+export const chatSweepMinContracts = (R: ChatSweepRules = CHAT_SWEEP): number => R.minContracts;
 export function chatSweepSize(affordable: number, R: ChatSweepRules = CHAT_SWEEP): { ok: boolean; qty: number; why: string } {
   return affordable >= R.minContracts ? { ok: true, qty: affordable, why: `${affordable}ct (min ${R.minContracts})` } : { ok: false, qty: 0, why: `${affordable}ct affordable < min ${R.minContracts} — no fire` };
 }
 
-/** Management twin (watcher gates.chat_manage): half off at T1; stop to break-even at T1 or beTrigger in favour. */
-export function chatSweepManage(p: { side: CsSide; entry: number; t1: number; beTrigger: number; px: number; qty: number; t1Done: boolean; beMoved: boolean }, R: ChatSweepRules = CHAT_SWEEP):
-  { action: "trim" | "hold"; qty: number; moveStopTo: number | null; why: string } {
+/** Management twin (watcher chat_sweep.manage): at T1 trim floor(qty x t1Frac) only when qty >= 2 (never 0); the
+ *  break-even stop is requested only after the trim fill is confirmed (or at once with < 2 contracts, or at +beTrigger). */
+export function chatSweepManage(p: { side: CsSide; entry: number; t1: number; beTrigger: number; px: number; qty: number; t1Done: boolean; beRequested: boolean }, R: ChatSweepRules = CHAT_SWEEP):
+  { action: "trim" | "hold"; qty: number; requestBe: boolean; beAfterFill: boolean; why: string } {
   const L = p.side === "long"; const fav = L ? p.px - p.entry : p.entry - p.px;
   const atT1 = L ? p.px >= p.t1 : p.px <= p.t1;
-  if (atT1 && !p.t1Done) { const n = p.qty >= 2 ? Math.floor(p.qty * R.t1Frac) : 0; return { action: n ? "trim" : "hold", qty: n, moveStopTo: p.entry, why: `T1 ${p.t1}: ${n ? `sell ${n}` : "1 contract"}, stop -> break-even ${p.entry}` }; }
-  if (!p.beMoved && fav + 1e-9 >= p.beTrigger) return { action: "hold", qty: 0, moveStopTo: p.entry, why: `+${r2(fav)} >= ${p.beTrigger}: stop -> break-even ${p.entry}` };
-  return { action: "hold", qty: 0, moveStopTo: null, why: "hold" };
+  if (atT1 && !p.t1Done) {
+    const n = p.qty >= 2 ? Math.floor(p.qty * R.t1Frac) : 0;
+    if (n >= 1) return { action: "trim", qty: n, requestBe: false, beAfterFill: true, why: `T1 ${p.t1}: sell ${n} of ${p.qty}; break-even after the fill` };
+    return { action: "hold", qty: 0, requestBe: true, beAfterFill: false, why: `T1 ${p.t1} with ${p.qty} contract: no trim, break-even stop` };
+  }
+  if (!p.beRequested && fav + 1e-9 >= p.beTrigger) return { action: "hold", qty: 0, requestBe: true, beAfterFill: false, why: `+${r2(fav)} >= ${p.beTrigger}: break-even stop` };
+  return { action: "hold", qty: 0, requestBe: false, beAfterFill: false, why: "hold" };
 }
 
 /** Brain/Floor seat line (same words both places). */
