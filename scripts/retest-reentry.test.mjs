@@ -33,5 +33,5 @@ test("refuses under 0.85R", () => {
 test("shadow module does not change the rules hash (constants stay out of desk-rules.json)", () => {
   const rules = JSON.parse(readFileSync("shared/desk-rules.json", "utf8"));
   assert.equal("retestReentry" in rules, false);
-  assert.equal(h.RULES_HASH, "0a692dc19944a8df");
+  assert.equal(h.RULES_HASH, "63ec3d05ca3f9995");
 });

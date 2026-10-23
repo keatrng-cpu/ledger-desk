@@ -109,9 +109,10 @@ test("scanner: an unvalidated arm never mutates the card (no components, no entr
 });
 
 test("RULES_HASH: desk, Brain, Floor and watcher share one hash", () => {
-  assert.equal(H.RULES_HASH, "0a692dc19944a8df");   // 9eeed9b4083700cb -> 0a692dc19944a8df (everyTf, mtfInversion, ltfArm shadow+allTfKills shadow+validatedOnly+1D, reviewQuoteRetry shadow+softMaxAgeS)
-  const w = readFileSync(new URL("../docs/mtf-ltf-inversion-1017/watcher-every-tf.patch", import.meta.url), "utf8");
-  assert.match(w, /0a692dc19944a8df/);   // the paired watcher patch pins the same hash
+  assert.equal(H.RULES_HASH, "63ec3d05ca3f9995");   // 9eeed9b4083700cb -> 0a692dc19944a8df (everyTf, mtfInversion, ltfArm shadow+allTfKills shadow+validatedOnly+1D, reviewQuoteRetry shadow+softMaxAgeS)
+  // 0a692dc19944a8df -> eeb84801a0b5c5b2 (2026-10-22 chatSweep live) -> 63ec3d05ca3f9995 (2026-10-23 chatSweep shadow + manageLive false)
+  const w = readFileSync(new URL("../docs/desk-trades-like-chat-1022/watcher-chat-sweep.patch", import.meta.url), "utf8");
+  assert.match(w, /63ec3d05ca3f9995/);   // the paired watcher patch pins the same hash
 });
 
 test("Accuracy #52: the all-rung kill read only ADDS kills — re-arm never easier, both-sides kill never dropped", async () => {
