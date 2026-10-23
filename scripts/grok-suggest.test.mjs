@@ -83,7 +83,7 @@ test("wire + brain seat carry suggestions (display only); RULES_HASH unchanged",
   const card = { id: "grok:x", symbol: "MNQ", side: "short", entry: 1, stop: 2, t1: 0, setup: "s", confidence: 0.5, at: 0, readAt: 0, source: "grok", mode: "shadow", review: { decision: "no-fire", route: "none", band: "B+", stop: 2, t1: 0, rr1: 1, checks: [], reviewUs: 1 }, standReview: "pending" };
   const mi = dl.masterInputOf({ rule1: [], grokSuggest: [card], brain: { word: "WAIT" }, floor: { verdict: "WATCH" }, strategy: null }, null, "normal");
   assert.equal(mi.grokSuggest[0].id, "grok:x");
-  assert.equal(h.RULES_HASH, "0a692dc19944a8df");
+  assert.equal(h.RULES_HASH, "eeb84801a0b5c5b2");
   assert.equal(readFileSync("shared/desk-rules.json", "utf8").includes("grokSuggest"), false);
 });
 

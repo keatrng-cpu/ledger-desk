@@ -1,6 +1,7 @@
 import { planTargetText, orderTargets } from "@/lib/trading/card-plan";
 import { LTF_ARM, MTF_VALIDATED, capBandAt, ltfArmFireGate, ltfArmLive, sessionPools } from "@/lib/smc/ltf-arm";
 import { everyTfRead, everyTfSeatNote, wireEveryTf, type EveryTfRead } from "@/lib/smc/every-tf";
+import { CHAT_SWEEP, chatSweepLive, chatSweepRead, chatSweepSeat, type ChatSweepRead } from "@/lib/smc/chat-sweep";
 import { RR_MIN } from "@/lib/smc/exec-context";
 import { primaryTarget } from "./card-plan";
 import { DESK_T1_FREEZE, t1Freeze } from "./t1-freeze";
@@ -2060,6 +2061,37 @@ export async function buildTradingDesk(data: { left: IndexSymbol; right: IndexSy
     // ltfArm cap, last word: nothing after the scanner may lift an LTF-armed card past ltfArm.capBand.
     capStage("ltfArm cap");
     for (const c of payload.scan.candidates) if (c.ltfArmed) c.pathBand = capBandAt(c.pathBand, LTF_ARM.capBand);
+    // Chat sweep (shared rules chatSweep, Keaton 2026-10-22 "Make the desk trade like chat"): both sides scored on every
+    // read from CLOSED 1m bars of the book + its partner book + closed 5m, all cut at the same now. Live: a card arms only
+    // when its side printed on the newest closed bar; its plan is the chat plan (entry = that close, stop past the sweep
+    // wick / last-6-bar extreme, T1). Not printed -> not actionable (the card stays visible, both biases stay open).
+    {
+      const nowCs = left.marketTimeMs ?? right.marketTimeMs ?? Date.now();
+      const csReads = new Map<string, ChatSweepRead>();
+      for (const [sym, mn, pm] of [[left.symbol, minuteL, minuteR], [right.symbol, minuteR, minuteL]] as const) {
+        try { csReads.set(sym, chatSweepRead({ symbol: sym, minute: mn ?? [], partner: pm ?? [], nowMs: nowCs })); } catch { /* absent, never invented */ }
+      }
+      for (const c of payload.scan.candidates) {
+        const r = csReads.get(c.symbol) ?? null; const side = c.side as "long" | "short";
+        const p = r ? r[side] : null;
+        (c as { chatSweep?: unknown }).chatSweep = { mode: CHAT_SWEEP.mode, printed: Boolean(p), print: p, barT: r?.barT ?? null, refused: r?.refused.filter((x) => x.side === side).map((x) => x.why) ?? [] };
+        (c as { chatSweepSeat?: string | null }).chatSweepSeat = chatSweepSeat(r, side);
+        if (!chatSweepLive()) continue;
+        if (p) {
+          const rr = (t: number) => +(Math.abs(t - p.entry) / p.risk).toFixed(2);
+          const t1 = c.plan && c.plan.t1 != null && (side === "long" ? c.plan.t1 > p.entry : c.plan.t1 < p.entry) ? c.plan.t1 : p.t1;
+          c.entryPx = p.entry;
+          c.plan = { ...(c.plan ?? {}), entry: p.entry, stop: p.stop, stopWhy: p.stopWhy, riskPts: p.risk, t1, t2: p.runner, rr1: rr(t1), rr2: rr(p.runner),
+            sweep: p.wick, symbol: c.symbol, side: c.side, why: p.why, entrySrc: "chat sweep 1m close", targetSrc: t1 === p.t1 ? "chat T1" : "desk T1" } as never;
+          c.invalidation = `Stop ${p.stop} — ${p.stopWhy}`;
+          c.reasons.push(`Chat sweep printed: ${p.why}; stop ${p.stop}, T1 ${t1}, min ${p.minContracts}ct`);
+        } else {
+          const why = "Chat sweep not printed on this side";
+          if (c.actionable) c.actionable = false;
+          if (!c.missing.includes(why)) c.missing.push(why);
+        }
+      }
+    }
     // DEEP AUDIT 2026-10-15 seal — runs after every plan mutation (discipline widening, loss guards, ltfArm):
     //  #15 tick grid, #14 stop text from the number, #16 level hysteresis, #2 T1-traded = missed,
     //  #1/#13 invalidated (price through the stop) = dead card, #12 stale tape withholds grades.

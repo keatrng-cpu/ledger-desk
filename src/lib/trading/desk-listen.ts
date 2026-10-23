@@ -174,6 +174,8 @@ export interface DeskWire {
     /** ltfArm live: the card is LTF-armed; ltfArmGate says whether it may fire (validatedOnly). */
     ltfArmed?: boolean;
     ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } | null;
+    /** Chat sweep (shared rules chatSweep): did the card's side print on the newest closed 1m bar, and its plan. */
+    chatSweep?: { mode: string; printed: boolean; print: import("@/lib/smc/chat-sweep").ChatSweepPrint | null; barT: number | null; refused: string[] } | null;
     /** 10/16 retest re-entry SHADOW read (smc/retest-reentry.ts). Brain/Floor note it, the watcher shadow-logs it; never fires. */
     retestReentry?: import("@/lib/smc/retest-reentry").RetestRead | null;
     /** Loss-pattern guards (shared rules loss.*): size multiplier (1h+4h both oppose → loss.htf.sizeMult), sweep flag, and the guard reads. */
@@ -246,6 +248,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** Every-TF closes: the same per-rung line as the Floor and the card (note only, never moves the word). */
     everyTfSeat?: string | null;
+    /** Chat sweep (shared rules chatSweep): the same line as the Floor and the card. */
+    chatSweepSeat?: string | null;
     /** 10/16 retest re-entry seat note (shadow: a note, never a vote). */
     retestSeat?: string | null;
   };
@@ -266,6 +270,8 @@ export interface DeskWire {
     fix1016Seat?: string | null;
     /** Every-TF closes: Floor seat line (newest closes per rung, body/wick evidence) — a note, never a vote. */
     everyTfSeat?: string | null;
+    /** Chat sweep (shared rules chatSweep): printed / not printed for the card's side, stop, T1, min contracts. */
+    chatSweepSeat?: string | null;
     /** 10/16 retest re-entry Floor line (shadow: a note, never a vote; the watcher shadow-logs it only). */
     retest?: string | null;
     /** fireFix.gateHand: A+/A handed with brain/SMT/direction holds at a one-step smaller size. */
@@ -413,6 +419,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
           entryState: (top as { entryState?: unknown }).entryState ?? null,
           fix1016: (top as { fix1016?: unknown }).fix1016 ?? null,
           everyTf: (top as { everyTf?: unknown }).everyTf ?? null,
+          chatSweep: ((top as { chatSweep?: unknown }).chatSweep as never) ?? null,
           ltfArmed: (top as { ltfArmed?: boolean }).ltfArmed === true,
           ltfArmGate: (top as { ltfArmGate?: { ok: boolean; why: string; validated: number; setupId?: string | null; armRefused?: string | null } }).ltfArmGate ?? null,
           retestReentry: ((top as { retestReentry?: unknown }).retestReentry as never) ?? null,
@@ -457,6 +464,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
+      chatSweepSeat: (top as { chatSweepSeat?: string | null } | null | undefined)?.chatSweepSeat ?? null,
       retestSeat: retestLine(top),
       word: book?.word ?? null,
       book: book ? { symbol: book.symbol, side: book.side ?? null } : null,
@@ -492,6 +500,7 @@ export function deskListenCard(desk: DeskPayload): DeskListenCard {
       kzSeat: kzSeatNote(),
       fix1016Seat: fix1016SeatNote((top as { fix1016?: unknown } | null | undefined)?.fix1016),
       everyTfSeat: (top as { everyTfSeat?: string | null } | null | undefined)?.everyTfSeat ?? null,
+      chatSweepSeat: (top as { chatSweepSeat?: string | null } | null | undefined)?.chatSweepSeat ?? null,
       retest: retestLine(top),
       sizeCut: shown?.sizeCut === true,
       handTo: shown?.handTo ?? null,

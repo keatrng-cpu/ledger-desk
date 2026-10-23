@@ -146,5 +146,56 @@
   "u_entry": 723.86,
   "trigger": "two-sided M: SPY 5m>771.40 & QQQ 5m>724.00 then green 1m close > prior high (1m 723.79)",
   "src": "armed-trade.log 10:22-10:25 + correction"
+ },
+ {
+  "id": "chat-2026-10-22-R-LONG",
+  "day": "2026-10-22",
+  "setup": "R-LONG",
+  "symbol": "QQQ",
+  "side": "long",
+  "contract": "QQQ 2026-10-22 713C",
+  "qty": 3,
+  "entry_ct": "08:54",
+  "entry": 2.46,
+  "debit": 738,
+  "proceeds": 878,
+  "exits": [
+   {
+    "qty": 3,
+    "px": null,
+    "tag": "manual close (Keaton), total +$140"
+   }
+  ],
+  "pnl": 140,
+  "sweep": 711.75,
+  "smt": "NQ/ES SMT at the 711.75 sweep low",
+  "trigger": "sweep of the 711.75 low + NQ/ES SMT, 1m displacement close back inside",
+  "note": "Lesson (10/22): both trades had a small instant drawdown then displacement; stops belong past the sweep wick or the last-6-bar extreme, not the session high. Expiry recorded as 0DTE (same day) per the chat-trade convention; exit fill prices not given, only totals.",
+  "src": "Keaton chat 2026-10-22 (recorded 21:56 CT)"
+ },
+ {
+  "id": "chat-2026-10-22-R-SHORT",
+  "day": "2026-10-22",
+  "setup": "R-SHORT",
+  "symbol": "QQQ",
+  "side": "short",
+  "contract": "QQQ 2026-10-22 712P",
+  "qty": 2,
+  "entry_ct": "09:21",
+  "entry": 2.64,
+  "debit": 528,
+  "proceeds": 608,
+  "exits": [
+   {
+    "qty": 2,
+    "px": null,
+    "tag": "manual close (Keaton), total +$80 — Keaton thinks selling early halved it"
+   }
+  ],
+  "pnl": 80,
+  "sweep": 715.43,
+  "trigger": "715.43 high sweep failed, then 1m break below 711.75",
+  "note": "Lesson (10/22): both trades had a small instant drawdown then displacement; stops belong past the sweep wick or the last-6-bar extreme, not the session high. Expiry recorded as 0DTE (same day) per the chat-trade convention; exit fill prices not given, only totals.",
+  "src": "Keaton chat 2026-10-22 (recorded 21:56 CT)"
  }
 ]

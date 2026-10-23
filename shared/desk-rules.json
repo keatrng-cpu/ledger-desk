@@ -1154,5 +1154,30 @@
     "_doc": "MTF->LTF inversion setups (audit /workspace/audits/mtf-ltf-inversion, 2026-10-17). `validated` lists the setup ids that passed the pre-declared live-wire test (family walk-forward OOS > 0 AND untouched holdout R/trade > 0, $/wk > 0, n >= 20, futures net of costs). Empty = nothing passed: ltfArm arms are computed and shown but never fire. Never add an id here without re-running that test.",
     "mode": "live",
     "validated": []
+  },
+  "chatSweep": {
+    "_doc": "Keaton 2026-10-22 21:56 CT: 'Make the desk trade like chat'. Desk, Brain, Floor and desk-watcher read this one block. Setup: the session high/low (set before the last 3 closed 1m bars) is wick-swept within the last 3 closed 1m bars, then the newest closed 1m bar closes back inside AND beyond the prior 2 bars' extreme with body >= dispBodyAvg x the 10-bar avg range; partner book same color; newest closed 5m not against (tolerance fiveMinTolPts). Both sides scored every read; a side arms only when it prints. Stop = sweep wick (or last-6-bar extreme if further) +/- stopPadPts, refused if > maxStopPts from entry. Min 2 contracts; half off at T1; stop to break-even at T1 or beTriggerPts in favour. Points are QQQ/SPY points; other symbols scale by px / unitRefPx (QQQ 711.75, the 10/22 sweep low). Reference: live-tape armed_s.py / armed_r.py. Closed bars only.",
+    "mode": "live",
+    "sessionStartEt": "09:30",
+    "entryEndEt": "11:30",
+    "sweepBars": 3,
+    "priorBars": 2,
+    "minBars": 8,
+    "avgRangeBars": 10,
+    "dispBodyAvg": 0.8,
+    "fiveMinTolPts": 0.05,
+    "stopPadPts": 0.1,
+    "stopExtremeBars": 6,
+    "maxStopPts": 1.3,
+    "t1Pts": 0.85,
+    "runnerPts": 1.8,
+    "beTriggerPts": 0.35,
+    "minContracts": 2,
+    "t1Frac": 0.5,
+    "etfSymbols": [
+      "QQQ",
+      "SPY"
+    ],
+    "unitRefPx": 711.75
   }
 }

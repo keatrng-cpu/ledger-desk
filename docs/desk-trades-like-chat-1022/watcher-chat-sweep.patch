@@ -1,0 +1,1415 @@
+diff -ruN a/tests/conftest.py b/tests/conftest.py
+--- a/tests/conftest.py	2026-10-18 16:30:11.425755499 -0500
++++ b/tests/conftest.py	2026-10-22 22:07:45.759671500 -0500
+@@ -28,3 +28,11 @@
+     from watcher import fastchain
+     if request.node.get_closest_marker("fast") is None:
+         monkeypatch.setitem(fastchain.FC, "mode", "off")
++
++
++@_pytest.fixture
++def chat_shadow(monkeypatch):
++    """Legacy fire-path tests that size 1 contract (gateHand cut / $325): run with chatSweep in shadow so they keep testing
++    what they test. chatSweep live (min 2 contracts, printed setup) is covered in test_chat_sweep.py, including the 1ct refusal."""
++    from watcher import chat_sweep
++    monkeypatch.setitem(chat_sweep.CS, "mode", "shadow")
+diff -ruN a/tests/fixtures/card_aplus_armed.json b/tests/fixtures/card_aplus_armed.json
+--- a/tests/fixtures/card_aplus_armed.json	2026-10-18 16:28:58.285755499 -0500
++++ b/tests/fixtures/card_aplus_armed.json	2026-10-22 22:06:54.659671500 -0500
+@@ -71,7 +71,7 @@
+   "band": "A+"
+  },
+  "brain": {
+-  "thesis": "STAND MNQ long \u00b7 5/8 \u00b7 Draw on liquidity",
++  "thesis": "STAND MNQ long · 5/8 · Draw on liquidity",
+   "symbol": "MNQ",
+   "side": "short",
+   "word": "STAND",
+@@ -125,12 +125,28 @@
+    "stop": "Stop 30700.25",
+    "draw": "PDL (external SSL) +3",
+    "displacementStrength": 0.8,
+-   "rrRaw": 2.0
++   "rrRaw": 2.0,
++   "chatSweep": {
++    "mode": "live",
++    "printed": true,
++    "print": {
++     "side": "short",
++     "printed": true,
++     "entry": 30680,
++     "stop": 30700.25,
++     "t1": 30643.4,
++     "beTrigger": 15.09,
++     "minContracts": 2,
++     "unit": 43.1
++    },
++    "barT": null,
++    "refused": []
++   }
+   },
+   "brain": {
+    "word": "TAKE",
+-   "thesis": "STAND ES short \u00b7 same book \u00b7 the other side is not this entry",
+-   "missing": "same book \u2014 brain was on the other side",
++   "thesis": "STAND ES short · same book · the other side is not this entry",
++   "missing": "same book — brain was on the other side",
+    "htfReleased": true
+   },
+   "chart": [
+@@ -154,7 +170,7 @@
+       "price": 31290
+      },
+      {
+-      "name": "EQH \u00d72 (external)",
++      "name": "EQH ×2 (external)",
+       "price": 31088.5
+      },
+      {
+@@ -187,7 +203,7 @@
+       "price": 7884
+      },
+      {
+-      "name": "EQL \u00d72 (external)",
++      "name": "EQL ×2 (external)",
+       "price": 7876.375
+      }
+     ]
+diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cases.json
+--- a/tests/fixtures/chat-sweep-cases.json	1969-12-31 18:00:00.000000000 -0600
++++ b/tests/fixtures/chat-sweep-cases.json	2026-10-22 22:03:59.643671500 -0500
+@@ -0,0 +1,985 @@
++[
++ {
++  "name": "long_1022_style",
++  "symbol": "QQQ",
++  "minute": [
++   {
++    "t": 1792675800000,
++    "o": 712.6,
++    "h": 712.9,
++    "l": 712.3,
++    "c": 712.7
++   },
++   {
++    "t": 1792675860000,
++    "o": 712.7,
++    "h": 713.0,
++    "l": 712.4,
++    "c": 712.8
++   },
++   {
++    "t": 1792675920000,
++    "o": 712.8,
++    "h": 713.1,
++    "l": 712.5,
++    "c": 712.9
++   },
++   {
++    "t": 1792675980000,
++    "o": 712.9,
++    "h": 713.2,
++    "l": 712.6,
++    "c": 713.0
++   },
++   {
++    "t": 1792676040000,
++    "o": 713.0,
++    "h": 713.3,
++    "l": 712.7,
++    "c": 713.1
++   },
++   {
++    "t": 1792676100000,
++    "o": 712.3,
++    "h": 712.5,
++    "l": 712.1,
++    "c": 712.2
++   },
++   {
++    "t": 1792676160000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.0,
++    "c": 712.1
++   },
++   {
++    "t": 1792676220000,
++    "o": 712.1,
++    "h": 712.3,
++    "l": 712.05,
++    "c": 712.2
++   },
++   {
++    "t": 1792676280000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.1,
++    "c": 712.3
++   },
++   {
++    "t": 1792676340000,
++    "o": 712.3,
++    "h": 712.6,
++    "l": 712.2,
++    "c": 712.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 712.5,
++    "h": 712.55,
++    "l": 711.75,
++    "c": 711.9
++   },
++   {
++    "t": 1792676460000,
++    "o": 711.9,
++    "h": 712.2,
++    "l": 711.8,
++    "c": 712.1
++   },
++   {
++    "t": 1792676520000,
++    "o": 712.1,
++    "h": 713.0,
++    "l": 712.05,
++    "c": 712.95
++   }
++  ],
++  "partner": [
++   {
++    "t": 1792675800000,
++    "o": 769.6080000000001,
++    "h": 769.932,
++    "l": 769.284,
++    "c": 769.7160000000001
++   },
++   {
++    "t": 1792675860000,
++    "o": 769.7160000000001,
++    "h": 770.0400000000001,
++    "l": 769.392,
++    "c": 769.824
++   },
++   {
++    "t": 1792675920000,
++    "o": 769.824,
++    "h": 770.148,
++    "l": 769.5,
++    "c": 769.932
++   },
++   {
++    "t": 1792675980000,
++    "o": 769.932,
++    "h": 770.2560000000001,
++    "l": 769.6080000000001,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676040000,
++    "o": 770.0400000000001,
++    "h": 770.364,
++    "l": 769.7160000000001,
++    "c": 770.148
++   },
++   {
++    "t": 1792676100000,
++    "o": 769.28,
++    "h": 769.5,
++    "l": 769.07,
++    "c": 769.18
++   },
++   {
++    "t": 1792676160000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 768.96,
++    "c": 769.07
++   },
++   {
++    "t": 1792676220000,
++    "o": 769.07,
++    "h": 769.28,
++    "l": 769.01,
++    "c": 769.18
++   },
++   {
++    "t": 1792676280000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 769.07,
++    "c": 769.28
++   },
++   {
++    "t": 1792676340000,
++    "o": 769.28,
++    "h": 769.61,
++    "l": 769.18,
++    "c": 769.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 769.0,
++    "h": 769.1,
++    "l": 768.6,
++    "c": 768.8
++   },
++   {
++    "t": 1792676460000,
++    "o": 768.8,
++    "h": 769.0,
++    "l": 768.7,
++    "c": 768.9
++   },
++   {
++    "t": 1792676520000,
++    "o": 768.9,
++    "h": 769.6,
++    "l": 768.85,
++    "c": 769.5
++   }
++  ],
++  "nowMs": 1792676585000,
++  "expect": {
++   "long": {
++    "stop": 711.65,
++    "entry": 712.95,
++    "t1": 713.8
++   },
++   "short": null
++  }
++ },
++ {
++  "name": "weak_body_no_print",
++  "symbol": "QQQ",
++  "minute": [
++   {
++    "t": 1792675800000,
++    "o": 712.6,
++    "h": 712.9,
++    "l": 712.3,
++    "c": 712.7
++   },
++   {
++    "t": 1792675860000,
++    "o": 712.7,
++    "h": 713.0,
++    "l": 712.4,
++    "c": 712.8
++   },
++   {
++    "t": 1792675920000,
++    "o": 712.8,
++    "h": 713.1,
++    "l": 712.5,
++    "c": 712.9
++   },
++   {
++    "t": 1792675980000,
++    "o": 712.9,
++    "h": 713.2,
++    "l": 712.6,
++    "c": 713.0
++   },
++   {
++    "t": 1792676040000,
++    "o": 713.0,
++    "h": 713.3,
++    "l": 712.7,
++    "c": 713.1
++   },
++   {
++    "t": 1792676100000,
++    "o": 712.3,
++    "h": 712.5,
++    "l": 712.1,
++    "c": 712.2
++   },
++   {
++    "t": 1792676160000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.0,
++    "c": 712.1
++   },
++   {
++    "t": 1792676220000,
++    "o": 712.1,
++    "h": 712.3,
++    "l": 712.05,
++    "c": 712.2
++   },
++   {
++    "t": 1792676280000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.1,
++    "c": 712.3
++   },
++   {
++    "t": 1792676340000,
++    "o": 712.3,
++    "h": 712.6,
++    "l": 712.2,
++    "c": 712.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 712.5,
++    "h": 712.55,
++    "l": 711.75,
++    "c": 711.9
++   },
++   {
++    "t": 1792676460000,
++    "o": 711.9,
++    "h": 712.2,
++    "l": 711.8,
++    "c": 712.1
++   },
++   {
++    "t": 1792676520000,
++    "o": 712.1,
++    "h": 712.6,
++    "l": 712.05,
++    "c": 712.35
++   }
++  ],
++  "partner": [
++   {
++    "t": 1792675800000,
++    "o": 769.6080000000001,
++    "h": 769.932,
++    "l": 769.284,
++    "c": 769.7160000000001
++   },
++   {
++    "t": 1792675860000,
++    "o": 769.7160000000001,
++    "h": 770.0400000000001,
++    "l": 769.392,
++    "c": 769.824
++   },
++   {
++    "t": 1792675920000,
++    "o": 769.824,
++    "h": 770.148,
++    "l": 769.5,
++    "c": 769.932
++   },
++   {
++    "t": 1792675980000,
++    "o": 769.932,
++    "h": 770.2560000000001,
++    "l": 769.6080000000001,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676040000,
++    "o": 770.0400000000001,
++    "h": 770.364,
++    "l": 769.7160000000001,
++    "c": 770.148
++   },
++   {
++    "t": 1792676100000,
++    "o": 769.28,
++    "h": 769.5,
++    "l": 769.07,
++    "c": 769.18
++   },
++   {
++    "t": 1792676160000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 768.96,
++    "c": 769.07
++   },
++   {
++    "t": 1792676220000,
++    "o": 769.07,
++    "h": 769.28,
++    "l": 769.01,
++    "c": 769.18
++   },
++   {
++    "t": 1792676280000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 769.07,
++    "c": 769.28
++   },
++   {
++    "t": 1792676340000,
++    "o": 769.28,
++    "h": 769.61,
++    "l": 769.18,
++    "c": 769.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 769.0,
++    "h": 769.1,
++    "l": 768.6,
++    "c": 768.8
++   },
++   {
++    "t": 1792676460000,
++    "o": 768.8,
++    "h": 769.0,
++    "l": 768.7,
++    "c": 768.9
++   },
++   {
++    "t": 1792676520000,
++    "o": 768.9,
++    "h": 769.6,
++    "l": 768.85,
++    "c": 769.5
++   }
++  ],
++  "nowMs": 1792676585000,
++  "expect": {
++   "long": null,
++   "short": null
++  }
++ },
++ {
++  "name": "short_mirror",
++  "symbol": "QQQ",
++  "minute": [
++   {
++    "t": 1792675800000,
++    "o": 712.6,
++    "h": 712.9,
++    "l": 712.3,
++    "c": 712.7
++   },
++   {
++    "t": 1792675860000,
++    "o": 712.7,
++    "h": 713.0,
++    "l": 712.4,
++    "c": 712.8
++   },
++   {
++    "t": 1792675920000,
++    "o": 712.8,
++    "h": 713.1,
++    "l": 712.5,
++    "c": 712.9
++   },
++   {
++    "t": 1792675980000,
++    "o": 712.9,
++    "h": 713.2,
++    "l": 712.6,
++    "c": 713.0
++   },
++   {
++    "t": 1792676040000,
++    "o": 713.0,
++    "h": 713.3,
++    "l": 712.7,
++    "c": 713.1
++   },
++   {
++    "t": 1792676100000,
++    "o": 713.1,
++    "h": 713.2,
++    "l": 712.9,
++    "c": 713.0
++   },
++   {
++    "t": 1792676160000,
++    "o": 713.1,
++    "h": 713.2,
++    "l": 712.9,
++    "c": 713.0
++   },
++   {
++    "t": 1792676220000,
++    "o": 713.1,
++    "h": 713.2,
++    "l": 712.9,
++    "c": 713.0
++   },
++   {
++    "t": 1792676280000,
++    "o": 713.1,
++    "h": 713.2,
++    "l": 712.9,
++    "c": 713.0
++   },
++   {
++    "t": 1792676340000,
++    "o": 713.1,
++    "h": 713.2,
++    "l": 712.9,
++    "c": 713.0
++   },
++   {
++    "t": 1792676400000,
++    "o": 713.0,
++    "h": 713.55,
++    "l": 712.95,
++    "c": 713.2
++   },
++   {
++    "t": 1792676460000,
++    "o": 713.2,
++    "h": 713.3,
++    "l": 712.9,
++    "c": 713.1
++   },
++   {
++    "t": 1792676520000,
++    "o": 713.1,
++    "h": 713.15,
++    "l": 712.55,
++    "c": 712.6
++   }
++  ],
++  "partner": [
++   {
++    "t": 1792675800000,
++    "o": 769.6080000000001,
++    "h": 769.932,
++    "l": 769.284,
++    "c": 769.7160000000001
++   },
++   {
++    "t": 1792675860000,
++    "o": 769.7160000000001,
++    "h": 770.0400000000001,
++    "l": 769.392,
++    "c": 769.824
++   },
++   {
++    "t": 1792675920000,
++    "o": 769.824,
++    "h": 770.148,
++    "l": 769.5,
++    "c": 769.932
++   },
++   {
++    "t": 1792675980000,
++    "o": 769.932,
++    "h": 770.2560000000001,
++    "l": 769.6080000000001,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676040000,
++    "o": 770.0400000000001,
++    "h": 770.364,
++    "l": 769.7160000000001,
++    "c": 770.148
++   },
++   {
++    "t": 1792676100000,
++    "o": 770.148,
++    "h": 770.2560000000001,
++    "l": 769.932,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676160000,
++    "o": 770.148,
++    "h": 770.2560000000001,
++    "l": 769.932,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676220000,
++    "o": 770.148,
++    "h": 770.2560000000001,
++    "l": 769.932,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676280000,
++    "o": 770.148,
++    "h": 770.2560000000001,
++    "l": 769.932,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676340000,
++    "o": 770.148,
++    "h": 770.2560000000001,
++    "l": 769.932,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676400000,
++    "o": 770.0400000000001,
++    "h": 770.634,
++    "l": 769.9860000000001,
++    "c": 770.2560000000001
++   },
++   {
++    "t": 1792676460000,
++    "o": 770.2560000000001,
++    "h": 770.364,
++    "l": 769.932,
++    "c": 770.148
++   },
++   {
++    "t": 1792676520000,
++    "o": 770.0,
++    "h": 770.05,
++    "l": 769.3,
++    "c": 769.4
++   }
++  ],
++  "nowMs": 1792676585000,
++  "expect": {
++   "long": null,
++   "short": {
++    "stop": 713.65,
++    "entry": 712.6,
++    "t1": 711.75
++   }
++  }
++ },
++ {
++  "name": "stop_too_wide",
++  "symbol": "QQQ",
++  "minute": [
++   {
++    "t": 1792675800000,
++    "o": 712.6,
++    "h": 712.9,
++    "l": 712.3,
++    "c": 712.7
++   },
++   {
++    "t": 1792675860000,
++    "o": 712.7,
++    "h": 713.0,
++    "l": 712.4,
++    "c": 712.8
++   },
++   {
++    "t": 1792675920000,
++    "o": 712.8,
++    "h": 713.1,
++    "l": 712.5,
++    "c": 712.9
++   },
++   {
++    "t": 1792675980000,
++    "o": 712.9,
++    "h": 713.2,
++    "l": 712.6,
++    "c": 713.0
++   },
++   {
++    "t": 1792676040000,
++    "o": 713.0,
++    "h": 713.3,
++    "l": 712.7,
++    "c": 713.1
++   },
++   {
++    "t": 1792676100000,
++    "o": 712.3,
++    "h": 712.5,
++    "l": 712.1,
++    "c": 712.2
++   },
++   {
++    "t": 1792676160000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.0,
++    "c": 712.1
++   },
++   {
++    "t": 1792676220000,
++    "o": 712.1,
++    "h": 712.3,
++    "l": 712.05,
++    "c": 712.2
++   },
++   {
++    "t": 1792676280000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.1,
++    "c": 712.3
++   },
++   {
++    "t": 1792676340000,
++    "o": 712.3,
++    "h": 712.6,
++    "l": 712.2,
++    "c": 712.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 712.5,
++    "h": 712.55,
++    "l": 710.5,
++    "c": 711.9
++   },
++   {
++    "t": 1792676460000,
++    "o": 711.9,
++    "h": 712.2,
++    "l": 711.8,
++    "c": 712.1
++   },
++   {
++    "t": 1792676520000,
++    "o": 712.1,
++    "h": 713.0,
++    "l": 712.05,
++    "c": 712.95
++   }
++  ],
++  "partner": [
++   {
++    "t": 1792675800000,
++    "o": 769.6080000000001,
++    "h": 769.932,
++    "l": 769.284,
++    "c": 769.7160000000001
++   },
++   {
++    "t": 1792675860000,
++    "o": 769.7160000000001,
++    "h": 770.0400000000001,
++    "l": 769.392,
++    "c": 769.824
++   },
++   {
++    "t": 1792675920000,
++    "o": 769.824,
++    "h": 770.148,
++    "l": 769.5,
++    "c": 769.932
++   },
++   {
++    "t": 1792675980000,
++    "o": 769.932,
++    "h": 770.2560000000001,
++    "l": 769.6080000000001,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676040000,
++    "o": 770.0400000000001,
++    "h": 770.364,
++    "l": 769.7160000000001,
++    "c": 770.148
++   },
++   {
++    "t": 1792676100000,
++    "o": 769.28,
++    "h": 769.5,
++    "l": 769.07,
++    "c": 769.18
++   },
++   {
++    "t": 1792676160000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 768.96,
++    "c": 769.07
++   },
++   {
++    "t": 1792676220000,
++    "o": 769.07,
++    "h": 769.28,
++    "l": 769.01,
++    "c": 769.18
++   },
++   {
++    "t": 1792676280000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 769.07,
++    "c": 769.28
++   },
++   {
++    "t": 1792676340000,
++    "o": 769.28,
++    "h": 769.61,
++    "l": 769.18,
++    "c": 769.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 769.0,
++    "h": 769.1,
++    "l": 768.6,
++    "c": 768.8
++   },
++   {
++    "t": 1792676460000,
++    "o": 768.8,
++    "h": 769.0,
++    "l": 768.7,
++    "c": 768.9
++   },
++   {
++    "t": 1792676520000,
++    "o": 768.9,
++    "h": 769.6,
++    "l": 768.85,
++    "c": 769.5
++   }
++  ],
++  "nowMs": 1792676585000,
++  "expect": {
++   "long": null,
++   "short": null
++  }
++ },
++ {
++  "name": "forming_bar_ignored",
++  "symbol": "QQQ",
++  "minute": [
++   {
++    "t": 1792675800000,
++    "o": 712.6,
++    "h": 712.9,
++    "l": 712.3,
++    "c": 712.7
++   },
++   {
++    "t": 1792675860000,
++    "o": 712.7,
++    "h": 713.0,
++    "l": 712.4,
++    "c": 712.8
++   },
++   {
++    "t": 1792675920000,
++    "o": 712.8,
++    "h": 713.1,
++    "l": 712.5,
++    "c": 712.9
++   },
++   {
++    "t": 1792675980000,
++    "o": 712.9,
++    "h": 713.2,
++    "l": 712.6,
++    "c": 713.0
++   },
++   {
++    "t": 1792676040000,
++    "o": 713.0,
++    "h": 713.3,
++    "l": 712.7,
++    "c": 713.1
++   },
++   {
++    "t": 1792676100000,
++    "o": 712.3,
++    "h": 712.5,
++    "l": 712.1,
++    "c": 712.2
++   },
++   {
++    "t": 1792676160000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.0,
++    "c": 712.1
++   },
++   {
++    "t": 1792676220000,
++    "o": 712.1,
++    "h": 712.3,
++    "l": 712.05,
++    "c": 712.2
++   },
++   {
++    "t": 1792676280000,
++    "o": 712.2,
++    "h": 712.4,
++    "l": 712.1,
++    "c": 712.3
++   },
++   {
++    "t": 1792676340000,
++    "o": 712.3,
++    "h": 712.6,
++    "l": 712.2,
++    "c": 712.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 712.5,
++    "h": 712.55,
++    "l": 711.75,
++    "c": 711.9
++   },
++   {
++    "t": 1792676460000,
++    "o": 711.9,
++    "h": 712.2,
++    "l": 711.8,
++    "c": 712.1
++   },
++   {
++    "t": 1792676520000,
++    "o": 712.1,
++    "h": 713.0,
++    "l": 712.05,
++    "c": 712.95
++   }
++  ],
++  "partner": [
++   {
++    "t": 1792675800000,
++    "o": 769.6080000000001,
++    "h": 769.932,
++    "l": 769.284,
++    "c": 769.7160000000001
++   },
++   {
++    "t": 1792675860000,
++    "o": 769.7160000000001,
++    "h": 770.0400000000001,
++    "l": 769.392,
++    "c": 769.824
++   },
++   {
++    "t": 1792675920000,
++    "o": 769.824,
++    "h": 770.148,
++    "l": 769.5,
++    "c": 769.932
++   },
++   {
++    "t": 1792675980000,
++    "o": 769.932,
++    "h": 770.2560000000001,
++    "l": 769.6080000000001,
++    "c": 770.0400000000001
++   },
++   {
++    "t": 1792676040000,
++    "o": 770.0400000000001,
++    "h": 770.364,
++    "l": 769.7160000000001,
++    "c": 770.148
++   },
++   {
++    "t": 1792676100000,
++    "o": 769.28,
++    "h": 769.5,
++    "l": 769.07,
++    "c": 769.18
++   },
++   {
++    "t": 1792676160000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 768.96,
++    "c": 769.07
++   },
++   {
++    "t": 1792676220000,
++    "o": 769.07,
++    "h": 769.28,
++    "l": 769.01,
++    "c": 769.18
++   },
++   {
++    "t": 1792676280000,
++    "o": 769.18,
++    "h": 769.39,
++    "l": 769.07,
++    "c": 769.28
++   },
++   {
++    "t": 1792676340000,
++    "o": 769.28,
++    "h": 769.61,
++    "l": 769.18,
++    "c": 769.5
++   },
++   {
++    "t": 1792676400000,
++    "o": 769.0,
++    "h": 769.1,
++    "l": 768.6,
++    "c": 768.8
++   },
++   {
++    "t": 1792676460000,
++    "o": 768.8,
++    "h": 769.0,
++    "l": 768.7,
++    "c": 768.9
++   },
++   {
++    "t": 1792676520000,
++    "o": 768.9,
++    "h": 769.6,
++    "l": 768.85,
++    "c": 769.5
++   }
++  ],
++  "nowMs": 1792676579000,
++  "expect": {
++   "long": null,
++   "short": null
++  }
++ }
++]
+diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
+--- a/tests/test_chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
++++ b/tests/test_chat_sweep.py	2026-10-22 22:08:22.779671500 -0500
+@@ -0,0 +1,47 @@
++"""chatSweep twin: same fixture as ledger-desk scripts/chat-sweep.test.mjs (scripts/fixtures/chat-sweep-cases.json)."""
++import json, os
++from watcher import chat_sweep as cs, gates
++from watcher.config import Config
++
++CASES = json.load(open(os.path.join(os.path.dirname(__file__), "fixtures", "chat-sweep-cases.json")))
++
++def test_fixture_cases_match_desk():
++    for k in CASES:
++        r = cs.read(k["symbol"], k["minute"], k["partner"], k["nowMs"])
++        for side in ("long", "short"):
++            e, p = k["expect"][side], r[side]
++            if e is None: assert p is None, (k["name"], side); continue
++            assert p, (k["name"], side)
++            assert (p["stop"], p["entry"], p["t1"]) == (e["stop"], e["entry"], e["t1"]), (k["name"], p)
++
++def test_no_lookahead():
++    k = CASES[0]; fut = dict(k["minute"][-1]); fut.update(t=fut["t"] + 60_000, l=700, c=700.5)
++    assert cs.read("QQQ", k["minute"] + [fut], k["partner"], k["nowMs"])["long"] == cs.read("QQQ", k["minute"], k["partner"], k["nowMs"])["long"]
++
++def test_rules_live_and_values():
++    R = gates.RULES["chatSweep"]
++    assert R["mode"] == "live" and R["minContracts"] == 2 and R["stopPadPts"] == 0.10 and R["maxStopPts"] == 1.30 and R["beTriggerPts"] == 0.35
++
++def _snap(**kw):
++    p = dict(entry=712.95, stop=711.65, t1=713.8, unit=1.0)
++    s = dict(side="long", stop_px=711.65, chat_sweep=dict(mode="live", printed=True, print=p, refused=[]))
++    s.update(kw); return s
++
++def test_gate_row():
++    assert cs.gate_row(_snap())[1] is True
++    assert cs.gate_row(_snap(chat_sweep=None))[1] is False
++    assert cs.gate_row(_snap(chat_sweep=dict(printed=False, print=None, refused=["x"])))[1] is False
++    assert cs.gate_row(_snap(stop_px=709.0))[1] is False
++    assert cs.gate_row(_snap(side="short"))[1] is False   # stop below entry on a short
++
++def test_min_two_contracts():
++    assert cs.size_ok(1)[0] is False and cs.size_ok(2)[0] is True and cs.size_ok(None)[0] is False
++
++def test_manage_half_at_t1_and_be():
++    pos = dict(fut_side="long", fut_ref=712.95, fut_stop=711.65, fut_t1=713.8, qty=3, chat_sweep=dict(t1=713.8, beTrigger=0.35))
++    a = cs.manage(pos, 713.31); assert a[0] == "hold" and pos["fut_stop"] == 712.95 and pos["be_moved"]
++    a = cs.manage(pos, 713.8); assert a[:2] == ("trim", 1)
++    pos2 = dict(fut_side="short", fut_ref=712.6, fut_stop=713.65, fut_t1=711.75, qty=2, chat_sweep=dict(t1=711.75, beTrigger=0.35))
++    assert cs.manage(pos2, 711.7)[:2] == ("trim", 1) and pos2["fut_stop"] == 712.6
++    assert cs.manage(pos2, 712.7)[0] == "exit"
++
+diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
+--- a/tests/test_every_tf_ltf_arm.py	2026-10-19 07:21:29.610018716 -0500
++++ b/tests/test_every_tf_ltf_arm.py	2026-10-22 22:06:54.659671500 -0500
+@@ -10,7 +10,7 @@
+     assert gates.RULES["ltfArm"]["mode"] == "shadow" and gates.RULES["ltfArm"]["allTfKills"]["mode"] == "shadow" and gates.RULES["ltfArm"]["validatedOnly"] is True
+     assert gates.RULES["ltfArm"]["tfs"][-1] == "1D" and gates.RULES["everyTf"]["tfs"] == ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]
+     assert gates.MTF_VALIDATED == ()
+-    assert gates.RULES_HASH == "0a692dc19944a8df"
++    assert gates.RULES_HASH == "eeb84801a0b5c5b2"  # 2026-10-22 chatSweep (was 0a692dc19944a8df)
+     assert F.review_soft_max_age_s() == 3.0 and gates.RULES["fire"]["orderReviewMaxAgeS"] == 1
+ 
+ def test_ltf_armed_card_refused_when_nothing_validated():
+diff -ruN a/tests/test_fix1016.py b/tests/test_fix1016.py
+--- a/tests/test_fix1016.py	2026-10-19 07:21:29.610018716 -0500
++++ b/tests/test_fix1016.py	2026-10-22 22:07:45.759671500 -0500
+@@ -35,7 +35,7 @@
+     card = json.load(open(cards[0])); snap = _raw_snapshot(card.get("card", card))
+     g = gates.evaluate_fire(snap, Config(), ms(9, 27), {"entries": 0, "bplus_entries": 0, "lost": False}, None, ())
+     row = [r for r in g if r[0] == "market_open"]; assert row and row[0][1] is False and not gates.all_pass(g)
+-    assert g[-len([r for r in g if r[0] in ("market_open", "ltf_arm_validated", "every_tf") or str(r[0]).startswith(("fix1016:", "shadow:fix1016:"))]):][0][0] == "market_open"
++    assert g[-len([r for r in g if r[0] in ("market_open", "ltf_arm_validated", "chat_sweep", "every_tf") or str(r[0]).startswith(("fix1016:", "shadow:fix1016:"))]):][0][0] == "market_open"
+ 
+ # ---- fix 3 ----
+ PROM = {"deskOk": True, "why": ["band B+ >= B+", "1h bear 4h bear agree"], "plan": {"entry": 29930.63, "stop": 29944.25}}
+diff -ruN a/tests/test_gates.py b/tests/test_gates.py
+--- a/tests/test_gates.py	2026-10-18 16:28:58.201755499 -0500
++++ b/tests/test_gates.py	2026-10-22 22:08:22.779671500 -0500
+@@ -185,9 +185,11 @@
+     cfg.allow_a_minus = allow_am
+     assert ("brain" not in fails(gates.evaluate_fire(brain_snap(band, word), cfg, NOW, {}, broker(), CAL))) == ok
+ 
++@pytest.mark.usefixtures("chat_shadow")
+ def test_aplus_wait_full_pass(cfg):
+     assert gates.all_pass(gates.evaluate_fire(brain_snap("A+", "WAIT"), cfg, NOW, {}, broker(), CAL))
+ 
++@pytest.mark.usefixtures("chat_shadow")
+ def test_aplus_wait_still_needs_other_gates(cfg):
+     s = brain_snap("A+", "WAIT"); s["actionable"] = False
+     assert fails(gates.evaluate_fire(s, cfg, NOW, {}, broker(), CAL)) == {"actionable"}
+@@ -271,6 +273,7 @@
+     cfg.fast_window, cfg.slow_window, cfg.flat_by = "09:30-15:50", "", "15:50"
+     return cfg
+ 
++@pytest.mark.usefixtures("chat_shadow")
+ @pytest.mark.parametrize("word,bsym,bside", [("STAND", "MNQ", "short"), ("WAIT", "MNQ", "short"), (None, None, None),
+                                              ("TAKE", "MNQ", "long"), ("STAND", "ES", "long"), ("TAKE", "MNQ", "short")])
+ def test_soft_brain_fires(soft, word, bsym, bside):
+@@ -325,6 +328,7 @@
+ def test_cap_650(cfg):
+     assert (cfg.min_debit, cfg.max_debit, cfg.min_contracts, cfg.max_contracts) == (50.0, 650.0, 1, 4)
+ 
++@pytest.mark.usefixtures("chat_shadow")
+ def test_cap_650_in_gates(cfg):
+     s = gates.snapshot(load("card_aplus_armed.json"))
+     q = lambda a: broker(quote={"ask": a, "bid": a - 0.05, "asOfMs": NOW - 1000})
+@@ -447,3 +451,11 @@
+ def test_card_t1_rr_under_one_refused(cfg):     # 13:01 CT ES case (risk 10.88pt, T1 0.52R)
+     c = load("card_aplus_armed.json"); c["wire"]["strategy"]["rr1"] = 0.52
+     assert "t1_rr" in fails(gates.evaluate_fire(gates.snapshot(c), cfg, NOW, {"entries": 0}, broker(), CAL))
++
++
++def test_chat_sweep_live_refuses_one_contract_cut(cfg):
++    """chatSweep live (2026-10-22): the same gateHand-cut A+ WAIT card sizes 1ct ($325 cap) and refuses — min 2 contracts."""
++    g = gates.evaluate_fire(brain_snap("A+", "WAIT"), cfg, NOW, {}, broker(), CAL)
++    row = [r for r in g if r[0] == "sizing"]
++    assert row and row[0][1] is False and "chatSweep min 2" in row[0][2] and not gates.all_pass(g)
++    assert [r for r in g if r[0] == "chat_sweep"][0][1] is True
+diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
+--- a/tests/test_review_quote_refetch.py	2026-10-19 07:21:29.610018716 -0500
++++ b/tests/test_review_quote_refetch.py	2026-10-22 22:06:54.659671500 -0500
+@@ -21,7 +21,7 @@
+ 
+ def test_threshold_still_1s_and_hash_unchanged():
+     assert Config().order_review_max_age_ms == 1000 == gates.RULES["fire"]["orderReviewMaxAgeS"] * 1000
+-    assert gates.RULES_HASH == "0a692dc19944a8df"   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
++    assert gates.RULES_HASH == "eeb84801a0b5c5b2"  # 2026-10-22 chatSweep (was 0a692dc19944a8df)   # 2026-10-17 everyTf + mtfInversion + ltfArm live/validatedOnly + reviewQuoteRetry live/softMaxAgeS; strict threshold unchanged
+ 
+ def test_refetch_replaces_stale_view_quote(monkeypatch, tmp_path):
+     w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
+diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
+--- a/watcher/chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
++++ b/watcher/chat_sweep.py	2026-10-22 22:06:54.655671500 -0500
+@@ -0,0 +1,126 @@
++"""Chat sweep (Keaton 2026-10-22 21:56 CT, "Make the desk trade like chat"; shared rules `chatSweep`).
++
++Twin of ledger-desk src/lib/smc/chat-sweep.ts and of live-tape armed_s.py (setup) / armed_r.py (last-6-bar stop).
++Setup: the session high/low (set before the last 3 closed 1m bars) wick-swept within the last 3 closed 1m bars,
++then the newest closed 1m bar closes back inside and beyond the prior 2 bars' extreme, body >= 0.8 x avg range,
++partner book same colour, newest closed 5m not against. Both sides scored; a side arms only when it prints.
++Stop = sweep wick or last-6-bar extreme (further one) +/- 0.10, max 1.30 from entry. Min 2 contracts, half off at
++T1, stop to break-even at T1 / +0.35. Closed bars only; every timeframe cut at the same now (no lookahead).
++"""
++from datetime import datetime
++from zoneinfo import ZoneInfo
++from . import gates as _g
++
++CS = _g.RULES["chatSweep"]
++ET = ZoneInfo("America/New_York")
++
++def live():
++    return CS.get("mode") == "live"
++
++def unit(symbol, px, R=CS):
++    return 1.0 if str(symbol).upper() in R["etfSymbols"] else px / R["unitRefPx"]
++
++def _r2(x):  # JS Math.round(x*100)/100 parity (half up)
++    import math
++    return math.floor(x * 100 + 0.5) / 100
++
++def _hm(s): return int(s[:2]) * 60 + int(s[3:5])
++def _et(ms): return datetime.fromtimestamp(ms / 1000, ET)
++
++def closed5m(b1, now_ms):
++    m = {}
++    for b in b1:
++        if b["t"] + 60_000 > now_ms: continue
++        k = (b["t"] // 300_000) * 300_000; d = m.get(k)
++        if d is None: m[k] = dict(t=k, o=b["o"], h=b["h"], l=b["l"], c=b["c"])
++        else: d["h"] = max(d["h"], b["h"]); d["l"] = min(d["l"], b["l"]); d["c"] = b["c"]
++    return [m[k] for k in sorted(m) if k + 300_000 <= now_ms]
++
++def read(symbol, minute, partner, now_ms, R=CS):
++    out = dict(long=None, short=None, refused=[], barT=None, sessionHigh=None, sessionLow=None, inWindow=False)
++    closed = lambda xs: sorted([b for b in xs if b["t"] + 60_000 <= now_ms], key=lambda b: b["t"])
++    allb = closed(minute)
++    if not allb: return out
++    n = _et(now_ms); day = n.date(); s0 = _hm(R["sessionStartEt"])
++    in_sess = lambda b: _et(b["t"]).date() == day and _et(b["t"]).hour * 60 + _et(b["t"]).minute >= s0
++    q1 = [b for b in allb if in_sess(b)]; p1 = [b for b in closed(partner) if in_sess(b)]
++    q5 = [b for b in closed5m(minute, now_ms) if in_sess(b)]
++    nm = n.hour * 60 + n.minute
++    out["inWindow"] = s0 <= nm < _hm(R["entryEndEt"])
++    if len(q1) < R["minBars"] or not p1 or not q5: return out
++    b = q1[-1]; out["barT"] = b["t"]; pb = p1[-1]; p5 = q5[-1]
++    if pb["t"] != b["t"]:
++        out["refused"] += [dict(side="long", why="partner 1m bar not aligned"), dict(side="short", why="partner 1m bar not aligned")]; return out
++    idx = allb.index(b); prev = allb[max(0, idx - R["avgRangeBars"]):idx]
++    if not prev: return out
++    ar = sum(x["h"] - x["l"] for x in prev) / len(prev)
++    prior = q1[:-R["sweepBars"]]; rec = q1[-R["sweepBars"]:]
++    shi = max(x["h"] for x in prior); slo = min(x["l"] for x in prior); out["sessionHigh"] = shi; out["sessionLow"] = slo
++    whi = max(x["h"] for x in rec); wlo = min(x["l"] for x in rec)
++    pr = q1[-1 - R["priorBars"]:-1]; lo2 = min(x["l"] for x in pr); hi2 = max(x["h"] for x in pr)
++    ext = q1[-R["stopExtremeBars"]:]
++    u = unit(symbol, b["c"], R); pc = pb["c"] - pb["o"]; body = abs(b["c"] - b["o"]); tol = R["fiveMinTolPts"] * u
++    def mk(side, level, wick):
++        L = side == "long"; pad = R["stopPadPts"] * u
++        extreme = min(x["l"] for x in ext) if L else max(x["h"] for x in ext)
++        base = min(wick, extreme) if L else max(wick, extreme)
++        stop = _r2(base - pad if L else base + pad); entry = b["c"]; risk = _r2(abs(entry - stop))
++        if risk > R["maxStopPts"] * u + 1e-9:
++            out["refused"].append(dict(side=side, why=f"stop {stop} is {risk} from {entry} (max {_r2(R['maxStopPts'] * u)})")); return None
++        if not out["inWindow"]:
++            out["refused"].append(dict(side=side, why=f"outside {R['sessionStartEt']}-{R['entryEndEt']} ET")); return None
++        d = 1 if L else -1
++        return dict(side=side, printed=True, t=b["t"], level=level, wick=wick, entry=entry, stop=stop, risk=risk,
++                    t1=_r2(entry + d * R["t1Pts"] * u), runner=_r2(entry + d * R["runnerPts"] * u), beTrigger=_r2(R["beTriggerPts"] * u),
++                    minContracts=R["minContracts"], unit=u)
++    disp = body >= R["dispBodyAvg"] * ar
++    if whi > shi and b["c"] < shi and b["c"] < b["o"] and b["c"] < lo2 and disp and pc < 0 and p5["c"] <= p5["o"] + tol: out["short"] = mk("short", shi, whi)
++    if wlo < slo and b["c"] > slo and b["c"] > b["o"] and b["c"] > hi2 and disp and pc > 0 and p5["c"] >= p5["o"] - tol: out["long"] = mk("long", slo, wlo)
++    return out
++
++def gate_row(snap):
++    """Fire gate: live -> the desk's chatSweep verdict for the card side must say printed, its stop past entry within
++    maxStopPts (scaled), and the card's stop must be that stop. Missing verdict fails closed."""
++    if not live(): return ("chat_sweep", True, "chatSweep shadow")
++    cs = snap.get("chat_sweep")
++    if not isinstance(cs, dict): return ("chat_sweep", False, "no desk chatSweep verdict on the card — refuse (fail closed)")
++    p = cs.get("print")
++    if cs.get("printed") is not True or not isinstance(p, dict):
++        return ("chat_sweep", False, "chat sweep not printed on this side" + (f" ({'; '.join(cs.get('refused') or [])})" if cs.get("refused") else ""))
++    try:
++        entry, stop, u = float(p["entry"]), float(p["stop"]), float(p.get("unit") or 1)
++    except (KeyError, TypeError, ValueError):
++        return ("chat_sweep", False, "chatSweep print missing entry/stop — refuse")
++    L = snap.get("side") == "long"
++    if (L and not stop < entry) or (not L and not stop > entry): return ("chat_sweep", False, f"chat stop {stop} on the wrong side of {entry}")
++    if abs(entry - stop) > CS["maxStopPts"] * u + 1e-6: return ("chat_sweep", False, f"chat stop {stop} > max {CS['maxStopPts']}x{u:.2f} from {entry}")
++    sp = snap.get("stop_px") if snap.get("stop_px") is not None else snap.get("strategy_stop")
++    try: sp = float(sp) if sp is not None else None
++    except (TypeError, ValueError): sp = None
++    if sp is not None and abs(sp - stop) > 0.5 * u:   # desk seal rounds to tick; anything else is a different plan
++        return ("chat_sweep", False, f"card stop {sp} is not the chat stop {stop}")
++    return ("chat_sweep", True, f"chat sweep {snap.get('side')} printed: entry {entry} stop {stop} T1 {p.get('t1')}")
++
++def size_ok(nct):
++    """Min 2 contracts for a chat-sweep fire (armed_s/armed_r: 'ABORT 2x not affordable')."""
++    if nct is None: return False, "no size"
++    return (nct >= CS["minContracts"], f"{nct}ct (chatSweep min {CS['minContracts']})")
++
++def manage(pos, px):
++    """Half off at T1, stop to break-even at T1 or beTrigger in favour. Returns (action, qty, why) or None (fall through)."""
++    cs = pos.get("chat_sweep")
++    if not live() or not isinstance(cs, dict) or px is None or pos.get("fut_ref") is None: return None
++    L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]; fav = (px - ref) if L else (ref - px)
++    t1 = pos.get("fut_t1") if pos.get("fut_t1") is not None else cs.get("t1")
++    be = cs.get("beTrigger") or CS["beTriggerPts"]
++    if t1 is not None and not pos.get("chat_t1") and ((px >= t1) if L else (px <= t1)):
++        pos["chat_t1"] = True; pos["fut_stop"] = ref; pos["be_moved"] = True
++        n = int(pos["qty"] * CS["t1Frac"]) if pos["qty"] >= 2 else 0
++        if n and not pos.get("trimmed"): return ("trim", n, f"chat T1 {t1}: half off ({n}), stop -> break-even {ref}")
++        return ("hold", 0, f"chat T1 {t1} on 1 contract: stop -> break-even {ref}")
++    if not pos.get("be_moved") and fav + 1e-9 >= be:
++        pos["fut_stop"] = ref; pos["be_moved"] = True
++        return ("hold", 0, f"+{fav:.2f} >= {be}: stop -> break-even {ref}")
++    if pos.get("be_moved") and ((px <= ref) if L else (px >= ref)):
++        return ("exit", pos["qty"], f"break-even stop {ref} hit (px {px})")
++    return None
+diff -ruN a/watcher/daemon.py b/watcher/daemon.py
+--- a/watcher/daemon.py	2026-10-19 07:21:29.610018716 -0500
++++ b/watcher/daemon.py	2026-10-22 22:03:40.659671500 -0500
+@@ -461,7 +461,7 @@
+                                   "fut_side": snap["side"], "fut_symbol": snap["symbol"],
+                                   "fut_stop": fut_stop, "fut_stop_why": stop_why,
+                                   "fut_ref": (snap.get("tape_prices") or {}).get(snap["symbol"]),
+-                                  "fut_t1": snap.get("first_target"), "fut_t2": snap.get("t2"), "fut_runner": (((snap.get("fix1016") or {}).get("runner")) or {}).get("runnerTarget"), "opened_ms": now_ms(), "size_cut": snap.get("size_cut", False),
++                                  "fut_t1": snap.get("first_target"), "fut_t2": snap.get("t2"), "fut_runner": (((snap.get("fix1016") or {}).get("runner")) or {}).get("runnerTarget"), "opened_ms": now_ms(), "size_cut": snap.get("size_cut", False), "chat_sweep": ((snap.get("chat_sweep") or {}).get("print") if (snap.get("chat_sweep") or {}).get("printed") is True else None),
+                                   "walk_step": 0, "walk_at": time.time(), "quote_at_fire": {k: q.get(k) for k in ("bid", "ask", "delta", "theta", "iv")},
+                                   "premium_stop_pct": gates.premium_stop_pct(snap.get("targets"))}
+         self.alert(f"PLACED {n}x {c['symbol']} {c['exp']} {c['strike']}{c['type'][0].upper()} @ {lim} ({how}) key={key} stop={fut_stop} ({stop_why})", result=res)
+diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
+--- a/watcher/desk-rules.json	2026-10-19 07:21:29.610018716 -0500
++++ b/watcher/desk-rules.json	2026-10-22 22:03:03.127671500 -0500
+@@ -1154,5 +1154,30 @@
+     "_doc": "MTF->LTF inversion setups (audit /workspace/audits/mtf-ltf-inversion, 2026-10-17). `validated` lists the setup ids that passed the pre-declared live-wire test (family walk-forward OOS > 0 AND untouched holdout R/trade > 0, $/wk > 0, n >= 20, futures net of costs). Empty = nothing passed: ltfArm arms are computed and shown but never fire. Never add an id here without re-running that test.",
+     "mode": "live",
+     "validated": []
++  },
++  "chatSweep": {
++    "_doc": "Keaton 2026-10-22 21:56 CT: 'Make the desk trade like chat'. Desk, Brain, Floor and desk-watcher read this one block. Setup: the session high/low (set before the last 3 closed 1m bars) is wick-swept within the last 3 closed 1m bars, then the newest closed 1m bar closes back inside AND beyond the prior 2 bars' extreme with body >= dispBodyAvg x the 10-bar avg range; partner book same color; newest closed 5m not against (tolerance fiveMinTolPts). Both sides scored every read; a side arms only when it prints. Stop = sweep wick (or last-6-bar extreme if further) +/- stopPadPts, refused if > maxStopPts from entry. Min 2 contracts; half off at T1; stop to break-even at T1 or beTriggerPts in favour. Points are QQQ/SPY points; other symbols scale by px / unitRefPx (QQQ 711.75, the 10/22 sweep low). Reference: live-tape armed_s.py / armed_r.py. Closed bars only.",
++    "mode": "live",
++    "sessionStartEt": "09:30",
++    "entryEndEt": "11:30",
++    "sweepBars": 3,
++    "priorBars": 2,
++    "minBars": 8,
++    "avgRangeBars": 10,
++    "dispBodyAvg": 0.8,
++    "fiveMinTolPts": 0.05,
++    "stopPadPts": 0.1,
++    "stopExtremeBars": 6,
++    "maxStopPts": 1.3,
++    "t1Pts": 0.85,
++    "runnerPts": 1.8,
++    "beTriggerPts": 0.35,
++    "minContracts": 2,
++    "t1Frac": 0.5,
++    "etfSymbols": [
++      "QQQ",
++      "SPY"
++    ],
++    "unitRefPx": 711.75
+   }
+ }
+diff -ruN a/watcher/gates.py b/watcher/gates.py
+--- a/watcher/gates.py	2026-10-19 07:21:29.610018716 -0500
++++ b/watcher/gates.py	2026-10-22 22:03:40.659671500 -0500
+@@ -113,6 +113,8 @@
+         # ltfArm live + validatedOnly: the card is LTF-armed / the desk's verdict on whether that arm may fire
+         "ltf_armed": strat.get("ltfArmed") is True,
+         "ltf_arm_gate": strat.get("ltfArmGate") if isinstance(strat.get("ltfArmGate"), dict) else None,
++        # chatSweep (Keaton 2026-10-22): the desk's verdict for the card side (printed + chat plan); watcher/chat_sweep.py gates it
++        "chat_sweep": strat.get("chatSweep") if isinstance(strat.get("chatSweep"), dict) else None,
+         "stop_px": _strict(strat.get("stopPx")),
+         "t2": _strict(strat.get("t2")),
+         "strategy_invalidated": strat.get("invalidated") is True,
+@@ -604,7 +606,8 @@
+     # 2026-10-17: ltfArm validatedOnly is HARD (appended here, after the fast chain / evFire, so nothing softens it);
+     # every_tf is an info row (the desk's closed-bar body/wick read on every rung), always ok.
+     _etf = every_tf_row(snap)
+-    return g + [_f16.market_open_row(now_ms), ltf_arm_validated_row(snap)] + ([_etf] if _etf else []) + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap)
++    from . import chat_sweep as _cs
++    return g + [_f16.market_open_row(now_ms), ltf_arm_validated_row(snap), _cs.gate_row(snap)] + ([_etf] if _etf else []) + _f16.ltf_promote_rows(snap) + _f16.shadow_rows(snap)
+ 
+ def _evaluate_fire_v5(snap, cfg, now_ms, state_day, broker=None, calendar=()):
+     g = _evaluate_fire_core(snap, cfg, now_ms, state_day, broker, calendar)
+@@ -849,6 +852,10 @@
+     from . import fastchain as _fch
+     _nh, _hw = _fch.htf_size(nct, snap, cfg)                          # unblock-2: HTF-opposed + LTF reversal -> half (no-op when the size cut already halved caps)
+     if _hw and _nh != nct: why = f"{_nh}ct after {_hw}; was " + why; nct = _nh
++    from . import chat_sweep as _csz
++    if nct is not None and _csz.live():
++        _okc, _wc = _csz.size_ok(nct)
++        if not _okc: why += f"; {_wc} — 2x not affordable, no fire"; nct = None
+     add("sizing", nct is not None, why)
+     if nct is None:
+         if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")
+@@ -974,6 +981,9 @@
+         hit = underlying_px >= lvl if pos.get("fut_side") == "short" else underlying_px <= lvl
+         if hit:
+             return "exit", pos["qty"], f"ticket stop {lvl} hit (px {underlying_px})"
++    from . import chat_sweep as _csm   # chatSweep: half off at T1, stop -> break-even at T1 / +beTrigger (before the legacy BE/early rules)
++    _cm = _csm.manage(pos, underlying_px)
++    if _cm: return _cm
+     # loss.early / loss.target.beFrac: futures-side management (pos carries fut_ref, fut_stop, fut_t1, opened_ms)
+     if underlying_px is not None and pos.get("fut_ref") is not None and pos.get("fut_stop") is not None:
+         L = pos.get("fut_side") == "long"; ref = pos["fut_ref"]; risk = abs(ref - pos["fut_stop"])
