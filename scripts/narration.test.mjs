@@ -289,9 +289,9 @@ test("weekly cost: priced from discipline.ts; narration with an invented number 
 
 /* ── Hard rules ── */
 test("rules: RULES_HASH and shared/desk-rules.json bytes pinned (2026-10-17 every-TF + LTF inversion change)", () => {
-  assert.equal(H.RULES_HASH, "eeb84801a0b5c5b2");
+  assert.equal(H.RULES_HASH, "63ec3d05ca3f9995");
   const sha = createHash("sha256").update(readFileSync(new URL("../shared/desk-rules.json", import.meta.url))).digest("hex");
-  assert.equal(sha, "145b3e8db215d0b07dd432afa60b2d5690f3e9db3005cfb35b0bd6884188e91b");
+  assert.equal(sha, "88623b94eb4f010a3892f4441bc8d02df11b1b3c2893fa5010afc925e9921029");
 });
 
 /* ── Follow-ups (PR #50 review) ── */

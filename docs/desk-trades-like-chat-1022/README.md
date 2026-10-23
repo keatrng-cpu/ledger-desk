@@ -3,7 +3,8 @@
 Keaton, chat 2026-10-22 21:56 CT: "Make the desk trade like chat and cut reviews to a quick safety check".
 See `ai/DECISIONS.md` (2026-10-22 21:56 CT entry) for the rule text.
 
-- Shared rules: `shared/desk-rules.json` `chatSweep` (RULES_HASH 0a692dc19944a8df -> eeb84801a0b5c5b2).
+- Shared rules: `shared/desk-rules.json` `chatSweep` (RULES_HASH 0a692dc19944a8df -> 63ec3d05ca3f9995).
+- **Ships in SHADOW.** The rule ships with `chatSweep.mode = "shadow"` and `chatSweep.manageLive = false`. In shadow, the desk and the watcher only read, log and annotate (the card `chatSweep` field, the seat line, and a `chat_sweep` gate row that passes with "shadow"). They do not change the plan, actionable, the fire, sizing or exits. `mode "live"` lets the print gate the fire and set the chat plan. The 2-contract minimum, the T1 half trim and the break-even stop run only when `mode` is `"live"` AND `manageLive` is `true`. Both flips are pending Keaton verbatim approval and the live verification below.
 - Desk: `src/lib/smc/chat-sweep.ts`, wired in `src/lib/trading/build-desk.ts` (before the deep-audit seal).
 - Brain / Floor: `src/lib/trading/desk-listen.ts` — `strategy.chatSweep`, `brain.chatSweepSeat`, `floor.chatSweepSeat`.
 - Watcher: `watcher-chat-sweep.patch` (new `watcher/chat_sweep.py`, gate row `chat_sweep`, min-2 sizing, T1 half + break-even

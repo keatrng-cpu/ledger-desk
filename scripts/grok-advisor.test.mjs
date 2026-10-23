@@ -17,7 +17,7 @@ const book = (s, now) => { const m = ALL[s].filter((b) => b.t + 60_000 <= now); 
 const card = (o = {}) => ({ id: "c1", symbol: "MNQ", side: "short", pathBand: "C", actionable: false, entryPx: 30010, plan: { entry: 30010, stop: 30090, t1: 29900 }, q: 0.45, missing: ["LTF arm"], vetoes: ["POI in correct half"], caps: [], ...o });
 
 test("hash unchanged; advisor is shadow config outside desk-rules; nothing in gate/score/fire imports it", () => {
-  assert.equal(h.RULES_HASH, "eeb84801a0b5c5b2");
+  assert.equal(h.RULES_HASH, "63ec3d05ca3f9995");
   assert.equal(readFileSync("shared/desk-rules.json", "utf8").includes("advisor"), false);
   const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
   const allowed = new Set(["src/lib/trading/build-desk.ts", "src/lib/trading/desk-listen.ts", "src/lib/smc/master-seat.ts"]);

@@ -21,10 +21,12 @@ export type CsSide = "long" | "short";
 export interface ChatSweepRules {
   mode: "live" | "shadow"; sessionStartEt: string; entryEndEt: string; sweepBars: number; priorBars: number; minBars: number;
   avgRangeBars: number; dispBodyAvg: number; fiveMinTolPts: number; stopPadPts: number; stopExtremeBars: number; maxStopPts: number;
-  t1Pts: number; runnerPts: number; beTriggerPts: number; minContracts: number; t1Frac: number; etfSymbols: string[]; unitRefPx: number;
+  t1Pts: number; runnerPts: number; beTriggerPts: number; minContracts: number; manageLive?: boolean; t1Frac: number; etfSymbols: string[]; unitRefPx: number;
 }
 export const CHAT_SWEEP = (RULES as unknown as { chatSweep: ChatSweepRules }).chatSweep;
-export const chatSweepLive = (): boolean => CHAT_SWEEP.mode === "live";
+export const chatSweepLive = (R: ChatSweepRules = CHAT_SWEEP): boolean => R.mode === "live";
+/** Min-contracts sizing + T1 trim + break-even management: ONLY when mode is live AND manageLive is true (default off). */
+export const chatSweepManageLive = (R: ChatSweepRules = CHAT_SWEEP): boolean => R.mode === "live" && R.manageLive === true;
 
 export interface ChatSweepPrint {
   side: CsSide; printed: true; t: number; level: number; wick: number; entry: number; stop: number; stopWhy: string;
@@ -113,6 +115,7 @@ export function chatSweepRead(i: { symbol: string; minute: CsBar[]; partner: CsB
 /** minContracts is ONE config value (chatSweep.minContracts); Keaton deciding min 2 vs B+ 1ct = a one-line change. */
 export const chatSweepMinContracts = (R: ChatSweepRules = CHAT_SWEEP): number => R.minContracts;
 export function chatSweepSize(affordable: number, R: ChatSweepRules = CHAT_SWEEP): { ok: boolean; qty: number; why: string } {
+  if (!chatSweepManageLive(R)) return { ok: true, qty: affordable, why: `${affordable}ct (chatSweep min ${R.minContracts} not enforced: mode ${R.mode}, manageLive ${R.manageLive === true})` };
   return affordable >= R.minContracts ? { ok: true, qty: affordable, why: `${affordable}ct (min ${R.minContracts})` } : { ok: false, qty: 0, why: `${affordable}ct affordable < min ${R.minContracts} — no fire` };
 }
 
@@ -120,6 +123,7 @@ export function chatSweepSize(affordable: number, R: ChatSweepRules = CHAT_SWEEP
  *  break-even stop is requested only after the trim fill is confirmed (or at once with < 2 contracts, or at +beTrigger). */
 export function chatSweepManage(p: { side: CsSide; entry: number; t1: number; beTrigger: number; px: number; qty: number; t1Done: boolean; beRequested: boolean }, R: ChatSweepRules = CHAT_SWEEP):
   { action: "trim" | "hold"; qty: number; requestBe: boolean; beAfterFill: boolean; why: string } {
+  if (!chatSweepManageLive(R)) return { action: "hold", qty: 0, requestBe: false, beAfterFill: false, why: `chatSweep management off (mode ${R.mode}, manageLive ${R.manageLive === true}) — annotate only` };
   const L = p.side === "long"; const fav = L ? p.px - p.entry : p.entry - p.px;
   const atT1 = L ? p.px >= p.t1 : p.px <= p.t1;
   if (atT1 && !p.t1Done) {

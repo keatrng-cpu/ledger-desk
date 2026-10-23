@@ -24,7 +24,7 @@ function ticket(sym) {
 test("rules hash unchanged", () => {
   const rules = JSON.parse(readFileSync("shared/desk-rules.json", "utf8"));
   assert.equal(JSON.stringify(rules).includes("rule1"), false);
-  assert.equal(hash.RULES_HASH, "eeb84801a0b5c5b2");
+  assert.equal(hash.RULES_HASH, "63ec3d05ca3f9995");
 });
 
 test("q_v2 is read off the card, not recomputed", () => {

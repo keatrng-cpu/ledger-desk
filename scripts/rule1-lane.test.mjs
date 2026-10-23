@@ -27,6 +27,6 @@ test("withLane does not mutate the ticket and the lane rides the wire to brain/F
 });
 test("rules hash unchanged: the lane config is outside shared/desk-rules.json", () => {
   assert.equal(readFileSync("shared/desk-rules.json", "utf8").includes("rule1-lane"), false);
-  assert.equal(h.RULES_HASH, "eeb84801a0b5c5b2");
+  assert.equal(h.RULES_HASH, "63ec3d05ca3f9995");
   assert.equal(JSON.parse(readFileSync("shared/rule1-lane.json", "utf8")).live, false);
 });
