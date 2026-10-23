@@ -1,1 +1,1 @@
-$(cat /tmp/week-ahead-full.ts)
+PLACEHOLDER_FOR_FULL_CONTENT
