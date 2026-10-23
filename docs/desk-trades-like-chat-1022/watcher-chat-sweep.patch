@@ -1066,8 +1066,8 @@ diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cas
 +]
 diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 --- a/tests/test_chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/test_chat_sweep.py	2026-10-23 00:32:10.183671500 -0500
-@@ -0,0 +1,309 @@
++++ b/tests/test_chat_sweep.py	2026-10-23 00:47:22.107671500 -0500
+@@ -0,0 +1,320 @@
 +"""chatSweep twin: same fixture as ledger-desk scripts/chat-sweep.test.mjs (scripts/fixtures/chat-sweep-cases.json)."""
 +import json, os, pytest
 +from watcher import chat_sweep as cs, gates
@@ -1365,7 +1365,7 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +    a = gates.manage_action(pos, 2.6, Config(), _et(), 713.8)                    # in profit: profit rules held
 +    assert a[0] == "hold" and "pending" in a[2] and not pos.get("chat_trim_cancel_first")
 +    a = gates.manage_action(pos, 0.2, Config(), _et(), 712.0)                    # premium collapsed: loss exit runs
-+    assert a[0] == "exit" and a[2].startswith(gates.CHAT_PENDING_LOSS_EXITS) and pos["chat_trim_cancel_first"]
++    assert a[0] == "exit" and pos["_exit_rule"] in gates.CHAT_PENDING_LOSS_EXITS and pos["chat_trim_cancel_first"]
 +
 +def test_loss_exit_cancels_pending_trim_then_sells_held_only(monkeypatch):
 +    dm, me, b, alerts, logs = _dm(monkeypatch, held=2)
@@ -1377,6 +1377,17 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +    r2 = b.sell({"id": "opt1"}, 1, 2.6); pos2["chat_trim_pending"]["order_id"] = r2["id"]
 +    b.cancel = lambda oid: None                                                   # cancel never confirms
 +    assert dm.Watcher._chat_cancel_pending_trim(me, pos2) == 0 and pos2["chat_trim_pending"]   # no sell over a live trim
++
++def test_exit_rule_ids_not_text():
++    from watcher.config import Config
++    from datetime import datetime
++    pos = _pos(qty=2, entry=2.0, contract={"id": "x", "exp": "2026-10-23"}, chat_sweep=None)
++    gates.manage_action(pos, 2.0, Config(), datetime(2026, 10, 22, 15, 59, tzinfo=gates.ET), 713.0)
++    assert pos["_exit_rule"] == "flat_by"
++    gates.manage_action(pos, 2.0, Config(), datetime(2026, 10, 22, 10, 30, tzinfo=gates.ET), 711.0)
++    assert pos["_exit_rule"] == "ticket_stop"
++    a = gates.manage_action(pos, 2.1, Config(), datetime(2026, 10, 22, 10, 30, tzinfo=gates.ET), 713.0)
++    assert a[0] != "exit" and pos["_exit_rule"] is None
 diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
 --- a/tests/test_every_tf_ltf_arm.py	2026-10-19 07:21:29.610018716 -0500
 +++ b/tests/test_every_tf_ltf_arm.py	2026-10-23 00:30:12.907671500 -0500
@@ -1458,7 +1469,7 @@ diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 --- a/watcher/chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/watcher/chat_sweep.py	2026-10-23 00:32:17.511671500 -0500
++++ b/watcher/chat_sweep.py	2026-10-23 00:46:41.371671500 -0500
 @@ -0,0 +1,171 @@
 +"""Chat sweep (Keaton 2026-10-22 21:56 CT, "Make the desk trade like chat"; shared rules `chatSweep`).
 +
@@ -1629,7 +1640,7 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +        pos["chat_be_request"] = True
 +        return ("hold", 0, f"+{fav:.2f} >= {be}: break-even stop requested")
 +    if pos.get("chat_be_done") and ((px <= ref) if L else (px >= ref)):
-+        return ("exit", q, f"break-even stop {ref} hit (px {px}); selling the {q} filled contract(s) left")
++        pos["_exit_rule"] = "chat_be_stop"; return ("exit", q, f"break-even stop {ref} hit (px {px}); selling the {q} filled contract(s) left")
 +    return None   # everything else (incl. break-even set / pending) falls through to the older exit rules
 diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 --- a/watcher/daemon.py	2026-10-19 07:21:29.610018716 -0500
@@ -1882,7 +1893,7 @@ diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
  }
 diff -ruN a/watcher/gates.py b/watcher/gates.py
 --- a/watcher/gates.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/gates.py	2026-10-23 00:31:31.479671500 -0500
++++ b/watcher/gates.py	2026-10-23 00:46:41.363671500 -0500
 @@ -113,6 +113,8 @@
          # ltfArm live + validatedOnly: the card is LTF-armed / the desk's verdict on whether that arm may fire
          "ltf_armed": strat.get("ltfArmed") is True,
@@ -1913,20 +1924,36 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
      add("sizing", nct is not None, why)
      if nct is None:
          if _pend: add("late_pnl_live", False, "latePnlPending: no size — cannot check live PnL, refuse")
-@@ -957,6 +964,9 @@
+@@ -957,12 +964,20 @@
      nums = [n for n in nums if n >= 100]          # futures price levels, not "1H", "+3", "50%"
      return nums[-1] if nums else None
  
-+# loss/stop exits (by their why prefix) that may fire during a pending chatSweep T1 trim; profit-taking ones are held
-+CHAT_PENDING_LOSS_EXITS = ("breakeven stop", "no ", "premium stop")
++# exit rule ids (pos["_exit_rule"], set at each return site — not a why-text match).
++# Loss/stop exits that may fire during a pending chatSweep T1 trim; profit-taking ones are held.
++CHAT_PENDING_LOSS_EXITS = frozenset({"breakeven_stop", "early_cut", "premium_stop", "chat_be_stop"})
++# Safety exits that must still run while a chat break-even re-check (uncertain/unknown/kill_switch) is active.
++SAFETY_EXITS = frozenset({"flat_by", "zero_dte_flat", "ticket_stop"}) | CHAT_PENDING_LOSS_EXITS
 +
  def manage_action(pos, mark, cfg, et_dt, underlying_px=None):
-     """pos: {qty, entry, trimmed, side(call/put), fut_side(long/short), fut_stop}. Returns (action, qty, why)."""
+-    """pos: {qty, entry, trimmed, side(call/put), fut_side(long/short), fut_stop}. Returns (action, qty, why)."""
++    """pos: {qty, entry, trimmed, side(call/put), fut_side(long/short), fut_stop}. Returns (action, qty, why).
++    Exits from the flat/stop/loss rules also set pos["_exit_rule"] (rule id; None for everything else)."""
++    if not pos.get("_chat_skip"): pos["_exit_rule"] = None
      if past_flat(cfg, et_dt):
-@@ -974,9 +984,25 @@
+-        return "exit", pos["qty"], f"flat by {cfg.flat_by} ET"
++        pos["_exit_rule"] = "flat_by"; return "exit", pos["qty"], f"flat by {cfg.flat_by} ET"
+     if contract_dte(pos.get("contract"), et_dt) == 0 and et_dt.hour * 60 + et_dt.minute >= _hm(SESSION["zeroDteFlatEt"]):
+-        return "exit", pos["qty"], f"0DTE flat by {SESSION['zeroDteFlatEt']} ET (RH force-closes 0DTE ~15:45)"
++        pos["_exit_rule"] = "zero_dte_flat"; return "exit", pos["qty"], f"0DTE flat by {SESSION['zeroDteFlatEt']} ET (RH force-closes 0DTE ~15:45)"
+     if mark is None or pos.get("entry") in (None, 0):
+         return "hold", 0, "no mark"
+     gain = mark / pos["entry"] - 1
+@@ -973,10 +988,26 @@
+     if lvl is not None and underlying_px is not None:
          hit = underlying_px >= lvl if pos.get("fut_side") == "short" else underlying_px <= lvl
          if hit:
-             return "exit", pos["qty"], f"ticket stop {lvl} hit (px {underlying_px})"
+-            return "exit", pos["qty"], f"ticket stop {lvl} hit (px {underlying_px})"
++            pos["_exit_rule"] = "ticket_stop"; return "exit", pos["qty"], f"ticket stop {lvl} hit (px {underlying_px})"
 +    from . import chat_sweep as _csm   # chatSweep: half off at T1, stop -> break-even at T1 / +beTrigger (before the legacy BE/early rules)
 +    _cm = None if pos.get("_chat_skip") else _csm.manage(pos, underlying_px)
 +    if _cm and _cm[0] == "hold" and pos.get("chat_trim_pending"):
@@ -1935,7 +1962,7 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
 +        pos["_chat_skip"] = True
 +        try: leg = manage_action(pos, mark, cfg, et_dt, underlying_px)
 +        finally: pos.pop("_chat_skip", None)
-+        if leg[0] == "exit" and leg[2].startswith(CHAT_PENDING_LOSS_EXITS):
++        if leg[0] == "exit" and pos.get("_exit_rule") in CHAT_PENDING_LOSS_EXITS:
 +            pos["chat_trim_cancel_first"] = True
 +            return "exit", pos["qty"], leg[2] + " — during the pending chat trim (trim cancelled first)"
 +        return _cm
@@ -1950,12 +1977,24 @@ diff -ruN a/watcher/gates.py b/watcher/gates.py
          fav = (underlying_px - ref) if L else (ref - underlying_px)
          pos["fut_mfe"] = max(pos.get("fut_mfe") or 0.0, fav)
          t1 = pos.get("fut_t1")
-@@ -986,7 +1012,7 @@
+@@ -984,16 +1015,16 @@
+             pos["fut_stop"] = ref; pos["be_moved"] = True
+             return "hold", 0, f"{LOSS['target']['beFrac']:.0%} to T1 {t1}: stop -> breakeven {ref}"
          if pos.get("be_moved") and ((underlying_px <= ref) if L else (underlying_px >= ref)):
-             return "exit", pos["qty"], f"breakeven stop {ref} hit (px {underlying_px})"
+-            return "exit", pos["qty"], f"breakeven stop {ref} hit (px {underlying_px})"
++            pos["_exit_rule"] = "breakeven_stop"; return "exit", pos["qty"], f"breakeven stop {ref} hit (px {underlying_px})"
          op = pos.get("opened_ms"); now = et_dt.timestamp() * 1000
 -        if op is not None and risk > 0 and (now - op) / 60000 >= LOSS["early"]["minutes"] and pos["fut_mfe"] / risk < LOSS["early"]["minR"]:
 +        if op is not None and risk > 0 and not pos.get("chat_be_done") and (now - op) / 60000 >= LOSS["early"]["minutes"] and pos["fut_mfe"] / risk < LOSS["early"]["minR"]:
              _w = f"no {LOSS['early']['minR']}R in {LOSS['early']['minutes']}m (best {pos['fut_mfe'] / risk:.2f}R) — early cut"
-             if loss_mode("early") == "live": return "exit", pos["qty"], _w
+-            if loss_mode("early") == "live": return "exit", pos["qty"], _w
++            if loss_mode("early") == "live": pos["_exit_rule"] = "early_cut"; return "exit", pos["qty"], _w
              if not pos.get("shadow_early"):
+                 pos["shadow_early"] = _w; pos.setdefault("shadow_new", []).append(("shadow:early", "WOULD exit: " + _w))
+     stop_pct = pos.get("premium_stop_pct") or cfg.hard_stop_loss
+     if gain <= -stop_pct:
+-        return "exit", pos["qty"], f"premium stop -{stop_pct:.0%} hit ({gain:+.0%})"
++        pos["_exit_rule"] = "premium_stop"; return "exit", pos["qty"], f"premium stop -{stop_pct:.0%} hit ({gain:+.0%})"
+     from . import fix1016 as _f16       # fix1016 #8: T1 partial + BE + runner to the next pool (shadow: WOULD rows only)
+     _rn = _f16.runner_manage(pos, underlying_px)
+     if _rn: return _rn
