@@ -292,5 +292,12 @@
     "actual": "194k",
     "vs": "exp 200k / prev 199k rev 200k",
     "note": "DOL week ending Oct 17. Better than expected (6k below consensus). Not a labor-break. No ISM/JOLTS/ADP/NFP today."
+  },
+  {
+    "date": "2026-10-23",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Fri. S&P Flash PMI Mfg 56.0 vs 55.5 / prev 55.9; Services 57.9 vs 58.0 / 58.8; Composite 57.6 in-line vs 58.4. UMich Oct F 48.0 vs ~46.3 / Sep F 48.1 (current 46.7, 1y infl 4.7%). Not the stamp series. Next hard is Oct 28 FOMC."
   }
 ]
