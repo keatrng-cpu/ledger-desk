@@ -280,3 +280,10 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - **Close-out check:** `src/data/trade-log.json` holds 1 logged trade. This remains the binding constraint on every measurement the desk makes (per CLAUDE.md), so flagged to the trader rather than acted on — logging today's trades/skips is the trader's call, not this session's.
 - **No action taken on scoring, gates, config.ts, or the order path.** Narration/discipline only.
 
+## 2026-10-23 — NY AM session-partner run: 5th week-ahead.ts truncation, caught and fixed same morning before this check (Claude, scheduled)
+- **Status:** OBSERVED, no code change by this session. **Source:** scheduled "Ledger Desk - NY AM session partner" run, ~09:07 ET premarket branch.
+- **Integrity canary:** clean at the time of this check — `week-ahead.ts` 711 lines / `month-ahead.ts` 535 lines, `main` at `d8d2504`.
+- **Recurring failure, now a 4th-prior-plus-this-morning occurrence:** `week-ahead.ts` was gutted again at 2026-10-23T07:12 UTC (`025f5b3`/`ec2a1ec`) and restored byte-exact from `cad1953` at 07:26 UTC (`d8d2504`, PR #86) — both before this session ran. Same failure mode as 2026-09-04, 09-20, 09-25, and 2026-10-22. The `verify-repo-guards.mjs` CI check landed in `cad1953` (PR #85, 2026-10-22) specifically to reject placeholder-only/truncated `week-ahead.ts`/`week-prints.json` and run in CI — this is the first truncation to land *after* that guard existed, so whether the guard actually caught it in CI (vs. a human/other-agent catching it manually before CI ran) is worth Keaton or Accuracy Review confirming from the Actions run on `025f5b3`/`ec2a1ec`'s PR, not assumed here.
+- **Premarket brief delivered for 2026-10-23 (Fri):** medium close, not NFP, flatten into the weekend; S&P Flash PMI 9:45 ET + UMich Sentiment 10:00 ET, both medium impact; skipIf no MSS+IFVG already there, already took the week.
+- **No action taken on scoring, gates, config.ts, or the order path.** Narration/discipline only per CLAUDE.md; committed only `docs/agent-sync.json`/`docs/agent-sync.md` (claude bookmark → `d8d2504`) and this memory update.
+

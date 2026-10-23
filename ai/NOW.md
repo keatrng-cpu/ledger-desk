@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-22 (session-partner check-in below); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-23 (session-partner check-in below); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -14,13 +14,13 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
-## Session-partner check-in (2026-10-22, 11:00 ET scheduled run — close-out)
+## Session-partner check-in (2026-10-23, ~09:07 ET scheduled run — premarket)
 
-- Integrity canary clean again: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `18a784c` (agent-sync bookmark commits on top of PR #82's `6fe7b66`); no new truncation since the 10:00 ET check.
-- `src/data/trade-log.json` holds **1** logged trade (`trades` array) against thousands of backtested trades — still the binding constraint on every measurement this desk makes. Flagged to trader per CLAUDE.md close-out protocol; no log command run (that's the trader's four fields, not ours).
-- No code, scoring, or gate changes this session — narration/discipline only, per CLAUDE.md.
+- Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `d8d2504`.
+- Note: a 4th truncation of `week-ahead.ts` landed and was caught/restored *this same morning*, before this check — `ec2a1ec`/`025f5b3` gutted it (07:12 UTC), `d8d2504` (#86, 07:26 UTC) restored byte-exact from `cad1953`. The `verify-repo-guards` CI check added in `cad1953` (#85, 2026-10-22) is now live, so this class of break should fail CI going forward instead of reaching `main` silently.
+- Today (Fri 2026-10-23) per `WEEK_OCT19_OCT23.days[Fri]`: medium close, not NFP, flatten into the weekend. News: S&P Flash PMI (Oct) 9:45 ET medium, UMich Sentiment (Oct F) 10:00 ET medium. (Cross-check: `src/data/news-calendar.json` carries only the 10:00 UMich row for today, not the 9:45 flash PMI — week-ahead.ts is the one treated as ground truth for the day's blackout windows.) skipIf: no MSS + IFVG already there; already took the week; do not swing into next week / FOMC Oct 28. No code, scoring, or gate changes — narration/discipline only, per CLAUDE.md.
 
-Prior (10:00 ET run): recurring `week-ahead.ts` truncation (3rd occurrence after 09-04/09-20/09-25) caught and restored same morning (`8ec3595`→`6fe7b66`, PR #82) before that check; `docs/agent-sync.json`'s `grok` bookmark was a dangling SHA, worth Grok re-bookmarking.
+Prior (2026-10-22 11:00 ET close-out): canary clean, `main` at `18a784c`; `src/data/trade-log.json` held 1 logged trade against thousands of backtested trades — still the binding constraint on every measurement this desk makes, flagged to trader, no log command run (trader's four fields). Prior (2026-10-22 10:00 ET): 3rd recurring truncation (after 09-04/09-20/09-25) caught/restored same morning (`8ec3595`→`6fe7b66`, PR #82); `docs/agent-sync.json`'s `grok` bookmark was a dangling SHA.
 
 ## Read order (every session)
 
