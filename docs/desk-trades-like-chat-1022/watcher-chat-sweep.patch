@@ -1,6 +1,6 @@
 diff -ruN a/tests/conftest.py b/tests/conftest.py
 --- a/tests/conftest.py	2026-10-18 16:30:11.425755499 -0500
-+++ b/tests/conftest.py	2026-10-22 22:07:45.759671500 -0500
++++ b/tests/conftest.py	2026-10-22 23:39:10.679671500 -0500
 @@ -28,3 +28,11 @@
      from watcher import fastchain
      if request.node.get_closest_marker("fast") is None:
@@ -15,7 +15,7 @@ diff -ruN a/tests/conftest.py b/tests/conftest.py
 +    monkeypatch.setitem(chat_sweep.CS, "mode", "shadow")
 diff -ruN a/tests/fixtures/card_aplus_armed.json b/tests/fixtures/card_aplus_armed.json
 --- a/tests/fixtures/card_aplus_armed.json	2026-10-18 16:28:58.285755499 -0500
-+++ b/tests/fixtures/card_aplus_armed.json	2026-10-22 22:06:54.659671500 -0500
++++ b/tests/fixtures/card_aplus_armed.json	2026-10-22 23:39:10.679671500 -0500
 @@ -71,7 +71,7 @@
    "band": "A+"
   },
@@ -77,7 +77,7 @@ diff -ruN a/tests/fixtures/card_aplus_armed.json b/tests/fixtures/card_aplus_arm
      ]
 diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cases.json
 --- a/tests/fixtures/chat-sweep-cases.json	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/fixtures/chat-sweep-cases.json	2026-10-22 22:03:59.643671500 -0500
++++ b/tests/fixtures/chat-sweep-cases.json	2026-10-22 23:39:10.679671500 -0500
 @@ -0,0 +1,985 @@
 +[
 + {
@@ -1066,10 +1066,10 @@ diff -ruN a/tests/fixtures/chat-sweep-cases.json b/tests/fixtures/chat-sweep-cas
 +]
 diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 --- a/tests/test_chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/tests/test_chat_sweep.py	2026-10-22 22:33:56.351671500 -0500
-@@ -0,0 +1,112 @@
++++ b/tests/test_chat_sweep.py	2026-10-23 00:07:29.579671500 -0500
+@@ -0,0 +1,214 @@
 +"""chatSweep twin: same fixture as ledger-desk scripts/chat-sweep.test.mjs (scripts/fixtures/chat-sweep-cases.json)."""
-+import json, os
++import json, os, pytest
 +from watcher import chat_sweep as cs, gates
 +from watcher.config import Config
 +
@@ -1120,7 +1120,7 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +def test_be_only_after_trim_fill_confirmed():
 +    pos = _pos(qty=3)
 +    assert cs.manage(pos, 713.8)[:2] == ("trim", 1)
-+    assert pos["chat_trim_pending"] == {"qty": 1, "target_qty": 2} and not pos.get("chat_be_request") and pos["fut_stop"] == 711.65
++    assert {k: pos["chat_trim_pending"][k] for k in ("qty", "target_qty", "start_qty")} == {"qty": 1, "target_qty": 2, "start_qty": 3} and not pos.get("chat_be_request") and pos["fut_stop"] == 711.65
 +    a = cs.manage(pos, 713.9)            # broker still shows 3 held: not filled
 +    assert a[0] == "hold" and "pending" in a[2] and not pos.get("chat_be_request")
 +    pos["qty"] = 2                       # broker qty dropped -> fill confirmed
@@ -1180,9 +1180,111 @@ diff -ruN a/tests/test_chat_sweep.py b/tests/test_chat_sweep.py
 +    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0}
 +    ok, why = dm.Watcher._chat_be_move(me, pos, None)
 +    assert not ok and "disabled" in why and not b.sends()
++
++
++# ---- Accuracy 10/23: pending-trim timeout / terminal states ----
++def test_partial_trim_clears_marker_and_requests_be():
++    pos = _pos(qty=4); assert cs.manage(pos, 713.8)[:2] == ("trim", 2)
++    pos["qty"] = 3; pos["chat_trim_pending"]["state"] = "partially_filled"     # 1 of 2 filled, order terminal
++    a = cs.manage(pos, 713.9)
++    assert pos["chat_trim_pending"] is None and pos["trimmed"] and pos["chat_be_request"] and "partial" in pos["chat_trim_note"]
++    assert a is None or a[0] != "trim"                                             # never re-trims
++
++@pytest.mark.parametrize("st", ["cancelled", "rejected"])
++def test_cancelled_or_rejected_trim_falls_back(st):
++    pos = _pos(qty=2); assert cs.manage(pos, 713.8)[:2] == ("trim", 1)
++    pos["chat_trim_pending"]["state"] = st                                          # nothing filled
++    a = cs.manage(pos, 713.9)
++    assert pos["chat_trim_pending"] is None and pos["chat_t1"] and not pos.get("trimmed") and st in pos["chat_trim_note"]
++    assert a is None or a[0] != "trim"
++
++def test_pending_trim_times_out_and_older_rules_run(monkeypatch):
++    pos = _pos(qty=2); assert cs.manage(pos, 713.8)[:2] == ("trim", 1)
++    assert cs.manage(pos, 713.8)[0] == "hold"                                        # still pending
++    t0 = pos["chat_trim_pending"]["at"]; monkeypatch.setattr(cs.time, "time", lambda: t0 + cs.TRIM_PENDING_S + 1)
++    a = cs.manage(pos, 713.8)
++    assert pos["chat_trim_pending"] is None and "timeout" in pos["chat_trim_note"] and a[0] != "trim"
++    assert cs.manage(pos, 713.8) is None                                             # next pass: falls through to the legacy rules
++
++# ---- Accuracy 10/23: break-even failure exits inline, never double-closes (FakeBroker, no real orders) ----
++def _dm2(monkeypatch, held=2):
++    dm, me, b, alerts, logs = _dm(monkeypatch, held=held)
++    from watcher import exitsafe as ex
++    me._ladder_close = lambda pos, qty, md, act: dm.Watcher._ladder_close(me, pos, qty, md, act)
++    me._chat_be_move = lambda pos, et: dm.Watcher._chat_be_move(me, pos, et)
++    monkeypatch.setattr(ex, "run_ladder", lambda g, qty, fb, **k: _fake_ladder(b, g, qty))
++    return dm, me, b, alerts, logs
++
++def _fake_ladder(b, g, qty):
++    g.clear(); r = g.send("ladder", b.sell, g.c, qty, 2.4); oid = r["id"]
++    b._fill(oid, qty); b.states[oid] = "filled"; return "filled", [(0, 2.4, False, qty)]
++
++def _run_be(dm, me, pos):
++    from datetime import datetime
++    et = datetime(2026, 10, 22, 10, 30, tzinfo=gates.ET)
++    ok, why = dm.Watcher._chat_be_move(me, pos, et)
++    return ok, why, (None if ok else dm.Watcher._chat_be_failclose(me, pos, et, why))
++
++def test_failed_replace_exits_inline_and_rolls_back(monkeypatch):
++    dm, me, b, alerts, logs = _dm2(monkeypatch)
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0, "opt_stop": 1.0}
++    me._place_resting_stop(pos); old = pos["resting_stop_id"]
++    b.place_stop_limit_close = lambda *a: {"id": None}                              # replacement back with NO order id
++    ok, why, r = _run_be(dm, me, pos)
++    assert not ok and pos["opt_stop"] == 1.0 and b.states[old] == "cancelled"        # option stop rolled back
++    # an id-less stop may be live at RH: a market exit could double-close -> no sell, alert manual
++    assert r == "uncertain" and not b.sends("sell") and any("NOT selling" in x for x in alerts)
++
++def test_replace_raises_exits_inline_same_call(monkeypatch):
++    dm, me, b, alerts, logs = _dm2(monkeypatch)
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0, "opt_stop": 1.0}
++    me._place_resting_stop(pos); old = pos["resting_stop_id"]
++    def boom(*a): raise RuntimeError("RH 503")
++    b.place_stop_limit_close = boom
++    ok, why, r = _run_be(dm, me, pos)
++    assert not ok and r == "exited" and pos["opt_stop"] == 1.0
++    sells = b.sends("sell"); assert len(sells) == 1 and sells[0][3] == 2 and b.held == 0   # one close, the full held qty
++    assert b.states[old] == "cancelled" and not b.working()
++
++def test_old_stop_fills_mid_replace_no_sell(monkeypatch):
++    dm, me, b, alerts, logs = _dm2(monkeypatch)
++    me.state = {"days": {}, "position": None}
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0, "opt_stop": 1.0}
++    me._place_resting_stop(pos); old = pos["resting_stop_id"]
++    b.order_fill = lambda oid: (2, 1.0)
++    b.fill_on_cancel.add(old)                                                       # the stop fills as we cancel it
++    me.state["position"] = pos
++    ok, why, r = _run_be(dm, me, pos)
++    assert not ok and r == "closed_by_stop" and not b.sends("sell") and me.state["position"] is None
++    assert pos["opt_stop"] == 1.0
++
++def test_cancel_throws_stop_still_resting_no_market_exit(monkeypatch):
++    dm, me, b, alerts, logs = _dm2(monkeypatch)
++    pos = {"contract": {"id": "opt1"}, "qty": 2, "entry": 2.0, "opt_stop": 1.0}
++    me._place_resting_stop(pos); old = pos["resting_stop_id"]
++    def bad_cancel(oid): b.log.append(("cancel", oid)); raise RuntimeError("timeout")
++    b.cancel = bad_cancel
++    ok, why, r = _run_be(dm, me, pos)
++    assert not ok and r == "stop_resting" and not b.sends("sell") and b.states[old] == "queued"
++    assert pos["resting_stop_id"] == old and pos["opt_stop"] == 1.0 and len(b.sends("stop")) == 1
++
++
++@pytest.mark.parametrize("final,filled,expect", [("partially_filled", 1, "partial"), ("cancelled", 0, "cancelled"), ("rejected", 0, "rejected")])
++def test_daemon_trim_order_state_feeds_marker(monkeypatch, final, filled, expect):
++    dm, me, b, alerts, logs = _dm(monkeypatch, held=4)
++    pos = _pos(qty=4); assert cs.manage(pos, 713.8)[:2] == ("trim", 2)
++    r = b.sell({"id": "opt1"}, 2, 2.6); oid = r["id"]; pos["chat_trim_pending"]["order_id"] = oid
++    dm.Watcher._chat_trim_poll(me, pos); assert pos["chat_trim_pending"]["state"] == "queued"
++    assert cs.manage(pos, 713.9)[0] == "hold"                                        # still working
++    if filled: b._fill(oid, filled)
++    b.states[oid] = final; pos["qty"] = b.held
++    dm.Watcher._chat_trim_poll(me, pos); assert pos["chat_trim_pending"]["state"] == final
++    a = cs.manage(pos, 713.9)
++    assert pos["chat_trim_pending"] is None and expect in pos["chat_trim_note"] and (a is None or a[0] != "trim")
++    assert len(b.sends("sell")) == 1                                                  # nothing re-sent
 diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
 --- a/tests/test_every_tf_ltf_arm.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/tests/test_every_tf_ltf_arm.py	2026-10-22 22:06:54.659671500 -0500
++++ b/tests/test_every_tf_ltf_arm.py	2026-10-22 23:39:10.679671500 -0500
 @@ -10,7 +10,7 @@
      assert gates.RULES["ltfArm"]["mode"] == "shadow" and gates.RULES["ltfArm"]["allTfKills"]["mode"] == "shadow" and gates.RULES["ltfArm"]["validatedOnly"] is True
      assert gates.RULES["ltfArm"]["tfs"][-1] == "1D" and gates.RULES["everyTf"]["tfs"] == ["1m", "2m", "3m", "4m", "5m", "15m", "30m", "1h", "4h", "1D"]
@@ -1194,7 +1296,7 @@ diff -ruN a/tests/test_every_tf_ltf_arm.py b/tests/test_every_tf_ltf_arm.py
  def test_ltf_armed_card_refused_when_nothing_validated():
 diff -ruN a/tests/test_fix1016.py b/tests/test_fix1016.py
 --- a/tests/test_fix1016.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/tests/test_fix1016.py	2026-10-22 22:07:45.759671500 -0500
++++ b/tests/test_fix1016.py	2026-10-22 23:39:10.679671500 -0500
 @@ -35,7 +35,7 @@
      card = json.load(open(cards[0])); snap = _raw_snapshot(card.get("card", card))
      g = gates.evaluate_fire(snap, Config(), ms(9, 27), {"entries": 0, "bplus_entries": 0, "lost": False}, None, ())
@@ -1206,7 +1308,7 @@ diff -ruN a/tests/test_fix1016.py b/tests/test_fix1016.py
  PROM = {"deskOk": True, "why": ["band B+ >= B+", "1h bear 4h bear agree"], "plan": {"entry": 29930.63, "stop": 29944.25}}
 diff -ruN a/tests/test_gates.py b/tests/test_gates.py
 --- a/tests/test_gates.py	2026-10-18 16:28:58.201755499 -0500
-+++ b/tests/test_gates.py	2026-10-22 22:08:22.779671500 -0500
++++ b/tests/test_gates.py	2026-10-22 23:39:10.679671500 -0500
 @@ -185,9 +185,11 @@
      cfg.allow_a_minus = allow_am
      assert ("brain" not in fails(gates.evaluate_fire(brain_snap(band, word), cfg, NOW, {}, broker(), CAL))) == ok
@@ -1249,7 +1351,7 @@ diff -ruN a/tests/test_gates.py b/tests/test_gates.py
 +    assert [r for r in g if r[0] == "chat_sweep"][0][1] is True
 diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch.py
 --- a/tests/test_review_quote_refetch.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/tests/test_review_quote_refetch.py	2026-10-22 22:06:54.659671500 -0500
++++ b/tests/test_review_quote_refetch.py	2026-10-22 23:39:10.679671500 -0500
 @@ -21,7 +21,7 @@
  
  def test_threshold_still_1s_and_hash_unchanged():
@@ -1261,8 +1363,8 @@ diff -ruN a/tests/test_review_quote_refetch.py b/tests/test_review_quote_refetch
      w, calls = _w(monkeypatch, tmp_path, [lambda: {"bid": 1.0, "ask": 1.1, "asOfMs": now()}])
 diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 --- a/watcher/chat_sweep.py	1969-12-31 18:00:00.000000000 -0600
-+++ b/watcher/chat_sweep.py	2026-10-22 22:33:20.867671500 -0500
-@@ -0,0 +1,152 @@
++++ b/watcher/chat_sweep.py	2026-10-23 00:06:35.503671500 -0500
+@@ -0,0 +1,171 @@
 +"""Chat sweep (Keaton 2026-10-22 21:56 CT, "Make the desk trade like chat"; shared rules `chatSweep`).
 +
 +Twin of ledger-desk src/lib/smc/chat-sweep.ts and of live-tape armed_s.py (setup) / armed_r.py (last-6-bar stop).
@@ -1274,10 +1376,16 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +"""
 +from datetime import datetime
 +from zoneinfo import ZoneInfo
++import time
 +from . import gates as _g
 +
 +CS = _g.RULES["chatSweep"]
 +ET = ZoneInfo("America/New_York")
++
++# watcher-local safety constant (not a shared rule; RULES_HASH unchanged): a pending T1 trim marker older than this is
++# dropped and normal management resumes, so a lost/stuck trim can never hold the older exit rules off indefinitely.
++TRIM_PENDING_S = 90
++TRIM_TERMINAL = {"filled", "partially_filled", "cancelled", "canceled", "rejected", "failed", "expired", "done"}
 +
 +def live():
 +    return CS.get("mode") == "live"
@@ -1390,10 +1498,25 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +    if q <= 0: return ("hold", 0, "no filled qty")
 +    pend = pos.get("chat_trim_pending")
 +    if pend:
++        start = int(pend.get("start_qty") or (int(pend["target_qty"]) + int(pend["qty"])))
 +        if q <= int(pend["target_qty"]):
 +            pos["chat_trim_pending"] = None; pos["chat_t1"] = True; pos["chat_be_request"] = True; pos["trimmed"] = True
 +            return ("hold", 0, f"chat T1 trim fill confirmed ({pend['qty']}ct, {q} left): break-even stop requested")
-+        return ("hold", 0, f"chat T1 trim of {pend['qty']} pending (held {q}, want {pend['target_qty']}) — nothing else sells")
++        pend.setdefault("at", time.time())   # marker without a clock (older state): the timeout starts now
++        st = pend.get("state"); age = time.time() - float(pend["at"])
++        if st in TRIM_TERMINAL or age >= TRIM_PENDING_S:
++            # terminal (partial / cancelled / rejected / ladder done) or timed out: clear the marker, no re-trim, and
++            # fall back to normal management. A partial fill still counts as a trim (break-even for what is left).
++            pos["chat_trim_pending"] = None; pos["chat_t1"] = True
++            why = f"state {st}" if st in TRIM_TERMINAL else f"timeout {int(age)}s >= {TRIM_PENDING_S}s"
++            if q < start:
++                pos["trimmed"] = True; pos["chat_be_request"] = True
++                pos["chat_trim_note"] = f"partial trim {start - q} of {pend['qty']} ({why}); break-even for {q}"
++            else:
++                pos["chat_trim_note"] = f"trim not filled ({why}); normal management"
++            pend = None
++        else:
++            return ("hold", 0, f"chat T1 trim of {pend['qty']} pending (held {q}, want {pend['target_qty']}, {int(age)}s) — nothing else sells")
 +    if pos.get("chat_be_failclosed"):
 +        return ("exit", q, f"break-even broker stop not possible ({pos['chat_be_failclosed']}) — fail closed, exit {q}")
 +    if px is None: return None
@@ -1403,7 +1526,7 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +    if t1 is not None and not pos.get("chat_t1") and ((px >= t1) if L else (px <= t1)):
 +        n = int(q * CS["t1Frac"]) if q >= 2 else 0
 +        if n >= 1 and not pos.get("trimmed"):
-+            pos["chat_trim_pending"] = {"qty": n, "target_qty": q - n}
++            pos["chat_trim_pending"] = {"qty": n, "target_qty": q - n, "start_qty": q, "at": time.time(), "order_id": None, "state": None}
 +            return ("trim", n, f"chat T1 {t1}: half off ({n} of {q}); stop moves to break-even after the fill")
 +        pos["chat_t1"] = True; pos["chat_be_request"] = True
 +        return ("hold", 0, f"chat T1 {t1} with {q} contract(s): no trim, break-even stop requested")
@@ -1412,12 +1535,10 @@ diff -ruN a/watcher/chat_sweep.py b/watcher/chat_sweep.py
 +        return ("hold", 0, f"+{fav:.2f} >= {be}: break-even stop requested")
 +    if pos.get("chat_be_done") and ((px <= ref) if L else (px >= ref)):
 +        return ("exit", q, f"break-even stop {ref} hit (px {px}); selling the {q} filled contract(s) left")
-+    if pos.get("chat_be_request") or pos.get("chat_be_done"):
-+        return ("hold", 0, "chat: break-even " + ("set" if pos.get("chat_be_done") else "pending broker stop"))
-+    return None
++    return None   # everything else (incl. break-even set / pending) falls through to the older exit rules
 diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 --- a/watcher/daemon.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/daemon.py	2026-10-22 22:33:20.871671500 -0500
++++ b/watcher/daemon.py	2026-10-23 00:07:29.575671500 -0500
 @@ -461,7 +461,7 @@
                                    "fut_side": snap["side"], "fut_symbol": snap["symbol"],
                                    "fut_stop": fut_stop, "fut_stop_why": stop_why,
@@ -1427,14 +1548,16 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
                                    "walk_step": 0, "walk_at": time.time(), "quote_at_fire": {k: q.get(k) for k in ("bid", "ask", "delta", "theta", "iv")},
                                    "premium_stop_pct": gates.premium_stop_pct(snap.get("targets"))}
          self.alert(f"PLACED {n}x {c['symbol']} {c['exp']} {c['strike']}{c['type'][0].upper()} @ {lim} ({how}) key={key} stop={fut_stop} ({stop_why})", result=res)
-@@ -512,6 +512,32 @@
+@@ -512,6 +512,100 @@
              self.log("resting_stop_failed", reason=str(e)); self.alert(f"RESTING STOP FAILED ({e}) — script-watched stop still active"); self.save(); return
          self.save()
  
 +    def _chat_be_move(self, pos, et):
-+        """chatSweep break-even: move the BROKER stop to the option entry premium (cancel-confirm-replace of the resting
-+        stop, clamped under the bid by _place_resting_stop). Returns (ok, why). Never an in-memory-only move: no broker
-+        resting-stop path, a cancel that won't confirm, or a replace without an order id -> (False, why) = fail closed."""
++        """chatSweep break-even: move the BROKER stop to the option entry premium. Returns (ok, why).
++        RH has no atomic stop replace, and a second sell-to-close stop for the same held contracts is refused (and the
++        CloseGuard single-close invariant forbids two working closes), so place-before-cancel is NOT possible here:
++        cancel-confirm-replace, and on ANY failure after the old stop is touched the caller exits inline
++        (_chat_be_failclose) in the same call. opt_stop is rolled back on every failure."""
 +        from . import exitsafe
 +        if pos["contract"].get("spread_short"): return False, "spread position has no resting stop"
 +        if not exitsafe.resting_stop_enabled(): return False, "broker resting stop disabled (EXIT_SAFE_RESTING_STOP off)"
@@ -1443,24 +1566,90 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 +        held = int(pos.get("qty") or 0)
 +        if held <= 0: return False, "no filled qty"
 +        prev = pos.get("opt_stop"); pos["opt_stop"] = round(float(pos["entry"]), 2)
++        def fail(why): pos["opt_stop"] = prev; return False, why
 +        oid = pos.get("resting_stop_id")
 +        if oid:
 +            try: st2 = self._close_guard(pos).clear()
 +            except Exception as e:
-+                pos["opt_stop"] = prev; return False, f"old stop {oid} cancel not confirmed ({str(e)[:120]})"
++                pos["chat_be_cancel_error"] = oid      # the old stop may still be resting: checked before any exit
++                return fail(f"old stop {oid} cancel not confirmed ({str(e)[:120]})")
 +            if st2 == "filled":
-+                self._book_resting_stop_fill(pos, oid, et); pos["resting_stop_id"] = None
-+                return False, f"old stop {oid} filled before the replace"
++                pos["chat_be_old_filled"] = oid
++                return fail(f"old stop {oid} filled before the replace")
 +            pos["resting_stop_id"] = None
-+        self._place_resting_stop(pos, held, force=True)
++        try: self._place_resting_stop(pos, held, force=True)
++        except Exception as e: return fail(f"replacement stop raised ({str(e)[:120]})")
 +        if not pos.get("resting_stop_id"):
-+            return False, "replacement stop has no order id"
++            return fail("replacement stop has no order id")
 +        return True, f"broker stop {pos['resting_stop_id']} at {pos.get('resting_stop_px')} for {held}ct (break-even {pos['opt_stop']})"
++
++    def _chat_trim_poll(self, pos):
++        """Feed the pending T1 trim marker with the trim ORDER's broker state (partial / cancelled / rejected / filled)."""
++        from . import chat_sweep
++        tp = pos.get("chat_trim_pending")
++        if not tp or not tp.get("order_id") or tp.get("state") in chat_sweep.TRIM_TERMINAL: return
++        try: tp["state"] = self.broker.order_state(tp["order_id"])
++        except Exception as e: self.log("chat_trim_state_failed", reason=str(e)[:160])
++
++    def _chat_be_failclose(self, pos, et, why):
++        """Fail closed after a break-even failure, INLINE (no wait for the next pass or the mark/fut fetches).
++        Re-reads the broker position and order state first so it can never double-close:
++          * position gone / old stop filled mid-replace -> book the stop fill, sell nothing;
++          * a stop is still resting (cancel threw / never confirmed) -> the position is protected; no market exit;
++          * otherwise (no working stop, contracts held) -> sell the held qty now (ladder when EXIT_SAFE, else at the bid)."""
++        from . import exitsafe
++        pos["chat_be_failclosed"] = why
++        self.log("chat_be_stop_failed", signal=pos.get("signal"), reason=why)
++        try: held, _a = self.broker.position_qty(pos["contract"]["id"]); held = int(held or 0)
++        except Exception as e:
++            self.alert(f"CHAT BREAK-EVEN failed ({why}); position re-read failed ({e}) — NOT selling blind; manage on RH"); return "unknown"
++        oldf = pos.pop("chat_be_old_filled", None)
++        if oldf or held <= 0:
++            oid = oldf or pos.get("resting_stop_id")
++            if oid: self.log("exit_by_resting_stop", order_id=oid, stop=pos.get("resting_stop_px")); self._book_resting_stop_fill(pos, oid, et)
++            pos["resting_stop_id"] = None
++            if held <= 0:
++                self.alert(f"CHAT BREAK-EVEN: old stop filled mid-replace — position closed by the stop, nothing sold"); self.state["position"] = None
++                return "closed_by_stop"
++            pos["qty"] = held
++        oid = pos.pop("chat_be_cancel_error", None) or pos.get("resting_stop_id")
++        if oid:
++            try: st = self.broker.order_state(oid)
++            except Exception as e: st = None; self.log("resting_stop_state_failed", reason=str(e)[:160])
++            if st not in exitsafe.TERMINAL:
++                pos["resting_stop_id"] = oid
++                self.alert(f"CHAT BREAK-EVEN failed ({why}); stop {oid} still resting ({st}) — position protected, NO market exit")
++                return "stop_resting"
++            if st == "filled":
++                self._book_resting_stop_fill(pos, oid, et); pos["resting_stop_id"] = None
++                try: held, _a = self.broker.position_qty(pos["contract"]["id"]); held = int(held or 0)
++                except Exception: held = 0
++                if held <= 0: self.state["position"] = None; return "closed_by_stop"
++            pos["resting_stop_id"] = None
++        if pos.get("resting_stop_blocked"):   # a stop came back without an id: it may be live at RH -> a sell could double-close
++            self.alert(f"CHAT BREAK-EVEN failed ({why}); a stop without an order id may be live — NOT selling {held}ct; check RH"); return "uncertain"
++        if self.stopped():
++            self.alert(f"CHAT BREAK-EVEN failed ({why}); STOP present — NOT selling {held}ct; manage manually"); return "kill_switch"
++        self.alert(f"CHAT BREAK-EVEN: broker stop not moved ({why}) — fail closed, exiting {held}ct now")
++        if exitsafe.enabled():
++            try: px, res, act = self._ladder_close(pos, held, {}, "exit")
++            except Exception as e: self.log("manage_blocked", reason=str(e)); return "exit_failed"
++            if px is None: return "exit_failed"
++        else:
++            try:
++                _m, md = self.broker.mark(pos["contract"]["id"]); px = round(max(0.01, float((md or {}).get("bid_price") or _m or 0.01)), 2)
++                res = self.broker.sell(pos["contract"], held, px)
++            except Exception as e: self.log("manage_blocked", reason=str(e)); return "exit_failed"
++        q = int(res["filled_qty"]) if isinstance(res, dict) and res.get("filled_qty") else held
++        self._book_close(pos, et, "exit", px, q)
++        pos.setdefault("exit_orders", []).append((res or {}).get("id") if isinstance(res, dict) else None)
++        pos["last_manage_order"] = time.time()
++        return "exited"
 +
      def _check_resting_stop(self, pos, qty, et):
          """Every manage cycle: keep the resting stop matched to the live position.
          filled -> recorded; expired/cancelled/rejected (gfd expiry at the close, manual cancel) -> re-placed unless
-@@ -659,6 +685,17 @@
+@@ -659,6 +753,17 @@
              self.alert("position no longer open on RH — clearing state" + (" (resting stop filled)" if pos.get("resting_stop_id") else "")); self.state["position"] = None; return
          pos["qty"] = qty
          self._check_resting_stop(pos, qty, et)
@@ -1470,17 +1659,28 @@ diff -ruN a/watcher/daemon.py b/watcher/daemon.py
 +                pos.setdefault("fut_stop_orig", pos.get("fut_stop"))
 +                pos.update(chat_be_done=True, fut_stop=pos.get("fut_ref"), be_moved=True)
 +                self.log("chat_be_stop", signal=pos.get("signal"), note=whyb)
++                self.save()
 +            else:
-+                pos["chat_be_failclosed"] = whyb
-+                self.log("chat_be_stop_failed", signal=pos.get("signal"), reason=whyb)
-+                self.alert(f"CHAT BREAK-EVEN: broker stop not moved ({whyb}) — fail closed, exiting the remaining {qty}ct")
-+            self.save()
++                r_ = self._chat_be_failclose(pos, et, whyb); self.save()
++                if r_ != "stop_resting": return   # exited / closed by the stop / uncertain: nothing more this pass
++        self._chat_trim_poll(pos)
          mark, md = self.broker.spread_mark(pos["contract"]) if pos["contract"].get("spread_short") else self.broker.mark(pos["contract"]["id"])
          fut_px = None
          try: fut_px = gates.snapshot(self.fetch())["tape_prices"].get(pos.get("fut_symbol"))
+@@ -688,6 +793,10 @@
+           try: res = self.broker.sell(pos["contract"], qty, px)
+           except BrokerRefused as e: self.log("manage_blocked", reason=str(e)); return
+         if isinstance(res, dict) and res.get("filled_qty"): qty = int(res["filled_qty"])   # book what the ORDERS filled, not the lagged RH qty
++        _tp = pos.get("chat_trim_pending")
++        if act == "trim" and _tp:   # the trim order's own state feeds the pending marker (ladder = already terminal)
++            _tp["order_id"] = (res or {}).get("id") if isinstance(res, dict) else None
++            if isinstance(res, dict) and res.get("ladder") is not None: _tp["state"] = "done"
+         self.alert(f"{act.upper()} {qty} @ {px}: {why}", result=res)
+         self._book_close(pos, et, act, px, qty)
+         pos.setdefault("exit_orders", []).append((res or {}).get("id") if isinstance(res, dict) else None)
 diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
 --- a/watcher/desk-rules.json	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/desk-rules.json	2026-10-22 22:03:03.127671500 -0500
++++ b/watcher/desk-rules.json	2026-10-22 23:39:10.679671500 -0500
 @@ -1154,5 +1154,30 @@
      "_doc": "MTF->LTF inversion setups (audit /workspace/audits/mtf-ltf-inversion, 2026-10-17). `validated` lists the setup ids that passed the pre-declared live-wire test (family walk-forward OOS > 0 AND untouched holdout R/trade > 0, $/wk > 0, n >= 20, futures net of costs). Empty = nothing passed: ltfArm arms are computed and shown but never fire. Never add an id here without re-running that test.",
      "mode": "live",
@@ -1514,7 +1714,7 @@ diff -ruN a/watcher/desk-rules.json b/watcher/desk-rules.json
  }
 diff -ruN a/watcher/gates.py b/watcher/gates.py
 --- a/watcher/gates.py	2026-10-19 07:21:29.610018716 -0500
-+++ b/watcher/gates.py	2026-10-22 22:33:20.871671500 -0500
++++ b/watcher/gates.py	2026-10-22 23:39:10.679671500 -0500
 @@ -113,6 +113,8 @@
          # ltfArm live + validatedOnly: the card is LTF-armed / the desk's verdict on whether that arm may fire
          "ltf_armed": strat.get("ltfArmed") is True,
