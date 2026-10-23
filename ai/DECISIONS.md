@@ -287,3 +287,8 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - **Premarket brief delivered for 2026-10-23 (Fri):** medium close, not NFP, flatten into the weekend; S&P Flash PMI 9:45 ET + UMich Sentiment 10:00 ET, both medium impact; skipIf no MSS+IFVG already there, already took the week.
 - **No action taken on scoring, gates, config.ts, or the order path.** Narration/discipline only per CLAUDE.md; committed only `docs/agent-sync.json`/`docs/agent-sync.md` (claude bookmark → `d8d2504`) and this memory update.
 
+
+### 2026-10-23 — NY AM session-partner run: 10:00 ET mid-session discipline, canary clean
+- Status ADOPTED (routine log) · Decided by Claude (scheduled) · Source scheduled task "Ledger Desk - NY AM session partner"
+- Decision: ran the 10:00 ET mid-session check — integrity canary clean (week-ahead.ts 711 lines, month-ahead.ts 535 lines, main at 6a19ce2); restated A+-only window, CE entry rule, and the 50%-off-at-T1/BE/runner scale rule to the trader; asked whether any open position's management matches it.
+- Why: CLAUDE.md's live session loop assigns this check to ~10:00 ET; no code, scoring, or gate touched — narration/discipline only.

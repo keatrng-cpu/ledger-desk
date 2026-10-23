@@ -14,6 +14,11 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
+## Session-partner check-in (2026-10-23, ~10:11 ET scheduled run — mid-session)
+
+- Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `6a19ce2`. No new truncation since the 09:07 ET check.
+- A+-only window now live (post-10:00 ET). Restated entry (rest limit at CE) and scale (50% off T1 → BE → runner, +0.50R/t measured) rules; asked the trader whether an open position's management matches the scale rule — narration only, no position state visible from the repo.
+
 ## Session-partner check-in (2026-10-23, ~09:07 ET scheduled run — premarket)
 
 - Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `d8d2504`.
