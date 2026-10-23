@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `d8d2504`. Fetched origin. Local main matches origin.
+HEAD `684fdde`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `2d8565d`. 9 commit(s) landed after it.
-Bookmark after this run: `claude` → `d8d2504`.
+Bookmark was `d8d2504`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `684fdde`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `684fdde` | 2026-10-23T13:09 | session-partner: 09:07 ET premarket — canary clean, 5th week-ahead.ts truncation self-healed same morning | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `d8d2504` | 2026-10-23T07:26 | fix: restore week-ahead.ts byte-exact from cad1953 (gutted by 025f5b3b/ec2a1ec3) (#86) | M src/lib/trading/week-ahead.ts |
 | `ec2a1ec` | 2026-10-23T07:12 | Fix week-ahead.ts with updated Oct 19-23 range notes | M src/lib/trading/week-ahead.ts |
 | `025f5b3` | 2026-10-23T07:12 | Update week-ahead notes for Oct 19-23 live range and FedWatch odds | M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `d8d2504`.
 | `f49c064` | 2026-10-22T14:18 | agent-sync: bookmark claude at 6fe7b66; log 10:00 ET canary check-in | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `6fe7b66` | 2026-10-22T07:24 | Merge pull request #82 from keatrng-cpu/fix/restore-week-ahead-1022 | — |
 | `8ec3595` | 2026-10-22T07:15 | fix: restore week-ahead.ts byte-exact from d6cbcb11 (gutted by bc42d469/f8505bf5/0467fc58) | M src/lib/trading/week-ahead.ts |
-| `0467fc5` | 2026-10-22T07:10 | fix: restore week-ahead.ts with accurate Oct 19-23 NQ range ~29,202-30,113 and FedWatch ~16% hike | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
