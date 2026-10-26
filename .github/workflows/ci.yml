@@ -21,6 +21,10 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci --no-audit --no-fund
+      # Before Typecheck on purpose (2026-10-26): a gutted plan file also breaks tsc, and a failing
+      # step skips every later one, so with the guard last it never reported the stub it exists to catch.
+      - name: Repo guards (stubbed/truncated week-ahead.ts + week-prints.json, one TAKE object, dark modules)
+        run: npx tsx scripts/verify-repo-guards.mjs
       - name: Typecheck
         run: npm run typecheck
       - name: Lint
@@ -28,5 +32,3 @@ jobs:
         run: npm run lint
       - name: Test
         run: npm test
-      - name: Repo guards (stubbed/truncated week-ahead.ts + week-prints.json, one TAKE object, dark modules)
-        run: npx tsx scripts/verify-repo-guards.mjs

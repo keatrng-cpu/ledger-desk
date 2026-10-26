@@ -35,7 +35,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PLAN_FILES, weekFileProblems } from "./plan-file-guard.mjs";
+import { PLAN_FILES, weekFileProblems, stubMarkerProblems, importedNamesFor } from "./plan-file-guard.mjs";
 
 // fileURLToPath, not URL.pathname: the repo lives under "New folder (6)", and
 // pathname hands back percent-encoded spaces plus a leading slash before the
@@ -111,7 +111,9 @@ for (const [path, floor, unit] of FLOORS) {
   );
 }
 
-// The literal markers an upstream stub leaves behind.
+// The literal markers an upstream stub leaves behind. Matched with the plan-file guard's rule
+// (2026-10-26): anywhere in a tiny file, otherwise only as a whole line by itself, so an
+// ordinary comment that says "placeholder" or "see file" is not a stub.
 const STUB_MARKERS = [
   "see next file",
   "see-file",
@@ -125,7 +127,7 @@ for (const [path] of FLOORS) {
   if (src === null) continue;
   for (const marker of STUB_MARKERS) {
     ok(
-      !src.toLowerCase().includes(marker.toLowerCase()),
+      stubMarkerProblems(path, src, [marker]).length === 0,
       `${path} contains no stub marker "${marker}"`,
     );
   }
@@ -138,13 +140,27 @@ for (const [path] of FLOORS) {
 // tight floors, more stub markers, and an end-of-file / shape check that catches a cut-off write.
 // The checks themselves live in plan-file-guard.mjs (2026-10-26) so find-last-good-plan.mjs can reuse them.
 for (const path of PLAN_FILES) {
-  const probs = weekFileProblems(path, read(path));
+  // requiredExports: every name another file imports from this plan must still be exported (partial-loss check).
+  const requiredExports = importedNamesFor(ROOT, path);
+  const probs = weekFileProblems(path, read(path), { requiredExports });
   ok(probs.length === 0, probs.join("; ") || path);
   // self-test: the guard must reject a placeholder-only and a truncated copy of the real file
   const real = read(path) ?? "";
   const stub = path.endsWith(".ts") ? "// FULL_CONTENT_HERE\nexport const WEEK = [];\n" : '[{"date":"PLACEHOLDER"}]';
   ok(weekFileProblems(path, stub).length > 0, `${path} guard rejects a placeholder-only file`);
   ok(weekFileProblems(path, real.slice(0, Math.floor(real.length * 0.6))).length > 0, `${path} guard rejects a truncated file`);
+  if (probs.length) continue; // the self-tests below edit the real file, so they need a healthy one
+  // self-test: an ordinary comment that merely mentions a marker word is NOT a stub (Accuracy Review 2026-10-26)
+  const noted = path.endsWith(".ts")
+    ? real.replace(/\n/, "\n// placeholder note: the truncated range is restamped Sunday; see the existing code path below.\n")
+    : (() => { try { const j = JSON.parse(real); if (Array.isArray(j) && j[0]) j[0].note = `${j[0].note} (placeholder consensus; truncated session)`; return JSON.stringify(j, null, 2); } catch { return real; } })();
+  ok(weekFileProblems(path, noted, { requiredExports }).length === 0, `${path} guard accepts a normal comment that mentions a marker word`);
+  // self-test: dropping one imported function (the 01a7c5a6 partial loss) is caught
+  const fn = [...requiredExports.keys()].find((n) => new RegExp(`export\\s+(async\\s+)?function\\s+${n}\\b`).test(real));
+  if (fn) {
+    const lost = real.replace(new RegExp(`export\\s+(async\\s+)?function\\s+${fn}\\b`), `function ${fn}_gone`);
+    ok(weekFileProblems(path, lost, { requiredExports }).some((p) => p.includes("partial loss")), `${path} guard rejects losing imported function ${fn}`);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

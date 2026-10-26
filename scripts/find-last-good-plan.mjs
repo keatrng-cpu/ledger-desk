@@ -13,12 +13,22 @@
  *
  * Read-only unless --apply. It restores LAST GOOD content, which may be last week's plan: the new
  * week still has to be written. It never touches desk-rules.json, RULES_HASH, scoring or orders.
+ *
+ * "Good" includes the partial-loss check: every name another file in THIS checkout imports from the
+ * plan file must be exported, so a version like 01a7c5a6 (lost resolveWeekAhead / weekDayFor /
+ * weekAheadFocusLine, 30 lines short, still over the floor) is skipped rather than restored.
+ *
+ * Needs full history. In a shallow clone (CI's actions/checkout defaults to depth 1) the walk would
+ * stop at the graft and report "no passing version" or an older-than-real answer, so when a plan file
+ * is broken and the clone is shallow it prints `git fetch --unshallow` and exits 3 without guessing.
+ *
+ * Exit: 0 all ok · 1 broken, restore found · 2 broken, no passing version · 3 shallow clone.
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PLAN_FILES, planFileProblems } from "./plan-file-guard.mjs";
+import { PLAN_FILES, planFileProblems, importedNamesFor } from "./plan-file-guard.mjs";
 
 // PLAN_ROOT lets the test point it at a scratch repo; default is this checkout.
 const ROOT = process.env.PLAN_ROOT || fileURLToPath(new URL("..", import.meta.url));
@@ -31,7 +41,7 @@ function readNow(path) {
 }
 
 /** Walk history newest → oldest for one file; first version with zero problems wins. */
-export function lastGood(path, { max = MAX } = {}) {
+export function lastGood(path, { max = MAX, requiredExports } = {}) {
   const log = git("log", `-n${max}`, "--format=%H%x09%cI%x09%s", "--", path).trim();
   let scanned = 0;
   for (const line of log ? log.split("\n") : []) {
@@ -39,7 +49,7 @@ export function lastGood(path, { max = MAX } = {}) {
     scanned++;
     let src;
     try { src = git("show", `${sha}:${path}`); } catch { continue; } // deleted in this commit
-    if (planFileProblems(path, src).length === 0) {
+    if (planFileProblems(path, src, { requiredExports }).length === 0) {
       const blob = git("rev-parse", `${sha}:${path}`).trim();
       return { sha, blob, when, subject, lines: src.split("\n").length, bytes: Buffer.byteLength(src), scanned };
     }
@@ -47,13 +57,30 @@ export function lastGood(path, { max = MAX } = {}) {
   return { sha: null, scanned };
 }
 
+function isShallow() {
+  try { return git("rev-parse", "--is-shallow-repository").trim() === "true"; } catch { return false; }
+}
+
 const report = [];
 for (const path of PLAN_FILES) {
   const now = readNow(path);
-  const problems = planFileProblems(path, now);
-  const row = { path, ok: problems.length === 0, problems, nowBytes: now == null ? null : Buffer.byteLength(now) };
-  if (!row.ok) row.lastGood = lastGood(path);
-  report.push(row);
+  const requiredExports = importedNamesFor(ROOT, path);
+  const problems = planFileProblems(path, now, { requiredExports });
+  report.push({ path, ok: problems.length === 0, problems, nowBytes: now == null ? null : Buffer.byteLength(now), requiredExports });
+}
+
+if (report.some((r) => !r.ok) && isShallow()) {
+  for (const r of report) if (!r.ok) console.error(`BROKEN  ${r.path}: ${r.problems.slice(0, 3).join("; ")}`);
+  console.error(
+    "\nfind-last-good-plan: this clone is SHALLOW, so the history it would search is cut off and any\n" +
+      "\"last good\" answer could be wrong or missing. Run:\n\n    git fetch --unshallow\n\nthen re-run this script. Nothing was restored.",
+  );
+  process.exit(3);
+}
+
+for (const r of report) {
+  if (!r.ok) r.lastGood = lastGood(r.path, { requiredExports: r.requiredExports });
+  delete r.requiredExports;
 }
 
 if (args.has("--apply")) {
