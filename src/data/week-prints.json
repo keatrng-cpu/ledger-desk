@@ -299,5 +299,12 @@
     "actual": "\u2014",
     "vs": "none scheduled today",
     "note": "Fri. S&P Flash PMI Mfg 56.0 vs 55.5 / prev 55.9; Services 57.9 vs 58.0 / 58.8; Composite 57.6 in-line vs 58.4. UMich Oct F 48.0 vs ~46.3 / Sep F 48.1 (current 46.7, 1y infl 4.7%). Not the stamp series. Next hard is Oct 28 FOMC."
+  },
+  {
+    "date": "2026-10-26",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Mon. Chicago Fed NA I 0.07 vs -0.1 exp / -0.08 prev. Dallas Fed Mfg 13.4 vs ~7 exp / 9.8 prior. Not stamp series. Next hard: FOMC Wed 14:00, GDP/PCE Thu."
   }
 ]
