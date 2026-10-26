@@ -14,6 +14,15 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
+## Session-partner check-in (2026-10-26, ~09:08 ET scheduled run — premarket) — CANARY FAILED, LIVE ON MAIN
+
+- **`week-ahead.ts` and `month-ahead.ts` are both broken on `main` HEAD (`1c1abc4`) right now** — each file is 22 bytes containing only the literal text `FULL_CONTENT_FROM_FILE`, not real code or even a placeholder stub. This will fail typecheck/build. Not caught by `verify-repo-guards` (added 2026-10-22) — needs follow-up: that guard isn't blocking this pattern.
+- History: `b319c84` (Fri Oct 23 restamp, 712 lines) was the last real `week-ahead.ts`. `8f68b34` then gutted it to 0 lines, `d3d84be` "restored" it to only a 12-line placeholder stub (`WEEK_OCT26_OCT30 = "pending"`), and `1c1abc4` (current HEAD, Sun Oct 25 16:17 CT "Sunday restamp") overwrote even that stub with the garbage literal. So the Oct 26–30 week plan was never actually written — this isn't a truncation of real content, it's a Sunday-restamp session that never produced real content and committed its own tool-output placeholder text instead.
+- `month-ahead.ts` last real version: `1e5d8b4` (535 lines, merge of PR #71). `8f68b34` and `1c1abc4` both carry the same 22-byte garbage.
+- Restore commands: `git checkout b319c84 -- src/lib/trading/week-ahead.ts` and `git checkout 1e5d8b4 -- src/lib/trading/month-ahead.ts`, then commit — but note this only restores *last week's* (Oct 19–23) data; the real Oct 26–30 week plan + Oct month-ahead update still needs to be authored, this just un-breaks the build.
+- `src/data/news-calendar.json` has no row for 2026-10-26 (nearest dates Oct 23 and Oct 27) — no scheduled high-impact release listed for today in that file.
+- Flagged loudly to the trader via push notification; narration only, no restore performed (not asked, and this session has no write authority asserted).
+
 ## Session-partner check-in (2026-10-23, ~10:11 ET scheduled run — mid-session)
 
 - Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `6a19ce2`. No new truncation since the 09:07 ET check.
