@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `e68f89e`. Fetched origin. Local main matches origin.
+HEAD `9f2dc50`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `8daeb9c`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `e68f89e`.
+Bookmark was `e68f89e`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `9f2dc50`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `9f2dc50` | 2026-10-26T15:19 | session-partner: 11:17 ET close-out — canary still failed, unfixed through entire live session | M ai/DECISIONS.md, M ai/NOW.md |
+| `7701f94` | 2026-10-26T14:17 | agent-sync: bookmark claude at e68f89e (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e68f89e` | 2026-10-26T14:17 | session-partner: 10:15 ET mid-session — canary still failed, unfixed 70+ min | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `8daeb9c` | 2026-10-26T13:11 | agent-sync: bookmark claude at 051d38d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `e68f89e`.
 | `ad4a937` | 2026-10-23T14:12 | session-partner: 10:11 ET mid-session check — canary clean | M ai/DECISIONS.md, M ai/NOW.md |
 | `6a19ce2` | 2026-10-23T13:09 | agent-sync: bookmark claude at 684fdde (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `684fdde` | 2026-10-23T13:09 | session-partner: 09:07 ET premarket — canary clean, 5th week-ahead.ts truncation self-healed same morning | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `d8d2504` | 2026-10-23T07:26 | fix: restore week-ahead.ts byte-exact from cad1953 (gutted by 025f5b3b/ec2a1ec3) (#86) | M src/lib/trading/week-ahead.ts |
-| `ec2a1ec` | 2026-10-23T07:12 | Fix week-ahead.ts with updated Oct 19-23 range notes | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
