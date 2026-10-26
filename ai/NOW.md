@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-23 (session-partner check-in below); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-26 (session-partner check-in below); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,12 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-26, ~10:15 ET scheduled run — mid-session) — CANARY STILL FAILED, LIVE ON MAIN, UNFIXED SINCE 09:08 ET
+
+- Re-checked ~70 min after the 09:08 ET run below. **Still broken, unchanged, on `main` HEAD `8daeb9c`** (`1c1abc4` + two no-op commits: `051d38d` a narration-only session-partner note, `8daeb9c` an agent-sync bookmark — neither touched the files). `week-ahead.ts` and `month-ahead.ts` are each still exactly 22 bytes of `FULL_CONTENT_FROM_FILE`. No one has run the restore yet.
+- Flagged again via push notification (2nd consecutive flag, now escalated as unfixed-for-over-an-hour during the live session).
+- Restore commits re-verified good at this HEAD: `git show b319c84:src/lib/trading/week-ahead.ts` → 712 lines; `git show 1e5d8b4:src/lib/trading/month-ahead.ts` → 535 lines.
 
 ## Session-partner check-in (2026-10-26, ~09:08 ET scheduled run — premarket) — CANARY FAILED, LIVE ON MAIN
 
