@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `1c1abc4`. Fetched origin. Local main matches origin.
+HEAD `051d38d`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `ad4a937`. 7 commit(s) landed after it.
-Bookmark after this run: `claude` → `1c1abc4`.
+Bookmark was `1c1abc4`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `051d38d`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `1c1abc4` | 2026-10-25T16:17 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `d3d84be` | 2026-10-25T16:17 | Sunday restamp: restore week-ahead.ts with Oct 26–30 plan | M src/lib/trading/week-ahead.ts |
 | `8f68b34` | 2026-10-25T16:16 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose to ~8–16% hike / 84–92% hold. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `1c1abc4`.
 | `ec2a1ec` | 2026-10-23T07:12 | Fix week-ahead.ts with updated Oct 19-23 range notes | M src/lib/trading/week-ahead.ts |
 | `025f5b3` | 2026-10-23T07:12 | Update week-ahead notes for Oct 19-23 live range and FedWatch odds | M src/lib/trading/week-ahead.ts |
 | `cad1953` | 2026-10-22T23:39 | guard: reject placeholder-only/truncated week-ahead.ts + week-prints.json; run verify-repo-guards in CI (#85) | M .github/workflows/ci.yml, M scripts/verify-repo-guards.mjs |
-| `3305aa1` | 2026-10-22T16:07 | fix: restore week-ahead.ts + week-prints.json byte-exact from 9180db3a (gutted d3eb1269/aed6d593/2a2f9764); stamp Oct 22 claims 194k (#83) | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
