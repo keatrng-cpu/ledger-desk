@@ -51,6 +51,7 @@
     "verify:overnight": "npx tsx scripts/verify-overnight.mjs",
     "prepush": "npm run typecheck && npm run verify:all",
     "hooks:install": "node scripts/install-hooks.mjs",
+    "plan:last-good": "node scripts/find-last-good-plan.mjs",
     "capture:intrabar": "npx tsx scripts/capture-intrabar.mjs",
     "verify:census": "npx tsx scripts/verify-take-census.mjs",
     "verify:chartlabels": "npx tsx scripts/verify-chart-labels.mjs",

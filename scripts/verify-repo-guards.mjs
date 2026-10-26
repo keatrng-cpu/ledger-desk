@@ -35,6 +35,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PLAN_FILES, weekFileProblems } from "./plan-file-guard.mjs";
 
 // fileURLToPath, not URL.pathname: the repo lives under "New folder (6)", and
 // pathname hands back percent-encoded spaces plus a leading slash before the
@@ -135,37 +136,8 @@ for (const [path] of FLOORS) {
 // week-ahead.ts / week-prints.json were gutted again on 10/22 (d3eb1269/aed6d593/2a2f9764, restored in #83).
 // The generic floors above are loose on purpose; these are the two files that keep getting replaced, so they get
 // tight floors, more stub markers, and an end-of-file / shape check that catches a cut-off write.
-export function weekFileProblems(path, src) {
-  const out = [];
-  if (src == null) return [`${path} missing`];
-  const MARKERS = ["FULL_CONTENT_HERE", "PLACEHOLDER", "rest of file", "rest of the file", "remaining content", "content unchanged",
-    "TRUNCATED", "<content>", "[content]", "existing code", "see next file", "see-file", "TODO: restore", "// ...", "/* ... */"];
-  for (const m of MARKERS) if (src.toLowerCase().includes(m.toLowerCase())) out.push(`${path} contains stub marker "${m}"`);
-  if (path.endsWith(".ts")) {
-    const lines = src.split("\n").length;
-    if (lines < 500) out.push(`${path} has ${lines} lines (floor 500; healthy is ~700) — placeholder or truncated`);
-    const body = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").trim();
-    if (!/[}\];]\s*$/.test(body)) out.push(`${path} does not end on a closing brace/bracket/semicolon — truncated write`);
-    const bal = (o, c) => (body.split(o).length - 1) - (body.split(c).length - 1);
-    if (bal("{", "}") !== 0) out.push(`${path} braces unbalanced (${bal("{", "}")}) — truncated write`);
-    if (bal("[", "]") !== 0) out.push(`${path} brackets unbalanced (${bal("[", "]")}) — truncated write`);
-    if (!/export\s+(async\s+)?function\s+\w+/.test(body)) out.push(`${path} exports no function — placeholder`);
-  } else {
-    let j = null;
-    try { j = JSON.parse(src); } catch { out.push(`${path} does not parse — truncated write`); return out; }
-    if (!Array.isArray(j)) { out.push(`${path} is not an array`); return out; }
-    if (j.length < 30) out.push(`${path} has ${j.length} entries (floor 30; healthy is ~40) — placeholder or truncated`);
-    const need = ["date", "name", "actual", "vs", "note"];
-    j.forEach((e, i) => {
-      if (!e || typeof e !== "object") { out.push(`${path}[${i}] is not an object`); return; }
-      for (const k of need) if (!(k in e)) out.push(`${path}[${i}] missing "${k}"`);
-      if (!/^\d{4}-\d\d-\d\d$/.test(String(e.date ?? ""))) out.push(`${path}[${i}] date ${JSON.stringify(e.date)} not YYYY-MM-DD`);
-      if (!String(e.name ?? "").trim()) out.push(`${path}[${i}] empty name — placeholder entry`);
-    });
-  }
-  return out;
-}
-for (const path of ["src/lib/trading/week-ahead.ts", "src/data/week-prints.json"]) {
+// The checks themselves live in plan-file-guard.mjs (2026-10-26) so find-last-good-plan.mjs can reuse them.
+for (const path of PLAN_FILES) {
   const probs = weekFileProblems(path, read(path));
   ok(probs.length === 0, probs.join("; ") || path);
   // self-test: the guard must reject a placeholder-only and a truncated copy of the real file
