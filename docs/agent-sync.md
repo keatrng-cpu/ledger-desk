@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `8daeb9c`. Fetched origin. Local main matches origin.
+HEAD `e68f89e`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `051d38d`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `8daeb9c`.
+Bookmark was `8daeb9c`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `e68f89e`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `e68f89e` | 2026-10-26T14:17 | session-partner: 10:15 ET mid-session — canary still failed, unfixed 70+ min | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `8daeb9c` | 2026-10-26T13:11 | agent-sync: bookmark claude at 051d38d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `1c1abc4` | 2026-10-25T16:17 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `8daeb9c`.
 | `684fdde` | 2026-10-23T13:09 | session-partner: 09:07 ET premarket — canary clean, 5th week-ahead.ts truncation self-healed same morning | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `d8d2504` | 2026-10-23T07:26 | fix: restore week-ahead.ts byte-exact from cad1953 (gutted by 025f5b3b/ec2a1ec3) (#86) | M src/lib/trading/week-ahead.ts |
 | `ec2a1ec` | 2026-10-23T07:12 | Fix week-ahead.ts with updated Oct 19-23 range notes | M src/lib/trading/week-ahead.ts |
-| `025f5b3` | 2026-10-23T07:12 | Update week-ahead notes for Oct 19-23 live range and FedWatch odds | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
