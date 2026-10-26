@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-26 (session-partner check-in below); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-26 11:17 ET (session-partner close-out check-in below — canary still failed, unfixed through the whole NY AM session); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -14,16 +14,19 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
-## Session-partner check-in (2026-10-26, ~10:15 ET scheduled run — mid-session) — CANARY STILL FAILED, LIVE ON MAIN, UNFIXED SINCE 09:08 ET
+## Session-partner check-in (2026-10-26, ~11:17 ET scheduled run — close-out) — CANARY STILL FAILED, LIVE ON MAIN, UNFIXED FOR 2h+ THROUGH THE WHOLE NY AM SESSION
 
-- Re-checked ~70 min after the 09:08 ET run below. **Still broken, unchanged, on `main` HEAD `8daeb9c`** (`1c1abc4` + two no-op commits: `051d38d` a narration-only session-partner note, `8daeb9c` an agent-sync bookmark — neither touched the files). `week-ahead.ts` and `month-ahead.ts` are each still exactly 22 bytes of `FULL_CONTENT_FROM_FILE`. No one has run the restore yet.
-- Flagged again via push notification (2nd consecutive flag, now escalated as unfixed-for-over-an-hour during the live session).
-- Restore commits re-verified good at this HEAD: `git show b319c84:src/lib/trading/week-ahead.ts` → 712 lines; `git show 1e5d8b4:src/lib/trading/month-ahead.ts` → 535 lines.
+- Re-checked ~60 min after the 10:15 ET run. **Still broken, unchanged, on `main` HEAD `7701f94`** (two more no-op commits on top since 10:15 — `e68f89e` narration, `7701f94` agent-sync bookmark — neither touched the files). `week-ahead.ts` and `month-ahead.ts` are each still exactly 22 bytes of `FULL_CONTENT_FROM_FILE`. The entire 09:30–11:17 ET session ran with no real week/month plan in the repo and no one has run the restore.
+- 3rd consecutive flag today (09:08, 10:15, 11:17 ET), escalated via push notification as unfixed through the full live window.
+- Restore commits re-verified good at this HEAD: `git show b319c84:src/lib/trading/week-ahead.ts` → 712 lines; `git show 1e5d8b4:src/lib/trading/month-ahead.ts` → 535 lines. Commands unchanged from the 09:08 entry below.
+- `src/data/trade-log.json` re-checked: still 1 row total, dated 2026-09-23 — nothing logged for today or any day since. Still the binding constraint on every measurement this desk makes.
+
+## Session-partner check-in (2026-10-26, ~10:15 ET run) — still broken, unchanged since 09:08; restore commits re-verified good (712 / 535 lines).
 
 ## Session-partner check-in (2026-10-26, ~09:08 ET scheduled run — premarket) — CANARY FAILED, LIVE ON MAIN
 
-- **`week-ahead.ts` and `month-ahead.ts` are both broken on `main` HEAD (`1c1abc4`) right now** — each file is 22 bytes containing only the literal text `FULL_CONTENT_FROM_FILE`, not real code or even a placeholder stub. This will fail typecheck/build. Not caught by `verify-repo-guards` (added 2026-10-22) — needs follow-up: that guard isn't blocking this pattern.
-- History: `b319c84` (Fri Oct 23 restamp, 712 lines) was the last real `week-ahead.ts`. `8f68b34` then gutted it to 0 lines, `d3d84be` "restored" it to only a 12-line placeholder stub (`WEEK_OCT26_OCT30 = "pending"`), and `1c1abc4` (current HEAD, Sun Oct 25 16:17 CT "Sunday restamp") overwrote even that stub with the garbage literal. So the Oct 26–30 week plan was never actually written — this isn't a truncation of real content, it's a Sunday-restamp session that never produced real content and committed its own tool-output placeholder text instead.
+- **`week-ahead.ts` and `month-ahead.ts` are both broken on `main`** — each file is 22 bytes containing only the literal text `FULL_CONTENT_FROM_FILE`, not real code or even a placeholder stub. This will fail typecheck/build. Not caught by `verify-repo-guards` (added 2026-10-22) — needs follow-up: that guard isn't blocking this pattern.
+- History: `b319c84` (Fri Oct 23 restamp, 712 lines) was the last real `week-ahead.ts`. `8f68b34` then gutted it to 0 lines, `d3d84be` "restored" it to only a 12-line placeholder stub (`WEEK_OCT26_OCT30 = "pending"`), and `1c1abc4` (Sun Oct 25 16:17 CT "Sunday restamp") overwrote even that stub with the garbage literal. So the Oct 26–30 week plan was never actually written — this isn't a truncation of real content, it's a Sunday-restamp session that never produced real content and committed its own tool-output placeholder text instead.
 - `month-ahead.ts` last real version: `1e5d8b4` (535 lines, merge of PR #71). `8f68b34` and `1c1abc4` both carry the same 22-byte garbage.
 - Restore commands: `git checkout b319c84 -- src/lib/trading/week-ahead.ts` and `git checkout 1e5d8b4 -- src/lib/trading/month-ahead.ts`, then commit — but note this only restores *last week's* (Oct 19–23) data; the real Oct 26–30 week plan + Oct month-ahead update still needs to be authored, this just un-breaks the build.
 - `src/data/news-calendar.json` has no row for 2026-10-26 (nearest dates Oct 23 and Oct 27) — no scheduled high-impact release listed for today in that file.
