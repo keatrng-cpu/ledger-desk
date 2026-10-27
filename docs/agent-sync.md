@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `6c9a0b8`. Fetched origin. Local main matches origin.
+HEAD `09524a9`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `4a3123d`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `6c9a0b8`.
+Bookmark was `6c9a0b8`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `09524a9`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `09524a9` | 2026-10-27T15:16 | session-partner: 11:16 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `6c9a0b8` | 2026-10-27T14:48 | agent-sync: bookmark claude at 4a3123d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `4a3123d` | 2026-10-27T14:48 | session-partner: 10:39 ET mid-session — canary fixed, 3-day main breakage restored | M ai/DECISIONS.md, M ai/NOW.md |
 | `39b3af6` | 2026-10-27T14:47 | agent-sync: bookmark claude at b89ad16 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `6c9a0b8`.
 | `e68f89e` | 2026-10-26T14:17 | session-partner: 10:15 ET mid-session — canary still failed, unfixed 70+ min | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `8daeb9c` | 2026-10-26T13:11 | agent-sync: bookmark claude at 051d38d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `1c1abc4` | 2026-10-25T16:17 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
