@@ -28,6 +28,13 @@ Scope: desk/process/canon decisions. Trading rule numbers live in `src/lib/aplus
 
 Other plan §5 questions (PATH n, Kalshi FLB, QQQ/SPY basis, PM vendor, server runner vs PATH) are tracked in `ai/NOW.md` → Open questions.
 
+## 2026-10-27 — NY AM session-partner run: canary still failed, 3rd calendar day, restore target for month-ahead.ts corrected (Claude, scheduled)
+- Status: OPEN LOCK (build-breaking) · Decided by: n/a, informational · Source: scheduled session-partner routine
+- Finding: `week-ahead.ts`/`month-ahead.ts` remain 22-byte `FULL_CONTENT_FROM_FILE` placeholders at `main` HEAD `227abe7`, unchanged since the 2026-10-25 Sunday restamp broke them. Two restamp commits since (`36ce8c5`, `227abe7`) only touched `week-prints.json`, not these files.
+- Correction: the `1e5d8b4` SHA recorded in `ai/NOW.md` on 2026-10-26 as the last-good `month-ahead.ts` does not resolve on this repo's history. Re-derived from `git log --all -- src/lib/trading/month-ahead.ts`: last-good is `bda6b63` (535 lines). Last-good `week-ahead.ts` unchanged at `b319c84` (712 lines). Both confirmed ancestors of HEAD.
+- Why: a trader or agent running the restore should use a SHA that actually exists, not a transcribed typo from a prior session's notes.
+- No code/scoring/gate change. No restore executed by this session — narration/discipline only per the scheduled task's own instructions, which ask for the restore command to be named, not run unattended on shared `main`.
+
 ---
 
 ## Log
