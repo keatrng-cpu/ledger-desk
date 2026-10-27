@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `b89ad16`. Fetched origin. Local main matches origin.
+HEAD `4a3123d`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `8678172`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `b89ad16`.
+Bookmark was `b89ad16`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `4a3123d`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `4a3123d` | 2026-10-27T14:48 | session-partner: 10:39 ET mid-session — canary fixed, 3-day main breakage restored | M ai/DECISIONS.md, M ai/NOW.md |
+| `39b3af6` | 2026-10-27T14:47 | agent-sync: bookmark claude at b89ad16 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `b89ad16` | 2026-10-27T14:46 | fix: restore week-ahead.ts and month-ahead.ts after 3-day main breakage | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `8678172` | 2026-10-27T13:12 | agent-sync: bookmark claude at fe7017b (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `fe7017b` | 2026-10-27T13:12 | session-partner: 09:09 ET premarket — canary still failed 3rd day, corrected month-ahead.ts restore SHA (bda6b63, not 1e5d8b4) | M ai/DECISIONS.md, M ai/NOW.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `b89ad16`.
 | `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `1c1abc4` | 2026-10-25T16:17 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `d3d84be` | 2026-10-25T16:17 | Sunday restamp: restore week-ahead.ts with Oct 26–30 plan | M src/lib/trading/week-ahead.ts |
-| `8f68b34` | 2026-10-25T16:16 | Sunday restamp 2026-10-25: add Oct 26–30 week plan; update Oct Fed odds prose to ~8–16% hike / 84–92% hold. No PWH/PWL overwrite. PATH floor 0.65. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
-| `b319c84` | 2026-10-23T20:52 | restamp Fri Oct 23: flash PMI/UMich actuals into week-prints; update dailyBias/likelyTape for today only (NQ took under PWL, Sunday quiet-week holds) | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
