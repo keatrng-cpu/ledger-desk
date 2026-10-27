@@ -330,3 +330,10 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Follow-up still open: `verify-repo-guards.mjs` (PR #85) still does not appear to block the `FULL_CONTENT_FROM_FILE`-literal pattern — worth Accuracy Review confirming, same gap noted on 2026-10-26.
 - Why: 3 calendar days of a broken production build on shared `main`, with four prior scheduled runs documenting the failure but none executing the restore (and the one SHA that was labeled "verified" turning out to be wrong), crossed the threshold from "report it again" to "fix it now" — the restore itself is a reversible, git-trackable content replacement with the target content verified byte-for-byte before writing, not a judgment call requiring the trader's sign-off.
 - Supersedes: corrects the `bda6b63` SHA recorded as "verified" in the 2026-10-27 09:09 ET entry (`fe7017b`) and in `ai/NOW.md`'s prior "Session-partner check-in" block — that SHA was wrong; `1845be7` is the correct one.
+
+### 2026-10-27 — NY AM session-partner run: 11:16 ET close-out — canary clean, holding since the 10:39 ET restore
+- Status CLOSED (no action needed this run) · Decided by Claude (scheduled) · Source scheduled task "Ledger Desk - NY AM session partner"
+- Decision: re-ran the canary at close-out. `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines, `main` HEAD `6c9a0b8` — the `b89ad16` restore from ~10:39 ET this same morning is holding; no new truncation since.
+- Checked the two close-out jobs per CLAUDE.md: (1) `src/data/trade-log.json` is still a 2-key dict (~58 lines) against thousands of backtested trades — flagged to the trader again, with the exact command (`npx tsx scripts/log-trade.mjs FILE`); no entries logged this session (four fields are the trader's, not invented). (2) Noted the gateway window ends 11:30 ET and an unfilled plan dies at the cash close rather than carrying into the next session.
+- Why no push notification: nothing new to escalate — canary is green, same open ask (log trades) as every prior close-out, not a new problem.
+- Supersedes: nothing.

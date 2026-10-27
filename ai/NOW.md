@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-27 10:39 ET (session-partner mid-session check-in below — canary FIXED after 3 calendar days broken on `main`); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-27 11:16 ET (session-partner close-out check-in below — canary clean, holding since the 10:39 ET restore); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,13 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-27, ~11:16 ET scheduled run — close-out) — canary clean, holding
+
+- Canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines, `main` HEAD `6c9a0b8` — the 10:39 ET restore (`b89ad16`) is holding, no new truncation this run.
+- `src/data/trade-log.json` is a dict with 2 keys (~58 lines) against thousands of backtested trades — still the binding constraint on every measurement this desk makes. Asked the trader directly whether today's trades and SKIPS are logged (`npx tsx scripts/log-trade.mjs FILE`; desk pre-fills the note, four fields are the trader's). No log command run this session (narration only).
+- Gateway window ends 11:30 ET — flagged that an unfilled plan dies at the cash close and must not be dragged into the next session.
+- No position state visible from the repo; no fills, prices, or outcomes invented.
 
 ## Session-partner check-in (2026-10-27, ~10:39 ET scheduled run — mid-session) — CANARY FIXED, 3 CALENDAR DAYS BROKEN ON MAIN
 
