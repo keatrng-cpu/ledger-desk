@@ -306,5 +306,12 @@
     "actual": "\u2014",
     "vs": "none scheduled today",
     "note": "Mon. Chicago Fed NA I 0.07 vs -0.1 exp / -0.08 prev. Dallas Fed Mfg 13.4 vs ~7 exp / 9.8 prior. Not stamp series. Next hard: FOMC Wed 14:00, GDP/PCE Thu."
+  },
+  {
+    "date": "2026-10-27",
+    "name": "No ISM / JOLTS / ADP / claims / NFP",
+    "actual": "\u2014",
+    "vs": "none scheduled today",
+    "note": "Tue. Durable Goods (Sep P) at 08:30 (not yet / not stamp). Consumer Confidence, etc. Not stamp series. Next hard: FOMC Wed 14:00, GDP/PCE/claims Thu 08:30. FOMC hike odds ~8-10%."
   }
 ]
