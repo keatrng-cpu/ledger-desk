@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `09524a9`. Fetched origin. Local main matches origin.
+HEAD `5e1669a`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `6c9a0b8`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `09524a9`.
+Bookmark was `09524a9`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `5e1669a`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `5e1669a` | 2026-10-28T12:10 | week-ahead: add Oct 26–30 FOMC week plan | M src/lib/trading/week-ahead.ts |
+| `c80e11a` | 2026-10-27T15:17 | agent-sync: bookmark claude at 09524a9 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `09524a9` | 2026-10-27T15:16 | session-partner: 11:16 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `6c9a0b8` | 2026-10-27T14:48 | agent-sync: bookmark claude at 4a3123d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `4a3123d` | 2026-10-27T14:48 | session-partner: 10:39 ET mid-session — canary fixed, 3-day main breakage restored | M ai/DECISIONS.md, M ai/NOW.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `09524a9`.
 | `9f2dc50` | 2026-10-26T15:19 | session-partner: 11:17 ET close-out — canary still failed, unfixed through entire live session | M ai/DECISIONS.md, M ai/NOW.md |
 | `7701f94` | 2026-10-26T14:17 | agent-sync: bookmark claude at e68f89e (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e68f89e` | 2026-10-26T14:17 | session-partner: 10:15 ET mid-session — canary still failed, unfixed 70+ min | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `8daeb9c` | 2026-10-26T13:11 | agent-sync: bookmark claude at 051d38d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `051d38d` | 2026-10-26T13:10 | session-partner: 09:08 ET premarket — week-ahead.ts/month-ahead.ts broken on main HEAD | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 

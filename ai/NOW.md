@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-27 11:16 ET (session-partner close-out check-in below — canary clean, holding since the 10:39 ET restore); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-28 10:08 ET (session-partner mid-session check-in below — canary clean, holding); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,13 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-28, ~10:08 ET scheduled run — mid-session) — canary clean, holding
+
+- Canary clean: `week-ahead.ts` 824 lines, `month-ahead.ts` 535 lines, `main` HEAD `5e1669a` (today's Oct 26–30 FOMC week plan addition to week-ahead.ts) — no truncation; the 10-27 restore (`b89ad16`) continues to hold.
+- Ran `agent-sync.mjs --agent claude`: 1 new commit since bookmark (the FOMC week plan add), bookmark advanced to `5e1669a`; nothing to read-before-edit, no code edits made this session.
+- A+-only window live (past 10:00 ET). Restated entry (rest the limit at CE, never pay the print) and the scale rule verbatim from `entry-ticket.ts:169`: 50% off at T1, stop → BE, runner to T2 — do not protect early (measured −0.18R to −0.41R, drawdown 24%→45% if violated). Asked the trader whether any open position's management matches this — narration only, no position state visible from the repo.
+- No fills, prices, or outcomes invented.
 
 ## Session-partner check-in (2026-10-27, ~11:16 ET scheduled run — close-out) — canary clean, holding
 
@@ -30,18 +37,7 @@
 - Mid-session discipline per CLAUDE.md: A+-only window is live (past 10:00 ET). Entry = rest the limit at CE, never pay the print. Scale = 50% off at T1, stop → BE, runner to T2 (+0.50R/t measured; banking at +1R instead measured −0.42R/t, BE at +1R MFE −0.07, trailing −0.30 — do not "protect early"). Asked the trader whether any open position's management matches this — narration only, no position state visible from the repo.
 - `src/data/news-calendar.json` today (2026-10-27): only Durable Goods Orders (Sep P) 08:30 ET medium, already printed. Next high-impact: FOMC Wed 10-28 14:00/14:30 ET.
 
-## Session-partner check-in (2026-10-23, ~10:11 ET scheduled run — mid-session)
-
-- Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `6a19ce2`. No new truncation since the 09:07 ET check.
-- A+-only window now live (post-10:00 ET). Restated entry (rest limit at CE) and scale (50% off T1 → BE → runner, +0.50R/t measured) rules; asked the trader whether an open position's management matches the scale rule — narration only, no position state visible from the repo.
-
-## Session-partner check-in (2026-10-23, ~09:07 ET scheduled run — premarket)
-
-- Integrity canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines. `main` at `d8d2504`.
-- Note: a 4th truncation of `week-ahead.ts` landed and was caught/restored *this same morning*, before this check — `ec2a1ec`/`025f5b3` gutted it (07:12 UTC), `d8d2504` (#86, 07:26 UTC) restored byte-exact from `cad1953`. The `verify-repo-guards` CI check added in `cad1953` (#85, 2026-10-22) is now live, so this class of break should fail CI going forward instead of reaching `main` silently.
-- Today (Fri 2026-10-23) per `WEEK_OCT19_OCT23.days[Fri]`: medium close, not NFP, flatten into the weekend. News: S&P Flash PMI (Oct) 9:45 ET medium, UMich Sentiment (Oct F) 10:00 ET medium. (Cross-check: `src/data/news-calendar.json` carries only the 10:00 UMich row for today, not the 9:45 flash PMI — week-ahead.ts is the one treated as ground truth for the day's blackout windows.) skipIf: no MSS + IFVG already there; already took the week; do not swing into next week / FOMC Oct 28. No code, scoring, or gate changes — narration/discipline only, per CLAUDE.md.
-
-Prior (2026-10-22 11:00 ET close-out): canary clean, `main` at `18a784c`; `src/data/trade-log.json` held 1 logged trade against thousands of backtested trades — still the binding constraint on every measurement this desk makes, flagged to trader, no log command run (trader's four fields). Prior (2026-10-22 10:00 ET): 3rd recurring truncation (after 09-04/09-20/09-25) caught/restored same morning (`8ec3595`→`6fe7b66`, PR #82); `docs/agent-sync.json`'s `grok` bookmark was a dangling SHA.
+Older 2026-10-23 and 2026-10-22 check-ins trimmed for length — see `ai/DECISIONS.md` for the dated entries.
 
 ## Read order (every session)
 

@@ -337,3 +337,11 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Checked the two close-out jobs per CLAUDE.md: (1) `src/data/trade-log.json` is still a 2-key dict (~58 lines) against thousands of backtested trades — flagged to the trader again, with the exact command (`npx tsx scripts/log-trade.mjs FILE`); no entries logged this session (four fields are the trader's, not invented). (2) Noted the gateway window ends 11:30 ET and an unfilled plan dies at the cash close rather than carrying into the next session.
 - Why no push notification: nothing new to escalate — canary is green, same open ask (log trades) as every prior close-out, not a new problem.
 - Supersedes: nothing.
+
+### 2026-10-28 — NY AM session-partner run: 10:08 ET mid-session — canary clean, A+-only window restated
+- Status CLOSED (no action needed this run) · Decided by Claude (scheduled) · Source scheduled task "Ledger Desk - NY AM session partner"
+- Decision: canary clean on arrival — `week-ahead.ts` 824 lines, `month-ahead.ts` 535 lines, `main` HEAD `5e1669a` (today's commit adds the Oct 26–30 FOMC week plan to `week-ahead.ts`; no truncation pattern). Ran `agent-sync.mjs --agent claude`: 1 new commit since bookmark, advanced bookmark to `5e1669a`.
+- Mid-session discipline per CLAUDE.md: A+-only window live (past 10:00 ET). Before restating the scale-rule figures given in the scheduled prompt (−0.18R to −0.41R, drawdown 24%→45%), verified them against the repo rather than taking the prompt's wording on faith — found verbatim in `src/lib/trading/entry-ticket.ts:169`, so relayed as-is (desk-accuracy: find/read/explain a committed number, never originate one).
+- Asked the trader whether any open position's management matches the scale rule (50% off at T1, stop → BE, runner to T2) — narration only, no position state visible from the repo, no fills/prices invented.
+- Why no push notification: nothing new to escalate — canary green, no new truncation, routine mid-session reminder.
+- Supersedes: nothing.
