@@ -570,7 +570,120 @@ export const WEEK_OCT19_OCT23: WeekPlan = {
   ],
 };
 
-const PLANS: WeekPlan[] = [WEEK_OCT19_OCT23, WEEK_OCT12_OCT16, WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
+
+/** Week of Oct 26 – Oct 30 2026. FOMC Wed 14:00, GDP/PCE/claims Thu 8:30, ECI Fri 8:30. No ISM/JOLTS/ADP/NFP. */
+export const WEEK_OCT26_OCT30: WeekPlan = {
+  id: "2026-10-26",
+  weekLabel: "Oct 26 – Oct 30, 2026",
+  weekStart: "2026-10-26",
+  weekEnd: "2026-10-30",
+  headline:
+    "FOMC week. Decision Wed 14:00 (hold ~90%, hike ~10%), presser 14:30. GDP advance + PCE + claims Thu 8:30. ECI Fri 8:30. No ISM, JOLTS, ADP, or NFP.",
+  htfBias:
+    "Prior week (Oct 19–23) seed: NQ high ~30,113 (Wed) / low ~28,987 (Fri); ES high ~7,812 / low ~7,648.50. This week so far under PWH, near/above PWL. Do not invent CWH/CWL.",
+  po3: "Mon–Tue range-build into FOMC. Wed blackout into 14:00 decision + 14:30 presser. Thu GDP/PCE/claims distribute. Fri ECI is medium close, not NFP.",
+  macro:
+    "Sep NFP +29k, U 4.2%. Sep CPI +0.6% m/m / +3.7% y/y, core +0.3% / +2.6%. PPI hot. Claims last Thu 194k. CME FedWatch: Oct 28 hold ~90–92%, 25bp hike ~8–10%. Dec hike odds elevated (~75–85%). No labor or ISM this week. Next NFP Nov 6.",
+  asymmetry:
+    "Selective into FOMC. Flatten before the weekend. blake_mech longs stay paper. PATH floor 0.65.",
+  nq: {
+    settle: 29117.75,
+    rangeLo: 28987,
+    rangeHi: 30113,
+    pwh: 30113,
+    pwl: 28987,
+    eq: 29550,
+    drawUp: "Prior-week ~30,113 — this week high ~29,989 still under; only if a reclaim holds post-FOMC",
+    drawDown: "Prior-week ~28,987 — this week low ~29,024 near it, not a clean take yet",
+    note: "PWH/PWL = Oct 19–23 week (NQ high ~30,113 Wed / low ~28,987 Fri). This week so far ~29,024–29,989 (under PWH, above PWL). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+  },
+  es: {
+    settle: 7659.75,
+    rangeLo: 7648.5,
+    rangeHi: 7812.25,
+    pwh: 7812.25,
+    pwl: 7648.5,
+    eq: 7730.375,
+    drawUp: "Prior-week ~7,812 — this week high ~7,773 still under",
+    drawDown: "Prior-week ~7,648.50 — this week low ~7,652 near it",
+    note: "PWH/PWL = Oct 19–23 ES week (high ~7,812 / low ~7,648.50). This week so far ~7,652–7,773 (under PWH, near PWL). Live CWH/CWL from bars.",
+  },
+  filters: ["No ISM/JOLTS/ADP/NFP this week", "FOMC blackout into 14:00 Wed", "PATH floor 0.65"],
+  ops: ["Flatten into weekend unless BE", "A+ only with MSS + IFVG"],
+  outcomes: [
+    { p: 0.55, name: "Hold + hawkish lean", detail: "Rates unchanged 3.75–4.00. Tone keeps Dec hike live. Two-way into Thu prints." },
+    { p: 0.35, name: "Hold + soft lean", detail: "Unchanged but Warsh softens Dec odds. Squeeze toward PWH." },
+    { p: 0.10, name: "Surprise hike", detail: "25bp. Sharp risk-off under PWL." },
+  ],
+  days: [
+    {
+      date: "2026-10-26",
+      weekday: "Mon",
+      dailyBias: "Quiet open into FOMC. Not a new HTF trend.",
+      kind: "range_build",
+      news: [],
+      likelyTape: "No high-impact print. NQ ~29,024–29,572 under prior-week 30,113 / above 28,987. ES ~7,652–7,740 under 7,812 / near 7,648.50. Range-build.",
+      trade: "A+ only if MSS + IFVG already there. Do not force the open. No multi-day into FOMC.",
+      skipIf: "No MSS + IFVG. Already inside prior-week box.",
+      pathNote: "Sunday quiet-into-FOMC story holds. Next hard is Wed 14:00.",
+    },
+    {
+      date: "2026-10-27",
+      weekday: "Tue",
+      dailyBias: "Two-way, still inside prior week",
+      kind: "two_way",
+      news: [{ timeEt: "08:30", name: "Durable Goods Orders (Sep P)", impact: "medium", note: "Census 8:30 ET. Not stamp series. Consensus not the raid." }],
+      likelyTape: "Durable Goods not the catalyst. NQ ~29,288–29,881 still under PWH 30,113 / above PWL 28,987. ES ~7,700–7,773 under 7,812 / above 7,648.50. No PWH/PWL take. Inside-week.",
+      trade: "Post-print mechanical only if MSS + IFVG. Tue did not take prior-week H/L. Flatten into FOMC.",
+      skipIf: "No raid of prior-week H/L — already the case.",
+      pathNote: "Inside-week holds. FOMC hike odds ~8–10%. Next is Wed blackout.",
+    },
+    {
+      date: "2026-10-28",
+      weekday: "Wed",
+      dailyBias: "FOMC blackout — selective only",
+      kind: "event",
+      news: [
+        { timeEt: "14:00", name: "FOMC Rate Decision", impact: "high", note: "Fed official. Target range currently 3.75–4.00% after Sep 16 hike. CME FedWatch hold ~90–92%, 25bp hike ~8–10%. Statement 14:00 ET." },
+        { timeEt: "14:30", name: "FOMC Press Conference", impact: "high", note: "Chair Warsh 14:30 ET. No SEP/dots this meeting. Tone on Dec hike is the tape." },
+      ],
+      likelyTape: "Pre-decision range under PWH. Hold is base. Post-14:00 two-way until presser clarifies Dec path. Live CWH/CWL from bars — do not hardcode.",
+      trade: "Blackout into 14:00. Post-statement A+ only if MSS + IFVG after the print. Flatten before weekend risk. No swing into Thu prints.",
+      skipIf: "No MSS + IFVG after the statement. Do not trade the first spike.",
+      pathNote: "Sunday FOMC-week story holds. Hold-heavy; Dec hike still live. Next is Thu GDP/PCE/claims.",
+    },
+    {
+      date: "2026-10-29",
+      weekday: "Thu",
+      dailyBias: "Selective — post-FOMC, prints live",
+      kind: "selective",
+      news: [
+        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "DOL 8:30 ET, week ending Oct 24. Prev 194k. Rarely trends the day alone." },
+        { timeEt: "08:30", name: "GDP Q3 (advance)", impact: "high", note: "BEA 8:30 ET. First look at Q3 growth. Consensus ~3.2% vs Q2 3rd +2.2%." },
+        { timeEt: "08:30", name: "PCE / Personal Income (Sep)", impact: "high", note: "BEA 8:30 ET. Core PCE seen ~0.3% m/m / ~3.1% y/y. Hot = keeps Dec hike live. Soft = squeeze." },
+      ],
+      likelyTape: "Triple 8:30. Post-FOMC reaction plus GDP/PCE. Still inside prior-week box until a clean take. Live range from bars.",
+      trade: "Post-print mechanical only if MSS + IFVG. Do not chase first bar. Flatten into Fri unless BE.",
+      skipIf: "No raid of prior-week H/L or clean MSS. Already inside.",
+      pathNote: "FOMC reaction continues. Soft PCE is the squeeze path; hot keeps the Dec hike. Next is Fri ECI.",
+    },
+    {
+      date: "2026-10-30",
+      weekday: "Fri",
+      dailyBias: "Selective close — ECI, not NFP",
+      kind: "selective",
+      news: [
+        { timeEt: "08:30", name: "Employment Cost Index (Q3)", impact: "high", note: "BLS 8:30 ET. Q3 ECI. Prev ~0.9% q/q. Wage pressure gauge, not NFP." },
+      ],
+      likelyTape: "ECI is the last print. NQ/ES still under prior-week highs into the close. No NFP. Flatten.",
+      trade: "Blackout done. A+ only if MSS + IFVG already there. Flatten into the weekend unless BE. Do not swing into next week.",
+      skipIf: "No MSS + IFVG. Already took the week. Do not swing into next week.",
+      pathNote: "PWH/PWL seed unchanged. Next hard is Nov 3 JOLTS / Nov 6 NFP.",
+    },
+  ],
+};
+
+const PLANS: WeekPlan[] = [WEEK_OCT26_OCT30, WEEK_OCT19_OCT23, WEEK_OCT12_OCT16, WEEK_OCT5_OCT9, WEEK_SEP28_OCT2];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
