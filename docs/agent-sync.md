@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `5e1669a`. Fetched origin. Local main matches origin.
+HEAD `d5d45f7`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `09524a9`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `5e1669a`.
+Bookmark was `d5d45f7`. 15 commit(s) landed after it.
+Bookmark after this run: `claude` → `d5d45f7`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `d5d45f7` | 2026-10-28T14:09 | session-partner: 10:08 ET mid-session — canary clean, A+-only restated | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `5e1669a` | 2026-10-28T12:10 | week-ahead: add Oct 26–30 FOMC week plan | M src/lib/trading/week-ahead.ts |
 | `c80e11a` | 2026-10-27T15:17 | agent-sync: bookmark claude at 09524a9 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `09524a9` | 2026-10-27T15:16 | session-partner: 11:16 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `5e1669a`.
 | `dd56c32` | 2026-10-26T15:19 | agent-sync: bookmark claude at 9f2dc50 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `9f2dc50` | 2026-10-26T15:19 | session-partner: 11:17 ET close-out — canary still failed, unfixed through entire live session | M ai/DECISIONS.md, M ai/NOW.md |
 | `7701f94` | 2026-10-26T14:17 | agent-sync: bookmark claude at e68f89e (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `e68f89e` | 2026-10-26T14:17 | session-partner: 10:15 ET mid-session — canary still failed, unfixed 70+ min | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
