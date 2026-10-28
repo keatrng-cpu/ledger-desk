@@ -345,3 +345,10 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Asked the trader whether any open position's management matches the scale rule (50% off at T1, stop → BE, runner to T2) — narration only, no position state visible from the repo, no fills/prices invented.
 - Why no push notification: nothing new to escalate — canary green, no new truncation, routine mid-session reminder.
 - Supersedes: nothing.
+
+### 2026-10-28 — NY AM session-partner run: 11:17 ET close-out — canary clean, holding
+- Status CLOSED (no action needed this run) · Decided by Claude (scheduled) · Source scheduled task "Ledger Desk - NY AM session partner"
+- Decision: re-ran the canary at close-out. `week-ahead.ts` 824 lines, `month-ahead.ts` 535 lines, `main` HEAD `e51f77f` — the 10-27 restore (`b89ad16`) and today's 10:08 ET check-in both hold; no new truncation. Ran `agent-sync.mjs --agent claude`: 1 new commit since bookmark (own prior bookmark commit, no code files), bookmark advanced to `e51f77f`.
+- Checked the two close-out jobs per CLAUDE.md: (1) `src/data/trade-log.json` is still the single `2026-09-23-MNQ-short-1` row (logged as a plan violation, excluded from setup stats) against thousands of backtested trades — same binding-constraint gap flagged on every close-out this week. Asked the trader directly whether today's trades and SKIPS are logged, with the exact command (`npx tsx scripts/log-trade.mjs FILE`; desk pre-fills the note, four fields are the trader's); no entries logged this session. (2) Stated the gateway window ends 11:30 ET and an unfilled plan dies at the cash close rather than carrying into the next session.
+- Why no push notification: nothing new to escalate — canary green, same open ask (log trades) as every prior close-out, not a new problem.
+- Supersedes: nothing.

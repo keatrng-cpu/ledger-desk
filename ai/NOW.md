@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-28 10:08 ET (session-partner mid-session check-in below — canary clean, holding); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-28 11:17 ET (session-partner close-out check-in below — canary clean, holding); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,14 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-28, ~11:17 ET scheduled run — close-out) — canary clean, holding
+
+- Canary clean: `week-ahead.ts` 824 lines, `month-ahead.ts` 535 lines, `main` HEAD `e51f77f` — no truncation; the 10-27 restore (`b89ad16`) continues to hold through the full session.
+- Ran `agent-sync.mjs --agent claude`: 1 new commit since bookmark (own prior bookmark commit), bookmark advanced to `e51f77f`; nothing new to read-before-edit, no code edits made this session.
+- `src/data/trade-log.json` is still the single `2026-09-23-MNQ-short-1` row (excluded from setup stats — logged as a plan violation) against thousands of backtested trades — same binding-constraint gap flagged on every close-out this week. Asked the trader directly whether today's trades and SKIPS are logged (`npx tsx scripts/log-trade.mjs FILE`; desk pre-fills the note, four fields are the trader's).
+- Stated the gateway window ends 11:30 ET and any unfilled plan dies at the cash close — it must not be dragged into the next session.
+- No fills, prices, or outcomes invented.
 
 ## Session-partner check-in (2026-10-28, ~10:08 ET scheduled run — mid-session) — canary clean, holding
 
