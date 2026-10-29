@@ -16,6 +16,13 @@ Scope: desk/process/canon decisions. Trading rule numbers live in `src/lib/aplus
 
 ---
 
+### 2026-10-29 — NY AM session-partner mid-session run: 6th+ week-ahead.ts truncation still unrestored 76+ min after premarket flag (Claude, scheduled)
+- Status: flagged, not resolved
+- Decided by: N/A (narration-only scheduled run; no code edit authority)
+- Source: `ai/NOW.md` mid-session entry same date
+- Decision/finding: `week-ahead.ts` was 0 lines at premarket (`~09:21 ET`, HEAD `4bdba1c`, gutted by `de68d47`) and is still 0 lines at mid-session (`~10:37 ET`, HEAD `5cc8252`) — no restore has landed on `main` in the intervening 76+ minutes despite the premarket PushNotification. Restore command: `git checkout 5e1669a -- src/lib/trading/week-ahead.ts`, then re-apply Oct 28's legitimate FOMC-hold/actuals restamp on top.
+- Why: this is the 6th+ recurrence of the same truncation signature (09-04, 09-20, 09-25, three times 10-22–10-27) and the first time it has been caught and *left* unfixed across two consecutive scheduled check-ins — worth a second push so it doesn't go unactioned through the rest of the session.
+
 ## Open locks (current)
 
 | Lock | Status | Owner to decide | Source | Repo evidence |

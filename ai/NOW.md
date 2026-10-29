@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-29 09:21 ET (session-partner premarket check-in below — **CANARY FAILED, not yet restored**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-29 10:37 ET (session-partner mid-session check-in below — **CANARY STILL FAILED, 76+ min after first flag, still not restored**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,13 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-29, ~10:37 ET scheduled run — mid-session) — CANARY STILL FAILED, pushed to trader again
+
+- **`week-ahead.ts` is still 0 lines**, now on `main` HEAD `5cc8252` (one commit past the premarket run's `03be8e2`, which only bookmarked agent-sync — no restore landed). 76+ minutes have passed since the premarket flag with no fix pushed.
+- Restore command unchanged: `git checkout 5e1669a -- src/lib/trading/week-ahead.ts`, then re-apply the legitimate Oct 28 restamp content (FOMC hold, Durable Goods +1.8%, GDP/PCE/claims actuals) that landed in `de68d47`/`84d1456`/`4bdba1c` on top of the now-empty file.
+- Per this session's scope (repo only, narration/discipline, no code edits authorized by the scheduled task), did not run the restore — flagged it again via PushNotification.
+- Mid-session discipline content given regardless (A+-only now live past 10:00 ET; entry = rest limit at CE; scale = 50% off at T1/BE/runner, do-not-protect-early per current `CLAUDE.md` hard-rules table: banking at +1R −0.42R/t, BE-at-+1R-MFE −0.07, trailing −0.30, vs the coded rule's +0.50R/t). No open-position state is visible from the repo to grade against this rule.
 
 ## Session-partner check-in (2026-10-29, ~09:21 ET scheduled run — premarket) — CANARY FAILED, pushed to trader, NOT restored this session
 
