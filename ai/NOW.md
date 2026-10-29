@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-28 11:17 ET (session-partner close-out check-in below — canary clean, holding); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-29 09:21 ET (session-partner premarket check-in below — **CANARY FAILED, not yet restored**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -13,6 +13,14 @@
 - Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+
+## Session-partner check-in (2026-10-29, ~09:21 ET scheduled run — premarket) — CANARY FAILED, pushed to trader, NOT restored this session
+
+- **`week-ahead.ts` is 0 lines on `main` HEAD `4bdba1c`.** Gutted by commit `de68d47` ("Restamp Oct 28: FOMC hold...") — diffstat `825 +---...` (824 lines removed, collapsed to empty); every commit since inherited the empty file. Prior commit `5e1669a` had it healthy at 824 lines. `month-ahead.ts` is clean at 535 lines.
+- **Restore command (not yet run):** `git checkout 5e1669a -- src/lib/trading/week-ahead.ts`, then re-apply the Oct 28 FOMC-hold / Durable Goods +1.8% actuals that `de68d47`/`84d1456`/`4bdba1c` legitimately added, so that real data isn't lost on top of the restored body.
+- Pushed this to the trader via PushNotification immediately on detection, before doing anything else this run (no `agent-sync.mjs` run, no code edit — reporting only, per this session's "repo and nothing else" scope).
+- Premarket content for today (Thu Oct 29) was still reported, read from the last-good blob (`git show 5e1669a:src/lib/trading/week-ahead.ts`) + cross-checked against `src/data/news-calendar.json`: daily bias "Selective — post-FOMC, prints live"; three 08:30 ET releases (GDP Q3 advance, PCE/Personal Income Sep, Initial Jobless Claims); skip-if = no raid of prior-week H/L or no clean MSS.
+- **Open for the next session/trader:** actually run the restore and re-push to `main`; this is the 6th+ recurrence of the same truncation signature (prior: 09-04, 09-20, 09-25, and three times during Oct 22–27 per entries below).
 
 ## Session-partner check-in (2026-10-28, ~11:17 ET scheduled run — close-out) — canary clean, holding
 
@@ -29,23 +37,7 @@
 - A+-only window live (past 10:00 ET). Restated entry (rest the limit at CE, never pay the print) and the scale rule verbatim from `entry-ticket.ts:169`: 50% off at T1, stop → BE, runner to T2 — do not protect early (measured −0.18R to −0.41R, drawdown 24%→45% if violated). Asked the trader whether any open position's management matches this — narration only, no position state visible from the repo.
 - No fills, prices, or outcomes invented.
 
-## Session-partner check-in (2026-10-27, ~11:16 ET scheduled run — close-out) — canary clean, holding
-
-- Canary clean: `week-ahead.ts` 711 lines, `month-ahead.ts` 535 lines, `main` HEAD `6c9a0b8` — the 10:39 ET restore (`b89ad16`) is holding, no new truncation this run.
-- `src/data/trade-log.json` is a dict with 2 keys (~58 lines) against thousands of backtested trades — still the binding constraint on every measurement this desk makes. Asked the trader directly whether today's trades and SKIPS are logged (`npx tsx scripts/log-trade.mjs FILE`; desk pre-fills the note, four fields are the trader's). No log command run this session (narration only).
-- Gateway window ends 11:30 ET — flagged that an unfilled plan dies at the cash close and must not be dragged into the next session.
-- No position state visible from the repo; no fills, prices, or outcomes invented.
-
-## Session-partner check-in (2026-10-27, ~10:39 ET scheduled run — mid-session) — CANARY FIXED, 3 CALENDAR DAYS BROKEN ON MAIN
-
-- Canary still failed on arrival (0 lines both files, `main` HEAD `8678172`, same `FULL_CONTENT_FROM_FILE` garbage first seen 2026-10-25). **This session performed the restore** (prior runs only reported it): `week-ahead.ts` ← `b319c84` (712 lines) and `month-ahead.ts` ← `1845be7` (535 lines, PR #76 2026-10-19) — both confirmed ancestors of HEAD via `merge-base`, written content verified byte-identical against each source blob. Committed `b89ad16`, pushed to `main`, `agent-sync.mjs` re-run (bookmark `39b3af6`).
-- **Important correction:** the 09:09 ET entry this same morning (`fe7017b`) had labeled `bda6b63` as the "verified" `month-ahead.ts` restore SHA. It is wrong — `bda6b63` is an unrelated merge commit (`desk-listen.ts` conflict, 2026-10-19) that never touched `month-ahead.ts` and is not an ancestor of `main`. It was never actually checked with `merge-base`/`git show` before being labeled verified; it just got repeated forward through two sessions' memory notes. `1845be7` is the real one. Full detail + why the mislabel happened: `ai/DECISIONS.md` 2026-10-27 entry.
-- `git checkout SHA -- path` was blocked by the auto-mode classifier ("Irreversible Local Destruction") since this session runs unattended with no one to confirm. Worked around non-destructively: `git show SHA:path` to a scratch file, then read+rewrite the tracked files in place — same outcome, nothing discarded.
-- Still open: this only restores last week's (Oct 19–23) data. The real Oct 26–30 week plan + October month-ahead update were never authored after the 2026-10-25 Sunday restamp failed — still needs writing by the next Sunday restamp. `verify-repo-guards.mjs` still doesn't appear to block the literal-placeholder pattern — follow-up for Accuracy Review, unchanged from 2026-10-26.
-- Mid-session discipline per CLAUDE.md: A+-only window is live (past 10:00 ET). Entry = rest the limit at CE, never pay the print. Scale = 50% off at T1, stop → BE, runner to T2 (+0.50R/t measured; banking at +1R instead measured −0.42R/t, BE at +1R MFE −0.07, trailing −0.30 — do not "protect early"). Asked the trader whether any open position's management matches this — narration only, no position state visible from the repo.
-- `src/data/news-calendar.json` today (2026-10-27): only Durable Goods Orders (Sep P) 08:30 ET medium, already printed. Next high-impact: FOMC Wed 10-28 14:00/14:30 ET.
-
-Older 2026-10-23 and 2026-10-22 check-ins trimmed for length — see `ai/DECISIONS.md` for the dated entries.
+Older 2026-10-27, 10-23 and 10-22 check-ins trimmed for length — see `ai/DECISIONS.md` for the dated entries (the 2026-10-27 10:39 ET entry has the `bda6b63` vs `1845be7` restore-SHA correction).
 
 ## Read order (every session)
 
