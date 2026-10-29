@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `94d3217`. Fetched origin. Local main matches origin.
+HEAD `e5d948c`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `03be8e2`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `94d3217`.
+Bookmark was `00dc6fb`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `e5d948c`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `e5d948c` | 2026-10-29T15:09 | session-partner: 11:07 ET close-out — canary still failed (3rd run), escalated again | M ai/DECISIONS.md, M ai/NOW.md |
+| `00dc6fb` | 2026-10-29T14:39 | agent-sync: bookmark claude at 94d3217 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `94d3217` | 2026-10-29T14:38 | session-partner: 10:37 ET mid-session — canary still failed, re-flagged | M ai/DECISIONS.md, M ai/NOW.md |
 | `5cc8252` | 2026-10-29T13:25 | agent-sync: bookmark claude at 03be8e2 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `03be8e2` | 2026-10-29T13:24 | session-partner: 09:21 ET premarket — CANARY FAILED, week-ahead.ts gutted by de68d47, flagged to trader, restore pending | M ai/DECISIONS.md, M ai/NOW.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `94d3217`.
 | `5e1669a` | 2026-10-28T12:10 | week-ahead: add Oct 26–30 FOMC week plan | M src/lib/trading/week-ahead.ts |
 | `c80e11a` | 2026-10-27T15:17 | agent-sync: bookmark claude at 09524a9 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `09524a9` | 2026-10-27T15:16 | session-partner: 11:16 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `6c9a0b8` | 2026-10-27T14:48 | agent-sync: bookmark claude at 4a3123d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `4a3123d` | 2026-10-27T14:48 | session-partner: 10:39 ET mid-session — canary fixed, 3-day main breakage restored | M ai/DECISIONS.md, M ai/NOW.md |
 
 ## New files in those commits
 
