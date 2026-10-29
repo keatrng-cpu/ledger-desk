@@ -16,6 +16,14 @@ Scope: desk/process/canon decisions. Trading rule numbers live in `src/lib/aplus
 
 ---
 
+### 2026-10-29 — Restore week-ahead.ts from 5e1669a and append verified Oct 29 prints
+- Status: ADOPTED on branch `cursor/restore-week-ahead-oct29-d2f2` (PR against `main`; not on `main` until merge)
+- Decided by: restore task (do not push to `main`)
+- Source: `5e1669a` full file; BEA GDP advance https://www.bea.gov/news/2026/gdp-advance-estimate-3rd-quarter-2026 ; BEA Personal Income and Outlays https://www.bea.gov/news/2026/personal-income-and-outlays-september-2026 ; DOL ETA claims https://www.dol.gov/newsroom/releases/eta
+- Decision: Put the 824-line plan back. Fold only the Oct 29 prints that are on those pages into `WEEK_OCT26_OCT30` Thursday and into `week-prints.json` (45 + 3). Leave PWH/PWL unchanged. Do not write consensus, continuing claims 1.701M, or Dec hike odds ~81–82% — those are not on the agency pages. Do not re-append the gutted Oct 27 Durable Goods or Oct 28 FOMC rows.
+- Why: `0ad8b10d` replaced the plan with a 172-line stub. The Oct 29 restamp never landed on a real `WEEK_OCT26_OCT30`.
+- Supersedes: the 2026-10-29 session-partner flags that the file was still unrestored.
+
 ### 2026-10-29 — NY AM session-partner mid-session run: 6th+ week-ahead.ts truncation still unrestored 76+ min after premarket flag (Claude, scheduled)
 - Status: flagged, not resolved
 - Decided by: N/A (narration-only scheduled run; no code edit authority)
