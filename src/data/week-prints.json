@@ -1,1 +1,44 @@
-PLACEHOLDER
+[
+  {
+    "date": "2026-09-01",
+    "name": "ISM Manufacturing PMI (Aug)",
+    "actual": "54.6",
+    "vs": "exp 55.2 / prev 55.6",
+    "note": "Prices Paid held 71.1. Softer headline, still expansion."
+  },
+  {
+    "date": "2026-10-27",
+    "name": "Durable Goods Orders (Sep P)",
+    "actual": "+1.8%",
+    "vs": "exp ~1.4-1.5% / prev +0.1% rev",
+    "note": "Transport-led (aircraft +28.4%); ex-trans +0.5%. Solid."
+  },
+  {
+    "date": "2026-10-28",
+    "name": "FOMC Rate Decision",
+    "actual": "Hold 3.75-4.00%",
+    "vs": "exp hold (~90% priced)",
+    "note": "10-2 vote. Cook and Hammack dissented for 25bp hike. Economy 'strong'; inflation elevated. Dec hike odds ~85-86%."
+  },
+  {
+    "date": "2026-10-29",
+    "name": "GDP Q3 (advance)",
+    "actual": "+3.4%",
+    "vs": "exp ~3.1-3.2% / prev +2.2%",
+    "note": "BEA official. Investment + consumer + govt; exports down, imports up. Real final sales to private domestic +4.9%. Core PCE Q3 +2.5%."
+  },
+  {
+    "date": "2026-10-29",
+    "name": "Initial Jobless Claims",
+    "actual": "194k",
+    "vs": "exp ~198-199k / prev 195k rev",
+    "note": "DOL week ending Oct 24. 4-wk avg 196.75k. Continuing 1.701M. Soft, labor still tight."
+  },
+  {
+    "date": "2026-10-29",
+    "name": "PCE / Personal Income (Sep)",
+    "actual": "PCE +0.5% m/m / +3.6% y/y; core +0.3% / +3.1%; income +0.2%",
+    "vs": "exp core ~0.3%/3.1%",
+    "note": "BEA official. Headline PCE hotter m/m. Keeps Dec hike live (~81-82% post-FOMC)."
+  }
+]
