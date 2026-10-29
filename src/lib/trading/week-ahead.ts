@@ -578,12 +578,12 @@ export const WEEK_OCT26_OCT30: WeekPlan = {
   weekStart: "2026-10-26",
   weekEnd: "2026-10-30",
   headline:
-    "FOMC week. Decision Wed 14:00 (hold ~90%, hike ~10%), presser 14:30. GDP advance + PCE + claims Thu 8:30. ECI Fri 8:30. No ISM, JOLTS, ADP, or NFP.",
+    "FOMC week. Decision Wed 14:00, presser 14:30. Held 3.75–4.00% (10-2). GDP advance + PCE + claims Thu 8:30. ECI Fri 8:30. No ISM, JOLTS, ADP, or NFP.",
   htfBias:
     "Prior week (Oct 19–23) seed: NQ high ~30,113 (Wed) / low ~28,987 (Fri); ES high ~7,812 / low ~7,648.50. This week so far under PWH, near/above PWL. Do not invent CWH/CWL.",
   po3: "Mon–Tue range-build into FOMC. Wed blackout into 14:00 decision + 14:30 presser. Thu GDP/PCE/claims distribute. Fri ECI is medium close, not NFP.",
   macro:
-    "Sep NFP +29k, U 4.2%. Sep CPI +0.6% m/m / +3.7% y/y, core +0.3% / +2.6%. PPI hot. Claims last Thu 194k. CME FedWatch: Oct 28 hold ~90–92%, 25bp hike ~8–10%. Dec hike odds elevated (~75–85%). No labor or ISM this week. Next NFP Nov 6. Thu 10/29 printed: GDP Q3 adv +3.4% (Q2 +2.2%, BEA), claims 194k (DOL, week ending Oct 24; prior revised to 195k; 4-wk avg 196,750), Sep PCE price +0.5% m/m / +3.6% y/y, core +0.3% / +3.1%, income +0.2%. Inside-week holds; PWH/PWL seed unchanged.",
+    "Sep NFP +29k, U 4.2%. Sep CPI +0.6% m/m / +3.7% y/y, core +0.3% / +2.6%. PPI hot. Claims last Thu 194k. No labor or ISM this week. Next NFP Nov 6. Wed 10/28 FOMC held 3.75–4.00%, 10-2 (Cook and Hammack dissented for a 1/4 point hike). Thu 10/29 printed: GDP Q3 adv +3.4% (Q2 +2.2%, BEA), claims 194k (DOL, week ending Oct 24; prior revised to 195k; 4-wk avg 196,750), Sep PCE price +0.5% m/m / +3.6% y/y, core +0.3% / +3.1%, income +0.2%. Inside-week holds; PWH/PWL seed unchanged.",
   asymmetry:
     "Selective into FOMC. Flatten before the weekend. blake_mech longs stay paper. PATH floor 0.65.",
   nq: {
@@ -611,8 +611,8 @@ export const WEEK_OCT26_OCT30: WeekPlan = {
   filters: ["No ISM/JOLTS/ADP/NFP this week", "FOMC blackout into 14:00 Wed", "PATH floor 0.65"],
   ops: ["Flatten into weekend unless BE", "A+ only with MSS + IFVG"],
   outcomes: [
-    { p: 0.55, name: "Hold + hawkish lean", detail: "Rates unchanged 3.75–4.00. Tone keeps Dec hike live. Two-way into Thu prints." },
-    { p: 0.35, name: "Hold + soft lean", detail: "Unchanged but Warsh softens Dec odds. Squeeze toward PWH." },
+    { p: 0.55, name: "Hold + hawkish lean", detail: "Rates unchanged 3.75–4.00. Two-way into Thu prints." },
+    { p: 0.35, name: "Hold + soft lean", detail: "Unchanged. Squeeze toward PWH." },
     { p: 0.10, name: "Surprise hike", detail: "25bp. Sharp risk-off under PWL." },
   ],
   days: [
@@ -632,25 +632,25 @@ export const WEEK_OCT26_OCT30: WeekPlan = {
       weekday: "Tue",
       dailyBias: "Two-way, still inside prior week",
       kind: "two_way",
-      news: [{ timeEt: "08:30", name: "Durable Goods Orders (Sep P)", impact: "medium", note: "Census 8:30 ET. Not stamp series. Consensus not the raid." }],
-      likelyTape: "Durable Goods not the catalyst. NQ ~29,288–29,881 still under PWH 30,113 / above PWL 28,987. ES ~7,700–7,773 under 7,812 / above 7,648.50. No PWH/PWL take. Inside-week.",
+      news: [{ timeEt: "08:30", name: "Durable Goods Orders (Sep P)", impact: "medium", note: "Census CB 26-169, 8:30 ET. New orders +1.8% (Aug +0.1%). Ex-transportation +0.5%. Nondefense aircraft and parts +28.4%. https://www.census.gov/manufacturing/m3/adv/pdf/durgd.pdf" }],
+      likelyTape: "Durable Goods +1.8% (Census). NQ ~29,288–29,881 still under PWH 30,113 / above PWL 28,987. ES ~7,700–7,773 under 7,812 / above 7,648.50. No PWH/PWL take. Inside-week.",
       trade: "Post-print mechanical only if MSS + IFVG. Tue did not take prior-week H/L. Flatten into FOMC.",
       skipIf: "No raid of prior-week H/L — already the case.",
-      pathNote: "Inside-week holds. FOMC hike odds ~8–10%. Next is Wed blackout.",
+      pathNote: "Inside-week holds. Next is Wed blackout.",
     },
     {
       date: "2026-10-28",
       weekday: "Wed",
-      dailyBias: "FOMC blackout — selective only",
+      dailyBias: "FOMC held — selective after the statement",
       kind: "event",
       news: [
-        { timeEt: "14:00", name: "FOMC Rate Decision", impact: "high", note: "Fed official. Target range currently 3.75–4.00% after Sep 16 hike. CME FedWatch hold ~90–92%, 25bp hike ~8–10%. Statement 14:00 ET." },
-        { timeEt: "14:30", name: "FOMC Press Conference", impact: "high", note: "Chair Warsh 14:30 ET. No SEP/dots this meeting. Tone on Dec hike is the tape." },
+        { timeEt: "14:00", name: "FOMC Rate Decision", impact: "high", note: "Fed held the target range at 3-3/4 to 4 percent. Vote 10-2; Cook and Hammack dissented for a 1/4 point hike. Activity expanding at a strong pace. Inflation remains elevated. https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm" },
+        { timeEt: "14:30", name: "FOMC Press Conference", impact: "high", note: "Chair Warsh 14:30 ET. No SEP/dots this meeting." },
       ],
-      likelyTape: "Pre-decision range under PWH. Hold is base. Post-14:00 two-way until presser clarifies Dec path. Live CWH/CWL from bars — do not hardcode.",
+      likelyTape: "FOMC held 3.75–4.00%, 10-2. Still inside prior-week box. Live CWH/CWL from bars — do not hardcode.",
       trade: "Blackout into 14:00. Post-statement A+ only if MSS + IFVG after the print. Flatten before weekend risk. No swing into Thu prints.",
       skipIf: "No MSS + IFVG after the statement. Do not trade the first spike.",
-      pathNote: "Sunday FOMC-week story holds. Hold-heavy; Dec hike still live. Next is Thu GDP/PCE/claims.",
+      pathNote: "FOMC held 3.75–4.00%, 10-2 (Cook and Hammack dissented for a 1/4 point hike). PWH/PWL seed unchanged. Next is Thu GDP/PCE/claims.",
     },
     {
       date: "2026-10-29",

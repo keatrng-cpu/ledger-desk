@@ -17,9 +17,9 @@
 ## Week-ahead restore (2026-10-29)
 
 - `main` at `0ad8b10d` still carries the 172-line stub (`truncated for brevity`). The full plan is restored on `cursor/restore-week-ahead-oct29-d2f2` from `5e1669a` (824 lines): `WEEK_OCT5_OCT9`, `WEEK_OCT12_OCT16`, `WEEK_OCT19_OCT23`, `WEEK_OCT26_OCT30`, `resolveWeekAhead`, `weekDayFor`, `weekAheadFocusLine`, `weekRangeFromBars`, `overlayWeekAhead`.
-- `week-prints.json` is the 45 rows at `5e1669a` plus the three Oct 29 rows (GDP, claims, PCE) = 48. Official links: BEA GDP, BEA personal income, DOL ETA claims. PWH/PWL seed on Oct 26–30 is unchanged (inside-week holds).
-- Figures left out of the file, not on the agency page: GDP consensus ~3.1–3.2%, claims consensus ~198–199k, continuing claims 1.701M, PCE consensus, Dec hike odds ~81–82%. Oct 27 Durable Goods and Oct 28 FOMC rows from the 6-entry stub were not re-appended.
-- `npm run typecheck` passed. `npm run verify:guards` — 65 passed, 0 failed. Not pushed to `main`.
+- `week-prints.json` is 50 rows: the 45 at `5e1669a`, PR #88’s Oct 27 Durable Goods and Oct 28 FOMC hold, and the three Oct 29 rows. PWH/PWL seed unchanged. Wednesday’s day is the post-decision hold (10-2), not the pre-decision FedWatch line.
+- Unsourced hike-odds text is out of `WEEK_OCT26_OCT30` (macro, Tuesday pathNote, Wednesday news). Also left out, not on the agency page: GDP/claims/PCE consensus, continuing claims 1.701M, Dec hike odds, the ~93% priced figure, and the QQQ/SPY/10Y close from #88’s FOMC note.
+- Not pushed to `main`. PR #88 is merged into this branch so the two restores do not conflict on `week-prints.json` or `week-ahead.ts`.
 
 ## Read order (every session)
 
