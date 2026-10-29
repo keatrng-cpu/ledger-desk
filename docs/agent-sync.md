@@ -2,17 +2,22 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `4eea006`. Fetched origin. Local main matches origin.
+HEAD `03be8e2`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `e51f77f`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `4eea006`.
+Bookmark was `4eea006`. 5 commit(s) landed after it.
+Bookmark after this run: `claude` → `03be8e2`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `03be8e2` | 2026-10-29T13:24 | session-partner: 09:21 ET premarket — CANARY FAILED, week-ahead.ts gutted by de68d47, flagged to trader, restore pending | M ai/DECISIONS.md, M ai/NOW.md |
+| `4bdba1c` | 2026-10-29T07:11 | Add printed actuals: Durable Goods +1.8%, FOMC hold 3.75-4.00% with two hawkish dissents | M src/data/week-prints.json |
+| `84d1456` | 2026-10-28T15:51 | Fix week-prints.json restamp for Oct 28 FOMC hold (no ISM/JOLTS/ADP/claims/NFP) | M src/data/week-prints.json |
+| `de68d47` | 2026-10-28T15:51 | Restamp Oct 28: FOMC hold 3.75-4.00% 10-2. Inside-week holds; no PWH/PWL take. No ISM/JOLTS/ADP/claims/NFP. Dec hike odds ~85-87%. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `6f309ff` | 2026-10-28T15:18 | agent-sync: bookmark claude at 4eea006 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `4eea006` | 2026-10-28T15:18 | session-partner: 11:17 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md |
 | `e51f77f` | 2026-10-28T14:10 | agent-sync: bookmark claude at d5d45f7 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `d5d45f7` | 2026-10-28T14:09 | session-partner: 10:08 ET mid-session — canary clean, A+-only restated | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -23,11 +28,6 @@ Bookmark after this run: `claude` → `4eea006`.
 | `4a3123d` | 2026-10-27T14:48 | session-partner: 10:39 ET mid-session — canary fixed, 3-day main breakage restored | M ai/DECISIONS.md, M ai/NOW.md |
 | `39b3af6` | 2026-10-27T14:47 | agent-sync: bookmark claude at b89ad16 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `b89ad16` | 2026-10-27T14:46 | fix: restore week-ahead.ts and month-ahead.ts after 3-day main breakage | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
-| `8678172` | 2026-10-27T13:12 | agent-sync: bookmark claude at fe7017b (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `fe7017b` | 2026-10-27T13:12 | session-partner: 09:09 ET premarket — canary still failed 3rd day, corrected month-ahead.ts restore SHA (bda6b63, not 1e5d8b4) | M ai/DECISIONS.md, M ai/NOW.md |
-| `227abe7` | 2026-10-27T12:11 | Tuesday restamp 2026-10-27: no ISM/JOLTS/ADP/claims/NFP printed. Durable Goods due 08:30 (not stamp). Next hard FOMC Wed 14:00. Plan unchanged. PATH floor 0.65. | M src/data/week-prints.json |
-| `36ce8c5` | 2026-10-26T20:51 | Monday restamp 2026-10-26: no ISM/JOLTS/ADP/claims/NFP printed; Chicago NA I 0.07, Dallas Mfg 13.4 (not stamp series). Plan unchanged. | M src/data/week-prints.json |
-| `dd56c32` | 2026-10-26T15:19 | agent-sync: bookmark claude at 9f2dc50 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
