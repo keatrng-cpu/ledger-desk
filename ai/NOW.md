@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-30 09:17 ET (session-partner premarket check-in below — **CANARY FAILED AGAIN, WORSE: the Oct 29/30 "restore" commits are fabricated placeholder text, not real content**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-10-30 10:15 ET (session-partner mid-session check-in below — **CANARY STILL FAILED, a NEW commit landed on main after the 09:17 flag and still did not fix it**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -14,6 +14,15 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
+## Session-partner check-in (2026-10-30, ~10:15 ET scheduled run — mid-session) — CANARY STILL FAILED, a commit landed after the flag and did not fix it
+
+- Fetched `origin/main` fresh (`5e1669a..5924648`). `week-ahead.ts` is **still 172 lines at new HEAD `5924648`** (bookmark commit on top of `4410467`, itself on top of the fabricated-restore commits already flagged at 09:17). `grep -n "truncated" src/lib/trading/week-ahead.ts` still hits both placeholder lines (169, 172) — unchanged since the 09:17 run. `4410467` ("Update week-ahead to Oct 26-30: FOMC hold, GDP +3.4%, PCE hot, claims 194k; ECI pending") landed on main claiming a content update but is byte-identical in line count and still fabricated — whoever/whatever authored it did not actually read the file before committing.
+- Restore command unchanged: `git checkout 5e1669a -- src/lib/trading/week-ahead.ts` (824 lines, last confirmed real content), then manually re-apply the real restamp facts from commit messages (Oct 28 FOMC hold / Durables; Oct 29 GDP +3.4% / claims 194k / PCE hot; Oct 30 ECI) — do not cherry-pick any commit between `de68d47` and `4410467` inclusive, all carry the corrupted file.
+- Did not run the restore myself (out of this session's scope — repo + narration only, no live data, no authority to edit `week-ahead.ts` content). Pushed a second PushNotification: same failure, now flagged as *worse* because a "fix" commit landed and still didn't fix it, meaning whatever is producing these restores is not reading the file it claims to restore.
+- `month-ahead.ts` clean at 535 lines, not re-verified against a byte-exact baseline this run but no truncation signature.
+- Mid-session content given regardless (ET ~10:15, past the 10:00 A+-only cutoff and past the 08:30 ET ECI blackout): A+ only now in effect; entry = rest the limit at CE, never pay the print; scale = 50% off at T1 → stop to BE → runner to T2 (measured +0.50R/t; protecting early measured −0.42R BE-at-+1R / −0.30R trailing, not the −0.18 to −0.41R w/ 24→45% drawdown figure quoted in the scheduled prompt, which does not match any figure found in this repo's canon — flagging the mismatch rather than asserting unverified numbers). No open-position state is visible from the repo — asking the trader directly per the script.
+- No fills, prices, or outcomes invented.
+
 ## Session-partner check-in (2026-10-30, ~09:17 ET scheduled run — premarket) — CANARY FAILED, NEW FAILURE MODE: fabricated "restore"
 
 - **`week-ahead.ts` is 172 lines at `main` HEAD `4410467`** (`wc -l`: expected ~1000, prior healthy baseline `5e1669a` = 824 lines). Not the usual docblock-only gutting — worse: the committed content for the `WEEK_SEP28_OCT2.days[]` array has only **one** day entry (Monday) and ends with these two lines literally committed into the TypeScript source: `// ... (truncated for brevity in this example; full content would be included in actual call)` and `// NOTE: This is a truncated representation; in practice the full 46k content is passed.` Confirmed on disk via `grep -n "truncated" src/lib/trading/week-ahead.ts` — not a tool-read artifact. Whatever produced commits `0ad8b10` and `4410467` (both 172 lines) generated placeholder/example text instead of restoring real content, and pushed it to `main` as a "restore."
@@ -23,19 +32,7 @@
 - Premarket content given regardless, reconstructed from what IS intact in the current file (`headline`/`macro`/`filters`/`ops`/`outcomes` for the Oct 26–30 week) plus `src/data/news-calendar.json`, since the Friday-specific `days[]` entry is one of the ones missing: today (Fri Oct 30) daily bias is FOMC/GDP week's trailing day — "No multi-day swing into Friday"; today's scheduled high-impact release is **Employment Cost Index (Q3) at 08:30 ET** (already printed before this run, cons 0.8% q/q — actual not yet in `week-prints.json`); skip-if per week filters: no raid of prior-week H/L or no clean MSS, no entry 8:15–9:00 ET (ECI blackout), A+ only after 10:00 ET; PATH note: "A+ into the prints."
 - No fills, prices, or outcomes invented.
 
-## Session-partner check-in (2026-10-29, ~10:37 ET scheduled run — mid-session) — CANARY STILL FAILED, pushed to trader again
-
-- `week-ahead.ts` still 0 lines at that run's HEAD `5cc8252`, 76+ min after the premarket flag with no fix pushed. Flagged again via PushNotification; no restore run (out of this session's scope).
-- Mid-session discipline content given regardless (A+-only past 10:00 ET; entry = rest limit at CE; scale = 50% off at T1/BE/runner, do-not-protect-early). No open-position state visible from the repo to grade against the rule.
-
-## Session-partner check-in (2026-10-29, ~09:21 ET scheduled run — premarket) — CANARY FAILED, first flag, NOT restored this session
-
-- **`week-ahead.ts` found at 0 lines on `main` HEAD `4bdba1c`.** Gutted by commit `de68d47` ("Restamp Oct 28: FOMC hold...") — 824 lines removed, collapsed to empty; prior commit `5e1669a` had it healthy at 824 lines. `month-ahead.ts` clean at 535 lines.
-- Pushed to the trader via PushNotification immediately on detection, before anything else this run (reporting only, per this session's "repo and nothing else" scope — no code edit).
-- Premarket content for Thu Oct 29 still reported, read from the last-good blob (`git show 5e1669a:src/lib/trading/week-ahead.ts`) + `src/data/news-calendar.json`: daily bias "Selective — post-FOMC, prints live"; three 08:30 ET releases (GDP Q3 advance, PCE/Personal Income Sep, Initial Jobless Claims); skip-if = no raid of prior-week H/L or no clean MSS.
-- **This is the 6th+ recurrence of the same truncation signature** (prior: 09-04, 09-20, 09-25, and three times during Oct 22–27).
-
-Older 2026-10-28, 10-27, 10-23 and 10-22 check-ins trimmed for length — see `ai/DECISIONS.md` for the dated entries (the 2026-10-27 10:39 ET entry has the `bda6b63` vs `1845be7` restore-SHA correction).
+Older 2026-10-29 (premarket + mid-session, first two canary flags of this failure chain), 2026-10-28, 10-27, 10-23 and 10-22 check-ins trimmed for length — see `ai/DECISIONS.md` for the dated entries (the 2026-10-27 10:39 ET entry has the `bda6b63` vs `1845be7` restore-SHA correction; this is the **7th+ consecutive scheduled run** with the week-ahead.ts truncation signature, prior to 09-04/09-20/09-25 recurrences).
 
 ## Read order (every session)
 
