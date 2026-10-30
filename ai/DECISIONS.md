@@ -16,6 +16,22 @@ Scope: desk/process/canon decisions. Trading rule numbers live in `src/lib/aplus
 
 ---
 
+### 2026-10-29 — Fold PR #88 into the Oct 29 restore; drop unsourced hike odds
+- Status: ADOPTED on branch `cursor/restore-week-ahead-oct29-d2f2`
+- Decided by: Accuracy Review on PR #89 at `302a645`
+- Source: PR #88 (`fix/restore-week-ahead-1028`); Fed statement https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm ; Census CB 26-169 https://www.census.gov/manufacturing/m3/adv/pdf/durgd.pdf ; `ai/DECISIONS.md` 2026-10-29 09:21 and 11:07 entries (re-apply the Oct 28 hold on top of `5e1669a`)
+- Decision: `week-prints.json` is 50 rows. Wednesday Oct 28 in `week-ahead.ts` states the hold, the 10-2 vote, and the two dissents. FedWatch / Dec-hike odds lines in that week are removed. #88’s QQQ, SPY, 10Y, “whipsaw”, and “~93% priced” are not on the Fed page, so they are not in the file.
+- Why: the first restore dropped #88’s two rows and left the pre-decision odds on the Wednesday entry.
+- Supersedes: the 2026-10-29 restore entry’s line that the Durable Goods and FOMC rows were not re-appended.
+
+### 2026-10-29 — Restore week-ahead.ts from 5e1669a and append verified Oct 29 prints
+- Status: ADOPTED on branch `cursor/restore-week-ahead-oct29-d2f2` (PR against `main`; not on `main` until merge)
+- Decided by: restore task (do not push to `main`)
+- Source: `5e1669a` full file; BEA GDP advance https://www.bea.gov/news/2026/gdp-advance-estimate-3rd-quarter-2026 ; BEA Personal Income and Outlays https://www.bea.gov/news/2026/personal-income-and-outlays-september-2026 ; DOL ETA claims https://www.dol.gov/newsroom/releases/eta
+- Decision: Put the 824-line plan back. Fold only the Oct 29 prints that are on those pages into `WEEK_OCT26_OCT30` Thursday and into `week-prints.json` (45 + 3). Leave PWH/PWL unchanged. Do not write consensus, continuing claims 1.701M, or Dec hike odds ~81–82% — those are not on the agency pages. Do not re-append the gutted Oct 27 Durable Goods or Oct 28 FOMC rows.
+- Why: `0ad8b10d` replaced the plan with a 172-line stub. The Oct 29 restamp never landed on a real `WEEK_OCT26_OCT30`.
+- Supersedes: the 2026-10-29 session-partner flags that the file was still unrestored.
+
 ### 2026-10-29 — NY AM session-partner mid-session run: 6th+ week-ahead.ts truncation still unrestored 76+ min after premarket flag (Claude, scheduled)
 - Status: flagged, not resolved
 - Decided by: N/A (narration-only scheduled run; no code edit authority)
