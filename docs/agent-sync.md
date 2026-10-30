@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `f647970`. Fetched origin. Local main matches origin.
+HEAD `1499e9c`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `5924648`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `f647970`.
+Bookmark was `f647970`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `1499e9c`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `1499e9c` | 2026-10-30T15:26 | session-partner: 11:23 ET close-out — canary still failed, 3rd run today | M ai/DECISIONS.md, M ai/NOW.md |
+| `81865d3` | 2026-10-30T14:18 | agent-sync: bookmark claude at f647970 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f647970` | 2026-10-30T14:18 | session-partner: 10:15 ET mid-session — canary still failed, a commit landed after the 09:17 flag and did not fix it | M ai/DECISIONS.md, M ai/NOW.md |
 | `5924648` | 2026-10-30T13:19 | agent-sync: bookmark claude at 5180c7f (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `5180c7f` | 2026-10-30T13:19 | session-partner: 09:17 ET premarket — canary FAILED, fabricated restore commits found | M ai/DECISIONS.md, M ai/NOW.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `f647970`.
 | `94d3217` | 2026-10-29T14:38 | session-partner: 10:37 ET mid-session — canary still failed, re-flagged | M ai/DECISIONS.md, M ai/NOW.md |
 | `5cc8252` | 2026-10-29T13:25 | agent-sync: bookmark claude at 03be8e2 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `03be8e2` | 2026-10-29T13:24 | session-partner: 09:21 ET premarket — CANARY FAILED, week-ahead.ts gutted by de68d47, flagged to trader, restore pending | M ai/DECISIONS.md, M ai/NOW.md |
-| `4bdba1c` | 2026-10-29T07:11 | Add printed actuals: Durable Goods +1.8%, FOMC hold 3.75-4.00% with two hawkish dissents | M src/data/week-prints.json |
-| `84d1456` | 2026-10-28T15:51 | Fix week-prints.json restamp for Oct 28 FOMC hold (no ISM/JOLTS/ADP/claims/NFP) | M src/data/week-prints.json |
 
 ## New files in those commits
 
