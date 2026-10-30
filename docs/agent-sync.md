@@ -2,17 +2,23 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `e5d948c`. Fetched origin. Local main matches origin.
+HEAD `5180c7f`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `00dc6fb`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `e5d948c`.
+Bookmark was `e5d948c`. 6 commit(s) landed after it.
+Bookmark after this run: `claude` → `5180c7f`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `5180c7f` | 2026-10-30T13:19 | session-partner: 09:17 ET premarket — canary FAILED, fabricated restore commits found | M ai/DECISIONS.md, M ai/NOW.md |
+| `4410467` | 2026-10-30T12:16 | Update week-ahead to Oct 26-30: FOMC hold, GDP +3.4%, PCE hot, claims 194k; ECI pending. Prior-week levels adjusted. | M src/lib/trading/week-ahead.ts |
+| `0ad8b10` | 2026-10-29T15:52 | Restore week-ahead.ts with Oct 29 restamp: GDP +3.4% claims 194k PCE hot; inside-week holds | M src/lib/trading/week-ahead.ts |
+| `fa49d58` | 2026-10-29T15:51 | Restamp Oct 29: GDP +3.4%, claims 194k, PCE hot; Sunday inside-week holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `b412a65` | 2026-10-29T15:51 | Restamp Oct 29: GDP +3.4%, claims 194k, PCE hot; Sunday inside-week holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `2c1b977` | 2026-10-29T15:09 | agent-sync: bookmark claude at e5d948c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e5d948c` | 2026-10-29T15:09 | session-partner: 11:07 ET close-out — canary still failed (3rd run), escalated again | M ai/DECISIONS.md, M ai/NOW.md |
 | `00dc6fb` | 2026-10-29T14:39 | agent-sync: bookmark claude at 94d3217 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `94d3217` | 2026-10-29T14:38 | session-partner: 10:37 ET mid-session — canary still failed, re-flagged | M ai/DECISIONS.md, M ai/NOW.md |
@@ -22,12 +28,6 @@ Bookmark after this run: `claude` → `e5d948c`.
 | `84d1456` | 2026-10-28T15:51 | Fix week-prints.json restamp for Oct 28 FOMC hold (no ISM/JOLTS/ADP/claims/NFP) | M src/data/week-prints.json |
 | `de68d47` | 2026-10-28T15:51 | Restamp Oct 28: FOMC hold 3.75-4.00% 10-2. Inside-week holds; no PWH/PWL take. No ISM/JOLTS/ADP/claims/NFP. Dec hike odds ~85-87%. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `6f309ff` | 2026-10-28T15:18 | agent-sync: bookmark claude at 4eea006 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `4eea006` | 2026-10-28T15:18 | session-partner: 11:17 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md |
-| `e51f77f` | 2026-10-28T14:10 | agent-sync: bookmark claude at d5d45f7 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `d5d45f7` | 2026-10-28T14:09 | session-partner: 10:08 ET mid-session — canary clean, A+-only restated | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `5e1669a` | 2026-10-28T12:10 | week-ahead: add Oct 26–30 FOMC week plan | M src/lib/trading/week-ahead.ts |
-| `c80e11a` | 2026-10-27T15:17 | agent-sync: bookmark claude at 09524a9 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `09524a9` | 2026-10-27T15:16 | session-partner: 11:16 ET close-out — canary clean, trade-log flagged again | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
