@@ -40,5 +40,12 @@
     "actual": "PCE +0.5% m/m / +3.6% y/y; core +0.3% / +3.1%; income +0.2%",
     "vs": "exp core ~0.3%/3.1%",
     "note": "BEA official. Headline PCE hotter m/m. Keeps Dec hike live (~81-82% post-FOMC)."
+  },
+  {
+    "date": "2026-10-30",
+    "name": "Employment Cost Index (Q3)",
+    "actual": "+0.8% q/q / +3.4% y/y",
+    "vs": "exp 0.8% / prev 0.9%",
+    "note": "BLS official. Wages +0.7%, benefits +0.9%. In-line, not inflationary. Dec hike odds ~68-73%."
   }
 ]
