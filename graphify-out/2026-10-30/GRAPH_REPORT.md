@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-10-30)
 
 ## Corpus Check
-- 1241 files · ~2,163,717 words
+- 1241 files · ~2,164,363 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 62 file(s) not represented in the graph (top: .patch 22, (none) 10, .service 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5180c7ff`
+- Built from commit: `f647970f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1366,8 +1366,8 @@ Cohesion: 0.12
 Nodes (17): argv, atrAt(), CHUNK, H, HIST, layerIds(), LIMIT, medianVol() (+9 more)
 
 ### Community 225 - "NOW — ledger-desk current truth"
-Cohesion: 0.15
-Nodes (12): Current patch (2026-10-19), Current state (2026-10-15), Goal, In flight (one task per repo), Last decision, NOW — ledger-desk current truth, Open questions (from plan §5 / HANDOFF; Keaton or named owner decides), Owners (desk map, from HANDOFF `ceb62b7` / issue #7) (+4 more)
+Cohesion: 0.17
+Nodes (11): Current patch (2026-10-19), Current state (2026-10-15), Goal, In flight (one task per repo), Last decision, NOW — ledger-desk current truth, Open questions (from plan §5 / HANDOFF; Keaton or named owner decides), Owners (desk map, from HANDOFF `ceb62b7` / issue #7) (+3 more)
 
 ### Community 226 - "executor.ts"
 Cohesion: 0.22
@@ -1934,8 +1934,8 @@ Cohesion: 0.05
 Nodes (36): 2026-10-05 — Git is the bus, 2026-10-05 — Keep Graphify as the code map; markdown canon beside it, 2026-10-05 — One task in flight per repo, 2026-10-06 — Canon location: `ai/` (not `.grok/` or `PROGRAM.md`), 2026-10-06 — Phase 1–3 owner assignments; WS-KG0 in flight, 2026-10-07 — Graphify has been run; the vault holds the code graph and the book, 2026-10-07 — Lab tools sit beside the desk, not on the order path, 2026-10-07 — Robinhood is the only execution path (+28 more)
 
 ### Community 394 - "2026-10-23 — NY AM session-partner run: 5th week-ahead.ts truncation, caught and fixed same morning before this check (Claude, scheduled)"
-Cohesion: 0.20
-Nodes (10): 2026-10-23 — NY AM session-partner run: 10:00 ET mid-session discipline, canary clean, 2026-10-23 — NY AM session-partner run: 5th week-ahead.ts truncation, caught and fixed same morning before this check (Claude, scheduled), 2026-10-26 — NY AM session-partner run: 09:08 ET premarket — week-ahead.ts and month-ahead.ts BOTH broken on main HEAD, build-breaking, caught at canary, 2026-10-26 — NY AM session-partner run: 11:17 ET close-out — canary still failed, unfixed through the entire live session, trade-log still ~empty, 2026-10-26 — NY AM session-partner run: canary still failed at 10:15 ET, unfixed for 70+ minutes, re-escalated, 2026-10-27 — NY AM session-partner run: 11:16 ET close-out — canary clean, holding since the 10:39 ET restore, 2026-10-28 — NY AM session-partner run: 10:08 ET mid-session — canary clean, A+-only window restated, 2026-10-28 — NY AM session-partner run: 11:17 ET close-out — canary clean, holding (+2 more)
+Cohesion: 0.18
+Nodes (11): 2026-10-23 — NY AM session-partner run: 10:00 ET mid-session discipline, canary clean, 2026-10-23 — NY AM session-partner run: 5th week-ahead.ts truncation, caught and fixed same morning before this check (Claude, scheduled), 2026-10-26 — NY AM session-partner run: 09:08 ET premarket — week-ahead.ts and month-ahead.ts BOTH broken on main HEAD, build-breaking, caught at canary, 2026-10-26 — NY AM session-partner run: 11:17 ET close-out — canary still failed, unfixed through the entire live session, trade-log still ~empty, 2026-10-26 — NY AM session-partner run: canary still failed at 10:15 ET, unfixed for 70+ minutes, re-escalated, 2026-10-27 — NY AM session-partner run: 11:16 ET close-out — canary clean, holding since the 10:39 ET restore, 2026-10-28 — NY AM session-partner run: 10:08 ET mid-session — canary clean, A+-only window restated, 2026-10-28 — NY AM session-partner run: 11:17 ET close-out — canary clean, holding (+3 more)
 
 ### Community 395 - "scoreProcess"
 Cohesion: 0.31
@@ -2066,7 +2066,7 @@ Nodes (4): check(), firstDue, ok(), tuesdayDue
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Code map` connect `live-world.ts` to `board.ts`, `invest-firm.ts`, `live-voices-invest.ts`, `index.tsx`, `detectors.ts`, `live-voices.ts`, `live-types.ts`, `FloorScene`, `build_office`, `claude-server.ts`, `path-alarm.ts`, `invest-office.ts`, `floor-screens.ts`, `mead-hall-build.ts`, `universe.ts`, `hi-alert.ts`, `room-engine.ts`, `discuss-tab.tsx`, `store.ts`, `profit-path.ts`, `agents.ts`, `floor-voice.ts`, `session-backtest.ts`, `build-desk.ts`, `invest-panel.tsx`, `debate.ts`, `live-talk.ts`, `sessions.ts`, `goal.ts`, `setup-scanner.tsx`, `cn`, `live-lesson.ts`, `.tick`, `live-voices-mead.ts`, `options-desk.ts`, `spoken-form.ts`, `floor-brains.tsx`, `OhlcBar`, `hall-lite.ts`, `school-brief.ts`, `orchestrator.ts`, `trading/scanner.ts`, `The Floor — 66 fixes, by category (2026-10-05)`?**
-  _High betweenness centrality (0.093) - this node is a cross-community bridge._
+  _High betweenness centrality (0.099) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
@@ -2074,8 +2074,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `databento.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.12312312312312312 - nodes in this community are weakly interconnected._
 - **Why does `shell()` connect `build_office` to `box`, `live-world.ts`, `_hair_keep`, `build_floor.py`?**
-  _High betweenness centrality (0.088) - this node is a cross-community bridge._
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
 - **Should `premarket-map.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.03844339622641509 - nodes in this community are weakly interconnected._
 - **Why does `react` connect `cn` to `candlestick-pane.tsx`, `board.ts`, `mead-screens.ts`, `invest-firm.ts`, `rh-journal-panel.tsx`, `index.tsx`, `setup-chart.tsx`, `news-tab.tsx`, `live-types.ts`, `replay-drill.ts`, `pm-analyzer.tsx`, `getSql`, `watcher-tab.tsx`, `trading-floor-tab.tsx`, `path-alarm.ts`, `shadow-store.ts`, `universe.ts`, `verify-figures.mjs`, `charts-tab.tsx`, `package.json`, `discuss-tab.tsx`, `store.ts`, `profit-path.ts`, `analytics-panel.tsx`, `thesis-server.ts`, `journal/server.ts`, `room-engine.ts`, `paper-manager.ts`, `calibration-panel.tsx`, `session-backtest.ts`, `invest-panel.tsx`, `verify-replay-drills.mjs`, `created-with-grok-banner.tsx`, `snapshot-review.tsx`, `setup-scanner.tsx`, `live-lesson.ts`, `use-entry-state.ts`, `shadow-view.ts`, `ghost-book.ts`, `kill-watch.ts`, `setup-chart-panel.tsx`, `veteran-brain.ts`, `floor-brains.tsx`, `apex-sim-panel.tsx`, `learn-tab.tsx`, `auth/client.ts`, `hall-lite.ts`, `overnight-swing.ts`, `shadow-book-panel.tsx`, `exec-card.tsx`, `trading/scanner.ts`, `desk/chat-trades.ts`, `manager-feed.ts`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
