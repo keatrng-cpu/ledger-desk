@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `5180c7f`. Fetched origin. Local main matches origin.
+HEAD `f647970`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `e5d948c`. 6 commit(s) landed after it.
-Bookmark after this run: `claude` → `5180c7f`.
+Bookmark was `5924648`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `f647970`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `f647970` | 2026-10-30T14:18 | session-partner: 10:15 ET mid-session — canary still failed, a commit landed after the 09:17 flag and did not fix it | M ai/DECISIONS.md, M ai/NOW.md |
+| `5924648` | 2026-10-30T13:19 | agent-sync: bookmark claude at 5180c7f (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `5180c7f` | 2026-10-30T13:19 | session-partner: 09:17 ET premarket — canary FAILED, fabricated restore commits found | M ai/DECISIONS.md, M ai/NOW.md |
 | `4410467` | 2026-10-30T12:16 | Update week-ahead to Oct 26-30: FOMC hold, GDP +3.4%, PCE hot, claims 194k; ECI pending. Prior-week levels adjusted. | M src/lib/trading/week-ahead.ts |
 | `0ad8b10` | 2026-10-29T15:52 | Restore week-ahead.ts with Oct 29 restamp: GDP +3.4% claims 194k PCE hot; inside-week holds | M src/lib/trading/week-ahead.ts |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `5180c7f`.
 | `03be8e2` | 2026-10-29T13:24 | session-partner: 09:21 ET premarket — CANARY FAILED, week-ahead.ts gutted by de68d47, flagged to trader, restore pending | M ai/DECISIONS.md, M ai/NOW.md |
 | `4bdba1c` | 2026-10-29T07:11 | Add printed actuals: Durable Goods +1.8%, FOMC hold 3.75-4.00% with two hawkish dissents | M src/data/week-prints.json |
 | `84d1456` | 2026-10-28T15:51 | Fix week-prints.json restamp for Oct 28 FOMC hold (no ISM/JOLTS/ADP/claims/NFP) | M src/data/week-prints.json |
-| `de68d47` | 2026-10-28T15:51 | Restamp Oct 28: FOMC hold 3.75-4.00% 10-2. Inside-week holds; no PWH/PWL take. No ISM/JOLTS/ADP/claims/NFP. Dec hike odds ~85-87%. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `6f309ff` | 2026-10-28T15:18 | agent-sync: bookmark claude at 4eea006 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
