@@ -100,19 +100,19 @@ export function etDateKey(now = new Date()): string {
   return `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
 }
 
-/** Week of Sep 28 – Oct 2 2026. JOLTS → PCE → ISM/claims → NFP. */
+/** Week of Oct 26 – Oct 30 2026. Durable → FOMC → GDP/PCE/claims → ECI. */
 export const WEEK_SEP28_OCT2: WeekPlan = {
   id: "2026-09-28",
-  weekLabel: "Sep 28 – Oct 2, 2026",
-  weekStart: "2026-09-28",
-  weekEnd: "2026-10-02",
+  weekLabel: "Oct 26 – Oct 30, 2026",
+  weekStart: "2026-10-26",
+  weekEnd: "2026-10-30",
   headline:
-    "Labor/inflation week. JOLTS Tue, ADP+PCE Wed, ISM+claims Thu, September NFP Fri 8:30. No multi-day swing into Friday.",
+    "FOMC/GDP week. Durable Tue, FOMC Wed, GDP+PCE+claims Thu, ECI Fri 8:30. No multi-day swing into Friday.",
   htfBias:
     "Prior week already ran NQ to 31,095 / ES to 7,848.50. This week opens inside that box. Core PCE already printed soft. Hot NFP = October hike repricing, NQ-lead weakness. Soft NFP = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue JOLTS manipulates. Wed PCE distributes. Thu ISM/claims. Fri NFP is the week’s event.",
   macro:
-    "Tue JOLTS Aug 10:00 printed 7.079M. Wed ADP Sep +90k + GDP Q2 3rd +2.2% + PCE Aug core +0.2%/3.0%. Thu claims 197k vs 200k; ISM Mfg 54.5 vs 55. Fri NFP Sep +29k vs ~+90k, U 4.2%, AHE +0.1% (BLS 8:30 ET). Week tape: NQ ~30,357–31,282.50 took PWH 31,095 Fri and faded back near it; ES ~7,672.75–7,810, PWL taken Thu, PWH untouched. Oct 28 hike odds cooled further: FedWatch ~17–22% after the print (CNBC 17%, FXStreet 21.6%) vs 24.9% Thu afternoon / 37.6% earlier.",
+    "Tue Durable Goods Sep +1.8% (exp ~1.4%). Wed FOMC hold 3.75-4.00% (10-2, Cook/Hammack for 25bp hike). Thu GDP Q3 +3.4% (exp ~3.1-3.2%), claims 194k (exp ~198k), PCE Sep +0.5% m/m / +3.6% y/y, core +0.3%/3.1%. Fri ECI Q3 pending 8:30 (cons 0.8% q/q). Week tape so far: NQ ~29,024–30,178, ES ~7,652–7,820. Dec hike odds ~71-86% post-prints (Benzinga 71.4%, earlier 85+).",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -124,7 +124,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 30500,
     drawUp: "Prior-week 31,095 then next BSL — only if tape is already there",
     drawDown: "Prior-week 29,904 then next SSL",
-    note: "PWH/PWL = Sep 21–25 week (NQ high 31,094.75 / low 29,904). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+    note: "PWH/PWL = Oct 19–23 week (NQ ~30,113 / ~28,987). Live CWH/CWL from bars. Do not hardcode a take into the seed.",
   },
   es: {
     settle: 7804,
@@ -135,10 +135,10 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     eq: 7778,
     drawUp: "Prior-week 7,848.50",
     drawDown: "Prior-week 7,707.25",
-    note: "PWH/PWL = Sep 21–25 ES week (7,848.50 / 7,707.25). Live CWH/CWL from bars. No fake live prints.",
+    note: "PWH/PWL = Oct 19–23 ES week (~7,812 / ~7,648). Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
-    "±15 min: JOLTS Tue 10:00 · ADP/GDP/PCE Wed 8:15–8:45 · claims Thu 8:30 · ISM Thu 10:00 · NFP Fri 8:30",
+    "±15 min: Durable Tue 8:30 · FOMC Wed 14:00 · GDP/PCE/claims Thu 8:30 · ECI Fri 8:30",
     "No entry 8:00–8:45 Wed or Fri",
     "No multi-day swing into Fri NFP",
     "Judas on. One book. PATH floor 0.65.",
@@ -147,7 +147,7 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     "Tue stand 9:45–10:15",
     "Wed second impulse only after 9:45",
     "Thu ISM 9:45–10:15 stand",
-    "Fri NFP blackout 8:15–9:00; A+ only after 10:00",
+    "Fri ECI blackout 8:15–9:00; A+ only after 10:00",
   ],
   outcomes: [
     { p: 40, name: "Hot PCE and/or hot NFP", detail: "October hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
