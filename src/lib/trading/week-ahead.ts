@@ -220,3 +220,258 @@ export const WEEK_SEP28_OCT2: WeekPlan = {
     },
   ],
 };
+
+/** Week of Nov 2 – Nov 6 2026. ISM Mfg → JOLTS → ADP/ISM Svc → claims → NFP. */
+export const WEEK_NOV2_NOV6: WeekPlan = {
+  id: "2026-11-02",
+  weekLabel: "Nov 2 – Nov 6, 2026",
+  weekStart: "2026-11-02",
+  weekEnd: "2026-11-06",
+  headline:
+    "NFP week. ISM Mfg Mon 10:00, JOLTS Tue 10:00, ADP+ISM Svc Wed, claims Thu, NFP Fri 8:30. No multi-day swing into Friday.",
+  htfBias:
+    "Prior week (Oct 26–30) seed PWH/PWL NQ 31,095 / 29,904; cash broke PWL hard Fri (session ~28,272–29,180). Opens after downside invalidation of inside-week. Dec hike odds ~68-73% post-ECI. Hot NFP = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
+  po3: "Mon ISM range-build. Tue JOLTS manipulates. Wed ADP/ISM distributes. Thu claims. Fri NFP is the week’s event.",
+  macro:
+    "Mon ISM Manufacturing PMI (Oct) 10:00 (prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 (prev 7.079M). Wed ADP Employment (Oct) 08:15 + ISM Services PMI (Oct) 10:00. Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds cooled to ~68-73% (Benzinga 71.4% post-FOMC). Live CWH/CWL from bars.",
+  asymmetry:
+    "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
+  nq: {
+    settle: 29180,
+    rangeLo: 28272,
+    rangeHi: 31095,
+    pwh: 31095,
+    pwl: 29904,
+    eq: 30500,
+    drawUp: "Prior-week 31,095 then next BSL — only if tape is already there",
+    drawDown: "Prior-week low area ~28,272 then next SSL",
+    note: "PWH/PWL = Oct 26–30 seed (NQ 31,095 / 29,904). Cash took the low Fri. Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+  },
+  es: {
+    settle: 7700,
+    rangeLo: 7650,
+    rangeHi: 7849,
+    pwh: 7848.5,
+    pwl: 7707.25,
+    eq: 7778,
+    drawUp: "Prior-week 7,848.50",
+    drawDown: "Prior-week low area under 7,707",
+    note: "PWH/PWL = Oct 26–30 seed. Live CWH/CWL from bars. No fake live prints.",
+  },
+  filters: [
+    "±15 min: ISM Mfg Mon 10:00 · JOLTS Tue 10:00 · ADP Wed 08:15 · ISM Svc Wed 10:00 · claims Thu 08:30 · NFP Fri 08:30",
+    "No entry 8:00–8:45 Fri",
+    "No multi-day swing into Fri NFP",
+    "Judas on. One book. PATH floor 0.65.",
+  ],
+  ops: [
+    "Mon stand 9:45–10:15",
+    "Tue stand 9:45–10:15",
+    "Wed ADP blackout 8:00–8:45; ISM 9:45–10:15 stand",
+    "Fri NFP blackout 8:15–9:00; A+ only after 10:00",
+  ],
+  outcomes: [
+    { p: 40, name: "Hot NFP and/or hot ISM", detail: "December hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
+    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds already cooled after ECI; NFP is the swing." },
+    { p: 25, name: "Soft NFP / soft ISM", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
+  ],
+  days: [
+    {
+      date: "2026-11-02",
+      weekday: "Mon",
+      dailyBias: "Neutral / range-build",
+      kind: "range_build",
+      news: [{ timeEt: "10:00", name: "ISM Manufacturing PMI (Oct)", impact: "high", note: "Prev 54.5" }],
+      likelyTape: "Opens after prior-week PWL break. ISM 10:00 is the first liquidity.",
+      trade: "Stand 9:45–10:15. Mechanical only on prior-week H/L raid + MSS after.",
+      skipIf: "No raid of prior-week extremes. No clear MSS after the print.",
+      pathNote: "Prior-week downside break is the context. Live CWH/CWL from bars.",
+    },
+    {
+      date: "2026-11-03",
+      weekday: "Tue",
+      dailyBias: "Neutral / two-way",
+      kind: "two_way",
+      news: [{ timeEt: "10:00", name: "JOLTS Job Openings (Sep)", impact: "high", note: "Prev 7.079M" }],
+      likelyTape: "JOLTS 10:00. Still post-breakdown two-way until structure forms.",
+      trade: "Stand 9:45–10:15 unless A+ after 10:15.",
+      skipIf: "No clear MSS after the print.",
+      pathNote: "Inside the post-break range until proven otherwise.",
+    },
+    {
+      date: "2026-11-04",
+      weekday: "Wed",
+      dailyBias: "Event / selective",
+      kind: "event",
+      news: [
+        { timeEt: "08:15", name: "ADP Employment (Oct)", impact: "high", note: "" },
+        { timeEt: "10:00", name: "ISM Services PMI (Oct)", impact: "high", note: "" }
+      ],
+      likelyTape: "ADP 08:15 then ISM Services 10:00. Two liquidity events.",
+      trade: "ADP blackout 8:00–8:45. ISM stand 9:45–10:15. A+ only after second impulse.",
+      skipIf: "No entry 8:00-8:45. No clear MSS after either print.",
+      pathNote: "Cluster day. Flatten into each print.",
+    },
+    {
+      date: "2026-11-05",
+      weekday: "Thu",
+      dailyBias: "Two-way / selective",
+      kind: "two_way",
+      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "" }],
+      likelyTape: "Claims 08:30. Pre-NFP positioning.",
+      trade: "A+ only after 8:30. Stand unless clear structure.",
+      skipIf: "No multi-day into Fri.",
+      pathNote: "Do not swing into NFP.",
+    },
+    {
+      date: "2026-11-06",
+      weekday: "Fri",
+      dailyBias: "Event / A+ only",
+      kind: "nfp",
+      news: [
+        { timeEt: "08:30", name: "NFP / Employment Situation (Oct)", impact: "high", note: "" },
+        { timeEt: "10:00", name: "UMich Sentiment (Nov P)", impact: "medium", note: "" }
+      ],
+      likelyTape: "NFP 08:30 is the week’s event. UMich 10:00 secondary.",
+      trade: "A+ only after 10:00. Short only on BSL raid + MSS if offered; do not chase.",
+      skipIf: "No entry 8:15–9:00. No multi-day swing. No fade of the first impulse without structure.",
+      pathNote: "Flatten into weekend. Live CWH/CWL from bars.",
+    },
+  ],
+};
+
+const WEEK_PLANS: WeekPlan[] = [WEEK_NOV2_NOV6, WEEK_SEP28_OCT2];
+
+function addDays(dateKey: string, n: number): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const utc = Date.UTC(y!, m! - 1, d! + n);
+  const dt = new Date(utc);
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+}
+
+export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
+  const dateKey = etDateKey(now);
+  for (const plan of WEEK_PLANS) {
+    const prepDay = addDays(plan.weekStart, -1);
+    if (dateKey < prepDay || dateKey > plan.weekEnd) continue;
+    const today = plan.days.find((d) => d.date === dateKey) ?? null;
+    const next = plan.days.find((d) => d.date > dateKey) ?? null;
+    const phase: WeekAheadRead["phase"] =
+      dateKey < plan.weekStart ? "prep" : dateKey > plan.weekEnd ? "done" : "live";
+    const focus = today ?? next;
+    return {
+      plan,
+      dateKey,
+      today,
+      next,
+      phase,
+      focus,
+      live: false,
+      refreshedAt: now.toISOString(),
+    };
+  }
+  return null;
+}
+
+export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
+  if (!read || !read.focus) return null;
+  const tag = read.today ? "TODAY" : "NEXT";
+  return `${tag} · ${read.focus.weekday} · ${read.focus.dailyBias}`;
+}
+
+function barDateKey(t: number): { key: string; hour: number } {
+  const p = etWallParts(t);
+  return {
+    key: `${p.year}-${pad2(p.month)}-${pad2(p.day)}`,
+    hour: p.hour,
+  };
+}
+
+function barInWeek(
+  t: number,
+  weekStart: string,
+  weekEnd: string,
+  today: string,
+): boolean {
+  const { key, hour } = barDateKey(t);
+  if (key > today || key > weekEnd) return false;
+  if (key >= weekStart) return true;
+  const prep = addDays(weekStart, -1);
+  return key === prep && hour >= 18;
+}
+
+export function weekRangeFromBars(
+  bars: OhlcBar[],
+  weekStart: string,
+  weekEnd: string,
+  now = new Date(),
+): { high: number; low: number; n: number } | null {
+  const today = etDateKey(now);
+  let high = -Infinity;
+  let low = Infinity;
+  let n = 0;
+  for (const b of bars) {
+    if (!barInWeek(b.t, weekStart, weekEnd, today)) continue;
+    if (b.h > high) high = b.h;
+    if (b.l < low) low = b.l;
+    n += 1;
+  }
+  if (n < 3 || !Number.isFinite(high) || !Number.isFinite(low)) return null;
+  return { high, low, n };
+}
+
+function overlayBook(
+  seed: WeekBookLevels,
+  range: { high: number; low: number; n: number } | null,
+): WeekBookLevels {
+  if (!range) return seed;
+  const cwh = +range.high.toFixed(2);
+  const cwl = +range.low.toFixed(2);
+  const liveEq = +((cwh + cwl) / 2).toFixed(2);
+  const tookPwh = cwh >= seed.pwh - 0.25;
+  const tookPwl = cwl <= seed.pwl + 0.25;
+  return {
+    ...seed,
+    cwh,
+    cwl,
+    live: true,
+    eq: liveEq,
+    drawUp: tookPwh
+      ? `CWH ${cwh.toFixed(2)} took PWH ${seed.pwh.toFixed(2)} — next ${seed.drawUp}`
+      : `CWH ${cwh.toFixed(2)} then PWH ${seed.pwh.toFixed(2)} · ${seed.drawUp}`,
+    drawDown: tookPwl
+      ? `CWL ${cwl.toFixed(2)} took PWL ${seed.pwl.toFixed(2)} — next ${seed.drawDown}`
+      : `CWL ${cwl.toFixed(2)} then PWL ${seed.pwl.toFixed(2)} · ${seed.drawDown}`,
+    note: `${seed.note} LIVE CWH ${cwh.toFixed(2)} / CWL ${cwl.toFixed(2)} from this week’s tape (no lookahead).`,
+  };
+}
+
+function isNq(symbol: string): boolean {
+  return /NQ/i.test(symbol);
+}
+function isEs(symbol: string): boolean {
+  return /ES/i.test(symbol);
+}
+
+/** Stamp live weekly range onto the Sunday seed. Prior PWH/PWL stay. */
+export function overlayWeekAhead(
+  read: WeekAheadRead | null,
+  books: { symbol: string; bars: OhlcBar[] }[],
+  now = new Date(),
+): WeekAheadRead | null {
+  if (!read) return null;
+  const { plan } = read;
+  let nq = plan.nq;
+  let es = plan.es;
+  for (const b of books) {
+    const range = weekRangeFromBars(b.bars, plan.weekStart, plan.weekEnd, now);
+    if (isNq(b.symbol)) nq = overlayBook(nq, range);
+    if (isEs(b.symbol)) es = overlayBook(es, range);
+  }
+  return {
+    ...read,
+    plan: { ...plan, nq, es },
+    live: Boolean(nq.live || es.live),
+    refreshedAt: now.toISOString(),
+  };
+}

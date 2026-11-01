@@ -395,7 +395,145 @@ export const MONTH_OCT_2026: MonthPlan = {
   ],
 };
 
-const PLANS: MonthPlan[] = [MONTH_OCT_2026, MONTH_SEP_2026];
+/** November 2026 — NFP then CPI then minutes. Visible from Sun Nov 1. */
+export const MONTH_NOV_2026: MonthPlan = {
+  id: "2026-11",
+  monthLabel: "November 2026",
+  monthStart: "2026-11-01",
+  monthEnd: "2026-11-30",
+  headline:
+    "NFP then CPI then minutes. Not a clean trend. News is liquidity, not a directional call.",
+  thesis:
+    "Conditional two-way. Oct FOMC already held. ECI in-line. This month opens after prior-week PWL break. NFP Fri is the first delivery.",
+  htfBias:
+    "Prior-week cash broke NQ PWL (session ~28,272–29,180 vs seed 29,904 / 31,095). ES similarly under prior. Do not invent CMH/CML.",
+  fed: "Funds 3.75–4.00% after Oct 28 hold (10-2, Cook/Hammack for 25bp). Dec 8–9 is next decision. FedWatch ~68-73% hike post-ECI (Benzinga 71.4%). Base case still hike until NFP/CPI say otherwise.",
+  seasonality:
+    "November tendency is mixed. Not a setup. Size down into NFP and CPI. Demand A / A+.",
+  nq: {
+    settle: 29180,
+    pwh: 31095,
+    pwl: 29904,
+    ath: 31095,
+    eq: 30500,
+    drawUp: "Prior-week 31,095 then next BSL — only if tape is already there. Do not pre-buy.",
+    drawDown: "Prior-week low area ~28,272 then next SSL if that goes.",
+    note: "PWH/PWL = Oct 26–30 seed. Cash took the low Fri. Live CMH/CML from bars. September and October plans left untouched.",
+  },
+  es: {
+    settle: 7700,
+    pwh: 7848.5,
+    pwl: 7707.25,
+    ath: 7848.5,
+    eq: 7778,
+    drawUp: "Prior-week 7,848.50",
+    drawDown: "Prior-week low area under 7,707",
+    note: "PWH/PWL = Oct 26–30 seed. Live CMH/CML from bars. No fake live prints.",
+  },
+  liqNq: {
+    bsl: ["Prior-week 31,095"],
+    irl: ["EQ ~30,500", "Fri session high ~29,180"],
+    ssl: ["Fri session low ~28,272", "Prior seed PWL 29,904"],
+  },
+  liqEs: {
+    bsl: ["Prior-week 7,848.50"],
+    irl: ["Seed settle ~7,700"],
+    ssl: ["Prior-week low area"],
+  },
+  rules: [
+    "One book per day. MNQ or ES, not both same bias.",
+    "Judas 9:30–9:45 ET every day. No entry 8:15–9:00 on NFP / CPI.",
+    "After 10:00 ET, A+ only on event days.",
+    "blake_mech longs stay paper / B+ until WR recovers.",
+    "Primary: mechanical + SMT/TJR companion.",
+    "PATH floor 0.65. Month cap ~9 — after 9, A+ only or stand. 6–9 is the cap not the goal.",
+    "Soft-data longs you skipped that paid are still process wins.",
+    "A+ size 2% until A+ sample n≥20 and WR≥65%.",
+  ],
+  ops: [
+    "8:20 CDT brief. 8:30–8:44 Judas. 8:45–9:00 pulses. After 10:00 ET on event days, A+ only.",
+    "Blackouts ±15m: 11/2 10:00 · 11/3 10:00 · 11/4 08:15 and 10:00 · 11/5 08:30 · 11/6 08:30 · 11/10 08:30 · 11/18 14:00.",
+    "Journal skips on NFP open with no MSS as process wins.",
+    "Sunday night: restamp this file if levels, odds, or actuals drifted. Do not invent fills.",
+  ],
+  phases: [
+    {
+      id: "labor",
+      label: "NFP week",
+      start: "2026-11-02",
+      end: "2026-11-06",
+      character: "Opens after prior-week PWL break. ISM, JOLTS, ADP, then NFP.",
+      dailyBias: "Two-way / selective. Hot NFP = December hike repricing. Soft = squeeze.",
+      pathQuota: "A+ into the prints. No multi-day swing into Friday.",
+      book: "MNQ primary. ES only if NQ is dead.",
+      strategy:
+        "Mon ISM Mfg 10:00 stand 9:45–10:15. Tue JOLTS 10:00 stand. Wed ADP 08:15 blackout then ISM Svc 10:00. Thu claims. Fri NFP 08:30 blackout 8:15–9:00; A+ only after 10:00. Flatten into weekend.",
+      skipIf: "No raid of prior-week H/L. No MSS + IFVG after the print. Anything open at 8:15 Fri.",
+      blackouts: "Mon 10:00 · Tue 10:00 · Wed 08:15 and 10:00 · Thu 08:30 · Fri 08:30",
+    },
+    {
+      id: "holiday_cpi",
+      label: "CPI",
+      start: "2026-11-09",
+      end: "2026-11-13",
+      character: "CPI Tue is the raid, not a directional call.",
+      dailyBias: "A / A+ only into CPI. Do not fade the first 30 min.",
+      pathQuota: "A / A+ only. If NFP already took a hawkish short and CPI is hot, you do not need a second short.",
+      book: "One book. MNQ primary.",
+      strategy:
+        "Mon quiet. Tue CPI (Oct) 08:30. Wed claims. Thu PPI 08:30. Fri retail sales pending. Hot core → draw prior-week low after BSL raid + MSS. In-line → stand unless A+. Soft → squeeze only after SSL in discount.",
+      skipIf: "No MSS + IFVG by 10:15 Tue. Do not short the first CPI spike.",
+      blackouts: "Tue 08:30 CPI · Thu 08:30 PPI",
+    },
+    {
+      id: "fomc",
+      label: "Minutes",
+      start: "2026-11-16",
+      end: "2026-11-20",
+      character: "Quiet stretch then Oct minutes Wed.",
+      dailyBias: "Stand into the minutes. Delivery is after 14:15.",
+      pathQuota: "0–1 PATH before 14:00 Wed. After: stand or A+ displacement only.",
+      book: "Flatten before 13:45 ET Wednesday.",
+      strategy:
+        "Mon housing starts. Tue claims. Wed FOMC Minutes (Oct meeting) 14:00 — flatten 13:45, A+ only after 14:15. Thu claims. Fri UMich final.",
+      skipIf: "Anything still open at 13:45 Wed.",
+      blackouts: "Wed 13:45–14:15 minutes",
+    },
+    {
+      id: "digest",
+      label: "Digest",
+      start: "2026-11-23",
+      end: "2026-11-27",
+      character: "Thanksgiving week. Thin tape.",
+      dailyBias: "Selective. Mechanical only if the range is clean.",
+      pathQuota: "Normal PATH. Do not force the month quota.",
+      book: "MNQ primary. Use post-CPI CMH/CML — do not keep trading the Oct box if taken.",
+      strategy:
+        "Mon durables + GDP 2nd. Wed early close. Thu holiday. Fri thin. If CPI resolved the range, HTF draw is that extreme.",
+      skipIf: "No clean raid. Do not swing into the holiday.",
+      blackouts: "Mon 08:30 durables/GDP (medium)",
+    },
+  ],
+  outcomes: [
+    {
+      p: 40,
+      name: "Hawkish NFP/CPI",
+      detail: "Hot NFP and/or hot CPI. Dec hike odds stay elevated or rise. NQ draws prior-week low area. Highest-quality shorts: post-NFP and post-CPI second impulse.",
+    },
+    {
+      p: 35,
+      name: "Two-way",
+      detail: "In-line slate. NQ stays inside the post-break range. Best PATH days: post-ISM, post-NFP second impulse, post-CPI.",
+    },
+    {
+      p: 25,
+      name: "Squeeze",
+      detail: "Soft NFP + soft CPI. Raid lows then squeeze prior-week high. Long only SSL in discount + MSS. Do not buy strength into NFP.",
+    },
+  ],
+};
+
+const PLANS: MonthPlan[] = [MONTH_NOV_2026, MONTH_OCT_2026, MONTH_SEP_2026];
 
 export function resolveMonthAhead(now = new Date()): MonthAheadRead | null {
   const dateKey = etDateKey(now);
