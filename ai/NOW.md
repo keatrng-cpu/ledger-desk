@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-10-30 11:23 ET (session-partner close-out check-in below — **CANARY STILL FAILED, 3rd run today, 9th+ run overall; main HEAD still carries the fabricated week-ahead.ts**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-02 08:51 ET (session-partner premarket check-in below — **CANARY CLEAR: the week-ahead.ts truncation chain is fixed on main**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -14,16 +14,15 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
-## Session-partner check-in (2026-10-30, ~11:23 ET scheduled run — close-out) — CANARY STILL FAILED, 3rd run today, nothing has fixed it
+## Session-partner check-in (2026-11-02, ~08:51 ET scheduled run — premarket) — CANARY CLEAR, first clean run after the multi-day chain
 
-- Fetched `origin/main` fresh (`5e1669a..81865d3`). `week-ahead.ts` is **still 172 lines**, identical to the 09:17 and 10:15 runs today. `grep -n "truncated" src/lib/trading/week-ahead.ts` still hits the two fabricated placeholder lines (169, 172) verbatim. No new commit touched the file since `4410467`; the only new main activity since the 10:15 run is agent-sync bookkeeping.
-- `month-ahead.ts` still clean at 535 lines.
-- **Restore command (unchanged across all 3 runs today):** `git checkout 5e1669a -- src/lib/trading/week-ahead.ts` (824 lines, last confirmed real content), then manually re-apply the real restamp facts from commit messages between `de68d47` and `4410467` (Oct 28 FOMC hold / Durables; Oct 29 GDP +3.4% / claims 194k / PCE hot; Oct 30 ECI). Do not cherry-pick any commit in that range — all carry the corrupted file.
-- Did not run the restore (out of this session's scope — repo + narration only, no authority to edit `week-ahead.ts` content). Sent a third PushNotification today, now flagged as a stale, unresolved multi-hour desk-wide integrity failure spanning 3 check-ins today on top of the Oct 29 chain, with no fix landing despite the exact restore command being repeated each time.
-- Close-out content given regardless (ET ~11:23, past the 11:00 close-out marker and the 11:30 gateway-window end): `src/data/trade-log.json` still holds only historical rows from before this failure chain (no Oct 29/30 entries) against thousands of backtested trades — asked the trader directly whether today's trades and SKIPS are logged, pointed to `npx tsx scripts/log-trade.mjs FILE` (desk pre-fills the note; four fields are the trader's); reminded that an unfilled plan dies at the cash close and must not be dragged into the next session.
+- Fetched `origin/main` fresh (HEAD `37ff8a0`). `week-ahead.ts` is **477 lines** with real content: 14 exports, matched braces, two full populated `WeekPlan` objects (`WEEK_SEP28_OCT2`, `WEEK_NOV2_NOV6`), no fabricated placeholder lines. `month-ahead.ts` clean at 673 lines.
+- Fix landed in two commits after the last (2026-10-30 11:23 ET) check-in: `f19a6ef` (Restamp Oct 30, grew the file to 222 lines) and `37ff8a0` (Sunday restamp Nov 1, added the Nov 2–6 NFP week + November month plan, 477 lines). Neither this session nor any prior session ran the restore — Grok's own restamps overwrote the corrupted file in the normal course of weekly restamping.
+- `ran agent-sync --agent claude`; bookmark moved `1499e9c` → `37ff8a0`. No file read before edit needed this run (narration/canary only, no code edits).
+- Premarket brief for 2026-11-02 (Mon, NFP week): ISM Mfg 10:00 ET (prev 54.5) is today's only scheduled release. HTF context: prior week (Oct 26–30) PWH/PWL NQ 31,095/29,904, ES 7,848.50/7,707.25 — cash broke PWL hard Friday, inside-week invalidated on the downside. Dec hike odds ~68–73% post-ECI. Stand 9:45–10:15; mechanical only on a prior-week extreme raid + MSS after. No multi-day swing into Friday's NFP (08:30) or Thursday's claims (08:30); Wed is a cluster day (ADP 08:15 + ISM Svc 10:00).
 - No fills, prices, or outcomes invented.
 
-Older check-ins (2026-10-30 09:17/10:15, 2026-10-29 ×3, 10-28, 10-27, 10-23, 10-22) trimmed for length — see `ai/DECISIONS.md` for the dated entries. This is now the **9th+ consecutive scheduled run** with the week-ahead.ts truncation/fabrication signature, on top of the 09-04/09-20/09-25 recurrences the scheduled task was already written to watch for.
+This closes out the **9+ consecutive scheduled-run failure chain** (2026-10-29/30, plus the 09-04/09-20/09-25 recurrences) logged in prior entries below and in `ai/DECISIONS.md` — watch the next 1–2 restamps to confirm it holds rather than treating one clean run as proof the root cause (not just the symptom) is fixed.
 
 ## Read order (every session)
 

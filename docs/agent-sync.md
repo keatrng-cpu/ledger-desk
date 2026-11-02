@@ -2,17 +2,20 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `1499e9c`. Fetched origin. Local main matches origin.
+HEAD `37ff8a0`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `f647970`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `1499e9c`.
+Bookmark was `1499e9c`. 3 commit(s) landed after it.
+Bookmark after this run: `claude` → `37ff8a0`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `37ff8a0` | 2026-11-01T22:24 | Sunday restamp Nov 1: add Nov 2–6 NFP week plan and November month plan. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `f19a6ef` | 2026-10-30T20:51 | Restamp Oct 30: ECI Q3 +0.8% in-line. Cash broke PWL; Sunday inside-week invalidated on downside. Days restored with actuals. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `1ad3e06` | 2026-10-30T15:26 | agent-sync: bookmark claude at 1499e9c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `1499e9c` | 2026-10-30T15:26 | session-partner: 11:23 ET close-out — canary still failed, 3rd run today | M ai/DECISIONS.md, M ai/NOW.md |
 | `81865d3` | 2026-10-30T14:18 | agent-sync: bookmark claude at f647970 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f647970` | 2026-10-30T14:18 | session-partner: 10:15 ET mid-session — canary still failed, a commit landed after the 09:17 flag and did not fix it | M ai/DECISIONS.md, M ai/NOW.md |
@@ -25,9 +28,6 @@ Bookmark after this run: `claude` → `1499e9c`.
 | `2c1b977` | 2026-10-29T15:09 | agent-sync: bookmark claude at e5d948c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e5d948c` | 2026-10-29T15:09 | session-partner: 11:07 ET close-out — canary still failed (3rd run), escalated again | M ai/DECISIONS.md, M ai/NOW.md |
 | `00dc6fb` | 2026-10-29T14:39 | agent-sync: bookmark claude at 94d3217 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `94d3217` | 2026-10-29T14:38 | session-partner: 10:37 ET mid-session — canary still failed, re-flagged | M ai/DECISIONS.md, M ai/NOW.md |
-| `5cc8252` | 2026-10-29T13:25 | agent-sync: bookmark claude at 03be8e2 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `03be8e2` | 2026-10-29T13:24 | session-partner: 09:21 ET premarket — CANARY FAILED, week-ahead.ts gutted by de68d47, flagged to trader, restore pending | M ai/DECISIONS.md, M ai/NOW.md |
 
 ## New files in those commits
 
