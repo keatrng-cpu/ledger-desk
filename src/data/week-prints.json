@@ -47,5 +47,12 @@
     "actual": "+0.8% q/q / +3.4% y/y",
     "vs": "exp 0.8% / prev 0.9%",
     "note": "BLS official. Wages +0.7%, benefits +0.9%. In-line, not inflationary. Dec hike odds ~68-73%."
+  },
+  {
+    "date": "2026-11-02",
+    "name": "ISM Manufacturing PMI (Oct)",
+    "actual": "55.5",
+    "vs": "exp ~54.5-54.7 / prev 54.5",
+    "note": "Beat. Production 59.0 (highest since Nov 2021). New Orders 55.5. Prices Paid 75.2 (from 77.9). Expansion continues."
   }
 ]
