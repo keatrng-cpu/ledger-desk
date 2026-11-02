@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-11-02)
 
 ## Corpus Check
-- 1241 files · ~2,167,465 words
+- 1241 files · ~2,167,531 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 62 file(s) not represented in the graph (top: .patch 22, (none) 10, .service 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `790361ca`
+- Built from commit: `e0b8da47`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -2038,7 +2038,7 @@ Nodes (4): check(), firstDue, ok(), tuesdayDue
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Code map` connect `live-world.ts` to `board.ts`, `meeting.ts`, `live-voices-invest-firm.ts`, `invest-firm.ts`, `index.tsx`, `detectors.ts`, `build_office`, `room-step.ts`, `claude-server.ts`, `floor-screens.ts`, `mead-screens.ts`, `universe.ts`, `desk-atlas.ts`, `trading/scanner.ts`, `hi-alert.ts`, `discuss-tab.tsx`, `long-board.ts`, `store.ts`, `profit-path.ts`, `Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)`, `room-engine.ts`, `floor-voice.ts`, `ghost-book.ts`, `live-talk.ts`, `goal.ts`, `setup-scanner.tsx`, `.tick`, `room/drill.ts`, `OhlcBar`, `live-voices-mead.ts`, `yahoo.ts`, `spoken-form.ts`, `invest-sources.ts`, `hall-read.ts`, `school-brief.ts`, `orchestrator.ts`, `invest-panel.tsx`, `live-voices.ts`, `floor-school-contracts.ts`, `spoken-check.mjs`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+  _High betweenness centrality (0.088) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
@@ -2046,8 +2046,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `DeskPayload` be split into smaller, more focused modules?**
   _Cohesion score 0.05273937532002048 - nodes in this community are weakly interconnected._
 - **Why does `shell()` connect `build_office` to `box`, `build_floor.py`, `_hair_keep`, `live-world.ts`?**
-  _High betweenness centrality (0.082) - this node is a cross-community bridge._
+  _High betweenness centrality (0.081) - this node is a cross-community bridge._
 - **Should `premarket-map.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.038298219826882245 - nodes in this community are weakly interconnected._
-- **Why does `scanSetups()` connect `structure.ts` to `smc-master.ts`, `rh-dispatch.ts`, `DeskPayload`, `shadow-panel.tsx`, `school-brief.ts`, `session-backtest.ts`, `build-desk.ts`, `scoreCandidates`, `trading/scanner.ts`, `paper-server.ts`?**
+- **Why does `react` connect `cn` to `board.ts`, `invest-firm.ts`, `rh-journal-panel.tsx`, `index.tsx`, `setup-chart.tsx`, `shadow-book-panel.tsx`, `tf-ladder-panel.tsx`, `shadow-store.ts`, `PanelBoundary`, `replay-drill.ts`, `pm-analyzer.tsx`, `canon.ts`, `watcher-tab.tsx`, `plain-text.tsx`, `path-alarm.ts`, `trading-floor-tab.tsx`, `mead-screens.ts`, `universe.ts`, `hi-alert.ts`, `package.json`, `discuss-tab.tsx`, `store.ts`, `profit-path.ts`, `long-board.ts`, `exposure.ts`, `analytics-panel.tsx`, `claude-handoff.ts`, `alerts-panel.tsx`, `options-swing-panel.tsx`, `paper-manager.ts`, `room-engine.ts`, `calibration-panel.tsx`, `session-backtest.ts`, `ghost-book.ts`, `news-tab.tsx`, `setup-memory.ts`, `verify-replay-drills.mjs`, `created-with-grok-banner.tsx`, `snapshot-review.tsx`, `setup-scanner.tsx`, `live-lesson.ts`, `shadow-panel.tsx`, `OhlcBar`, `ticket-facts.ts`, `use-entry-state.ts`, `aplus/config.ts`, `invest-sources.ts`, `setup-chart-panel.tsx`, `veteran-brain.ts`, `floor-brains.tsx`, `apex-sim-panel.tsx`, `learn-tab.tsx`, `auth/client.ts`, `hall-read.ts`, `invest-panel.tsx`, `propfirm-panel.tsx`, `overnight-swing.ts`, `exec-card.tsx`, `entry-trigger.ts`, `smc-canon.ts`, `desk/chat-trades.ts`, `entry-trigger-panel.tsx`?**
   _High betweenness centrality (0.036) - this node is a cross-community bridge._
