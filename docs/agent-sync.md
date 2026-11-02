@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `37ff8a0`. Fetched origin. Local main matches origin.
+HEAD `d4391ca`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `1499e9c`. 3 commit(s) landed after it.
-Bookmark after this run: `claude` → `37ff8a0`.
+Bookmark was `37ff8a0`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `d4391ca`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `d4391ca` | 2026-11-02T13:54 | session-partner: 08:51 ET premarket — canary CLEAR, closes the 9+ run week-ahead.ts truncation chain | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `37ff8a0` | 2026-11-01T22:24 | Sunday restamp Nov 1: add Nov 2–6 NFP week plan and November month plan. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `f19a6ef` | 2026-10-30T20:51 | Restamp Oct 30: ECI Q3 +0.8% in-line. Cash broke PWL; Sunday inside-week invalidated on downside. Days restored with actuals. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `1ad3e06` | 2026-10-30T15:26 | agent-sync: bookmark claude at 1499e9c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `37ff8a0`.
 | `b412a65` | 2026-10-29T15:51 | Restamp Oct 29: GDP +3.4%, claims 194k, PCE hot; Sunday inside-week holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `2c1b977` | 2026-10-29T15:09 | agent-sync: bookmark claude at e5d948c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `e5d948c` | 2026-10-29T15:09 | session-partner: 11:07 ET close-out — canary still failed (3rd run), escalated again | M ai/DECISIONS.md, M ai/NOW.md |
-| `00dc6fb` | 2026-10-29T14:39 | agent-sync: bookmark claude at 94d3217 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
