@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-11-02 08:51 ET (session-partner premarket check-in below — **CANARY CLEAR: the week-ahead.ts truncation chain is fixed on main**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-02 10:10 ET (session-partner mid-session check-in below — **CANARY CLEAR, 2nd clean run today**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -23,6 +23,13 @@
 - No fills, prices, or outcomes invented.
 
 This closes out the **9+ consecutive scheduled-run failure chain** (2026-10-29/30, plus the 09-04/09-20/09-25 recurrences) logged in prior entries below and in `ai/DECISIONS.md` — watch the next 1–2 restamps to confirm it holds rather than treating one clean run as proof the root cause (not just the symptom) is fixed.
+
+## Session-partner check-in (2026-11-02, ~10:10 ET scheduled run — mid-session) — CANARY still CLEAR, 2nd clean run today
+
+- Re-fetched `origin/main` (HEAD `7651b57`, the premarket run's own agent-sync bookmark commit — nothing else landed between 08:51 and 10:10 ET). `week-ahead.ts` unchanged at 477 lines, `month-ahead.ts` unchanged at 673 lines; no new truncation/fabrication signature.
+- `agent-sync --agent claude` had only that one bookmark commit to report; nothing substantive to read before this narration-only run. Bookmark now `7651b57`.
+- Mid-session discipline narration given (A+-only past 10:00 ET live; entry = rest the limit at CE, never pay the print; scale = 50% off at T1, stop to BE, runner to T2, do-not-protect-early measured −0.42R BE-at-+1R / −0.30R trailing per CLAUDE.md's own table — no drawdown-percentage pairing exists in repo canon, so none was quoted). Asked the trader directly whether a position is open and whether its management matches the scale rule; this session has no live/position feed to check that itself.
+- No fills, prices, or outcomes invented. No PushNotification sent — canary clean, no new anomaly since the 08:51 ET run.
 
 ## Read order (every session)
 
