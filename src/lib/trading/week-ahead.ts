@@ -233,7 +233,7 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
     "Prior week (Oct 26–30) seed PWH/PWL NQ 31,095 / 29,904; cash broke PWL hard Fri (session ~28,272–29,180). Opens after downside invalidation of inside-week. Dec hike odds ~68-73% post-ECI. Hot NFP = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
   po3: "Mon ISM range-build. Tue JOLTS manipulates. Wed ADP/ISM distributes. Thu claims. Fri NFP is the week’s event.",
   macro:
-    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 (prev 7.079M). Wed ADP Employment (Oct) 08:15 + ISM Services PMI (Oct) 10:00. Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds ~72-76% (futures ~74-77%). Live CWH/CWL from bars.",
+    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 + ISM Services PMI (Oct) 10:00. Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds ~74-76%. Live CWH/CWL from bars.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -293,11 +293,12 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
       weekday: "Tue",
       dailyBias: "Neutral / two-way",
       kind: "two_way",
-      news: [{ timeEt: "10:00", name: "JOLTS Job Openings (Sep)", impact: "high", note: "Prev 7.079M" }],
-      likelyTape: "JOLTS 10:00. Still post-breakdown two-way until structure forms.",
+      news: [{ timeEt: "10:00", name: "JOLTS Job Openings (Sep)", impact: "high", note: "Printed 7.523M", actual: "7.523M", vs: "exp ~7.16M / prev 7.079M (rev 7.190M)" }],
+      likelyTape: "JOLTS 7.523M beat. Session stayed well under PWL (NQ ~28.0k-28.4k). Post-breakdown two-way holds.",
       trade: "Stand 9:45–10:15 unless A+ after 10:15.",
       skipIf: "No clear MSS after the print.",
-      pathNote: "Inside the post-break range until proven otherwise.",
+      pathNote: "Prior-week downside break context intact. Live CWH/CWL from bars. No HTF trend invented.",
+      printed: true,
     },
     {
       date: "2026-11-04",
