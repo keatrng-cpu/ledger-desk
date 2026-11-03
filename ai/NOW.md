@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-11-03 09:06 ET (session-partner premarket check-in below — **CANARY CLEAR, 4th consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-03 10:07 ET (session-partner mid-session check-in below — **CANARY CLEAR, 5th consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -16,9 +16,9 @@
 
 ## Session-partner check-ins — latest status
 
-**Canary CLEAR for 4 consecutive runs** (2026-11-02 08:51 ET through 2026-11-03 09:06 ET); closed the 9+ run `week-ahead.ts` truncation/fabrication chain from 2026-09-04/09-20/09-25/10-29/10-30. Full detail and each run's observations are logged in `ai/DECISIONS.md` (dated entries, not duplicated here) — watch continued restamps rather than treating 4 clean runs as proof the root cause (not just the symptom) is fixed; no pre-push/CI guard against the fabrication signature exists yet.
+**Canary CLEAR for 5 consecutive runs** (2026-11-02 08:51 ET through 2026-11-03 10:07 ET); closed the 9+ run `week-ahead.ts` truncation/fabrication chain from 2026-09-04/09-20/09-25/10-29/10-30. Full detail and each run's observations are logged in `ai/DECISIONS.md` (dated entries, not duplicated here) — watch continued restamps rather than treating 5 clean runs as proof the root cause (not just the symptom) is fixed; no pre-push/CI guard against the fabrication signature exists yet.
 
-- **Latest (2026-11-03, ~09:06 ET, premarket):** HEAD `08f2827`, `week-ahead.ts` 478 lines / `month-ahead.ts` 673 lines, clean. `agent-sync --agent claude` bookmark moved `10952fa` → `08f2827` (housekeeping only). Premarket brief delivered for Tue Nov 3 (NFP week day 2/5): JOLTS Job Openings (Sep) 10:00 ET is the only scheduled release; daily bias "Neutral / two-way," stand 9:45–10:15 unless A+. Session constraints restated per CLAUDE.md.
+- **Latest (2026-11-03, ~10:07 ET, mid-session):** HEAD `02be442`, `week-ahead.ts` 478 lines / `month-ahead.ts` 673 lines, clean. `agent-sync --agent claude` bookmark moved `40253b7` → `02be442` (housekeeping only). A+-only reminder delivered; flagged the live news blackout (JOLTS Job Openings, high impact, 10:00 ET per `src/data/news-calendar.json`, blackout 09:45–10:15 ET) overlapping the A+-only window. Asked the standing open-position/scale-rule question; no answer recorded in this session (no live tape, narration only).
 
 ## Read order (every session)
 
