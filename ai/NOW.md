@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-11-03 08:10 ET (session-partner premarket check-in below — **CANARY CLEAR, 3rd consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-03 09:06 ET (session-partner premarket check-in below — **CANARY CLEAR, 4th consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -14,30 +14,11 @@
 - Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
 - Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
 
-## Session-partner check-in (2026-11-02, ~08:51 ET scheduled run — premarket) — CANARY CLEAR, first clean run after the multi-day chain
+## Session-partner check-ins — latest status
 
-- Fetched `origin/main` fresh (HEAD `37ff8a0`). `week-ahead.ts` is **477 lines** with real content: 14 exports, matched braces, two full populated `WeekPlan` objects (`WEEK_SEP28_OCT2`, `WEEK_NOV2_NOV6`), no fabricated placeholder lines. `month-ahead.ts` clean at 673 lines.
-- Fix landed in two commits after the last (2026-10-30 11:23 ET) check-in: `f19a6ef` (Restamp Oct 30, grew the file to 222 lines) and `37ff8a0` (Sunday restamp Nov 1, added the Nov 2–6 NFP week + November month plan, 477 lines). Neither this session nor any prior session ran the restore — Grok's own restamps overwrote the corrupted file in the normal course of weekly restamping.
-- `ran agent-sync --agent claude`; bookmark moved `1499e9c` → `37ff8a0`. No file read before edit needed this run (narration/canary only, no code edits).
-- Premarket brief for 2026-11-02 (Mon, NFP week): ISM Mfg 10:00 ET (prev 54.5) is today's only scheduled release. HTF context: prior week (Oct 26–30) PWH/PWL NQ 31,095/29,904, ES 7,848.50/7,707.25 — cash broke PWL hard Friday, inside-week invalidated on the downside. Dec hike odds ~68–73% post-ECI. Stand 9:45–10:15; mechanical only on a prior-week extreme raid + MSS after. No multi-day swing into Friday's NFP (08:30) or Thursday's claims (08:30); Wed is a cluster day (ADP 08:15 + ISM Svc 10:00).
-- No fills, prices, or outcomes invented.
+**Canary CLEAR for 4 consecutive runs** (2026-11-02 08:51 ET through 2026-11-03 09:06 ET); closed the 9+ run `week-ahead.ts` truncation/fabrication chain from 2026-09-04/09-20/09-25/10-29/10-30. Full detail and each run's observations are logged in `ai/DECISIONS.md` (dated entries, not duplicated here) — watch continued restamps rather than treating 4 clean runs as proof the root cause (not just the symptom) is fixed; no pre-push/CI guard against the fabrication signature exists yet.
 
-This closes out the **9+ consecutive scheduled-run failure chain** (2026-10-29/30, plus the 09-04/09-20/09-25 recurrences) logged in prior entries below and in `ai/DECISIONS.md` — watch the next 1–2 restamps to confirm it holds rather than treating one clean run as proof the root cause (not just the symptom) is fixed.
-
-## Session-partner check-in (2026-11-02, ~10:10 ET scheduled run — mid-session) — CANARY still CLEAR, 2nd clean run today
-
-- Re-fetched `origin/main` (HEAD `7651b57`, the premarket run's own agent-sync bookmark commit — nothing else landed between 08:51 and 10:10 ET). `week-ahead.ts` unchanged at 477 lines, `month-ahead.ts` unchanged at 673 lines; no new truncation/fabrication signature.
-- `agent-sync --agent claude` had only that one bookmark commit to report; nothing substantive to read before this narration-only run. Bookmark now `7651b57`.
-- Mid-session discipline narration given (A+-only past 10:00 ET live; entry = rest the limit at CE, never pay the print; scale = 50% off at T1, stop to BE, runner to T2, do-not-protect-early measured −0.42R BE-at-+1R / −0.30R trailing per CLAUDE.md's own table — no drawdown-percentage pairing exists in repo canon, so none was quoted). Asked the trader directly whether a position is open and whether its management matches the scale rule; this session has no live/position feed to check that itself.
-- No fills, prices, or outcomes invented. No PushNotification sent — canary clean, no new anomaly since the 08:51 ET run.
-
-## Session-partner check-in (2026-11-03, ~08:10 ET scheduled run — premarket) — CANARY CLEAR, 3rd consecutive clean run
-
-- Fetched `origin/main` fresh (HEAD `e0b8da4`, local already matched — no pull needed). `week-ahead.ts` **478 lines**, `month-ahead.ts` **673 lines** — no truncation signature.
-- `agent-sync --agent claude`: bookmark moved `790361c` → `e0b8da4` (2 commits: Nov 2 agent-sync bookmark + `e0b8da4` Restamp Nov 2 recording ISM Mfg 55.5 actual into `week-prints.json`/`week-ahead.ts`). No file edits needed, narration-only run.
-- Premarket brief for 2026-11-03 (Tue, NFP week day 2 of 5): JOLTS Job Openings (Sep) 10:00 ET (prev 7.079M) is today's only scheduled release, confirmed in both `week-ahead.ts` and `news-calendar.json`. Daily bias "Neutral / two-way" — still inside the post-breakdown range (Mon's ISM-55.5 session stayed under prior-week PWL). Trade note: stand 9:45–10:15 unless A+ after 10:15; skip-if = no clear MSS after the print. Week context: prior-week (Oct 26–30) seed PWH/PWL NQ 31,095/29,904, ES 7,848.50/7,707.25; Dec hike odds ~72–76% per the restamp. No multi-day swing into Fri NFP (08:30) or Thu claims (08:30); Wed is the ADP(08:15)+ISM-Svc(10:00) cluster day.
-- Restated session constraints from CLAUDE.md to the trader (Judas 09:30–09:45 blocked until resolution, ±15m news blackout, one book/day never both same bias, max 2/killzone, daily halt 2%/weekly 5%, A+ only after 10:00 ET unless already in a trade).
-- No fills, prices, or outcomes invented.
+- **Latest (2026-11-03, ~09:06 ET, premarket):** HEAD `08f2827`, `week-ahead.ts` 478 lines / `month-ahead.ts` 673 lines, clean. `agent-sync --agent claude` bookmark moved `10952fa` → `08f2827` (housekeeping only). Premarket brief delivered for Tue Nov 3 (NFP week day 2/5): JOLTS Job Openings (Sep) 10:00 ET is the only scheduled release; daily bias "Neutral / two-way," stand 9:45–10:15 unless A+. Session constraints restated per CLAUDE.md.
 
 ## Read order (every session)
 
