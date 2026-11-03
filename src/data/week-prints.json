@@ -54,5 +54,12 @@
     "actual": "55.5",
     "vs": "exp ~54.5-54.7 / prev 54.5",
     "note": "Beat. Production 59.0 (highest since Nov 2021). New Orders 55.5. Prices Paid 75.2 (from 77.9). Expansion continues."
+  },
+  {
+    "date": "2026-11-03",
+    "name": "JOLTS Job Openings (Sep)",
+    "actual": "7.523M",
+    "vs": "exp ~7.16M / prev 7.079M (rev 7.190M)",
+    "note": "BLS official. Little changed at 7.5M. Quits increased to 3.4M. Openings rate 4.5%. Labor demand resilient ahead of NFP."
   }
 ]
