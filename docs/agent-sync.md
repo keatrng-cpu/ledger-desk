@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `10952fa`. Fetched origin. Local main matches origin.
+HEAD `40253b7`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `10952fa`. 15 commit(s) landed after it.
-Bookmark after this run: `claude` → `10952fa`.
+Bookmark was `08f2827`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `40253b7`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `40253b7` | 2026-11-03T14:08 | session-partner: 09:06 ET premarket — canary CLEAR, 4th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
+| `08f2827` | 2026-11-03T13:13 | agent-sync: bookmark claude at 10952fa (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `10952fa` | 2026-11-03T13:12 | session-partner: 08:10 ET premarket — canary CLEAR, 3rd consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `e0b8da4` | 2026-11-02T15:51 | Restamp Nov 2: ISM Mfg 55.5 printed. Sunday post-PWL plan holds; no bias change. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `d1e3ad8` | 2026-11-02T15:11 | agent-sync: bookmark claude at 790361c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `10952fa`.
 | `81865d3` | 2026-10-30T14:18 | agent-sync: bookmark claude at f647970 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f647970` | 2026-10-30T14:18 | session-partner: 10:15 ET mid-session — canary still failed, a commit landed after the 09:17 flag and did not fix it | M ai/DECISIONS.md, M ai/NOW.md |
 | `5924648` | 2026-10-30T13:19 | agent-sync: bookmark claude at 5180c7f (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `5180c7f` | 2026-10-30T13:19 | session-partner: 09:17 ET premarket — canary FAILED, fabricated restore commits found | M ai/DECISIONS.md, M ai/NOW.md |
-| `4410467` | 2026-10-30T12:16 | Update week-ahead to Oct 26-30: FOMC hold, GDP +3.4%, PCE hot, claims 194k; ECI pending. Prior-week levels adjusted. | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
