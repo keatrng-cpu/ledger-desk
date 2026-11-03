@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-11-02 10:10 ET (session-partner mid-session check-in below — **CANARY CLEAR, 2nd clean run today**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-03 08:10 ET (session-partner premarket check-in below — **CANARY CLEAR, 3rd consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
 **Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
 
@@ -30,6 +30,14 @@ This closes out the **9+ consecutive scheduled-run failure chain** (2026-10-29/3
 - `agent-sync --agent claude` had only that one bookmark commit to report; nothing substantive to read before this narration-only run. Bookmark now `7651b57`.
 - Mid-session discipline narration given (A+-only past 10:00 ET live; entry = rest the limit at CE, never pay the print; scale = 50% off at T1, stop to BE, runner to T2, do-not-protect-early measured −0.42R BE-at-+1R / −0.30R trailing per CLAUDE.md's own table — no drawdown-percentage pairing exists in repo canon, so none was quoted). Asked the trader directly whether a position is open and whether its management matches the scale rule; this session has no live/position feed to check that itself.
 - No fills, prices, or outcomes invented. No PushNotification sent — canary clean, no new anomaly since the 08:51 ET run.
+
+## Session-partner check-in (2026-11-03, ~08:10 ET scheduled run — premarket) — CANARY CLEAR, 3rd consecutive clean run
+
+- Fetched `origin/main` fresh (HEAD `e0b8da4`, local already matched — no pull needed). `week-ahead.ts` **478 lines**, `month-ahead.ts` **673 lines** — no truncation signature.
+- `agent-sync --agent claude`: bookmark moved `790361c` → `e0b8da4` (2 commits: Nov 2 agent-sync bookmark + `e0b8da4` Restamp Nov 2 recording ISM Mfg 55.5 actual into `week-prints.json`/`week-ahead.ts`). No file edits needed, narration-only run.
+- Premarket brief for 2026-11-03 (Tue, NFP week day 2 of 5): JOLTS Job Openings (Sep) 10:00 ET (prev 7.079M) is today's only scheduled release, confirmed in both `week-ahead.ts` and `news-calendar.json`. Daily bias "Neutral / two-way" — still inside the post-breakdown range (Mon's ISM-55.5 session stayed under prior-week PWL). Trade note: stand 9:45–10:15 unless A+ after 10:15; skip-if = no clear MSS after the print. Week context: prior-week (Oct 26–30) seed PWH/PWL NQ 31,095/29,904, ES 7,848.50/7,707.25; Dec hike odds ~72–76% per the restamp. No multi-day swing into Fri NFP (08:30) or Thu claims (08:30); Wed is the ADP(08:15)+ISM-Svc(10:00) cluster day.
+- Restated session constraints from CLAUDE.md to the trader (Judas 09:30–09:45 blocked until resolution, ±15m news blackout, one book/day never both same bias, max 2/killzone, daily halt 2%/weekly 5%, A+ only after 10:00 ET unless already in a trade).
+- No fills, prices, or outcomes invented.
 
 ## Read order (every session)
 

@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `790361c`. Fetched origin. Local main matches origin.
+HEAD `e0b8da4`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `7651b57`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `790361c`.
+Bookmark was `790361c`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `e0b8da4`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `e0b8da4` | 2026-11-02T15:51 | Restamp Nov 2: ISM Mfg 55.5 printed. Sunday post-PWL plan holds; no bias change. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `d1e3ad8` | 2026-11-02T15:11 | agent-sync: bookmark claude at 790361c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `790361c` | 2026-11-02T15:11 | session-partner: 10:10 ET mid-session — canary still CLEAR, 2nd clean run today | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `7651b57` | 2026-11-02T13:54 | agent-sync: bookmark claude at d4391ca (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `d4391ca` | 2026-11-02T13:54 | session-partner: 08:51 ET premarket — canary CLEAR, closes the 9+ run week-ahead.ts truncation chain | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `790361c`.
 | `5180c7f` | 2026-10-30T13:19 | session-partner: 09:17 ET premarket — canary FAILED, fabricated restore commits found | M ai/DECISIONS.md, M ai/NOW.md |
 | `4410467` | 2026-10-30T12:16 | Update week-ahead to Oct 26-30: FOMC hold, GDP +3.4%, PCE hot, claims 194k; ECI pending. Prior-week levels adjusted. | M src/lib/trading/week-ahead.ts |
 | `0ad8b10` | 2026-10-29T15:52 | Restore week-ahead.ts with Oct 29 restamp: GDP +3.4% claims 194k PCE hot; inside-week holds | M src/lib/trading/week-ahead.ts |
-| `fa49d58` | 2026-10-29T15:51 | Restamp Oct 29: GDP +3.4%, claims 194k, PCE hot; Sunday inside-week holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `b412a65` | 2026-10-29T15:51 | Restamp Oct 29: GDP +3.4%, claims 194k, PCE hot; Sunday inside-week holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
