@@ -233,7 +233,7 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
     "Prior week (Oct 26–30) seed PWH/PWL NQ 31,095 / 29,904; cash broke PWL hard Fri (session ~28,272–29,180). Opens after downside invalidation of inside-week. Dec hike odds ~68-73% post-ECI. Hot NFP = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
   po3: "Mon ISM range-build. Tue JOLTS manipulates. Wed ADP/ISM distributes. Thu claims. Fri NFP is the week’s event.",
   macro:
-    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 + ISM Services PMI (Oct) 10:00. Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds ~74-76%. Live CWH/CWL from bars.",
+    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 printed 86K (exp ~67-69K) + ISM Services PMI (Oct) 10:00 printed 54.5 (exp 54.8 / prev 54.9). Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds remain elevated ~75-80%. Live CWH/CWL from bars.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -306,13 +306,14 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
       dailyBias: "Event / selective",
       kind: "event",
       news: [
-        { timeEt: "08:15", name: "ADP Employment (Oct)", impact: "high", note: "" },
-        { timeEt: "10:00", name: "ISM Services PMI (Oct)", impact: "high", note: "" }
+        { timeEt: "08:15", name: "ADP Employment (Oct)", impact: "high", note: "Printed 86K", actual: "86K", vs: "exp ~67-69K / prev 86K rev" },
+        { timeEt: "10:00", name: "ISM Services PMI (Oct)", impact: "high", note: "Printed 54.5", actual: "54.5", vs: "exp 54.8 / prev 54.9" }
       ],
-      likelyTape: "ADP 08:15 then ISM Services 10:00. Two liquidity events.",
+      likelyTape: "ADP 86K beat + ISM Svc 54.5 slight miss. Session stayed well under PWL (NQ ~27.6k-29.0k). Post-breakdown selective holds; no PWH/PWL take.",
       trade: "ADP blackout 8:00–8:45. ISM stand 9:45–10:15. A+ only after second impulse.",
-      skipIf: "No entry 8:00-8:45. No clear MSS after either print.",
-      pathNote: "Cluster day. Flatten into each print.",
+      skipIf: "No entry 8:00-8:45. No clear MSS after either print. No multi-day into Fri.",
+      pathNote: "Prior-week downside break context intact. Live CWH/CWL from bars. No HTF trend invented.",
+      printed: true,
     },
     {
       date: "2026-11-05",
