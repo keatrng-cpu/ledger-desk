@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-11-04)
 
 ## Corpus Check
-- 1241 files · ~2,167,317 words
+- 1241 files · ~2,167,442 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 62 file(s) not represented in the graph (top: .patch 22, (none) 10, .service 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3aaa03eb`
+- Built from commit: `4dc88b94`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -2059,7 +2059,7 @@ Nodes (4): argv, primTris(), readGlb(), stats()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Code map` connect `orchestrator.ts` to `keep-live.ts`, `board.ts`, `invest-firm.ts`, `index.tsx`, `detectors.ts`, `room-engine.ts`, `FloorScene`, `build_office`, `price-path-board.tsx`, `claude-server.ts`, `floor-screens.ts`, `chart-timeframes.ts`, `mead-hall-build.ts`, `universe.ts`, `trading/scanner.ts`, `discuss-tab.tsx`, `react`, `store.ts`, `Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)`, `agents.ts`, `hi-alert-brain.ts`, `live-world.ts`, `floor-voice.ts`, `live-talk.ts`, `goal.ts`, `setup-scanner.tsx`, `hall-lite.ts`, `options-desk.ts`, `The Floor — 66 fixes, by category (2026-10-05)`, `spoken-form.ts`, `spot-cross.ts`, `live-types.ts`, `invest-office.ts`, `Underlier`, `hi-alert.ts`, `school-brief.ts`, `.tick`, `audit.ts`, `live-voices.ts`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
+  _High betweenness centrality (0.088) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
@@ -2067,8 +2067,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `json` be split into smaller, more focused modules?**
   _Cohesion score 0.04651898734177215 - nodes in this community are weakly interconnected._
 - **Why does `shell()` connect `build_office` to `orchestrator.ts`, `_hair_keep`, `box`, `build_floor.py`?**
-  _High betweenness centrality (0.083) - this node is a cross-community bridge._
+  _High betweenness centrality (0.081) - this node is a cross-community bridge._
 - **Should `ladder.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.025847262368564366 - nodes in this community are weakly interconnected._
 - **Why does `react` connect `react` to `news-tab.tsx`, `board.ts`, `rh-journal-panel.tsx`, `index.tsx`, `setup-chart.tsx`, `ticket-facts.ts`, `shadow-book-panel.tsx`, `room-engine.ts`, `PanelBoundary`, `pm-analyzer.tsx`, `shadow-store.ts`, `price-path-board.tsx`, `shadow-panel.tsx`, `watcher-tab.tsx`, `trading-floor-tab.tsx`, `path-alarm.ts`, `take-census.ts`, `universe.ts`, `package.json`, `discuss-tab.tsx`, `replay-drill.tsx`, `entry-trigger.ts`, `aplus/config.ts`, `journal/server.ts`, `paper-manager.ts`, `calibration-panel.tsx`, `session-backtest.ts`, `session-hud.tsx`, `risk-panel.tsx`, `setup-memory.ts`, `verify-replay-drills.mjs`, `created-with-grok-banner.tsx`, `snapshot-review.tsx`, `setup-scanner.tsx`, `cn`, `live-lesson.ts`, `hall-lite.ts`, `OhlcBar`, `@tanstack/react-start`, `use-entry-state.ts`, `kill-watch.ts`, `getSql`, `apex-sim-panel.tsx`, `setup-chart-panel.tsx`, `floor-brains.tsx`, `learn/drill.ts`, `invest-office.ts`, `auth/client.ts`, `mead-screens.ts`, `hi-alert.ts`, `long-board.tsx`, `journal/analytics.ts`, `learn-tab.tsx`, `propfirm-panel.tsx`, `options-swing-panel.tsx`, `exec-card.tsx`, `setup-mini-chart.tsx`, `canon.ts`, `veteran-brain.ts`, `smc-canon.ts`, `tf-ladder.ts`, `audit.ts`, `desk/chat-trades.ts`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
