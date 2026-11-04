@@ -2,17 +2,21 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `1924855`. Fetched origin. Local main matches origin.
+HEAD `ff770e5`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `40253b7`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `1924855`.
+Bookmark was `1924855`. 4 commit(s) landed after it.
+Bookmark after this run: `claude` → `ff770e5`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `ff770e5` | 2026-11-04T06:40 | Restore weekDayFor so the three TS2305 imports typecheck (#90) | M ai/DECISIONS.md, M ai/NOW.md, M src/lib/trading/week-ahead.ts |
+| `d99760d` | 2026-11-03T15:51 | Restamp Tue 11-03 plan with JOLTS 7.523M; post-PWL break holds | M src/lib/trading/week-ahead.ts |
+| `9092310` | 2026-11-03T15:50 | Restamp week-prints with 2026-11-03 JOLTS actual 7.523M | M src/data/week-prints.json |
+| `62ff0f7` | 2026-11-03T15:08 | agent-sync: bookmark claude at 1924855 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `1924855` | 2026-11-03T15:08 | session-partner: 10:07 ET mid-session — canary still CLEAR, 5th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `02be442` | 2026-11-03T14:08 | agent-sync: bookmark claude at 40253b7 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `40253b7` | 2026-11-03T14:08 | session-partner: 09:06 ET premarket — canary CLEAR, 4th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
@@ -24,10 +28,6 @@ Bookmark after this run: `claude` → `1924855`.
 | `7651b57` | 2026-11-02T13:54 | agent-sync: bookmark claude at d4391ca (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `d4391ca` | 2026-11-02T13:54 | session-partner: 08:51 ET premarket — canary CLEAR, closes the 9+ run week-ahead.ts truncation chain | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `37ff8a0` | 2026-11-01T22:24 | Sunday restamp Nov 1: add Nov 2–6 NFP week plan and November month plan. | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
-| `f19a6ef` | 2026-10-30T20:51 | Restamp Oct 30: ECI Q3 +0.8% in-line. Cash broke PWL; Sunday inside-week invalidated on downside. Days restored with actuals. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `1ad3e06` | 2026-10-30T15:26 | agent-sync: bookmark claude at 1499e9c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `1499e9c` | 2026-10-30T15:26 | session-partner: 11:23 ET close-out — canary still failed, 3rd run today | M ai/DECISIONS.md, M ai/NOW.md |
-| `81865d3` | 2026-10-30T14:18 | agent-sync: bookmark claude at f647970 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 

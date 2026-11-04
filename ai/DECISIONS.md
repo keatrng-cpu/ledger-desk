@@ -459,3 +459,12 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Checked: `npx tsc --noEmit` exit 0, `npm run typecheck` exit 0, `npm test` 636 tests / 0 fail / 7 skipped. `verify-repo-guards.mjs` still reports the two pre-existing floors (week-ahead now 490 lines).
 - Supersedes: nothing.
 
+
+### 2026-11-04 — NY AM session-partner run: 08:07 ET premarket — canary CLEAR, 6th consecutive clean run
+- Status: CLOSED (routine, no new finding) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`/`git log` on `main` @ `ff770e5`
+- Observation, not a decision: `week-ahead.ts` 489 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature on a 6th consecutive check. HEAD was detached from `refs/heads/main` but at the same commit as `main` (`ff770e5`, the weekDayFor restore #90) — confirmed that PR is merged, not still open; corrected `ai/NOW.md`'s stale branch line accordingly.
+- Ran `agent-sync --agent claude`; bookmark moved `1924855` → `ff770e5` cleanly. 4 commits landed since the last bookmark (weekDayFor restore + two restamp commits for Tue 11-03 JOLTS 7.523M + the prior agent-sync bookmark commit) — all already covered by this file's existing entries or by the restore's own commit message; nothing further to read.
+- Completed the premarket brief for 2026-11-04 (Wed, event/selective day): ADP Employment (Oct) 08:15 ET and ISM Services PMI (Oct) 10:00 ET are the two scheduled high-impact releases (cross-checked `week-ahead.ts` day entry against `news-calendar.json`, both agree). Daily bias "Event / selective"; skip-if = no entry 8:00–8:45 ET (ADP blackout) and no clear MSS after either print; PATH note: cluster day, flatten into each print. Restated session constraints (Judas 09:30–09:45 blocked until resolved with sub-15m tape, ±15m news blackout around both prints, one book never both same bias, max 2/killzone, daily halt 2%/weekly 5%, A+ only after 10:00 ET unless already in a trade).
+- Noted for the trader: the ISM Services 10:00 ET blackout (09:45–10:15 ET) overlaps the start of the A+-only window, same pattern as JOLTS yesterday — no TAKE can print until 10:15 ET today either, regardless of grade.
+- No PushNotification sent — canary clean, nothing to escalate; this transcript is the routine's deliverable since the trader reads the session directly.
+- Supersedes: nothing.

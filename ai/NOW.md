@@ -1,22 +1,22 @@
 # NOW — ledger-desk current truth
 
 **As of:** 2026-11-04 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `cursor/restore-weekdayfor-f698` (pull request to `main`; not merged)
+**Branch of this file:** `main` — PR #90 (weekDayFor restore) is merged; `main` HEAD is `ff770e5`.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 
-## Current patch (2026-11-04)
+## Current patch (2026-11-04, merged)
 
 - `weekDayFor(dateKey)` is exported again from `src/lib/trading/week-ahead.ts`, byte-identical to commit `5e1669a`. It looks up the date on `PLANS`. `const PLANS = WEEK_PLANS` is the helper. The Nov 2–6 and Oct 26–30 plan objects are unchanged.
-- `auto-paper.ts`, `options-desk.ts`, and `session-brief.ts` import that function. `npx tsc --noEmit` and `npm run typecheck` are clean on this branch. `npm test`: 636 tests, 629 pass, 0 fail, 7 skipped.
+- `auto-paper.ts`, `options-desk.ts`, and `session-brief.ts` import that function. `npx tsc --noEmit` and `npm run typecheck` were clean before merge. `npm test`: 636 tests, 629 pass, 0 fail, 7 skipped.
 - `WEEK_SEP28_OCT2` is renamed to `WEEK_OCT26_OCT30`. The binding is the Oct 26–30 plan (`weekStart` `2026-10-26`). `id` stays `"2026-09-28"`. No day text, level, or print was rewritten.
 - Refused: checking out all of `5e1669a` (that drops the Nov week and later restamps), `stampPrints`, padding the file, `week-prints.json`, order path, RH gates, env flags, `.env`, and `src/lib/aplus/config.ts`.
-- `scripts/verify-repo-guards.mjs` still fails two floors that were already red on `main`: `week-ahead.ts` at 490 lines (floor 500) and `week-prints.json` at 9 entries (floor 30). Not padded to go green.
+- `scripts/verify-repo-guards.mjs` still fails two floors that were already red on `main`: `week-ahead.ts` at 489 lines (floor 500) and `week-prints.json` at 9 entries (floor 30). Not padded to go green.
 
 ## Canary
 
-Last session-partner read (2026-11-03 10:07 ET) found real week content, not a stub. This patch adds the missing export on that content. It does not restamp a session.
+Latest session-partner read (2026-11-04 08:07 ET premarket, 6th consecutive clean run): `week-ahead.ts` 489 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature. `MONTH_NOV_2026` confirmed present (my earlier skim missed it on first grep; it's there, lines 399+).
 
 ## Live constraints
 
