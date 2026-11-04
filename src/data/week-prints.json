@@ -61,5 +61,19 @@
     "actual": "7.523M",
     "vs": "exp ~7.16M / prev 7.079M (rev 7.190M)",
     "note": "BLS official. Little changed at 7.5M. Quits increased to 3.4M. Openings rate 4.5%. Labor demand resilient ahead of NFP."
+  },
+  {
+    "date": "2026-11-04",
+    "name": "ADP Employment Change (Oct)",
+    "actual": "86K",
+    "vs": "exp ~67-69K / prev 86K rev",
+    "note": "ADP official. Beat. Services-led; professional/business services -27k. Matches Sep revised."
+  },
+  {
+    "date": "2026-11-04",
+    "name": "ISM Services PMI (Oct)",
+    "actual": "54.5",
+    "vs": "exp 54.8 / prev 54.9",
+    "note": "ISM official. Slight miss. New orders 55.9 (from 59.8), employment 51.4 (from 50.1), prices 73.0 (from 74). Expansion continues."
   }
 ]
