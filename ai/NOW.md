@@ -1,114 +1,42 @@
 # NOW — ledger-desk current truth
 
-**As of:** 2026-11-03 10:07 ET (session-partner mid-session check-in below — **CANARY CLEAR, 5th consecutive clean run**); current-state block 2026-10-19; rest last revised 2026-10-06 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `codex/fix-dev-node-boundary` (stacked on PR #66; not on `main` until Accuracy Review + Release Watch approve and Design Atelier merges)
-**Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7` (branch `coord/2026-10-06-desk-assignments`; assignments first committed at `defa9e0`)
+**As of:** 2026-11-04 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**Branch of this file:** `cursor/restore-weekdayfor-f698` (pull request to `main`; not merged)
+**Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 
-> Keep this file under 150 lines. It states what is true now, not history. History goes in `ai/DECISIONS.md`.
+> Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 
----
+## Current patch (2026-11-04)
 
-## Current patch (2026-10-19)
+- `weekDayFor(dateKey)` is exported again from `src/lib/trading/week-ahead.ts`, byte-identical to commit `5e1669a`. It looks up the date on `PLANS`. `const PLANS = WEEK_PLANS` is the helper. The Nov 2–6 and Oct 26–30 plan objects are unchanged.
+- `auto-paper.ts`, `options-desk.ts`, and `session-brief.ts` import that function. `npx tsc --noEmit` and `npm run typecheck` are clean on this branch. `npm test`: 636 tests, 629 pass, 0 fail, 7 skipped.
+- `WEEK_SEP28_OCT2` is renamed to `WEEK_OCT26_OCT30`. The binding is the Oct 26–30 plan (`weekStart` `2026-10-26`). `id` stays `"2026-09-28"`. No day text, level, or print was rewritten.
+- Refused: checking out all of `5e1669a` (that drops the Nov week and later restamps), `stampPrints`, padding the file, `week-prints.json`, order path, RH gates, env flags, `.env`, and `src/lib/aplus/config.ts`.
+- `scripts/verify-repo-guards.mjs` still fails two floors that were already red on `main`: `week-ahead.ts` at 490 lines (floor 500) and `week-prints.json` at 9 entries (floor 30). Not padded to go green.
 
-- Dev desk now renders at `http://localhost:8080`: PR #66 removes the client-reachable `node:crypto` import; this branch removes the remaining top-level `node:fs` / `node:path` imports from `market/databento.ts`.
-- Node-only `.env` access is async, browser-guarded, dynamically imported, and cached. Pure contract-roll and OHLC aggregation live in `market/bars.ts`; synchronous client-reachable consumers import only that module.
-- Typecheck, focused boundary/data-path tests, development build, browser render, Discuss surface, and `verify-all --baseline` pass. No `shared/desk-rules.json`, `RULES_HASH`, scoring, or order path change.
+## Canary
 
-## Session-partner check-ins — latest status
-
-**Canary CLEAR for 5 consecutive runs** (2026-11-02 08:51 ET through 2026-11-03 10:07 ET); closed the 9+ run `week-ahead.ts` truncation/fabrication chain from 2026-09-04/09-20/09-25/10-29/10-30. Full detail and each run's observations are logged in `ai/DECISIONS.md` (dated entries, not duplicated here) — watch continued restamps rather than treating 5 clean runs as proof the root cause (not just the symptom) is fixed; no pre-push/CI guard against the fabrication signature exists yet.
-
-- **Latest (2026-11-03, ~10:07 ET, mid-session):** HEAD `02be442`, `week-ahead.ts` 478 lines / `month-ahead.ts` 673 lines, clean. `agent-sync --agent claude` bookmark moved `40253b7` → `02be442` (housekeeping only). A+-only reminder delivered; flagged the live news blackout (JOLTS Job Openings, high impact, 10:00 ET per `src/data/news-calendar.json`, blackout 09:45–10:15 ET) overlapping the A+-only window. Asked the standing open-position/scale-rule question; no answer recorded in this session (no live tape, narration only).
-
-## Read order (every session)
-
-1. `ai/NOW.md` — this file
-2. `graphify-out/GRAPH_REPORT.md` — code map from a real Graphify run (`graphify extract . --code-only`, 2026-10-07). Open `graphify-out/obsidian/` as a vault. The trading book is `graphify-out/obsidian/brain/`. The older import ranking is `graphify-out/SEED_REPORT.md`.
-3. `ai/DECISIONS.md` — append-only decision log + open locks
-4. `ai/HANDOFF.md` — Dual Desk's current packet (today only on branch `coord/2026-10-06-desk-assignments` @ `ceb62b7`)
-5. Then file search (`CLAUDE.md` code map, `ai/research/INDEX.md`, source)
-
-Precedence already set by the repo: `AGENTS.md` defers to `CLAUDE.md`; if `CLAUDE.md` conflicts with `src/lib/aplus/config.ts`, **code wins**. This canon does not override either.
-
----
-
-## Current state (2026-10-15)
-
-- **2026-10-19 07:51 CT:** Keaton approved PR #55 (4h Globex anchor) to go live today after Accuracy + Release Watch GO, swapped while flat; RULES_HASH stays `0a692dc19944a8df` (see DECISIONS.md).
-- **Desk-sequence deployed:** main merge `5fa7e30e`, watcher `0bcf2f7`, rulesHash `e7338987cbc7eea5`. All 12 new modes are **shadow**. Watcher daemon PID 1241488 alive. Release Watch PASS, Accuracy PASS.
-- **week-ahead.ts:** restamp stub emptied it at `5aafe4d6`; restored in `cebd9c4d` (Accuracy APPROVE); restamp `78aef9fe` passed. Restamps edit, never rewrite; every clone sets `git config core.hooksPath scripts/hooks`.
-- **Paper futures** (box `/workspace/paper-futures`, 24/7 under a watchdog): $100k start, cash $93,896 raw. Opens only when the live gates pass (options-only gates excepted), stale-entry 0.5×ATR guard, 2% risk from the fill. 10-14 14:33 CT −$8,540 trade VOID (stale fill). Legacy loose-rule NQ long filled 15:23 CT, −$1,850. Gaps: `PAPER_JOURNAL_TOKEN` missing; no reboot persistence.
-- **Backtest (20 Yahoo days, 2026-09-17 → 10-14; no Databento key, so 2022–2026 not possible yet):** live rules 10 trades, 40% win, +0.44R avg, +0.25% on $50k ($126); at 2% risk +1.72% ($860). ~2.5 trades/week, far from the 75% goal. All 353 blocked fire-band signals = −0.16R avg, −55R total, so the gates save money. Shadow-study: fast:agree blocks (+0.35R, n=69), fast:entry blocks (+0.11R, n=104). Earning their keep: second_entry_band (−0.34R), persist, velocity.
-
-## Goal
-
-Fold the Research Desk implementation plan (`09aad4b`) into ledger-desk with one owner per workstream and **one task in flight**. Plan §1 goals: profitability, probability (honest calibrated odds), productivity, intelligence. Binding constraint per plan/ROADMAP: **sample before size-up** — the PATH journal must reach n ≥ 100 before any size-up or autonomy expansion.
-
-## In flight (one task per repo)
-
-| Slot | Workstream | Owner | State |
-|---|---|---|---|
-| ▶ 1 | **WS-KG0 Knowledge spine** | Graph Keeper | This branch: `ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md`, `graphify-out/GRAPH_REPORT.md` — Accuracy Review passed @ `8ced8f4`, nothing blocking (per Dual Desk; review note `reviews/2026-10-06-ws-kg0-8ced8f4.md` not found on any branch at 06:15 UTC); Dual Desk fixes S1–S4 on top; next Release Watch → Design Atelier |
-| next | WS-P1 PATH journal → n ≥ 100 | Trading Stand | Queued; starts when KG0 is accepted or parked by Dual Desk |
-
-Full queue (15 items) lives in issue #7 and `ai/HANDOFF.md`; not duplicated here.
+Last session-partner read (2026-11-03 10:07 ET) found real week content, not a stub. This patch adds the missing export on that content. It does not restamp a session.
 
 ## Live constraints
 
-- **Git is the bus.** Work, research, and assignments land on branches; that is how desks see each other.
-- **Brain lab** (`brainlab/`, 2026-10-07). Reads bars, chains, and greeks. Does not place. The book keeps print age and noise on `now:precision` and one shared line on `now:read`. Neither is a gate. Streamlit: `streamlit run brainlab/app.py`. CodeRabbit reads `.coderabbit.yaml`. PR-Agent runs on a `/review` comment once `OPENAI_KEY` is set.
-- **Uncommitted work is invisible.** If it is not committed and pushed, no other desk, agent, or session can see it — treat it as not done.
-- **One task in flight per repo.** Do not start the next queue item until the current one is done or explicitly parked by Dual Desk.
-- **Merge path:** branch → Accuracy Review → Release Watch → **Design Atelier merges** to `main`. No direct commits to `main` from desk work.
-- **No size-ups** until PATH n ≥ 100 and the expected-R gate pass (`src/lib/trading/profit-path.ts`; ROADMAP). Separate Accuracy Review ticket.
-- **No live orders** from WS-BP / WS-PRE; Robinhood env arms remain human.
-- **Do not lower the confluence floor** to manufacture clears (see ambiguity note in Open questions).
-  - Grade bands in code (`riskGradeFromScore`, `src/lib/aplus/config.ts:99-107`; same edges for complete sequences in `pathBand`, `src/lib/trading/strategy-grade.ts:422-429`): **A+ ≥ 0.75** (`aPlusThreshold`, config.ts:20) · **A ≥ 0.68** (`confluenceFloor + 0.03`, config.ts:101) · **A− ≥ 0.65** (`confluenceFloor`, config.ts:22, :102) · **B+ ≥ 0.60** (`confluenceFloor − 0.05`, config.ts:103). Verified identical at `33cfb8a` and `main` @ `008cbec`.
-  - **B+ live gate** (Robinhood path, from `33cfb8a`; Accuracy + Keaton 2026-10-06): `APLUS_RULES.profitPath.bPlusLive` (config.ts:85-90) = `fitFloor: 0.6` (:86), `requireSeqTake: true` (:87), `requireNoVeto: true` (:88), `maxContracts: 1` (:89). Enforced in `src/lib/execution/rh-autofire-gates.ts`: `evaluateRhBplusGate` (:76-100 — fit < 0.60 refuses :82; SMC sequence TAKE required, unknown fails closed :85-91; veto unknown refuses :92-98) and `evaluateRhBandSize` (:103-110 — exactly 1 contract). A+/A/A− keep `RH_PATH_FLOOR = 0.65` (:36); B+ never lowers it. B+ debit stays inside `RH_MIN_DEBIT_TOTAL`/`RH_MAX_DEBIT_TOTAL` = 50/650 (fireFix.envelope.maxDebit; fixed $650 every grade, Keaton 2026-10-13).
-- **No invented numbers.** Floor/dashboard digits come from code or committed packs only (plan WS-DASH / WS-FLOOR; existing verifiers).
-- Canon files never place, suggest, or size trades.
+- If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents do not change those numbers.
+- Do not lower the confluence floor. A+ is the 0.75 edge. B+ live stays behind `evaluateRhBplusGate`.
+- This patch places no order. Robinhood env arms stay human.
+- No invented fills or future actuals.
 
-## Last decision
+## Open questions (not decided here)
 
-- **Adopted 2026-10-06 (Dual Desk, HANDOFF `ceb62b7`; first committed at `defa9e0`):** owner assignments for Phase 1–3; WS-KG0 in flight; Graph Keeper next owner.
-- **Proposed 2026-10-06 (Graph Keeper; still pending Keaton's acceptance — Accuracy Review's pass of WS-KG0 does not lock it):** NOW/DECISIONS live under `ai/` (not `.grok/` or `PROGRAM.md`). Reasoning in `ai/DECISIONS.md` (2026-10-06 entry).
+CBDR clock, flout, `sponsored` rename, PATH graded n toward 100, Judas release vs hard-block, Kalshi FLB persistence, QQQ/SPY options vs NQ/ES transfer, NOW/DECISIONS location, PM data vendor, server-side runner vs PATH journal. Detail stays in `ai/DECISIONS.md` and HANDOFF `ceb62b7`.
 
-## Open questions (from plan §5 / HANDOFF; Keaton or named owner decides)
+Floor wording still split: some plan text says 0.75; ledger-desk execute floor in config is 0.65 and A+ is 0.75. Do not lower either. State which number a workstream means.
 
-1. **CBDR clock** for NQ/ES — which timestamp does Keaton lock? *(open lock; no CBDR code found in repo)*
-2. What is **flout** on this desk? *(open lock; term not found in repo)*
-3. Rename desk **`sponsored`** to avoid ICT collision? *(open lock; term used in `engine-weights.ts`, `confluence.ts`, `scanner.ts`, `smc-master.ts`, others)*
-4. Current PATH graded n toward 100? *(unknown from canon — read from journal code/data, never estimate)*
-5. Judas release vs hard-block — keep pending WS-J1?
-6. Kalshi FLB post-2025 persistence?
-7. QQQ/SPY options vs NQ/ES PD-array transfer / basis?
-8. NOW/DECISIONS location — **proposed: `ai/`** (pending Keaton's acceptance)
-9. PM data vendor / API for Kalshi historical bins?
-10. Server-side runner (`FLOOR_BACKLOG` #44) vs PATH journal priority?
+## Owners
 
-Ambiguities Graph Keeper found while building canon (for Accuracy Review):
-- **Floor value wording.** Plan/issue say "do not lower 0.75 floor" citing Trading-Automation `knowledge/confluence.json`; ledger-desk `src/lib/aplus/config.ts` has `confluenceFloor: 0.65` and `CLAUDE.md`/README call 0.65 the PATH floor with A+ at ≥ 0.75. Both rules say "do not lower"; which number a given workstream means should be stated explicitly. Code bands (config.ts:99-107): A+ ≥ 0.75 · A ≥ 0.68 · A− ≥ 0.65 · B+ ≥ 0.60 (B+ live only via the explicit gate above, config.ts:85-90). So in ledger-desk 0.75 is the A+ edge and 0.65 the execute floor.
-- **Push-to-main wording.** `CLAUDE.md` "When coding" says "Push to **main** so Grok and Claude share one tree"; the 2026-10-06 desk merge path is branch → AR → RW → Design Atelier. Keaton/Dual Desk should reconcile.
+Unchanged from HANDOFF `ceb62b7` / issue #7: Keaton locks questions; Graph Keeper owns this canon; Dual Desk assigns; Trading Stand owns the routine; Accuracy Review then Release Watch then Design Atelier merge to `main`.
 
-## Owners (desk map, from HANDOFF `ceb62b7` / issue #7)
+## Where things are
 
-| Role | Owns in ledger-desk |
-|---|---|
-| **Keaton** | Repo owner; locks open questions (CBDR, flout, sponsored, etc.) |
-| **Graph Keeper** | Canon (`ai/NOW.md`, `ai/DECISIONS.md`, `ai/research/INDEX.md`) + code map (`graphify-out/`); WS-KG0 |
-| **Dual Desk** | Coordinates Claude and Grok; assigns owners; owns `ai/HANDOFF.md` |
-| **Trading Stand** | The trading routine for ledger-desk; WS-P1, WS-BP, WS-D1 contracts, WS-J1 |
-| **Research Desk** | Research briefs under `ai/research/`; WS-CAL; co-maintains INDEX |
-| **Prototype Lab** | WS-PRE, WS-DASH |
-| **Site Copy** | WS-FLOOR copy/lines |
-| **Claude** | Deep code: WS-D1 detector code, WS-C1, WS-PM, Graphify hooks |
-| **Accuracy Review** | Merge gate: verifiers, no invented numbers |
-| **Release Watch** | Actions/build health; approves after AR |
-| **Design Atelier** | Merges to `main` after AR + RW; brand/visual systems |
-
-## Where things are (pointers, not copies)
-
-- Hard numbers: `src/lib/aplus/config.ts` (code wins) · protocol + code map: `CLAUDE.md`
-- Research: `ai/research/INDEX.md`
-- Program/track-record definition (unsigned draft, sealed separately): `PROGRAM.md` — **not** session canon
-- Live routine: `docs/RH_LIVE_ROUTINE.md` · backlog: `docs/FLOOR_BACKLOG.md` · roadmap: `ROADMAP.md`
+- Numbers: `src/lib/aplus/config.ts` · protocol: `CLAUDE.md`
+- Week plan: `src/lib/trading/week-ahead.ts` · prints: `src/data/week-prints.json`
+- Decisions: `ai/DECISIONS.md` · research index: `ai/research/INDEX.md`
