@@ -101,7 +101,7 @@ export function etDateKey(now = new Date()): string {
 }
 
 /** Week of Oct 26 – Oct 30 2026. Durable → FOMC → GDP/PCE/claims → ECI. */
-export const WEEK_SEP28_OCT2: WeekPlan = {
+export const WEEK_OCT26_OCT30: WeekPlan = {
   id: "2026-09-28",
   weekLabel: "Oct 26 – Oct 30, 2026",
   weekStart: "2026-10-26",
@@ -342,7 +342,7 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
   ],
 };
 
-const WEEK_PLANS: WeekPlan[] = [WEEK_NOV2_NOV6, WEEK_SEP28_OCT2];
+const WEEK_PLANS: WeekPlan[] = [WEEK_NOV2_NOV6, WEEK_OCT26_OCT30];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
@@ -371,6 +371,16 @@ export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
       live: false,
       refreshedAt: now.toISOString(),
     };
+  }
+  return null;
+}
+
+const PLANS = WEEK_PLANS;
+
+export function weekDayFor(dateKey: string): WeekDayPlan | null {
+  for (const plan of PLANS) {
+    const hit = plan.days.find((d) => d.date === dateKey);
+    if (hit) return hit;
   }
   return null;
 }

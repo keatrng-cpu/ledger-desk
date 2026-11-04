@@ -450,3 +450,12 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Asked the standing question (open position? does its management match the scale rule?) per the scheduled prompt — no live tape or desk API in this session, so no answer can be recorded; narration only, per CLAUDE.md's no-LLM-in-the-scoring-loop rule.
 - No PushNotification sent — canary clean, no gate violation observed, nothing new to escalate.
 - Supersedes: nothing.
+
+## 2026-11-04 — Restore weekDayFor
+
+- Decision: put `export function weekDayFor(dateKey)` back into `src/lib/trading/week-ahead.ts`, byte-identical to `5e1669a` (lines 718–724 there). `const PLANS = WEEK_PLANS` is the helper the function loops. The live `WEEK_PLANS` list and both plan objects stay. Why: `main` typecheck was red with three `TS2305` errors — `auto-paper.ts`, `options-desk.ts`, and `session-brief.ts` still import `weekDayFor`, and the export was gone.
+- Also renamed the binding `WEEK_SEP28_OCT2` → `WEEK_OCT26_OCT30`. Cosmetic: the object is the Oct 26–30 plan (`weekLabel` / `weekStart` / `weekEnd`), and the only code references were the declaration and the `WEEK_PLANS` array. `id` stays `"2026-09-28"`. No day, level, or print changed.
+- Refused: `git checkout 5e1669a -- src/lib/trading/week-ahead.ts` (that file is the Oct plan era and would delete the Nov 2–6 plan and later restamps). Refused restoring `stampPrints` (the 5e1669a `weekDayFor` does not call it). Refused padding `week-ahead.ts` to the 500-line repo-guard floor and refused touching `week-prints.json` (9 entries, floor 30) — both guards were already red on `main` at 479 lines / 9 entries. Refused order path, RH gates, env flags, `.env`, and `config.ts`.
+- Checked: `npx tsc --noEmit` exit 0, `npm run typecheck` exit 0, `npm test` 636 tests / 0 fail / 7 skipped. `verify-repo-guards.mjs` still reports the two pre-existing floors (week-ahead now 490 lines).
+- Supersedes: nothing.
+
