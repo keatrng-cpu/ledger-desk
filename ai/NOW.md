@@ -16,7 +16,7 @@
 
 ## Canary
 
-Latest session-partner read (2026-11-04 08:07 ET premarket, 6th consecutive clean run): `week-ahead.ts` 489 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature. `MONTH_NOV_2026` confirmed present (my earlier skim missed it on first grep; it's there, lines 399+).
+Latest session-partner read (2026-11-05 09:11 ET premarket, 7th consecutive clean run): `week-ahead.ts` 490 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature.
 
 ## Live constraints
 
