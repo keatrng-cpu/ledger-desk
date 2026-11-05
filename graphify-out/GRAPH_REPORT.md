@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-11-05)
 
 ## Corpus Check
-- 1241 files · ~2,167,997 words
+- 1241 files · ~2,168,065 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 62 file(s) not represented in the graph (top: .patch 22, (none) 10, .service 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `80b14ef1`
+- Built from commit: `dc44f31a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -2076,7 +2076,7 @@ Nodes (4): argv, primTris(), readGlb(), stats()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Code map` connect `room-engine.ts` to `predict-parts.tsx`, `policy.ts`, `index.tsx`, `detectors.ts`, `FloorScene`, `Geo`, `market-narrative.ts`, `claude-server.ts`, `live-voices-invest.ts`, `floor-screens.ts`, `mead-screens.ts`, `invest-firm.ts`, `desk-atlas.ts`, `trading/scanner.ts`, `room/drill.ts`, `discuss-tab.tsx`, `invest-panel.tsx`, `debate.ts`, `Floor plan: 25 upgrades to the 3D floor (look, build, people, walking, viewing)`, `agents.ts`, `floor-voice.ts`, `session-backtest.ts`, `invest-office.ts`, `evaluateOptionsDesk`, `live-talk.ts`, `goal.ts`, `hall-lite.ts`, `room-step.ts`, `live-voices-mead.ts`, `The Floor — 66 fixes, by category (2026-10-05)`, `build-desk.ts`, `spoken-form.ts`, `spot-cross.ts`, `live-voices-race.ts`, `book.ts`, `snapshot.ts`, `smc-canon.ts`, `hi-alert.ts`, `school-brief.ts`, `orchestrator.ts`, `long-board.ts`, `setup-scanner.tsx`, `live-voices.ts`?**
-  _High betweenness centrality (0.088) - this node is a cross-community bridge._
+  _High betweenness centrality (0.091) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
@@ -2084,8 +2084,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `learn.py` be split into smaller, more focused modules?**
   _Cohesion score 0.061952074810052604 - nodes in this community are weakly interconnected._
 - **Why does `shell()` connect `Geo` to `box`, `room-engine.ts`, `build_floor.py`?**
-  _High betweenness centrality (0.082) - this node is a cross-community bridge._
+  _High betweenness centrality (0.084) - this node is a cross-community bridge._
 - **Should `premarket-map.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.04184139409188333 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `cn` to `predict-parts.tsx`, `news-tab.tsx`, `policy.ts`, `charts-tab.tsx`, `rh-journal-panel.tsx`, `index.tsx`, `setup-chart.tsx`, `shadow-book-panel.tsx`, `storage-banner.tsx`, `shadow-store.ts`, `PanelBoundary`, `replay-drill.ts`, `pm-analyzer.tsx`, `analytics-panel.tsx`, `getSql`, `watcher-tab.tsx`, `trading-floor-tab.tsx`, `mead-screens.ts`, `invest-firm.ts`, `tf-ladder-panel.tsx`, `package.json`, `discuss-tab.tsx`, `invest-panel.tsx`, `entry-trigger.ts`, `log-setup-dialog.tsx`, `SetupCandidate`, `paper-manager.ts`, `room-engine.ts`, `calibration-panel.tsx`, `ghost-book.ts`, `invest-office.ts`, `setup-memory.ts`, `verify-replay-drills.mjs`, `created-with-grok-banner.tsx`, `snapshot-review.tsx`, `live-lesson.ts`, `hall-lite.ts`, `shadow-view.ts`, `options-swing-panel.tsx`, `kill-watch.ts`, `apex-sim.ts`, `gates.tsx`, `setup-chart-panel.tsx`, `veteran-brain.ts`, `claude-handoff.ts`, `floor-brains.tsx`, `learn-tab.tsx`, `use-current-user.ts`, `trading/evidence.ts`, `hi-alert.ts`, `four-facts-board.tsx`, `option-ticket.tsx`, `long-board.ts`, `propfirm-panel.tsx`, `overnight-swing.ts`, `exec-card.tsx`, `setup-scanner.tsx`, `synapse-rail.tsx`, `verify-curriculum.mjs`, `desk/chat-trades.ts`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `displacement()` connect `pandas` to `cases.ts`, `numpy`, `smc/discipline.ts`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
