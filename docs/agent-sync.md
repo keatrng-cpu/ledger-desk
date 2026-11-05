@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `dded774`. Fetched origin. Local main matches origin.
+HEAD `80b14ef`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `4dc88b9`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `dded774`.
+Bookmark was `dded774`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `80b14ef`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `80b14ef` | 2026-11-05T15:08 | session-partner: 10:07 ET mid-session — canary CLEAR, 8th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
+| `1aff340` | 2026-11-05T14:13 | agent-sync: bookmark claude at dded774 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `dded774` | 2026-11-05T14:13 | session-partner: 09:11 ET premarket — canary CLEAR, 7th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `4dc88b9` | 2026-11-04T15:51 | Restamp Nov 4: ADP 86K beat, ISM Svc 54.5 slight miss; post-PWL context holds | M src/lib/trading/week-ahead.ts |
 | `f000c4d` | 2026-11-04T15:50 | Restamp Nov 4 actuals: ADP 86K, ISM Svc 54.5 | M src/data/week-prints.json |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `dded774`.
 | `02be442` | 2026-11-03T14:08 | agent-sync: bookmark claude at 40253b7 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `40253b7` | 2026-11-03T14:08 | session-partner: 09:06 ET premarket — canary CLEAR, 4th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `08f2827` | 2026-11-03T13:13 | agent-sync: bookmark claude at 10952fa (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `10952fa` | 2026-11-03T13:12 | session-partner: 08:10 ET premarket — canary CLEAR, 3rd consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `e0b8da4` | 2026-11-02T15:51 | Restamp Nov 2: ISM Mfg 55.5 printed. Sunday post-PWL plan holds; no bias change. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
