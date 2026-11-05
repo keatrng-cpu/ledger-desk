@@ -75,5 +75,12 @@
     "actual": "54.5",
     "vs": "exp 54.8 / prev 54.9",
     "note": "ISM official. Slight miss. New orders 55.9 (from 59.8), employment 51.4 (from 50.1), prices 73.0 (from 74). Expansion continues."
+  },
+  {
+    "date": "2026-11-05",
+    "name": "Initial Jobless Claims",
+    "actual": "189k",
+    "vs": "exp ~196-197k / prev 195k rev",
+    "note": "DOL week ending Oct 31. 4-wk avg 194.75k. Continuing 1.718M. Soft, labor still tight."
   }
 ]

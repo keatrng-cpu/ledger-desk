@@ -233,7 +233,7 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
     "Prior week (Oct 26–30) seed PWH/PWL NQ 31,095 / 29,904; cash broke PWL hard Fri (session ~28,272–29,180). Opens after downside invalidation of inside-week. Dec hike odds ~68-73% post-ECI. Hot NFP = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
   po3: "Mon ISM range-build. Tue JOLTS manipulates. Wed ADP/ISM distributes. Thu claims. Fri NFP is the week’s event.",
   macro:
-    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 printed 86K (exp ~67-69K) + ISM Services PMI (Oct) 10:00 printed 54.5 (exp 54.8 / prev 54.9). Thu Initial Jobless Claims 08:30. Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds remain elevated ~75-80%. Live CWH/CWL from bars.",
+    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 printed 86K (exp ~67-69K) + ISM Services PMI (Oct) 10:00 printed 54.5 (exp 54.8 / prev 54.9). Thu Initial Jobless Claims 08:30 printed 189k (exp ~196-197k / prev 195k rev). Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds remain elevated ~65-77% post-claims/midterms. Live CWH/CWL from bars.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -320,11 +320,12 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
       weekday: "Thu",
       dailyBias: "Two-way / selective",
       kind: "two_way",
-      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "" }],
-      likelyTape: "Claims 08:30. Pre-NFP positioning.",
+      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "Printed 189k", actual: "189k", vs: "exp ~196-197k / prev 195k rev" }],
+      likelyTape: "Claims 189k soft (exp ~196k). Session stayed well under PWL (NQ ~26.7k-28.7k). Post-breakdown selective holds; no PWH/PWL take.",
       trade: "A+ only after 8:30. Stand unless clear structure.",
       skipIf: "No multi-day into Fri.",
-      pathNote: "Do not swing into NFP.",
+      pathNote: "Prior-week downside break context intact. Live CWH/CWL from bars. No HTF trend invented. Do not swing into NFP.",
+      printed: true,
     },
     {
       date: "2026-11-06",
