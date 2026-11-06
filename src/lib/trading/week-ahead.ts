@@ -233,7 +233,7 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
     "Prior week (Oct 26–30) seed PWH/PWL NQ 31,095 / 29,904; cash broke PWL hard Fri (session ~28,272–29,180). Opens after downside invalidation of inside-week. Dec hike odds ~68-73% post-ECI. Hot NFP = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
   po3: "Mon ISM range-build. Tue JOLTS manipulates. Wed ADP/ISM distributes. Thu claims. Fri NFP is the week’s event.",
   macro:
-    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 printed 86K (exp ~67-69K) + ISM Services PMI (Oct) 10:00 printed 54.5 (exp 54.8 / prev 54.9). Thu Initial Jobless Claims 08:30 printed 189k (exp ~196-197k / prev 195k rev). Fri NFP / Employment Situation (Oct) 08:30 + UMich Sentiment (Nov P) 10:00. Prior prints: ECI Q3 +0.8% in-line. Dec hike odds remain elevated ~65-77% post-claims/midterms. Live CWH/CWL from bars.",
+    "Mon ISM Manufacturing PMI (Oct) 10:00 printed 55.5 (exp ~54.5-54.7 / prev 54.5). Tue JOLTS Job Openings (Sep) 10:00 printed 7.523M (exp ~7.16M / prev 7.079M rev 7.190M). Wed ADP Employment (Oct) 08:15 printed 86K (exp ~67-69K) + ISM Services PMI (Oct) 10:00 printed 54.5 (exp 54.8 / prev 54.9). Thu Initial Jobless Claims 08:30 printed 189k (exp ~196-197k / prev 195k rev). Fri NFP +165k (exp ~59-65k), UR 4.1%, AHE +0.4%/3.1%; UMich 51.0 (exp ~48). Dec hike odds ~78-80% post-NFP. Live CWH/CWL from bars.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -333,13 +333,14 @@ export const WEEK_NOV2_NOV6: WeekPlan = {
       dailyBias: "Event / A+ only",
       kind: "nfp",
       news: [
-        { timeEt: "08:30", name: "NFP / Employment Situation (Oct)", impact: "high", note: "" },
-        { timeEt: "10:00", name: "UMich Sentiment (Nov P)", impact: "medium", note: "" }
+        { timeEt: "08:30", name: "NFP / Employment Situation (Oct)", impact: "high", note: "Printed +165k", actual: "+165k / UR 4.1%", vs: "exp ~59-65k / UR 4.2%" },
+        { timeEt: "10:00", name: "UMich Sentiment (Nov P)", impact: "medium", note: "Printed 51.0", actual: "51.0", vs: "exp ~48 / prev 48" }
       ],
-      likelyTape: "NFP 08:30 is the week’s event. UMich 10:00 secondary.",
+      likelyTape: "Hot NFP +165k (exp ~65k), UR 4.1%. Session stayed well under PWL (NQ ~26.4k-27.4k, ES ~7.35k-7.47k). Post-breakdown selective holds; no PWH/PWL take. Hike odds up.",
       trade: "A+ only after 10:00. Short only on BSL raid + MSS if offered; do not chase.",
       skipIf: "No entry 8:15–9:00. No multi-day swing. No fade of the first impulse without structure.",
-      pathNote: "Flatten into weekend. Live CWH/CWL from bars.",
+      pathNote: "Prior-week downside break context intact. Live CWH/CWL from bars. No HTF trend invented. Flatten into weekend.",
+      printed: true,
     },
   ],
 };
@@ -486,6 +487,5 @@ export function overlayWeekAhead(
     ...read,
     plan: { ...plan, nq, es },
     live: Boolean(nq.live || es.live),
-    refreshedAt: now.toISOString(),
   };
 }
