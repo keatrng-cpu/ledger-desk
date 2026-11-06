@@ -2,17 +2,20 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `80b14ef`. Fetched origin. Local main matches origin.
+HEAD `3ce59da`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `dded774`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `80b14ef`.
+Bookmark was `80b14ef`. 3 commit(s) landed after it.
+Bookmark after this run: `claude` → `3ce59da`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `3ce59da` | 2026-11-06T13:11 | session-partner: 08:09 ET premarket — canary CLEAR, 9th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
+| `dc44f31` | 2026-11-05T15:51 | Restamp Nov 5 claims print; update Thu plan. Sunday post-PWL story holds. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `081fe8a` | 2026-11-05T15:09 | agent-sync: bookmark claude at 80b14ef (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `80b14ef` | 2026-11-05T15:08 | session-partner: 10:07 ET mid-session — canary CLEAR, 8th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `1aff340` | 2026-11-05T14:13 | agent-sync: bookmark claude at dded774 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `dded774` | 2026-11-05T14:13 | session-partner: 09:11 ET premarket — canary CLEAR, 7th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
@@ -25,9 +28,6 @@ Bookmark after this run: `claude` → `80b14ef`.
 | `9092310` | 2026-11-03T15:50 | Restamp week-prints with 2026-11-03 JOLTS actual 7.523M | M src/data/week-prints.json |
 | `62ff0f7` | 2026-11-03T15:08 | agent-sync: bookmark claude at 1924855 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `1924855` | 2026-11-03T15:08 | session-partner: 10:07 ET mid-session — canary still CLEAR, 5th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `02be442` | 2026-11-03T14:08 | agent-sync: bookmark claude at 40253b7 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `40253b7` | 2026-11-03T14:08 | session-partner: 09:06 ET premarket — canary CLEAR, 4th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `08f2827` | 2026-11-03T13:13 | agent-sync: bookmark claude at 10952fa (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
