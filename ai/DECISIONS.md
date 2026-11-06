@@ -505,3 +505,12 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Restated session constraints (Judas 09:30–09:45 ET blocked until resolved with sub-15m tape; ±15m news blackout, high-impact only; one book never both same bias; max 2/killzone; daily halt 2%/weekly 5%; A+ only after 10:00 ET unless already in a trade).
 - Sent a PushNotification, but scoped to the new fact only (blackout cleared / standard-grade window open until 10:00 ET) rather than repeating the full 08:09 brief verbatim, to avoid a second near-duplicate notification inside the same hour.
 - Supersedes: nothing.
+
+### 2026-11-06 — NY AM session-partner run: 10:06 ET mid-session, 11th consecutive clean run
+- Status: CLOSED (routine, no new finding) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`/`git log` on `main` @ `74d23ec`
+- Observation, not a decision: `week-ahead.ts` 491 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature on an 11th consecutive check.
+- Ran `agent-sync --agent claude`; bookmark moved `37ccd8a` → `74d23ec` cleanly. 1 commit landed since the last bookmark (the prior run's own agent-sync bookmark commit) — nothing further to read before editing.
+- Completed the mid-session discipline narration (ET 10:06, past the 10:00 ET A+-only cutoff): restated A+-only is live; rest-the-limit-at-CE entry rule, never pay the print; the 50%-off-at-T1/stop-to-BE/runner-to-T2 scale rule (+0.50R/trade, 122 filled plans) with the "do not protect early" figure re-verified verbatim in `src/lib/trading/entry-ticket.ts` (`manageLine`, line 169): "-0.18R to -0.41R and drawdown 24%->45%" — same source the 2026-11-05 10:07 ET run traced.
+- Asked the standing question (open position? does its management match the scale rule?) — no live tape or desk API in this session, so no answer can be recorded; narration only.
+- Sent a PushNotification: mid-session during the live A+-only window, with the scale-rule reminder and the self-check question, is the routine's actionable deliverable for this slot.
+- Supersedes: nothing.

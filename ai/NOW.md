@@ -16,7 +16,7 @@
 
 ## Canary
 
-Latest session-partner read (2026-11-06 09:12 ET premarket, 10th consecutive clean run): `week-ahead.ts` 491 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature. Fri Nov 6 is NFP day (08:30 ET) — repo has no `actual` stamped for it yet; UMich Sentiment (Nov P) 10:00 ET still ahead. A+ only after 10:00 ET per the Nov 2–6 week plan.
+Latest session-partner read (2026-11-06 10:06 ET mid-session, 11th consecutive clean run): `week-ahead.ts` 491 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature. A+ only is now live (past 10:00 ET cutoff) per the Nov 2–6 week plan.
 
 ## Live constraints
 

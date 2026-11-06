@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `37ccd8a`. Fetched origin. Local main matches origin.
+HEAD `74d23ec`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `3ce59da`. 2 commit(s) landed after it.
-Bookmark after this run: `claude` → `37ccd8a`.
+Bookmark was `37ccd8a`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `74d23ec`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `74d23ec` | 2026-11-06T14:15 | agent-sync: bookmark claude at 37ccd8a (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `37ccd8a` | 2026-11-06T14:15 | session-partner: 09:12 ET premarket (2nd touchpoint) — canary CLEAR, 10th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `5e74c83` | 2026-11-06T13:12 | agent-sync: bookmark claude at 3ce59da (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `3ce59da` | 2026-11-06T13:11 | session-partner: 08:09 ET premarket — canary CLEAR, 9th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `37ccd8a`.
 | `3aaa03e` | 2026-11-04T13:09 | session-partner: 08:07 ET premarket — canary CLEAR, 6th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `ff770e5` | 2026-11-04T06:40 | Restore weekDayFor so the three TS2305 imports typecheck (#90) | M ai/DECISIONS.md, M ai/NOW.md, M src/lib/trading/week-ahead.ts |
 | `d99760d` | 2026-11-03T15:51 | Restamp Tue 11-03 plan with JOLTS 7.523M; post-PWL break holds | M src/lib/trading/week-ahead.ts |
-| `9092310` | 2026-11-03T15:50 | Restamp week-prints with 2026-11-03 JOLTS actual 7.523M | M src/data/week-prints.json |
 
 ## New files in those commits
 
