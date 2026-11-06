@@ -496,3 +496,12 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Restated session constraints (Judas 09:30–09:45 ET blocked until resolved with sub-15m tape; ±15m news blackout, high-impact only; one book never both same bias; max 2/killzone; daily halt 2%/weekly 5%; A+ only after 10:00 ET unless already in a trade).
 - Sent a PushNotification with the premarket brief: this run's deliverable is the morning briefing itself (NFP day bias/releases/constraints), not an anomaly, so it was pushed rather than held silent.
 - Supersedes: nothing.
+
+### 2026-11-06 — NY AM session-partner run: 09:12 ET premarket (2nd premarket touchpoint today) — canary CLEAR, 10th consecutive clean run
+- Status: CLOSED (routine, no new finding) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`/`git log` on `main` @ `5e74c83`
+- Observation, not a decision: `week-ahead.ts` 491 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature on a 10th consecutive check.
+- Ran `agent-sync --agent claude`; bookmark moved `3ce59da` → `5e74c83` cleanly. Only 1 commit landed since the last bookmark (the prior run's own agent-sync bookmark commit) — nothing further to read before editing.
+- This is the day's second premarket-bucket firing, ~1h after the 08:09 ET run already logged above. Content is the same Fri Nov 6 NFP-day brief (bias "Event / A+ only", NFP 08:30 ET high impact with no `actual` stamped yet, UMich 10:00 ET medium impact, skip-if = no entry 8:15–9:00/no multi-day swing/no fading the first impulse) plus one incremental fact the 08:09 run could not yet state: the 08:15–9:00 ET NFP blackout has now closed (run time 09:12 ET), so standard execute grades are live until the 10:00 ET A+-only cutoff — this window did not exist at 08:09.
+- Restated session constraints (Judas 09:30–09:45 ET blocked until resolved with sub-15m tape; ±15m news blackout, high-impact only; one book never both same bias; max 2/killzone; daily halt 2%/weekly 5%; A+ only after 10:00 ET unless already in a trade).
+- Sent a PushNotification, but scoped to the new fact only (blackout cleared / standard-grade window open until 10:00 ET) rather than repeating the full 08:09 brief verbatim, to avoid a second near-duplicate notification inside the same hour.
+- Supersedes: nothing.
