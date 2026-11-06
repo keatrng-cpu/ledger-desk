@@ -16,7 +16,7 @@
 
 ## Canary
 
-Latest session-partner read (2026-11-05 10:07 ET mid-session, 8th consecutive clean run): `week-ahead.ts` 490 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature.
+Latest session-partner read (2026-11-06 08:09 ET premarket, 9th consecutive clean run): `week-ahead.ts` 491 lines, `month-ahead.ts` 673 lines — no truncation/fabrication signature.
 
 ## Live constraints
 
