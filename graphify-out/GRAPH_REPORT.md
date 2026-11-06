@@ -1,7 +1,7 @@
 # Graph Report - ledger-desk  (2026-11-06)
 
 ## Corpus Check
-- 1241 files · ~2,168,895 words
+- 1241 files · ~2,169,021 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 62 file(s) not represented in the graph (top: .patch 22, (none) 10, .service 7)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7f8d0e4c`
+- Built from commit: `f293702c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -2053,7 +2053,7 @@ Nodes (21): short, T0, etTime(), OUTCOME_LABEL, TakeMomentsPanel(), isWatchable(
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Code map` connect `live-world.ts` to `build-desk.ts`, `predict-parts.tsx`, `meeting.ts`, `index.tsx`, `live-voices-invest.ts`, `FloorScene`, `build_office`, `claude-server.ts`, `smc-master.ts`, `floor-screens.ts`, `2. SHARED CONTRACTS`, `desk-atlas.ts`, `invest-firm.ts`, `mead-screens.ts`, `trading/scanner.ts`, `discuss-tab.tsx`, `store.ts`, `policy.ts`, `debate.ts`, `smc-canon.ts`, `floor-voice.ts`, `evaluateOptionsDesk`, `live-talk.ts`, `goal.ts`, `hall-lite.ts`, `paper-book.ts`, `live-voices-mead.ts`, `OhlcBar`, `spoken-form.ts`, `invest-panel.tsx`, `room-engine.ts`, `snapshot.ts`, `ghost-book.ts`, `hi-alert.ts`, `school-brief.ts`, `orchestrator.ts`, `long-board.ts`, `structure.ts`, `setup-scanner.tsx`, `live-voices.ts`?**
-  _High betweenness centrality (0.087) - this node is a cross-community bridge._
+  _High betweenness centrality (0.089) - this node is a cross-community bridge._
 - **Are the 3 inferred relationships involving `MasterplacePage()` (e.g. with `Code map` and `1 · Mount in `src/routes/index.tsx``) actually correct?**
   _`MasterplacePage()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `probot`, `pg`, `@radix-ui/react-accordion` to the rest of the system?**
@@ -2061,8 +2061,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `learn.py` be split into smaller, more focused modules?**
   _Cohesion score 0.06453634085213032 - nodes in this community are weakly interconnected._
 - **Why does `shell()` connect `build_office` to `box`, `live-world.ts`, `build_floor.py`, `_hair_keep`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
+  _High betweenness centrality (0.083) - this node is a cross-community bridge._
 - **Should `premarket-map.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.037577639751552795 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `cn` to `predict-parts.tsx`, `veteran-brain.ts`, `news-tab.tsx`, `charts-tab.tsx`, `rh-journal-panel.tsx`, `index.tsx`, `setup-chart.tsx`, `PanelBoundary`, `replay-drill.ts`, `pm-analyzer.tsx`, `analytics-panel.tsx`, `watcher-tab.tsx`, `trading-floor-tab.tsx`, `smc-master.ts`, `mead-screens.ts`, `invest-firm.ts`, `package.json`, `discuss-tab.tsx`, `store.ts`, `smc-canon.ts`, `policy.ts`, `gates.tsx`, `shadow-store.ts`, `paper-manager.ts`, `calibration-panel.tsx`, `TradePlan`, `take-moments.ts`, `session-backtest.ts`, `verify-replay-drills.mjs`, `created-with-grok-banner.tsx`, `snapshot-review.tsx`, `ticket-facts.ts`, `storage-banner.tsx`, `entry-trigger.ts`, `price-path-board.tsx`, `invest-panel.tsx`, `apex-sim-panel.tsx`, `learn-tab.tsx`, `setup-chart-panel.tsx`, `room-engine.ts`, `floor-brains.tsx`, `shadow-panel.tsx`, `kill-watch.ts`, `learn/drill.ts`, `use-current-user.ts`, `ghost-book.ts`, `hi-alert.ts`, `long-board.ts`, `DeskPayload`, `discretion-memory.ts`, `exec-card.tsx`, `setup-scanner.tsx`, `rh-live-block.tsx`, `desk/chat-trades.ts`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Why does `displacement()` connect `test_trade_charts.py` to `pandas`, `smc/discipline.ts`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
