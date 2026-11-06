@@ -82,5 +82,19 @@
     "actual": "189k",
     "vs": "exp ~196-197k / prev 195k rev",
     "note": "DOL week ending Oct 31. 4-wk avg 194.75k. Continuing 1.718M. Soft, labor still tight."
+  },
+  {
+    "date": "2026-11-06",
+    "name": "NFP / Employment Situation (Oct)",
+    "actual": "+165k / UR 4.1% / AHE +0.4% m/m +3.1% y/y",
+    "vs": "exp ~59-65k / UR 4.2% / AHE ~0.3%/2.9%",
+    "note": "BLS official. Hot beat. Sep revised to +60k. Broad gains (prof/bus +70k, health +42k). Dec hike odds ~78-80%."
+  },
+  {
+    "date": "2026-11-06",
+    "name": "UMich Sentiment (Nov P)",
+    "actual": "51.0",
+    "vs": "exp ~48 / prev 48.0",
+    "note": "Official. Beat. Current 51.0, expectations 50.9. 1y infl 4.3% (from 4.7%), 5y 3.4%. Independents-led."
   }
 ]
