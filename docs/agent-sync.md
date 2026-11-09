@@ -2,17 +2,24 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `7f8d0e4`. Fetched origin. Local main matches origin.
+HEAD `1f5ddb1`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `74d23ec`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `7f8d0e4`.
+Bookmark was `7f8d0e4`. 7 commit(s) landed after it.
+Bookmark after this run: `claude` → `1f5ddb1`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `1f5ddb1` | 2026-11-08T16:19 | Restore month-ahead.ts with post-NFP prose update | M src/lib/trading/month-ahead.ts |
+| `b5cbe26` | 2026-11-08T16:18 | Sunday restamp: update Nov month prose for post-NFP hot print and Dec hike odds ~68% | M src/lib/trading/month-ahead.ts |
+| `17668f9` | 2026-11-08T16:17 | Sunday restamp: add Nov 9-13 week plan; update Nov month prose for post-NFP odds ~68% | M src/lib/trading/week-ahead.ts |
+| `1f46d41` | 2026-11-08T16:16 | Sunday restamp: add Nov 9-13 week plan; update Nov month prose for post-NFP odds ~68% | M src/lib/trading/week-ahead.ts |
+| `f293702` | 2026-11-06T15:51 | Restamp Fri Nov 6 NFP plan: hot print, post-PWL holds | M src/lib/trading/week-ahead.ts |
+| `3495e6f` | 2026-11-06T15:50 | Restamp Nov 6 NFP + UMich actuals | M src/data/week-prints.json |
+| `0145acb` | 2026-11-06T15:08 | agent-sync: bookmark claude at 7f8d0e4 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `7f8d0e4` | 2026-11-06T15:07 | session-partner: 10:06 ET mid-session — canary CLEAR, 11th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `74d23ec` | 2026-11-06T14:15 | agent-sync: bookmark claude at 37ccd8a (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `37ccd8a` | 2026-11-06T14:15 | session-partner: 09:12 ET premarket (2nd touchpoint) — canary CLEAR, 10th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
@@ -21,13 +28,6 @@ Bookmark after this run: `claude` → `7f8d0e4`.
 | `dc44f31` | 2026-11-05T15:51 | Restamp Nov 5 claims print; update Thu plan. Sunday post-PWL story holds. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `081fe8a` | 2026-11-05T15:09 | agent-sync: bookmark claude at 80b14ef (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `80b14ef` | 2026-11-05T15:08 | session-partner: 10:07 ET mid-session — canary CLEAR, 8th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `1aff340` | 2026-11-05T14:13 | agent-sync: bookmark claude at dded774 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `dded774` | 2026-11-05T14:13 | session-partner: 09:11 ET premarket — canary CLEAR, 7th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `4dc88b9` | 2026-11-04T15:51 | Restamp Nov 4: ADP 86K beat, ISM Svc 54.5 slight miss; post-PWL context holds | M src/lib/trading/week-ahead.ts |
-| `f000c4d` | 2026-11-04T15:50 | Restamp Nov 4 actuals: ADP 86K, ISM Svc 54.5 | M src/data/week-prints.json |
-| `753e1f1` | 2026-11-04T13:10 | agent-sync: bookmark claude at 3aaa03e (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `3aaa03e` | 2026-11-04T13:09 | session-partner: 08:07 ET premarket — canary CLEAR, 6th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `ff770e5` | 2026-11-04T06:40 | Restore weekDayFor so the three TS2305 imports typecheck (#90) | M ai/DECISIONS.md, M ai/NOW.md, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
