@@ -1,7 +1,7 @@
 # NOW — ledger-desk current truth
 
 **As of:** 2026-11-09 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `main` HEAD is `1f5ddb1`.
+**Branch of this file:** `main` HEAD is `6b858ce`.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
@@ -14,7 +14,7 @@
 
 ## Canary
 
-Latest session-partner read (2026-11-09 08:06 ET premarket): `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature. Today (Mon Nov 9) is neutral/range-build, no high-impact news; CPI (Oct) Tue 08:30 ET is the week's primary event, PPI Fri 08:30 ET secondary.
+Latest session-partner read (2026-11-09 09:05 ET premarket, 2nd touch today): `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature, no change since 08:06 ET. Today (Mon Nov 9) is neutral/range-build, no high-impact news; CPI (Oct) Tue 08:30 ET is the week's primary event, PPI Fri 08:30 ET secondary.
 
 ## Live constraints
 
