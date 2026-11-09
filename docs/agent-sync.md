@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `ab42436`. Fetched origin. Local main matches origin.
+HEAD `af89e57`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `1f5ddb1`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `ab42436`.
+Bookmark was `ab42436`. 2 commit(s) landed after it.
+Bookmark after this run: `claude` → `af89e57`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `af89e57` | 2026-11-09T14:07 | session-partner: 09:05 ET premarket touch — canary CLEAR, no change since 08:06 | M ai/DECISIONS.md, M ai/NOW.md |
+| `6b858ce` | 2026-11-09T13:08 | agent-sync: bookmark claude at ab42436 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `ab42436` | 2026-11-09T13:07 | session-partner: 08:06 ET premarket — canary CLEAR, CPI week brief | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `1f5ddb1` | 2026-11-08T16:19 | Restore month-ahead.ts with post-NFP prose update | M src/lib/trading/month-ahead.ts |
 | `b5cbe26` | 2026-11-08T16:18 | Sunday restamp: update Nov month prose for post-NFP hot print and Dec hike odds ~68% | M src/lib/trading/month-ahead.ts |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `ab42436`.
 | `37ccd8a` | 2026-11-06T14:15 | session-partner: 09:12 ET premarket (2nd touchpoint) — canary CLEAR, 10th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
 | `5e74c83` | 2026-11-06T13:12 | agent-sync: bookmark claude at 3ce59da (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `3ce59da` | 2026-11-06T13:11 | session-partner: 08:09 ET premarket — canary CLEAR, 9th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `dc44f31` | 2026-11-05T15:51 | Restamp Nov 5 claims print; update Thu plan. Sunday post-PWL story holds. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `081fe8a` | 2026-11-05T15:09 | agent-sync: bookmark claude at 80b14ef (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
