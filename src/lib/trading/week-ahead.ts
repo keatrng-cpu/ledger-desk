@@ -354,10 +354,10 @@ export const WEEK_NOV9_NOV13: WeekPlan = {
   headline:
     "CPI week. CPI Oct Tue 8:30, claims Thu 8:30, PPI Oct Fri 8:30. No multi-day swing into Friday. Post-hot-NFP context.",
   htfBias:
-    "Prior week (Nov 2–6) tape stayed well under Oct 26–30 PWL after hot NFP +165k. Opens inside the post-breakdown range. Dec hike odds ~68% (down from ~78-80% post-NFP). Hot CPI = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
+    "Prior week (Nov 2–6) tape stayed well under Oct 26–30 PWL after hot NFP +165k. Opens inside the post-breakdown range. Dec hike odds ~84% (CME FedWatch as of Nov 10 pre-CPI, up from ~68% Nov 8). Hot CPI = further hike repricing. Soft = squeeze. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue CPI manipulates. Wed two-way. Thu claims. Fri PPI is the week’s secondary event.",
   macro:
-    "Mon no high-impact. Tue CPI (Oct) 08:30. Thu Initial Jobless Claims 08:30. Fri PPI (Oct) 08:30. No NFP. Dec hike odds ~68% as of Nov 8 (CME FedWatch cited). Live CWH/CWL from bars. Prior-week sessions noted ~NQ 26.4k–29.0k under PWL.",
+    "Mon no high-impact. Tue CPI (Oct) 08:30 (BLS will not publish YoY due to prior shutdown). Thu Initial Jobless Claims 08:30. Fri PPI (Oct) 08:30. No NFP. Dec hike odds ~84% (CME FedWatch Nov 10 pre-CPI). Live CWH/CWL from bars. This-week range so far NQ ~26.75k–28.13k under PWL.",
   asymmetry:
     "A+ into the prints. Flatten before CPI unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -396,7 +396,7 @@ export const WEEK_NOV9_NOV13: WeekPlan = {
   ],
   outcomes: [
     { p: 40, name: "Hot CPI and/or hot PPI", detail: "December hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
-    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds already cooled to ~68%; CPI is the swing." },
+    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds ~84% pre-CPI; CPI is the swing." },
     { p: 25, name: "Soft CPI / soft PPI", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
   ],
   days: [
@@ -416,8 +416,8 @@ export const WEEK_NOV9_NOV13: WeekPlan = {
       weekday: "Tue",
       dailyBias: "Event / selective",
       kind: "event",
-      news: [{ timeEt: "08:30", name: "CPI (Oct)", impact: "high", note: "" }],
-      likelyTape: "CPI Oct 8:30. Post-hot-NFP context. Expect two-way around the print.",
+      news: [{ timeEt: "08:30", name: "CPI (Oct)", impact: "high", note: "No YoY (BLS, prior shutdown)" }],
+      likelyTape: "CPI Oct 8:30. Post-hot-NFP context. Expect two-way around the print. No YoY figures.",
       trade: "Blackout 8:00–8:45. A+ only after 10:00 on second impulse.",
       skipIf: "No entry 8:00-8:45. No clear MSS after the print.",
       pathNote: "CPI is the week’s primary event. Live CWH/CWL from bars.",
