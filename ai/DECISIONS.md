@@ -532,3 +532,5 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Restated session constraints (Judas 09:30–09:45 ET blocked until resolved with sub-15m tape; ±15m news blackout; one book never both same bias; max 2/killzone; daily halt 2%/weekly 5%; A+ only after 10:00 ET unless already in a trade).
 - No PushNotification sent: identical to the 08:06 ET brief with nothing new for the trader to act on; a second near-duplicate alert inside the same morning would be noise.
 - Supersedes: nothing.
+
+## 2026-11-10 — NY AM session-partner run: 09:06 ET premarket, canary clear, read Grok's CPI/hike-odds update
