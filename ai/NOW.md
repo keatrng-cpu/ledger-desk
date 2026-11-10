@@ -8,7 +8,7 @@
 - Refused as always: touching `src/lib/aplus/config.ts`, inventing CWH/CWL/fills, padding files to clear guard floors.
 - `scripts/verify-repo-guards.mjs` still fails two floors that were already red on `main`: `week-ahead.ts` line count and `week-prints.json` entry count. Not padded to go green.
 ## Canary
-Latest session-partner read (2026-11-10 09:06 ET premarket): `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature. One new commit since last bookmark (`cc3786d`), read via `git show`. Today (Tue Nov 10) is CPI day: CPI (Oct) 08:30 ET high-impact, confirmed in `news-calendar.json`; no YoY printed this cycle.
+Latest session-partner read (2026-11-10 10:06 ET mid-session): `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature, unchanged since 09:06 ET. Bookmark moved `1dc50d1` → `fae1b12` (that one commit was the prior run's own agent-sync bookmark; nothing further to read). Today (Tue Nov 10) is CPI day: CPI (Oct) 08:30 ET high-impact, confirmed in `news-calendar.json`; no YoY printed this cycle.
 ## Live constraints
 - If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents do not change those numbers.
 - Do not lower the confluence floor. A+ is the 0.75 edge. B+ live stays behind `evaluateRhBplusGate`.

@@ -533,4 +533,13 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - No PushNotification sent: identical to the 08:06 ET brief with nothing new for the trader to act on; a second near-duplicate alert inside the same morning would be noise.
 - Supersedes: nothing.
 
+### 2026-11-10 — NY AM session-partner run: 10:06 ET mid-session, 12th consecutive clean run
+- Status: CLOSED (routine, no new finding) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`/`git log` on `main` @ `fae1b12`
+- Observation, not a decision: `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature, unchanged from the 09:06 ET run today.
+- Ran `agent-sync --agent claude`; bookmark moved `1dc50d1` → `fae1b12`. 1 commit landed since the last bookmark, and it was the prior run's own agent-sync bookmark commit — nothing further to read before editing.
+- Completed the mid-session discipline narration (ET 10:06, past the 10:00 ET A+-only cutoff): restated A+-only is live; rest-the-limit-at-CE entry rule, never pay the print; the 50%-off-at-T1/stop-to-BE/runner-to-T2 scale rule (+0.50R/trade, 122 filled plans) with the "do not protect early" figure re-verified verbatim in `src/lib/trading/entry-ticket.ts:169`: "-0.18R to -0.41R and drawdown 24%->45%" — same source the 2026-11-06 10:06 ET run traced.
+- Asked the standing question (open position? does its management match the scale rule?) — no live tape or desk API in this session, so no answer can be recorded; narration only.
+- Sent a PushNotification: mid-session during the live A+-only window, with the scale-rule reminder and the self-check question, is the routine's actionable deliverable for this slot.
+- Supersedes: nothing.
+
 ## 2026-11-10 — NY AM session-partner run: 09:06 ET premarket, canary clear, read Grok's CPI/hike-odds update
