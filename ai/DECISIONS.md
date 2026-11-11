@@ -543,3 +543,13 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Supersedes: nothing.
 
 ## 2026-11-10 — NY AM session-partner run: 09:06 ET premarket, canary clear, read Grok's CPI/hike-odds update
+
+### 2026-11-11 — NY AM session-partner run: 10:05 ET mid-session — CANARY FAILED, build broken
+- Status: OPEN (not fixed by this session, needs trader push) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`/`git log` on `main` @ `45c9c3a`
+- Finding, not a routine observation: `src/lib/trading/week-ahead.ts` is a 7-line stub containing the literal placeholder text `// ... truncated for this example, but in real it would be full.` — this breaks the production build. `month-ahead.ts` (655 lines) is unaffected.
+- Traced via `git show <sha>:src/lib/trading/week-ahead.ts | wc -l` across the file's own commit history: `cc3786d` = 605 lines (good, matches the 2026-11-10 09:06 ET canary reading) → `db6e12b` = 0 lines (file deleted) → `45c9c3a` (current HEAD) = 7 lines (stub). Both `db6e12b` and `45c9c3a` carry the identical commit message "Restamp Nov 10 plan with hot CPI actuals; Sunday post-breakdown under-PWL story holds" — a double-commit where the second apparently landed a template/placeholder instead of real content.
+- This is the same recurring truncation failure CLAUDE.md names (prior dated occurrences: 2026-09-04, 09-20, 09-25; caught-same-morning recurrence logged 2026-10-23) — this is the next occurrence after that.
+- Restore command (not run by this session — pushing to shared `main` needs trader review per the dual-workflow rule, and this routine holds no push authority of its own): `git checkout cc3786d -- src/lib/trading/week-ahead.ts`, verify `wc -l` ≈605, commit, push, then re-run `agent-sync` so the bookmark reflects the fix.
+- Did not run the 09:00 ET premarket brief or the 11:00 ET close-out checklist this pass — the canary failure pre-empted the normal branch; still gave the 10:00 ET mid-session discipline reminder (A+-only live, CE-limit entry, 50%-off-at-T1/BE/runner scale rule) and the open-position self-check question as the time slot's narration.
+- Sent a PushNotification: build-breaking truncation on shared `main` is exactly what this routine exists to catch and surface immediately.
+- Supersedes: nothing.

@@ -1,14 +1,14 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-10 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `main` HEAD is `cc3786d`.
+**As of:** 2026-11-11 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**Branch of this file:** `main` HEAD is `45c9c3a` — **BROKEN, see Canary.**
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
-## Current patch (2026-11-10, merged)
-- Grok (`cc3786d`) updated `week-ahead.ts`: Dec hike odds ~84% pre-CPI (CME FedWatch, up from ~68% Nov 8), noted BLS will not publish YoY for Oct CPI (prior shutdown). This-week NQ range so far ~26.75k–28.13k under PWL.
+## Canary — FAILED (2026-11-11, 10:05 ET)
+`src/lib/trading/week-ahead.ts` is a 7-line stub containing the literal text `// ... truncated for this example, but in real it would be full.` — production build broken. Sequence on `main`: `cc3786d` (605 lines, good) → `db6e12b` deleted the file to 0 lines → `45c9c3a` (current HEAD) replaced it with the 7-line stub. Both top two commits share the commit message "Restamp Nov 10 plan with hot CPI actuals". This is the recurring truncation failure (prior: 2026-09-04, 09-20, 09-25, 10-23) — 5th/6th occurrence. **Not fixed by this session** — a push to shared `main` needs trader review. Restore: `git checkout cc3786d -- src/lib/trading/week-ahead.ts`, verify line count ~605, commit, push. `month-ahead.ts` unaffected (655 lines).
+## Current patch (2026-11-10, merged, now partly reverted by the truncation above)
+- Grok (`cc3786d`) updated `week-ahead.ts`: Dec hike odds ~84% pre-CPI (CME FedWatch, up from ~68% Nov 8), noted BLS will not publish YoY for Oct CPI (prior shutdown). This-week NQ range so far ~26.75k–28.13k under PWL. **This content is gone from HEAD until restored — see Canary.**
+- `efaf1e7`/`e4deea3` restamped `week-prints.json` with hot Nov CPI actuals (+0.4% m/m / core +0.3%); unaffected by the truncation.
 - Refused as always: touching `src/lib/aplus/config.ts`, inventing CWH/CWL/fills, padding files to clear guard floors.
-- `scripts/verify-repo-guards.mjs` still fails two floors that were already red on `main`: `week-ahead.ts` line count and `week-prints.json` entry count. Not padded to go green.
-## Canary
-Latest session-partner read (2026-11-10 10:06 ET mid-session): `week-ahead.ts` 605 lines, `month-ahead.ts` 655 lines — no truncation/fabrication signature, unchanged since 09:06 ET. Bookmark moved `1dc50d1` → `fae1b12` (that one commit was the prior run's own agent-sync bookmark; nothing further to read). Today (Tue Nov 10) is CPI day: CPI (Oct) 08:30 ET high-impact, confirmed in `news-calendar.json`; no YoY printed this cycle.
 ## Live constraints
 - If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents do not change those numbers.
 - Do not lower the confluence floor. A+ is the 0.75 edge. B+ live stays behind `evaluateRhBplusGate`.
