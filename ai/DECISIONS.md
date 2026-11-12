@@ -562,3 +562,10 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - It is 08:06 ET — before the 09:00 ET premarket bracket — so no premarket/mid-session/close-out narration was due yet; the canary failure is the whole of this pass.
 - Sent a PushNotification: the build-breaking stub from yesterday is still live on `main` after a full day, with no fix commit in between — worth surfacing again since the trader may not have seen it land or acted on it yet.
 - Supersedes: nothing.
+
+## 2026-11-12 — NY AM session-partner run: 09:06 ET premarket brief — canary STILL FAILED (3rd check), gave today's brief from month-ahead.ts + news-calendar.json
+- Canary: `wc -l src/lib/trading/week-ahead.ts` = 7 lines, same stub. `agent-sync --agent claude` showed only 1 new commit since the 08:06 ET bookmark (my own prior bookmark commit) — Grok has not touched the file; nothing changed in the hour since the 2nd notification.
+- Did not send a new PushNotification: the condition is identical to the one already pushed at 08:06 ET an hour ago; re-alerting on an unchanged, already-acknowledged failure is noise, not signal.
+- Gave the 09:00 ET premarket brief from committed files only, since `week-ahead.ts` (the normal weekly-detail source) is unreadable: `month-ahead.ts` November plan (`holiday_cpi` phase, Nov 9–13) — daily bias "A/A+ only into CPI," Thu strategy line is "claims," skip-if "no MSS + IFVG by 10:15 Tue / do not short the first CPI spike" (Tue-dated, carried as the week's standing skip-if). `news-calendar.json`: today 2026-11-12 08:30 ET Initial Jobless Claims, impact `medium`.
+- Flagged a conflict rather than resolving it: `news-calendar.json` grades today's claims release `medium`, but CLAUDE.md's hard news rule is a blackout only for `high`-impact releases, while the Nov month-plan's `holiday_cpi` phase object separately lists "Thu 8:30 claims" in its own `blackouts` field regardless of grade. Did not pick a winner — named both numbers per desk-accuracy.
+- Supersedes: nothing.

@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `2dc7c64`. Fetched origin. Local main matches origin.
+HEAD `b6f6516`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `3b2fdad`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `2dc7c64`.
+Bookmark was `2dc7c64`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `b6f6516`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `b6f6516` | 2026-11-12T13:07 | agent-sync: bookmark claude at 2dc7c64 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `2dc7c64` | 2026-11-12T13:07 | session-partner: 08:06 ET pre-premarket — truncation STILL unresolved overnight, 2nd notice | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `3b2fdad` | 2026-11-11T15:08 | agent-sync: bookmark claude at 98df51d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `98df51d` | 2026-11-11T15:07 | session-partner: 10:05 ET mid-session — CANARY FAILED, week-ahead.ts truncated to stub | M ai/DECISIONS.md, M ai/NOW.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `2dc7c64`.
 | `6c051dc` | 2026-11-10T14:07 | session-partner: 09:06 ET premarket — canary CLEAR, CPI day brief, read cc3786d | M ai/DECISIONS.md, M ai/NOW.md |
 | `cc3786d` | 2026-11-10T13:14 | week-ahead: update Dec hike odds to ~84% pre-CPI, note BLS no YoY for Oct CPI | M src/lib/trading/week-ahead.ts |
 | `7526e0e` | 2026-11-09T14:07 | agent-sync: bookmark claude at af89e57 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `af89e57` | 2026-11-09T14:07 | session-partner: 09:05 ET premarket touch — canary CLEAR, no change since 08:06 | M ai/DECISIONS.md, M ai/NOW.md |
 
 ## New files in those commits
 
