@@ -1,23 +1,21 @@
 # NOW — ledger-desk current truth
 **As of:** 2026-11-12 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** restore branch off `main` @ `6f2d6132`. **`main` is still RED until this lands.**
+**Tree:** `week-ahead.ts` and `week-prints.json` restored from `046b0872`, plus the Nov 12 claims stamp. `main` was red at `c6c6bc76` until this lands.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
-## Canary — fix is on the restore branch, not on main yet
-`main` @ `6f2d6132` fails `ci` Typecheck (run 43244537522). Cause, confirmed from that log:
-- `src/lib/trading/week-ahead.ts` is the 7-line stub from `45c9c3af` (`db6e12b8` deleted the 605-line file). It is not a module. The implicit-`any` errors in `week-ahead-panel.tsx`, `desk-read.ts`, and `live-world.ts` are that failure cascading.
-- `src/lib/trading/month-ahead.ts` has not exported `monthAheadFocusLine` or `monthPhaseFor` since `1f5ddb1c` dropped them (`b5cbe26f` had already emptied the file). Callers: `session-hud.tsx`, `session-brief.ts`, `veteran-brain.ts`.
-- Lint, Test, and Repo guards did not run. Once typecheck is fixed, repo guards still fail on `week-prints.json`: 15 entries, floor 30. Last full file on `main` was `227abe75` (45 entries), gutted by `de68d47c`.
-
-This branch puts the file back from `cc3786de` (605 lines) and stamps the Nov 10 CPI actuals into the Tue plan. It puts the two month functions back, looping `MONTH_PLANS`. It puts the 45 historical print rows back and keeps the 14 later stamps. Local `tsc`, `npm test` (629 pass, 0 fail), and `verify-repo-guards.mjs` (65 pass) are green. GitHub `ci` on the PR is the check that counts.
-## CPI actuals (sourced)
-BLS USDL-26-1685, https://www.bls.gov/news.release/archives/cpi_11102026.htm : CPI-U **+0.4%** m/m SA in October after **+0.6%** in September; core (all items less food and energy) **+0.3%** m/m, same as September and August; **no 12-month change** because October 2025 was not collected.
-`week-prints.json` `actual` and `vs` for 2026-11-10 CPI are unchanged from `efaf1e7f`: `+0.4% m/m / core +0.3% m/m` and `exp 0.3%/0.2% / prev 0.6%/0.3%`. Consensus is not on the BLS page. Dow Jones via CNBC expected 0.3% / 0.2% core; Reuters economists expected 0.3% headline.
+## Canary
+`c6c6bc76` replaced both files with the unexpanded shell text `$(cat /tmp/week-prints.json)` (28 bytes) and `$(cat /tmp/week-ahead.ts)` (25 bytes). No other path in that commit changed. Parent `046b0872` is the last good tree (deployed `desk-046b0872-LAG-v1`). Typecheck on that commit failed; lint, test, and repo guards did not run.
+This change puts both files back from `046b0872` and stamps the Nov 12 claims print on top. `week-ahead.ts` is the 606-line module again. `week-prints.json` is the 59-row history plus the new row (60).
+## Claims actual (sourced)
+DOL Unemployment Insurance Weekly Claims, week ending November 7, released Thursday November 12, 2026, 8:30 a.m. ET. Archive: https://oui.doleta.gov/press/2026/111226.pdf . Same paragraph on https://www.dol.gov/newsroom/releases/eta and https://www.dol.gov/ui/data.pdf .
+Seasonally adjusted initial claims **200,000**, an increase of **9,000**. Previous week revised up by **2,000** from **189,000** to **191,000**. 4-week moving average **195,250**, unchanged. Insured unemployment (week ending October 31) **1,697,000**, IUR **1.1%**.
+Second look: FRED ICSA https://fred.stlouisfed.org/series/ICSA observation **2026-11-07 = 200000** (and **2026-10-31 = 191000**, the revised prior week).
 ## Refused
-- Post-print FedWatch odds. The gutted note said ~100% (25bp ~85%, 50bp ~15%). That sentence is not on the BLS release and was not copied into `week-ahead.ts`. It was removed from the CPI `note` when the prints file was rebuilt. `actual` and `vs` were not changed.
-- A new NQ/ES range after the print. The ~26.75k–28.13k figure stays, labeled as the range into the print.
-- Thursday Nov 12 claims. Not stamped.
-- `src/lib/aplus/config.ts`. No orders.
+- An "exp ~195k" consensus. AP reported economists at 195,000. That figure is not on the DOL release. The 195,250 in the stamp is the DOL 4-week average, labeled as that.
+- Post-print FedWatch odds. Not on the DOL release. Pre-CPI ~84% sentence left as `046b0872` wrote it.
+- A new NQ/ES range. The ~26.75k–28.13k figure stays, labeled as the range into the CPI print.
+- Any HTF trend change. Sunday post-breakdown under-PWL story holds.
+- `src/lib/aplus/config.ts`. No orders. PPI Friday is not stamped.
 ## Live constraints
 - If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents do not change those numbers.
 - Do not lower the confluence floor. A+ is the 0.75 edge. B+ live stays behind `evaluateRhBplusGate`.
