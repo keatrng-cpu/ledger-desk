@@ -553,3 +553,12 @@ watcher patch docs/mtf-ltf-inversion-1017/watcher-every-tf.patch must deploy tog
 - Did not run the 09:00 ET premarket brief or the 11:00 ET close-out checklist this pass — the canary failure pre-empted the normal branch; still gave the 10:00 ET mid-session discipline reminder (A+-only live, CE-limit entry, 50%-off-at-T1/BE/runner scale rule) and the open-position self-check question as the time slot's narration.
 - Sent a PushNotification: build-breaking truncation on shared `main` is exactly what this routine exists to catch and surface immediately.
 - Supersedes: nothing.
+
+## 2026-11-12 — NY AM session-partner run: 08:06 ET pre-premarket canary check — truncation STILL unresolved overnight, 2nd notification
+- Ran the integrity canary first, as instructed: `wc -l src/lib/trading/week-ahead.ts` = 7 lines, same literal stub text (`// ... truncated for this example...`) caught yesterday 2026-11-11 10:05 ET. `month-ahead.ts` unaffected at 655 lines.
+- Ran `agent-sync --agent claude` first per the dual-workflow rule. Bookmark was `98df51d`; only one commit landed since (`3b2fdad`, an agent-sync bookmark commit touching only `docs/agent-sync.json`/`docs/agent-sync.md`). No commit since yesterday's catch touched `week-ahead.ts` — Grok has not restored it, and this session holds no push authority to fix it unilaterally (per CLAUDE.md dual-workflow + "AI never changes" scope: a production-build-breaking file on shared `main` needs trader review before a fix lands, consistent with yesterday's call not to self-restore).
+- This is the same recurring truncation failure CLAUDE.md names (prior: 2026-09-04, 09-20, 09-25; caught-same-morning recurrence 2026-10-23; caught-but-left-broken 2026-11-11). Today is the first time it has been found STILL broken on a subsequent day's check rather than fixed or freshly introduced.
+- Restore command (not run by this session, same reasoning as yesterday): `git checkout cc3786d -- src/lib/trading/week-ahead.ts`, verify `wc -l` ≈605, commit, push, then re-run `agent-sync` so the bookmark reflects the fix.
+- It is 08:06 ET — before the 09:00 ET premarket bracket — so no premarket/mid-session/close-out narration was due yet; the canary failure is the whole of this pass.
+- Sent a PushNotification: the build-breaking stub from yesterday is still live on `main` after a full day, with no fix commit in between — worth surfacing again since the trader may not have seen it land or acted on it yet.
+- Supersedes: nothing.

@@ -1,10 +1,10 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-11 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Branch of this file:** `main` HEAD is `45c9c3a` — **BROKEN, see Canary.**
+**As of:** 2026-11-12 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**Branch of this file:** `main` HEAD is `3b2fdad` — **STILL BROKEN, see Canary.**
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
-## Canary — FAILED (2026-11-11, 10:05 ET)
-`src/lib/trading/week-ahead.ts` is a 7-line stub containing the literal text `// ... truncated for this example, but in real it would be full.` — production build broken. Sequence on `main`: `cc3786d` (605 lines, good) → `db6e12b` deleted the file to 0 lines → `45c9c3a` (current HEAD) replaced it with the 7-line stub. Both top two commits share the commit message "Restamp Nov 10 plan with hot CPI actuals". This is the recurring truncation failure (prior: 2026-09-04, 09-20, 09-25, 10-23) — 5th/6th occurrence. **Not fixed by this session** — a push to shared `main` needs trader review. Restore: `git checkout cc3786d -- src/lib/trading/week-ahead.ts`, verify line count ~605, commit, push. `month-ahead.ts` unaffected (655 lines).
+## Canary — STILL FAILED, unresolved overnight (first seen 2026-11-11 10:05 ET; re-checked 2026-11-12 08:06 ET)
+`src/lib/trading/week-ahead.ts` is still a 7-line stub containing the literal text `// ... truncated for this example, but in real it would be full.` — production build is still broken, one full day after this was first caught and a notification sent. No commit between the first catch (`98df51d`) and today's HEAD (`3b2fdad`) touches the file — only an agent-sync bookmark commit landed. Sequence on `main`: `cc3786d` (605 lines, good) → `db6e12b` deleted the file to 0 lines → `45c9c3a` replaced it with the 7-line stub, still HEAD's version. This is the recurring truncation failure (prior: 2026-09-04, 09-20, 09-25, 10-23) — 5th/6th occurrence, now also unfixed-overnight. **Not fixed by this session** — a push to shared `main` needs trader review. Restore: `git checkout cc3786d -- src/lib/trading/week-ahead.ts`, verify line count ~605, commit, push. `month-ahead.ts` unaffected (655 lines).
 ## Current patch (2026-11-10, merged, now partly reverted by the truncation above)
 - Grok (`cc3786d`) updated `week-ahead.ts`: Dec hike odds ~84% pre-CPI (CME FedWatch, up from ~68% Nov 8), noted BLS will not publish YoY for Oct CPI (prior shutdown). This-week NQ range so far ~26.75k–28.13k under PWL. **This content is gone from HEAD until restored — see Canary.**
 - `efaf1e7`/`e4deea3` restamped `week-prints.json` with hot Nov CPI actuals (+0.4% m/m / core +0.3%); unaffected by the truncation.
