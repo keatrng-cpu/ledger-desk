@@ -557,6 +557,24 @@ export function resolveMonthAhead(now = new Date()): MonthAheadRead | null {
   return null;
 }
 
+/** The month phase whose start–end contains dateKey, or null. */
+export function monthPhaseFor(dateKey: string): MonthPhase | null {
+  for (const plan of MONTH_PLANS) {
+    const hit = plan.phases.find((p) => dateKey >= p.start && dateKey <= p.end);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/** HUD line for the live phase, or the next one, or null. */
+export function monthAheadFocusLine(read: MonthAheadRead | null): string | null {
+  if (!read) return null;
+  const p = read.phase ?? read.nextPhase;
+  if (!p) return null;
+  const tag = read.phase ? read.plan.monthLabel.slice(0, 3).toUpperCase() : `${read.plan.monthLabel.slice(0, 3).toUpperCase()} NEXT`;
+  return `${tag} · ${p.label} · ${p.dailyBias}`;
+}
+
 function barDateKey(t: number): { key: string; hour: number } {
   const p = etWallParts(t);
   return {
