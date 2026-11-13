@@ -1,11 +1,10 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-12 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Tree:** `week-ahead.ts` and `week-prints.json` restored from `046b0872`, plus the Nov 12 claims stamp. `main` was red at `c6c6bc76` until this lands.
+**As of:** 2026-11-13 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**Tree:** HEAD `f9a6797` — `week-ahead.ts` 580 lines, `month-ahead.ts` 673 lines. Both healthy.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 ## Canary
-`c6c6bc76` replaced both files with the unexpanded shell text `$(cat /tmp/week-prints.json)` (28 bytes) and `$(cat /tmp/week-ahead.ts)` (25 bytes). No other path in that commit changed. Parent `046b0872` is the last good tree (deployed `desk-046b0872-LAG-v1`). Typecheck on that commit failed; lint, test, and repo guards did not run.
-This change puts both files back from `046b0872` and stamps the Nov 12 claims print on top. `week-ahead.ts` is the 606-line module again. `week-prints.json` is the 59-row history plus the new row (60).
+2026-11-13 07:15:10 CT commit `d54ce4d` briefly replaced `week-ahead.ts` with a 1-line `PLACEHOLDER` — same truncation signature as 09-04/09-20/09-25/`c6c6bc76`. The trader's own next commit `f9a6797` (07:16:28 CT, one minute later, same message) restored the full 580-line module before this session ever saw it broken. HEAD is clean now; no action taken. Last known-good fallback if it recurs: `046b087`.
 ## Claims actual (sourced)
 DOL Unemployment Insurance Weekly Claims, week ending November 7, released Thursday November 12, 2026, 8:30 a.m. ET. Archive: https://oui.doleta.gov/press/2026/111226.pdf . Same paragraph on https://www.dol.gov/newsroom/releases/eta and https://www.dol.gov/ui/data.pdf .
 Seasonally adjusted initial claims **200,000**, an increase of **9,000**. Previous week revised up by **2,000** from **189,000** to **191,000**. 4-week moving average **195,250**, unchanged. Insured unemployment (week ending October 31) **1,697,000**, IUR **1.1%**.
