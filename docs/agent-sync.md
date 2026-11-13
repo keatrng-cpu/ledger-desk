@@ -2,17 +2,24 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `4c145b3`. Fetched origin. Local main matches origin.
+HEAD `c4bcf22`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `2a0f223`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `4c145b3`.
+Bookmark was `4c145b3`. 7 commit(s) landed after it.
+Bookmark after this run: `claude` → `c4bcf22`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `c4bcf22` | 2026-11-13T13:30 | session-partner: 08:29 ET premarket — canary clean (transient d54ce4d placeholder already self-healed), today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
+| `f9a6797` | 2026-11-13T07:16 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
+| `d54ce4d` | 2026-11-13T07:15 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
+| `f774d52` | 2026-11-12T22:40 | Restore week files after the Nov 12 placeholder restamp (#92) | M ai/DECISIONS.md, M ai/NOW.md, M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `c6c6bc7` | 2026-11-12T15:51 | Restamp Nov 12 claims print: 200k vs ~195k. Sunday post-breakdown under-PWL plan holds. No HTF trend invented. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `046b087` | 2026-11-12T11:35 | Restore week-ahead, month exports, and week-prints after the Nov 10 stub. (#91) | M ai/DECISIONS.md, M ai/NOW.md, M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `6f2d613` | 2026-11-12T15:08 | agent-sync: bookmark claude at 4c145b3 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `4c145b3` | 2026-11-12T15:07 | session-partner: 10:06 ET mid-session — canary STILL FAILED (4th check), A+-only discipline reminder given | M ai/DECISIONS.md, M ai/NOW.md |
 | `2a0f223` | 2026-11-12T14:08 | agent-sync: bookmark claude at 6b9c87e (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `6b9c87e` | 2026-11-12T14:07 | session-partner: 09:06 ET premarket — canary STILL FAILED (3rd check), gave CPI-week brief from month-ahead.ts | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -21,13 +28,6 @@ Bookmark after this run: `claude` → `4c145b3`.
 | `3b2fdad` | 2026-11-11T15:08 | agent-sync: bookmark claude at 98df51d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `98df51d` | 2026-11-11T15:07 | session-partner: 10:05 ET mid-session — CANARY FAILED, week-ahead.ts truncated to stub | M ai/DECISIONS.md, M ai/NOW.md |
 | `45c9c3a` | 2026-11-10T15:52 | Restamp Nov 10 plan with hot CPI actuals; Sunday post-breakdown under-PWL story holds | M src/lib/trading/week-ahead.ts |
-| `db6e12b` | 2026-11-10T15:51 | Restamp Nov 10 plan with hot CPI actuals; Sunday post-breakdown under-PWL story holds | M src/lib/trading/week-ahead.ts |
-| `efaf1e7` | 2026-11-10T15:51 | Fix week-prints.json with actual CPI stamp (hot +0.4% m/m / core +0.3%) | M src/data/week-prints.json |
-| `e4deea3` | 2026-11-10T15:51 | Restamp week-prints with Nov 10 CPI actuals (hot +0.4% / core +0.3%) | M src/data/week-prints.json |
-| `7d62a28` | 2026-11-10T15:08 | agent-sync: bookmark claude at 9c0ddf2 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `9c0ddf2` | 2026-11-10T15:07 | session-partner: 10:06 ET mid-session — canary CLEAR, 12th consecutive clean run | M ai/DECISIONS.md, M ai/NOW.md |
-| `fae1b12` | 2026-11-10T14:07 | agent-sync: bookmark claude at 1dc50d1 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `1dc50d1` | 2026-11-10T14:07 | agent-sync: bookmark claude at cc3786d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
