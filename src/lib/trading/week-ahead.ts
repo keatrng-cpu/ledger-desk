@@ -354,10 +354,10 @@ export const WEEK_NOV9_NOV13: WeekPlan = {
   headline:
     "CPI week. CPI Oct Tue 8:30, claims Thu 8:30, PPI Oct Fri 8:30. No multi-day swing into Friday. Post-hot-NFP context.",
   htfBias:
-    "Prior week (Nov 2–6) tape stayed well under Oct 26–30 PWL after hot NFP +165k. Opens inside the post-breakdown range. CPI Oct printed +0.4% m/m / core +0.3% m/m (BLS). Thu claims printed 200k (DOL, week ending Nov 7). Dec hike odds ~100% post-CPI (CME FedWatch; ~87% 25bp / ~13% 50bp, up from ~84% pre-CPI). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
+    "Prior week (Nov 2–6) tape stayed well under Oct 26–30 PWL after hot NFP +165k. Opens inside the post-breakdown range. CPI Oct printed +0.4% m/m / core +0.3% m/m (BLS). Thu claims printed 200k (DOL, week ending Nov 7). Dec hike odds ~100% post-CPI/PPI (CME FedWatch; ~90% 25bp / ~10% 50bp after slight PPI miss). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue CPI manipulates. Wed two-way. Thu claims. Fri PPI is the week’s secondary event.",
   macro:
-    "Mon no high-impact. Tue CPI (Oct) printed +0.4% m/m / core +0.3% m/m (BLS USDL-26-1685). No 12-month change: October 2025 was not collected. Thu Initial Jobless Claims printed 200k (DOL, week ending Nov 7; prior rev 191k from 189k; 4-wk avg 195,250). Fri PPI (Oct) 08:30. No NFP. Dec hike odds ~100% post-CPI (CME FedWatch ~87% 25bp / ~13% 50bp). Live CWH/CWL from bars. This-week range so far NQ ~26.75k–28.70k / ES ~7.36k–7.67k, still under seed PWL.",
+    "Mon no high-impact. Tue CPI (Oct) printed +0.4% m/m / core +0.3% m/m (BLS USDL-26-1685). No 12-month change: October 2025 was not collected. Thu Initial Jobless Claims printed 200k (DOL, week ending Nov 7; prior rev 191k from 189k; 4-wk avg 195,250). Fri PPI (Oct) printed +0.3% m/m / +6.5% y/y (BLS USDL 26-1687). Slight miss MoM. No NFP. Dec hike odds still ~100% (CME FedWatch ~90% 25bp / ~10% 50bp post-PPI). Live CWH/CWL from bars. This-week range NQ ~26.75k–28.70k / ES ~7.36k–7.67k, still under seed PWL.",
   asymmetry:
     "A+ into the prints. Flatten before CPI unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -451,11 +451,12 @@ export const WEEK_NOV9_NOV13: WeekPlan = {
       weekday: "Fri",
       dailyBias: "Event / A+ only",
       kind: "event",
-      news: [{ timeEt: "08:30", name: "PPI (Oct)", impact: "high", note: "" }],
-      likelyTape: "PPI Oct 8:30. Secondary event after CPI. Post-breakdown selective holds.",
+      news: [{ timeEt: "08:30", name: "PPI (Oct)", impact: "high", note: "Printed +0.3% m/m / +6.5% y/y", actual: "+0.3% m/m / +6.5% y/y", vs: "exp ~0.4% / ~6.6%; prev 1.4% (rev)/6.3%" }],
+      likelyTape: "PPI Oct printed +0.3% m/m / +6.5% y/y (BLS). Slight miss vs ~0.4%. Session stayed under seed PWL (NQ ~27.7k-28.6k, ES ~7.52k-7.67k). Post-breakdown selective holds; no PWH/PWL take.",
       trade: "A+ only after 10:00. Short only on BSL raid + MSS if offered; do not chase.",
       skipIf: "No entry 8:15–9:00. No multi-day swing. No fade of the first impulse without structure.",
-      pathNote: "Live CWH/CWL from bars. No HTF trend invented. Flatten into weekend.",
+      pathNote: "PPI printed. Sunday post-breakdown under-PWL story holds. Live CWH/CWL from bars. No HTF trend invented. Flatten into weekend.",
+      printed: true,
     },
   ],
 };
