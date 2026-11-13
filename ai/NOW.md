@@ -1,6 +1,6 @@
 # NOW — ledger-desk current truth
 **As of:** 2026-11-13 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Tree:** HEAD `f9a6797` — `week-ahead.ts` 580 lines, `month-ahead.ts` 673 lines. Both healthy.
+**Tree:** HEAD `bcd48d9` — `week-ahead.ts` 580 lines, `month-ahead.ts` 673 lines. Both healthy.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 ## Canary
