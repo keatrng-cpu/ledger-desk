@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `c4bcf22`. Fetched origin. Local main matches origin.
+HEAD `5bab63c`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `4c145b3`. 7 commit(s) landed after it.
-Bookmark after this run: `claude` → `c4bcf22`.
+Bookmark was `bcd48d9`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `5bab63c`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `5bab63c` | 2026-11-13T14:24 | session-partner: 09:22 ET premarket — canary clean, today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
+| `bcd48d9` | 2026-11-13T13:30 | agent-sync: bookmark claude at c4bcf22 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `c4bcf22` | 2026-11-13T13:30 | session-partner: 08:29 ET premarket — canary clean (transient d54ce4d placeholder already self-healed), today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `f9a6797` | 2026-11-13T07:16 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
 | `d54ce4d` | 2026-11-13T07:15 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `c4bcf22`.
 | `b6f6516` | 2026-11-12T13:07 | agent-sync: bookmark claude at 2dc7c64 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `2dc7c64` | 2026-11-12T13:07 | session-partner: 08:06 ET pre-premarket — truncation STILL unresolved overnight, 2nd notice | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `3b2fdad` | 2026-11-11T15:08 | agent-sync: bookmark claude at 98df51d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `98df51d` | 2026-11-11T15:07 | session-partner: 10:05 ET mid-session — CANARY FAILED, week-ahead.ts truncated to stub | M ai/DECISIONS.md, M ai/NOW.md |
-| `45c9c3a` | 2026-11-10T15:52 | Restamp Nov 10 plan with hot CPI actuals; Sunday post-breakdown under-PWL story holds | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
