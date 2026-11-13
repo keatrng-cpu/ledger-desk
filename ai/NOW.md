@@ -1,10 +1,10 @@
 # NOW — ledger-desk current truth
 **As of:** 2026-11-13 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Tree:** HEAD `bcd48d9` — `week-ahead.ts` 580 lines, `month-ahead.ts` 673 lines. Both healthy.
+**Tree:** HEAD `a0ef16d` — `week-ahead.ts` 580 lines, `month-ahead.ts` 673 lines. Both healthy.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 ## Canary
-2026-11-13 07:15:10 CT commit `d54ce4d` briefly replaced `week-ahead.ts` with a 1-line `PLACEHOLDER` — same truncation signature as 09-04/09-20/09-25/`c6c6bc76`. The trader's own next commit `f9a6797` (07:16:28 CT, one minute later, same message) restored the full 580-line module before this session ever saw it broken. HEAD is clean now; no action taken. Last known-good fallback if it recurs: `046b087`.
+2026-11-13 07:15:10 CT commit `d54ce4d` briefly replaced `week-ahead.ts` with a 1-line `PLACEHOLDER` — same truncation signature as 09-04/09-20/09-25/`c6c6bc76`. The trader's own next commit `f9a6797` (07:16:28 CT, one minute later, same message) restored the full 580-line module before this session ever saw it broken. Re-checked at 10:06 ET mid-session (this run): still clean, 580/673 lines. No action taken. Last known-good fallback if it recurs: `046b087`.
 ## Claims actual (sourced)
 DOL Unemployment Insurance Weekly Claims, week ending November 7, released Thursday November 12, 2026, 8:30 a.m. ET. Archive: https://oui.doleta.gov/press/2026/111226.pdf . Same paragraph on https://www.dol.gov/newsroom/releases/eta and https://www.dol.gov/ui/data.pdf .
 Seasonally adjusted initial claims **200,000**, an increase of **9,000**. Previous week revised up by **2,000** from **189,000** to **191,000**. 4-week moving average **195,250**, unchanged. Insured unemployment (week ending October 31) **1,697,000**, IUR **1.1%**.
