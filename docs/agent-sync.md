@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `a910f6d`. Fetched origin. Local main matches origin.
+HEAD `30fbe5a`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `1d7b286`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `a910f6d`.
+Bookmark was `a910f6d`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `30fbe5a`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `30fbe5a` | 2026-11-16T13:08 | agent-sync: bookmark claude at a910f6d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `a910f6d` | 2026-11-16T13:08 | session-partner: 08:06 ET premarket — canary clean, today's Empire Manufacturing/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `1d7b286` | 2026-11-15T16:22 | Sunday restamp Nov 15: restamp Nov month Fed path post-CPI/PPI | M src/lib/trading/month-ahead.ts |
 | `28b393a` | 2026-11-15T16:21 | Sunday restamp Nov 15: add Nov 16-20 week plan; restamp Nov month Fed path post-CPI | M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `a910f6d`.
 | `f9a6797` | 2026-11-13T07:16 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
 | `d54ce4d` | 2026-11-13T07:15 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
 | `f774d52` | 2026-11-12T22:40 | Restore week files after the Nov 12 placeholder restamp (#92) | M ai/DECISIONS.md, M ai/NOW.md, M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `c6c6bc7` | 2026-11-12T15:51 | Restamp Nov 12 claims print: 200k vs ~195k. Sunday post-breakdown under-PWL plan holds. No HTF trend invented. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
