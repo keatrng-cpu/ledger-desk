@@ -2,17 +2,19 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `3ad104c`. Fetched origin. Local main matches origin.
+HEAD `c855119`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `30fbe5a`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `3ad104c`.
+Bookmark was `c3233f5`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `c855119`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `c855119` | 2026-11-16T15:08 | session-partner: 10:06 ET mid-session — canary clean, A+-only discipline reminder given | M ai/DECISIONS.md, M ai/NOW.md |
+| `c3233f5` | 2026-11-16T14:08 | agent-sync: bookmark claude at 3ad104c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `3ad104c` | 2026-11-16T14:08 | session-partner: 09:06 ET premarket — duplicate firing, canary clean, no new content | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `30fbe5a` | 2026-11-16T13:08 | agent-sync: bookmark claude at a910f6d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `a910f6d` | 2026-11-16T13:08 | session-partner: 08:06 ET premarket — canary clean, today's Empire Manufacturing/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
@@ -26,8 +28,6 @@ Bookmark after this run: `claude` → `3ad104c`.
 | `5bab63c` | 2026-11-13T14:24 | session-partner: 09:22 ET premarket — canary clean, today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `bcd48d9` | 2026-11-13T13:30 | agent-sync: bookmark claude at c4bcf22 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `c4bcf22` | 2026-11-13T13:30 | session-partner: 08:29 ET premarket — canary clean (transient d54ce4d placeholder already self-healed), today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
-| `f9a6797` | 2026-11-13T07:16 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
-| `d54ce4d` | 2026-11-13T07:15 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
