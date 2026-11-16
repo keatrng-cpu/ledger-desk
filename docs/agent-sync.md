@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `30fbe5a`. Fetched origin. Local main matches origin.
+HEAD `3ad104c`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `a910f6d`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `30fbe5a`.
+Bookmark was `30fbe5a`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `3ad104c`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `3ad104c` | 2026-11-16T14:08 | session-partner: 09:06 ET premarket — duplicate firing, canary clean, no new content | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `30fbe5a` | 2026-11-16T13:08 | agent-sync: bookmark claude at a910f6d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `a910f6d` | 2026-11-16T13:08 | session-partner: 08:06 ET premarket — canary clean, today's Empire Manufacturing/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `1d7b286` | 2026-11-15T16:22 | Sunday restamp Nov 15: restamp Nov month Fed path post-CPI/PPI | M src/lib/trading/month-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `30fbe5a`.
 | `c4bcf22` | 2026-11-13T13:30 | session-partner: 08:29 ET premarket — canary clean (transient d54ce4d placeholder already self-healed), today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `f9a6797` | 2026-11-13T07:16 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
 | `d54ce4d` | 2026-11-13T07:15 | week-ahead: restamp Dec hike odds post-CPI (~100%) and update this-week range prose (still under seed PWL) | M src/lib/trading/week-ahead.ts |
-| `f774d52` | 2026-11-12T22:40 | Restore week files after the Nov 12 placeholder restamp (#92) | M ai/DECISIONS.md, M ai/NOW.md, M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
