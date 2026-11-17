@@ -2,17 +2,20 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `f7f2370`. Fetched origin. Local main matches origin.
+HEAD `58d3594`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `22a2dce`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `f7f2370`.
+Bookmark was `84f4277`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `58d3594`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `58d3594` | 2026-11-17T14:08 | session-partner: 09:06 ET premarket — CANARY STILL FAILED one hour later, Retail Sales already printed | M ai/DECISIONS.md, M ai/NOW.md |
+| `84f4277` | 2026-11-17T07:38 | Stamp Retail Sales (Oct) actual: +0.2% vs prior +0.8% | M src/data/week-prints.json |
+| `cfd651d` | 2026-11-17T13:08 | agent-sync: bookmark claude at f7f2370 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `f7f2370` | 2026-11-17T13:08 | session-partner: 08:06 ET premarket — CANARY FAILED, week-ahead.ts/week-prints.json truncated since f056566, not self-healed | M ai/DECISIONS.md, M ai/NOW.md |
 | `22a2dce` | 2026-11-16T15:51 | Restamp Nov 16 cash close: no high-impact prints (Empire 7.8 medium); under-PWL holds | M src/data/week-prints.json |
 | `669a852` | 2026-11-16T15:51 | Fix restamp: add Nov 16 no-high-impact entry (Empire 7.8 medium) | M src/data/week-prints.json |
@@ -25,9 +28,6 @@ Bookmark after this run: `claude` → `f7f2370`.
 | `a910f6d` | 2026-11-16T13:08 | session-partner: 08:06 ET premarket — canary clean, today's Empire Manufacturing/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 | `1d7b286` | 2026-11-15T16:22 | Sunday restamp Nov 15: restamp Nov month Fed path post-CPI/PPI | M src/lib/trading/month-ahead.ts |
 | `28b393a` | 2026-11-15T16:21 | Sunday restamp Nov 15: add Nov 16-20 week plan; restamp Nov month Fed path post-CPI | M src/lib/trading/week-ahead.ts |
-| `e582212` | 2026-11-15T16:19 | Sunday restamp Nov 15: add Nov 16-20 week plan; restamp Nov month Fed path post-CPI | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
-| `739bed6` | 2026-11-13T21:51 | Stamp Fri 2026-11-13 PPI actuals; confirm Sunday under-PWL plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `8022f29` | 2026-11-13T15:08 | agent-sync: bookmark claude at d749c01 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
