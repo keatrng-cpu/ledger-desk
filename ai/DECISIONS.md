@@ -618,3 +618,14 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Asked the standing question (open position? does its management match the scale rule?) — no live tape or desk API in this session, so no answer can be recorded; narration only, per CLAUDE.md's no-LLM-in-the-scoring-loop rule.
 - Sent a PushNotification: mid-session during the live A+-only window, with the scale-rule reminder and the self-check question, is the routine's actionable deliverable for this slot, not an anomaly report held back.
 - Supersedes: nothing.
+
+## 2026-11-17 — NY AM session-partner run: 08:06 ET premarket — CANARY FAILED, week-ahead.ts/week-prints.json truncated, not self-healed
+- Status: OPEN LOCK (needs trader restore) · Decided by: Claude, scheduled session-partner run · Source: `wc -l`, `git log`, `git show` on `main` @ `22a2dce`
+- Finding, not routine: integrity canary FAILED. `src/lib/trading/week-ahead.ts` is 0 lines / literal content `PLACEHOLDER` (11 bytes); should be ~670 lines. `src/data/week-prints.json` is 8 lines; should be ~430.
+- Root cause: commit `f056566` ("Restamp Nov 16 cash close…", Mon Nov 16 15:51:13 CT) gutted both files in one diff (`-1100/+2`). Same truncation signature as 09-04/09-20/09-25/`c6c6bc76`/the Nov 13 `d54ce4d` near-miss logged 2026-11-13.
+- Unlike Nov 13 (self-corrected in 1 minute via `f9a6797`), this one did NOT self-heal: the two commits stacked on top in the same minute (`669a852`, `22a2dce`) only patched `week-prints.json` with a few lines each and never restored `week-ahead.ts`. Still broken ~15h later at this check.
+- Last good commit: `28b393a` (`week-ahead.ts` 671 lines, `week-prints.json` 429 lines). Restore command given to the trader: `git checkout 28b393a -- src/lib/trading/week-ahead.ts src/data/week-prints.json`, then manually reapply the legitimate Nov 16 Empire-7.8 restamp lines `669a852`/`22a2dce` added to `week-prints.json` so that content isn't lost on top of the restore.
+- This session did NOT run the restore itself (narration-only role per CLAUDE.md; a shared-main file restore is the trader's/Grok's call, not unilaterally mine).
+- Premarket brief could not be produced from `week-ahead.ts`/`week-prints.json` (source destroyed). Gave only `news-calendar.json`'s today entry (Retail Sales (Oct), 08:30 ET, high-impact) plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book, max 2/killzone, 2%/5% halts, A+ only after 10:00 ET).
+- Sent a PushNotification: this is exactly the failure mode STEP 1 of the scheduled prompt calls "the single most valuable thing you do," and it had sat unfixed on `main` for ~15 hours with no one aware.
+- Supersedes: nothing. Updates canary status in `ai/NOW.md` from "clean" (last three 2026-11-16 firings) to "BROKEN, not yet restored."

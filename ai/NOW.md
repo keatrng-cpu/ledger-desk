@@ -1,10 +1,10 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-16 (UTC) · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
-**Tree:** HEAD `c3233f5` — `week-ahead.ts` 671 lines, `month-ahead.ts` 635 lines. Both healthy.
+**As of:** 2026-11-17 08:06 ET · **Maintainer:** Graph Keeper · **Repo:** `keatrng-cpu/ledger-desk`
+**Tree:** HEAD `22a2dce` — `week-ahead.ts` **BROKEN (1-line PLACEHOLDER)**, `week-prints.json` **BROKEN (8 lines, was ~430)**. `month-ahead.ts` 635 lines, healthy.
 **Tracking:** issue #7 · plan `ai/research/2026-10-06-desk-implementation-plan.md` @ `09aad4b` · HANDOFF `ai/HANDOFF.md` @ `ceb62b7`
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
-## Canary
-2026-11-13 07:15:10 CT commit `d54ce4d` briefly replaced `week-ahead.ts` with a 1-line `PLACEHOLDER` — same truncation signature as 09-04/09-20/09-25/`c6c6bc76`. The trader's own next commit `f9a6797` (07:16:28 CT, one minute later, same message) restored the full module before this session ever saw it broken. Re-checked 2026-11-16 08:06, 09:06, and 10:06 ET (three firings today, same result): still clean, 671/635 lines — no truncation. Last known-good fallback if it recurs: `046b087`.
+## Canary — LIVE FAILURE, not self-healed
+2026-11-16 15:51:13 CT commit `f056566` ("Restamp Nov 16 cash close…") gutted BOTH `week-ahead.ts` (672→1 line, `PLACEHOLDER`) and `src/data/week-prints.json` (430→~9 lines) in the same commit: `-1100/+2` diff. Same signature as 09-04/09-20/09-25/`c6c6bc76`/the Nov 13 `d54ce4d` near-miss — but unlike Nov 13 (self-corrected in 1 minute via `f9a6797`), the two commits stacked on top (`669a852`, `22a2dce`, same Nov 16 15:51 minute) only patched `week-prints.json` with a few lines each and never touched `week-ahead.ts`. Still broken as of this check (2026-11-17 08:06 ET), ~15h later. **Last good commit: `28b393a`** (`week-ahead.ts` 671 lines, `week-prints.json` 429 lines). Restore: `git checkout 28b393a -- src/lib/trading/week-ahead.ts src/data/week-prints.json`, then reapply the legitimate Nov 16 Empire-7.8 restamp lines `669a852`/`22a2dce` added to `week-prints.json` on top, so that content isn't lost. Flagged via push notification; not restored by this session (narration-only). Older fallback if `28b393a` is ever suspect: `046b087`.
 ## Claims actual (sourced)
 DOL Unemployment Insurance Weekly Claims, week ending November 7, released Thursday November 12, 2026, 8:30 a.m. ET. Archive: https://oui.doleta.gov/press/2026/111226.pdf . Same paragraph on https://www.dol.gov/newsroom/releases/eta and https://www.dol.gov/ui/data.pdf .
 Seasonally adjusted initial claims **200,000**, an increase of **9,000**. Previous week revised up by **2,000** from **189,000** to **191,000**. 4-week moving average **195,250**, unchanged. Insured unemployment (week ending October 31) **1,697,000**, IUR **1.1%**.
