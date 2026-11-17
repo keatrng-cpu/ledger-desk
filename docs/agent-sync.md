@@ -2,17 +2,22 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `c855119`. Fetched origin. Local main matches origin.
+HEAD `f7f2370`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `c3233f5`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `c855119`.
+Bookmark was `22a2dce`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `f7f2370`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `f7f2370` | 2026-11-17T13:08 | session-partner: 08:06 ET premarket — CANARY FAILED, week-ahead.ts/week-prints.json truncated since f056566, not self-healed | M ai/DECISIONS.md, M ai/NOW.md |
+| `22a2dce` | 2026-11-16T15:51 | Restamp Nov 16 cash close: no high-impact prints (Empire 7.8 medium); under-PWL holds | M src/data/week-prints.json |
+| `669a852` | 2026-11-16T15:51 | Fix restamp: add Nov 16 no-high-impact entry (Empire 7.8 medium) | M src/data/week-prints.json |
+| `f056566` | 2026-11-16T15:51 | Restamp Nov 16 cash close: Empire 7.8 (medium, no high-impact ISM/JOLTS/ADP/claims/NFP). NQ session ~27.2-27.7k under seed PWL 29904; Sunday under-PWL plan holds. No HTF trend invented. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `82d2b6f` | 2026-11-16T15:09 | agent-sync: bookmark claude post-push | M docs/agent-sync.json, M docs/agent-sync.md |
 | `c855119` | 2026-11-16T15:08 | session-partner: 10:06 ET mid-session — canary clean, A+-only discipline reminder given | M ai/DECISIONS.md, M ai/NOW.md |
 | `c3233f5` | 2026-11-16T14:08 | agent-sync: bookmark claude at 3ad104c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `3ad104c` | 2026-11-16T14:08 | session-partner: 09:06 ET premarket — duplicate firing, canary clean, no new content | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
@@ -23,11 +28,6 @@ Bookmark after this run: `claude` → `c855119`.
 | `e582212` | 2026-11-15T16:19 | Sunday restamp Nov 15: add Nov 16-20 week plan; restamp Nov month Fed path post-CPI | M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `739bed6` | 2026-11-13T21:51 | Stamp Fri 2026-11-13 PPI actuals; confirm Sunday under-PWL plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `8022f29` | 2026-11-13T15:08 | agent-sync: bookmark claude at d749c01 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `d749c01` | 2026-11-13T15:08 | session-partner: 10:06 ET mid-session — canary clean, A+-only discipline reminder given | M ai/DECISIONS.md, M ai/NOW.md |
-| `a0ef16d` | 2026-11-13T14:24 | agent-sync: bookmark claude at 5bab63c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `5bab63c` | 2026-11-13T14:24 | session-partner: 09:22 ET premarket — canary clean, today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
-| `bcd48d9` | 2026-11-13T13:30 | agent-sync: bookmark claude at c4bcf22 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `c4bcf22` | 2026-11-13T13:30 | session-partner: 08:29 ET premarket — canary clean (transient d54ce4d placeholder already self-healed), today's PPI/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
 
 ## New files in those commits
 
