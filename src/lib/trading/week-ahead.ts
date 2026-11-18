@@ -585,6 +585,53 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
 
 const WEEK_PLANS: WeekPlan[] = [WEEK_NOV16_NOV20, WEEK_NOV9_NOV13, WEEK_NOV2_NOV6, WEEK_OCT26_OCT30];
 
+function addDays(dateKey: string, n: number): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const utc = Date.UTC(y!, m! - 1, d! + n);
+  const dt = new Date(utc);
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+}
+
+export function resolveWeekAhead(now = new Date()): WeekAheadRead | null {
+  const dateKey = etDateKey(now);
+  for (const plan of WEEK_PLANS) {
+    const prepDay = addDays(plan.weekStart, -1);
+    if (dateKey < prepDay || dateKey > plan.weekEnd) continue;
+    const today = plan.days.find((d) => d.date === dateKey) ?? null;
+    const next = plan.days.find((d) => d.date > dateKey) ?? null;
+    const phase: WeekAheadRead["phase"] =
+      dateKey < plan.weekStart ? "prep" : dateKey > plan.weekEnd ? "done" : "live";
+    const focus = today ?? next;
+    return {
+      plan,
+      dateKey,
+      today,
+      next,
+      phase,
+      focus,
+      live: false,
+      refreshedAt: now.toISOString(),
+    };
+  }
+  return null;
+}
+
+const PLANS = WEEK_PLANS;
+
+export function weekDayFor(dateKey: string): WeekDayPlan | null {
+  for (const plan of PLANS) {
+    const hit = plan.days.find((d) => d.date === dateKey);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
+  if (!read || !read.focus) return null;
+  const tag = read.today ? "TODAY" : "NEXT";
+  return `${tag} · ${read.focus.weekday} · ${read.focus.dailyBias}`;
+}
+
 export function currentWeekPlan(now = new Date()): WeekPlan | null {
   const key = etDateKey(now);
   for (const p of WEEK_PLANS) {
