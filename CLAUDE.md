@@ -101,6 +101,8 @@ Computer **Arm alarm** (HUD) beeps only on A+/A/A− PATH. Needs the desk tab op
 3. `src/data/week-prints.json` — stamp official actuals only after they print. No future actuals.
 4. `src/data/news-calendar.json` — official schedules only (BLS / ISM / BEA / Census / Fed).
 
+A restamp, Sunday or cash-close, **patches** those files. It never replaces one with a token (`READ_FROM_FILE_*`, `PLACEHOLDER_*`, `FULL_CONTENT_FROM_FILE`, or an unexpanded `$(cat /tmp/...)`). `scripts/plan-file-guard.mjs` refuses that write, the pre-commit hook refuses the commit, and CI fails the branch. The same guard refuses a write that shrinks `week-ahead.ts`, `month-ahead.ts`, `week-prints.json`, or `news-calendar.json` by more than half.
+
 Do not invent fills. Do not touch `src/lib/aplus/config.ts`.
 
 ### Every live ping — output contract

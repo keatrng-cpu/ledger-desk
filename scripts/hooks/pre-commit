@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Ledger Desk pre-commit.
+#
+# Cash-close restamps have committed READ_FROM_FILE_* / PLACEHOLDER tokens
+# as the body of week-ahead.ts and week-prints.json. Typecheck cannot parse
+# that, and a hook that only runs on push is skipped with --no-verify often
+# enough that the stub still reaches main. This refuses the commit.
+#
+# Install: npm run hooks:install
+#
+node scripts/plan-file-guard.mjs --staged || {
+  echo ""
+  echo "pre-commit BLOCKED: a plan file is a stub token or shrank by more than half."
+  echo "Patch week-ahead.ts / month-ahead.ts / week-prints.json / news-calendar.json."
+  echo "Do not replace the file with READ_FROM_FILE_* or PLACEHOLDER."
+  exit 1
+}

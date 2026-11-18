@@ -116,6 +116,7 @@ const STUB_MARKERS = [
   "see-file",
   "see file",
   "PLACEHOLDER",
+  "READ_FROM_FILE_",
   "... rest of file",
   "TODO: restore",
 ];
@@ -138,7 +139,7 @@ for (const [path] of FLOORS) {
 export function weekFileProblems(path, src) {
   const out = [];
   if (src == null) return [`${path} missing`];
-  const MARKERS = ["FULL_CONTENT_HERE", "PLACEHOLDER", "rest of file", "rest of the file", "remaining content", "content unchanged",
+  const MARKERS = ["FULL_CONTENT_HERE", "PLACEHOLDER", "READ_FROM_FILE_", "rest of file", "rest of the file", "remaining content", "content unchanged",
     "TRUNCATED", "<content>", "[content]", "existing code", "see next file", "see-file", "TODO: restore", "// ...", "/* ... */"];
   for (const m of MARKERS) if (src.toLowerCase().includes(m.toLowerCase())) out.push(`${path} contains stub marker "${m}"`);
   if (path.endsWith(".ts")) {
@@ -172,6 +173,8 @@ for (const path of ["src/lib/trading/week-ahead.ts", "src/data/week-prints.json"
   const real = read(path) ?? "";
   const stub = path.endsWith(".ts") ? "// FULL_CONTENT_HERE\nexport const WEEK = [];\n" : '[{"date":"PLACEHOLDER"}]';
   ok(weekFileProblems(path, stub).length > 0, `${path} guard rejects a placeholder-only file`);
+  const readFromFile = path.endsWith(".ts") ? "READ_FROM_FILE_AHEAD\n" : "READ_FROM_FILE_PRINTS\n";
+  ok(weekFileProblems(path, readFromFile).length > 0, `${path} guard rejects a READ_FROM_FILE_* stub`);
   ok(weekFileProblems(path, real.slice(0, Math.floor(real.length * 0.6))).length > 0, `${path} guard rejects a truncated file`);
 }
 
