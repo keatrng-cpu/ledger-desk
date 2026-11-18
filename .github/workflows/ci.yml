@@ -19,6 +19,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Refuse READ_FROM_FILE plan stubs
+        run: node scripts/plan-file-guard.mjs --worktree
       - name: Install
         run: npm ci --no-audit --no-fund
       - name: Typecheck

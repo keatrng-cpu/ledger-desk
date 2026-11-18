@@ -13,7 +13,22 @@
 # --no-verify and nothing was checked. Shrink that file; never grow it to go green.
 # Skip once (and say why in the commit): git push --no-verify
 #
-echo "pre-push: typecheck + verifiers, new breaks only (~5m, --no-verify to skip)"
+echo "pre-push: plan-file guard, then typecheck + verifiers (~5m, --no-verify to skip)"
+
+node scripts/plan-file-guard.mjs --worktree || {
+  echo ""
+  echo "pre-push BLOCKED: a plan file is a stub token or under its size floor."
+  exit 1
+}
+
+# stdin: local_ref local_sha remote_ref remote_sha
+while read local_ref local_sha remote_ref remote_sha; do
+  node scripts/plan-file-guard.mjs --range "$remote_sha" "$local_sha" || {
+    echo ""
+    echo "pre-push BLOCKED: a commit being pushed stubs a plan file or shrinks it by more than half."
+    exit 1
+  }
+done
 
 npm run typecheck || {
   echo ""

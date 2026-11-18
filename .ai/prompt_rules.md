@@ -9,4 +9,5 @@ Grok and Claude write the same tree. Style is not a reason to rewrite the other 
 - Do not split a file to hit a line cap during a trading fix. A split is its own change, with the imports updated and the verifier run.
 - A public function you add gets one line saying what it returns. Do not add a comment block to code you did not write.
 - Numbers live in `src/lib/aplus/config.ts`. Agents do not change them. If a doc disagrees with the code, the code wins.
+- A restamp of `week-ahead.ts`, `month-ahead.ts`, `week-prints.json`, or `news-calendar.json` is a patch of the lines that changed. Never write the file as `READ_FROM_FILE_*`, `PLACEHOLDER_*`, `FULL_CONTENT_FROM_FILE`, or `$(cat /tmp/...)`. Before committing, `node scripts/plan-file-guard.mjs --staged` must pass. It refuses those tokens and any of those four files that shrank by more than half. The pre-commit hook runs the same check.
 - Push to `main`. Run `make map` if you added or renamed a file.

@@ -11,6 +11,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { assertSafePlanWrite } from "./plan-file-guard.mjs";
 const A = await import("../src/lib/news/actuals.ts");
 const { NEWS_CALENDAR } = await import("../src/lib/trading/news.ts");
 
@@ -22,7 +23,8 @@ const date = arg("--date") ?? new Intl.DateTimeFormat("en-CA", { timeZone: "Amer
 const write = process.argv.includes("--write");
 const useGrok = process.argv.includes("--grok");
 const file = join(import.meta.dirname, "..", "src", "data", "week-prints.json");
-let prints = JSON.parse(readFileSync(file, "utf8"));
+const before = readFileSync(file, "utf8");
+let prints = JSON.parse(before);
 
 console.log(`stamp-actuals ${date} · BLS_API_KEY ${process.env.BLS_API_KEY ? "present" : "absent"} · BEA_API_KEY ${process.env.BEA_API_KEY ? "present" : "absent"} · XAI_API_KEY ${process.env.XAI_API_KEY ? "present" : "absent"}`);
 const rows = NEWS_CALENDAR.filter((e) => e.date === date && A.kindOf(e.name));
@@ -48,6 +50,9 @@ for (const r of rows) {
   }
 }
 if (write && added) {
-  writeFileSync(file, JSON.stringify(prints, null, 2) + "\n");
+  const next = JSON.stringify(prints, null, 2) + "\n";
+  // Appends only. Still refuse a stub token or a body under half the previous file.
+  assertSafePlanWrite("src/data/week-prints.json", before, next);
+  writeFileSync(file, next);
   console.log(`  wrote ${added} row(s) to src/data/week-prints.json`);
 } else if (added) console.log("  dry run — pass --write to append");
