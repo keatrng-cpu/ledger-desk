@@ -444,14 +444,14 @@
     "date": "2026-11-18",
     "name": "Housing Starts (Oct)",
     "actual": "1.309M +9.9%",
-    "vs": "—",
-    "note": "Cash-close restamp. NQ session ~26.92k-27.33k. Sunday post-breakdown under-PWL holds."
+    "vs": "prior Sep rev 1.191M",
+    "note": "Census CB26-187. Prior September revised to 1.191M. NQ session ~26.92k-27.33k. Sunday post-breakdown under-PWL holds."
   },
   {
     "date": "2026-11-18",
     "name": "FOMC Minutes (Oct meeting)",
-    "actual": "nearly all expect Dec hike",
+    "actual": "almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable",
     "vs": "—",
-    "note": "Cash-close restamp. Nearly all expect Dec hike. Dec hike odds ~95% 25bp. Sunday post-breakdown under-PWL holds."
+    "note": "Cash-close restamp. Almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable. Dec hike odds ~95% 25bp. Sunday post-breakdown under-PWL holds."
   }
 ]

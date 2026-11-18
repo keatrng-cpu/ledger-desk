@@ -15,20 +15,44 @@
 #
 echo "pre-push: plan-file guard, then typecheck + verifiers (~5m, --no-verify to skip)"
 
+# stdin: local_ref local_sha remote_ref remote_sha
+# A remote deletion uses 40 zeros as local_sha. That push carries no file
+# content, so the stub guard must not treat the zero sha as a deleted plan.
+updates=$(mktemp)
+trap 'rm -f "$updates"' EXIT
+cat > "$updates"
+
+saw_update=0
+saw_delete=0
+while read local_ref local_sha remote_ref remote_sha; do
+  [ -n "$local_sha" ] || continue
+  case "$local_sha" in
+    0000000000000000000000000000000000000000) saw_delete=1 ;;
+    *) saw_update=1 ;;
+  esac
+done < "$updates"
+
+if [ "$saw_delete" -eq 1 ] && [ "$saw_update" -eq 0 ]; then
+  echo "pre-push: remote branch deletion only; stub guard still applies to content pushes"
+  exit 0
+fi
+
 node scripts/plan-file-guard.mjs --worktree || {
   echo ""
   echo "pre-push BLOCKED: a plan file is a stub token or under its size floor."
   exit 1
 }
 
-# stdin: local_ref local_sha remote_ref remote_sha
 while read local_ref local_sha remote_ref remote_sha; do
+  case "$local_sha" in
+    ""|0000000000000000000000000000000000000000) continue ;;
+  esac
   node scripts/plan-file-guard.mjs --range "$remote_sha" "$local_sha" || {
     echo ""
     echo "pre-push BLOCKED: a commit being pushed stubs a plan file or shrinks it by more than half."
     exit 1
   }
-done
+done < "$updates"
 
 npm run typecheck || {
   echo ""

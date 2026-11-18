@@ -516,7 +516,7 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
   ],
   outcomes: [
     { p: 40, name: "Hot retail and/or hawkish minutes", detail: "December hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
-    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds already ~87% 25bp; minutes is the swing." },
+    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds already ~95% 25bp (FedWatch, Nov 17-18); minutes is the swing." },
     { p: 25, name: "Soft retail / dovish minutes", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
   ],
   days: [
@@ -553,9 +553,9 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
       kind: "event",
       news: [
         { timeEt: "08:30", name: "Housing Starts (Oct)", impact: "high", note: "Printed 1.309M +9.9%", actual: "1.309M +9.9%" },
-        { timeEt: "14:00", name: "FOMC Minutes (Oct meeting)", impact: "high", note: "Nearly all expect Dec hike", actual: "nearly all expect Dec hike" }
+        { timeEt: "14:00", name: "FOMC Minutes (Oct meeting)", impact: "high", note: "Almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable", actual: "almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable" }
       ],
-      likelyTape: "Housing Starts printed 1.309M +9.9%. FOMC Minutes: nearly all expect Dec hike. NQ session ~26.92k-27.33k. Sunday post-breakdown under-PWL holds. Dec hike odds ~95% 25bp.",
+      likelyTape: "Housing Starts printed 1.309M +9.9%. FOMC Minutes: almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable. NQ session ~26.92k-27.33k. Sunday post-breakdown under-PWL holds. Dec hike odds ~95% 25bp.",
       trade: "Housing blackout 8:00–8:45. Flatten 13:45. A+ only after 14:15.",
       skipIf: "Anything open at 13:45. No clear MSS after minutes.",
       pathNote: "Housing and minutes printed. NQ session ~26.92k-27.33k. Sunday post-breakdown under-PWL story holds. Dec hike odds ~95% 25bp. Live CWH/CWL from bars. No HTF trend invented.",

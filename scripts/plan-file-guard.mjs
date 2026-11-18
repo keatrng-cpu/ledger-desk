@@ -166,8 +166,11 @@ function stagedProblems() {
   return problems;
 }
 
-function rangeProblems(base, tip) {
+export function rangeProblems(base, tip) {
   if (!tip) return ["plan-file-guard: --range needs <baseSha> <tipSha>"];
+  // `git push origin --delete <branch>` sends the local sha as 40 zeros.
+  // That is not a new blob. Treating it as one reported every plan file deleted.
+  if (isZero(tip)) return [];
   const problems = [];
   for (const rel of PLAN_FILES) {
     const after = gitShow(tip, rel);
