@@ -407,7 +407,7 @@ export const MONTH_NOV_2026: MonthPlan = {
     "Conditional two-way. Oct FOMC already held. NFP hot (+165k). CPI Oct +0.4% m/m / core +0.3%, PPI +0.3% m/m / +6.5% y/y printed. Opens after post-CPI under-PWL. Minutes Wed is next delivery.",
   htfBias:
     "Prior weeks cash broke NQ PWL (Oct 30 session ~28,272–29,180; Nov 2–6 stayed ~26.4k–29.0k under). ES similarly under prior. Do not invent CMH/CML.",
-  fed: "Funds 3.75–4.00% after Oct 28 hold (10-2, Cook/Hammack for 25bp). Dec 8–9 is next decision. Post-CPI/PPI FedWatch ~87-88% 25bp / ~11-12% 50bp as of Nov 15 (up from ~68% post-NFP). Base case hike; minutes Wed is the next look.",
+  fed: "Funds 3.75–4.00% after Oct 28 hold (10-2, Cook/Hammack for 25bp). Dec 8–9 is next decision. Post-CPI/PPI FedWatch ~95% for 25bp (up from ~68% post-NFP). Base case hike; minutes Wed is the next look.",
   seasonality:
     "November tendency is mixed. Not a setup. Size down into NFP and CPI. Demand A / A+.",
   nq: {

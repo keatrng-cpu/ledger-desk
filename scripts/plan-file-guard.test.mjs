@@ -1,11 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 import {
   assertSafePlanWrite,
   floorProblems,
   planWriteProblems,
+  rangeProblems,
   shrankByMoreThanHalf,
   stubHits,
 } from "./plan-file-guard.mjs";
@@ -53,6 +54,26 @@ test("week-prints must parse and stay above the entry floor", () => {
 test("the worktree copies are not stubs", () => {
   const out = execFileSync("node", ["scripts/plan-file-guard.mjs", "--worktree"], { encoding: "utf8" });
   assert.match(out, /clean/);
+});
+
+test("a remote branch deletion is not a plan-file deletion, and the stub tip is still refused", () => {
+  const zero = "0".repeat(40);
+  assert.deepEqual(rangeProblems("ea0b6d7886155d1dbdadf64f26d8ccddb892f957", zero), []);
+  const stub = rangeProblems(
+    "5cb85d1d90bc100a4397dba0cb96f853b2b398cf",
+    "31a330f58dc457f6c39bc150e890627ff9d07537",
+  );
+  assert.ok(stub.some((p) => p.includes("READ_FROM_FILE_")));
+  const hook = readFileSync("scripts/hooks/pre-push", "utf8");
+  assert.match(hook, /0000000000000000000000000000000000000000/);
+  assert.match(hook, /plan-file-guard\.mjs --range/);
+  assert.match(hook, /plan-file-guard\.mjs --worktree/);
+  const deleted = spawnSync("sh", ["scripts/hooks/pre-push"], {
+    input: `refs/heads/gone ${zero} refs/heads/gone ea0b6d7886155d1dbdadf64f26d8ccddb892f957\n`,
+    encoding: "utf8",
+  });
+  assert.equal(deleted.status, 0, deleted.stdout + deleted.stderr);
+  assert.match(deleted.stdout, /deletion only/);
 });
 
 test("pre-commit hook runs the plan-file guard and is executable", () => {
