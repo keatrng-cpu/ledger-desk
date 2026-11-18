@@ -56,14 +56,12 @@ test("the worktree copies are not stubs", () => {
   assert.match(out, /clean/);
 });
 
-test("a remote branch deletion is not a plan-file deletion, and the stub tip is still refused", () => {
+test("a remote branch deletion is not a plan-file deletion, and a stub tip is still refused", () => {
   const zero = "0".repeat(40);
   assert.deepEqual(rangeProblems("ea0b6d7886155d1dbdadf64f26d8ccddb892f957", zero), []);
-  const stub = rangeProblems(
-    "5cb85d1d90bc100a4397dba0cb96f853b2b398cf",
-    "31a330f58dc457f6c39bc150e890627ff9d07537",
-  );
+  const stub = planWriteProblems(WEEK, "x".repeat(2000), "READ_FROM_FILE_AHEAD\n");
   assert.ok(stub.some((p) => p.includes("READ_FROM_FILE_")));
+  assert.ok(stub.some((p) => p.includes("more than half")));
   const hook = readFileSync("scripts/hooks/pre-push", "utf8");
   assert.match(hook, /0000000000000000000000000000000000000000/);
   assert.match(hook, /plan-file-guard\.mjs --range/);
