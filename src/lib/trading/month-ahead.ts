@@ -535,6 +535,46 @@ export const MONTH_NOV_2026: MonthPlan = {
 
 const MONTH_PLANS: MonthPlan[] = [MONTH_NOV_2026, MONTH_OCT_2026, MONTH_SEP_2026];
 
+export function resolveMonthAhead(now = new Date()): MonthAheadRead | null {
+  const dateKey = etDateKey(now);
+  for (const plan of MONTH_PLANS) {
+    const prepDay = addDays(plan.monthStart, -1);
+    if (dateKey < prepDay || dateKey > plan.monthEnd) continue;
+    const phase = plan.phases.find((p) => dateKey >= p.start && dateKey <= p.end) ?? null;
+    const nextPhase = plan.phases.find((p) => p.start > dateKey) ?? null;
+    const window: MonthAheadRead["window"] =
+      dateKey < plan.monthStart ? "prep" : dateKey > plan.monthEnd ? "done" : "live";
+    return {
+      plan,
+      dateKey,
+      phase,
+      nextPhase,
+      window,
+      live: false,
+      refreshedAt: now.toISOString(),
+    };
+  }
+  return null;
+}
+
+/** The month phase whose start–end contains dateKey, or null. */
+export function monthPhaseFor(dateKey: string): MonthPhase | null {
+  for (const plan of MONTH_PLANS) {
+    const hit = plan.phases.find((p) => dateKey >= p.start && dateKey <= p.end);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/** HUD line for the live phase, or the next one, or null. */
+export function monthAheadFocusLine(read: MonthAheadRead | null): string | null {
+  if (!read) return null;
+  const p = read.phase ?? read.nextPhase;
+  if (!p) return null;
+  const tag = read.phase ? read.plan.monthLabel.slice(0, 3).toUpperCase() : `${read.plan.monthLabel.slice(0, 3).toUpperCase()} NEXT`;
+  return `${tag} · ${p.label} · ${p.dailyBias}`;
+}
+
 export function currentMonthPlan(now = new Date()): MonthPlan | null {
   const key = etDateKey(now);
   for (const plan of MONTH_PLANS) {
