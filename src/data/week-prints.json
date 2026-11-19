@@ -453,5 +453,12 @@
     "actual": "almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable",
     "vs": "—",
     "note": "Cash-close restamp. Almost all participants see further hikes as likely, and a couple are open to more than 25bp in December if inflation data were unfavorable. Dec hike odds ~95% 25bp. Sunday post-breakdown under-PWL holds."
+  },
+  {
+    "date": "2026-11-19",
+    "name": "Initial Jobless Claims",
+    "actual": "203k",
+    "vs": "exp ~197k / prev 200k rev 202k",
+    "note": "DOL week ending Nov 14. +1k. 4-wk avg 197.75k. Continuing 1.763M. Slight miss, still low. NQ session ~26.46k-27.83k under seed PWL 29,904. Sunday post-breakdown under-PWL holds. No ISM/JOLTS/ADP/NFP."
   }
 ]
