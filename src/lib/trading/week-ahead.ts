@@ -472,10 +472,10 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
   headline:
     "Minutes week. Retail Sales Tue 8:30, Housing+FOMC Minutes Wed, claims Thu 8:30, UMich Fri 10:00. No multi-day swing into Friday. Post-CPI/PPI context.",
   htfBias:
-    "Prior week (Nov 9–13) tape stayed under Oct 26–30 PWL after hot CPI +0.4% m/m / core +0.3% and PPI +0.3% m/m / +6.5% y/y. Opens inside the post-breakdown range. Dec hike odds ~95-96% 25bp / ~4% 50bp (CME FedWatch Nov 17). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
+    "Prior week (Nov 9–13) tape stayed under Oct 26–30 PWL after hot CPI +0.4% m/m / core +0.3% and PPI +0.3% m/m / +6.5% y/y. Opens inside the post-breakdown range. Dec hike odds ~90% 25bp / ~10% 50bp after Waller (CME FedWatch Nov 19-20). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
   po3: "Mon range-build. Tue retail manipulates. Wed housing + minutes distribute. Thu claims. Fri UMich secondary.",
   macro:
-    "Mon Empire Manufacturing 8:30 (medium). Tue Retail Sales (Oct) 8:30 high + Import Prices 8:30 medium + Industrial Production 9:15 medium. Wed Housing Starts (Oct) 8:30 high + FOMC Minutes (Oct meeting) 14:00 high. Thu Initial Jobless Claims 8:30 medium + Philly Fed. Fri UMich Sentiment (Nov F) 10:00 medium. No NFP/CPI. Dec hike odds ~95-96% for 25bp (CME FedWatch Nov 17). Live CWH/CWL from bars. Prior-week range still under seed PWL.",
+    "Mon Empire Manufacturing 8:30 (medium). Tue Retail Sales (Oct) 8:30 high + Import Prices 8:30 medium + Industrial Production 9:15 medium. Wed Housing Starts (Oct) 8:30 high + FOMC Minutes (Oct meeting) 14:00 high. Thu Initial Jobless Claims 8:30 medium + Philly Fed. Fri UMich Sentiment (Nov F) 10:00 medium. No NFP/CPI. Dec hike odds ~90% 25bp / ~10% 50bp after Waller (CME FedWatch Nov 19-20). Live CWH/CWL from bars. Prior-week range still under seed PWL.",
   asymmetry:
     "A+ into the prints and minutes. Flatten before minutes unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -486,7 +486,7 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
     pwl: 29904,
     eq: 30500,
     drawUp: "Prior seed 31,095 then next BSL — only if tape is already there",
-    drawDown: "Prior-week low area ~26,400 then next SSL",
+    drawDown: "This-week lows under ~26,100 then next SSL",
     note: "PWH/PWL = Oct 26–30 seed (already broken). Prior week (Nov 9–13) stayed under. Live CWH/CWL from bars. Do not hardcode a take into the seed.",
   },
   es: {
@@ -497,7 +497,7 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
     pwl: 7707.25,
     eq: 7778,
     drawUp: "Prior seed 7,848.50",
-    drawDown: "Prior-week low area ~7,350 then next SSL",
+    drawDown: "This-week lows under ~7,150 then next SSL",
     note: "PWH/PWL = Oct 26–30 seed. Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
@@ -516,7 +516,7 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
   ],
   outcomes: [
     { p: 40, name: "Hot retail and/or hawkish minutes", detail: "December hike repricing. NQ-lead lower. Short after BSL raid + MSS. Do not fade strength into Friday." },
-    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds already ~95% 25bp (FedWatch, Nov 17-18); minutes is the swing." },
+    { p: 35, name: "In-line slate", detail: "Two-way after prior-week breakdown. Stand unless A+. Dec hike odds ~90% 25bp / ~10% 50bp after Waller (FedWatch, Nov 19-20); minutes already printed." },
     { p: 25, name: "Soft retail / dovish minutes", detail: "Squeeze. Long only SSL in discount + MSS. Still flatten into the next print." },
   ],
   days: [
@@ -579,10 +579,10 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
       dailyBias: "Selective / A+ only",
       kind: "selective",
       news: [{ timeEt: "10:00", name: "UMich Sentiment (Nov F)", impact: "medium", note: "" }],
-      likelyTape: "UMich 10:00 medium. Session expected under seed PWL. Selective holds.",
+      likelyTape: "UMich 10:00 medium still ahead. NQ this-week range ~26.09k–28.28k, ES ~7.15k–7.61k, both well under seed PWL. Selective holds.",
       trade: "Stand 9:45–10:15. A+ only after clear structure.",
       skipIf: "No multi-day swing. No fade without structure.",
-      pathNote: "Secondary print. Sunday post-breakdown under-PWL story holds. Live CWH/CWL from bars. Flatten into weekend.",
+      pathNote: "Secondary print ahead. This-week range extended under prior-week lows. Sunday post-breakdown under-PWL story holds. Live CWH/CWL from bars. Flatten into weekend.",
     },
   ],
 };
