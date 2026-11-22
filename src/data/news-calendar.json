@@ -420,6 +420,18 @@
     "impact": "medium"
   },
   {
+    "date": "2026-11-23",
+    "timeEt": "09:45",
+    "name": "S&P Global Flash PMIs (Nov)",
+    "impact": "medium"
+  },
+  {
+    "date": "2026-11-24",
+    "timeEt": "10:00",
+    "name": "Consumer Confidence (Nov)",
+    "impact": "medium"
+  },
+  {
     "date": "2026-11-25",
     "timeEt": "08:30",
     "name": "Durable Goods Orders (Oct P)",
@@ -442,5 +454,23 @@
     "timeEt": "08:30",
     "name": "PCE / Personal Income (Oct)",
     "impact": "high"
+  },
+  {
+    "date": "2026-11-25",
+    "timeEt": "14:00",
+    "name": "Fed Beige Book",
+    "impact": "medium"
+  },
+  {
+    "date": "2026-11-26",
+    "timeEt": "all",
+    "name": "Thanksgiving Day (markets closed)",
+    "impact": "medium"
+  },
+  {
+    "date": "2026-11-27",
+    "timeEt": "08:30",
+    "name": "Advance Goods Trade Balance (Oct)",
+    "impact": "medium"
   }
 ]

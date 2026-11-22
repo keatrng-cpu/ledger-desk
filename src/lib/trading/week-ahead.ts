@@ -588,7 +588,129 @@ export const WEEK_NOV16_NOV20: WeekPlan = {
   ],
 };
 
-const WEEK_PLANS: WeekPlan[] = [WEEK_NOV16_NOV20, WEEK_NOV9_NOV13, WEEK_NOV2_NOV6, WEEK_OCT26_OCT30];
+
+/** Week of Nov 23 – Nov 27 2026. Thanksgiving short week. Flash PMIs Mon → Confidence Tue → PCE/GDP/Durable/Claims + Beige Book Wed → closed Thu → early close Fri. */
+export const WEEK_NOV23_NOV27: WeekPlan = {
+  id: "2026-11-23",
+  weekLabel: "Nov 23 – Nov 27, 2026",
+  weekStart: "2026-11-23",
+  weekEnd: "2026-11-27",
+  headline:
+    "Thanksgiving week. Flash PMIs Mon 9:45, Consumer Confidence Tue 10:00, PCE + GDP + Durable + Claims Wed 8:30 + Beige Book 14:00. Markets closed Thu, early close Fri 13:00. Thin. No multi-day swing. Post-CPI/PPI/minutes under-PWL context.",
+  htfBias:
+    "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~90-95% 25bp / ~5-10% 50bp (CME FedWatch as of Nov 22). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
+  po3: "Mon range-build on flash PMIs. Tue confidence. Wed PCE/GDP distribute. Thu closed. Fri half-session.",
+  macro:
+    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~90-95% 25bp. Live CWH/CWL from bars. Prior-week range still under seed PWL.",
+  asymmetry:
+    "A+ into the Wed prints. Flatten before holiday. blake_mech longs stay paper. Thin liquidity after Wed.",
+  nq: {
+    settle: 25600,
+    rangeLo: 25200,
+    rangeHi: 31095,
+    pwh: 31095,
+    pwl: 29904,
+    eq: 30500,
+    drawUp: "Prior seed 31,095 then next BSL — only if tape is already there",
+    drawDown: "This-week lows under ~25,200 then next SSL",
+    note: "PWH/PWL = Oct 26–30 seed (already broken). Prior week (Nov 16–20) extended under. Live CWH/CWL from bars. Do not hardcode a take into the seed.",
+  },
+  es: {
+    settle: 7000,
+    rangeLo: 6930,
+    rangeHi: 7849,
+    pwh: 7848.5,
+    pwl: 7707.25,
+    eq: 7778,
+    drawUp: "Prior seed 7,848.50",
+    drawDown: "This-week lows under ~6,930 then next SSL",
+    note: "PWH/PWL = Oct 26–30 seed. Live CWH/CWL from bars. No fake live prints.",
+  },
+  filters: [
+    "±15 min: PMIs Mon 09:45 · Confidence Tue 10:00 · PCE/GDP/Durable/Claims Wed 08:30 · Beige Book Wed 14:00",
+    "No entry 8:00–8:45 Wed morning",
+    "Flatten before holiday Thu",
+    "No multi-day swing into thin Fri",
+    "Judas on. One book. PATH floor 0.65.",
+  ],
+  ops: [
+    "Mon stand unless clean raid after PMIs",
+    "Tue confidence; A+ only after clear structure",
+    "Wed blackout 8:00–8:45 into PCE/GDP/Durable/Claims; A+ only after 10:00; Beige Book 14:00 secondary",
+    "Thu closed — no cash",
+    "Fri early close 13:00; stand unless A+",
+  ],
+  outcomes: [
+    { p: 45, name: "Two-way under PWL", detail: "PCE in-line. Tape stays under seed PWL. Best PATH: post-print second impulse Wed." },
+    { p: 35, name: "Hot PCE extension", detail: "Hot core PCE. Hike odds firm. Draw prior lows. Stand unless clear MSS short." },
+    { p: 20, name: "Soft squeeze", detail: "Soft PCE. Raid lows then squeeze only after SSL in discount + MSS. Do not buy strength." },
+  ],
+  days: [
+    {
+      date: "2026-11-23",
+      weekday: "Mon",
+      dailyBias: "Range-build / selective",
+      kind: "range_build",
+      news: [{ timeEt: "09:45", name: "S&P Global Flash PMIs (Nov)", impact: "medium", note: "Manufacturing / Services flash" }],
+      likelyTape: "Flash PMIs. Prior week extended under seed PWL. Opens inside post-breakdown range. Sunday under-PWL story holds. Stand unless clean raid.",
+      trade: "Stand unless clear structure after 10:00. No multi-day.",
+      skipIf: "No raid of prior extremes. Thin open.",
+      pathNote: "Thanksgiving week open. Live CWH/CWL from bars. No HTF trend invented. Sunday post-breakdown under-PWL holds.",
+    },
+    {
+      date: "2026-11-24",
+      weekday: "Tue",
+      dailyBias: "Two-way / selective",
+      kind: "two_way",
+      news: [{ timeEt: "10:00", name: "Consumer Confidence (Nov)", impact: "medium", note: "Conference Board" }],
+      likelyTape: "Confidence print. Still under seed PWL. Selective. Stand unless MSS.",
+      trade: "A+ only after clear structure. Do not chase.",
+      skipIf: "No clear MSS. Thin into Wed.",
+      pathNote: "Secondary print. Sunday under-PWL story holds. Live CWH/CWL from bars.",
+    },
+    {
+      date: "2026-11-25",
+      weekday: "Wed",
+      dailyBias: "A+ only into prints",
+      kind: "a_plus_only",
+      news: [
+        { timeEt: "08:30", name: "PCE / Personal Income (Oct)", impact: "high", note: "Fed preferred gauge" },
+        { timeEt: "08:30", name: "GDP Q3 (2nd est)", impact: "medium", note: "Second estimate" },
+        { timeEt: "08:30", name: "Durable Goods Orders (Oct P)", impact: "medium", note: "Advance" },
+        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "Week ending Nov 21" },
+        { timeEt: "14:00", name: "Fed Beige Book", impact: "medium", note: "Last before Dec FOMC" },
+      ],
+      likelyTape: "Heavy print day. Blackout 8:00–8:45. A+ only after second impulse. Hot PCE keeps Dec hike path. Under seed PWL context holds.",
+      trade: "Blackout 8:00–8:45. A+ only after 10:00. Flatten before holiday.",
+      skipIf: "Anything open into holiday. No MSS after print.",
+      pathNote: "Key inflation print. Sunday post-breakdown under-PWL holds. Live CWH/CWL from bars. No HTF trend invented.",
+    },
+    {
+      date: "2026-11-26",
+      weekday: "Thu",
+      dailyBias: "Holiday closed",
+      kind: "holiday",
+      news: [{ timeEt: "all", name: "Thanksgiving Day", impact: "medium", note: "Markets closed" }],
+      likelyTape: "Cash closed. Futures early halt. No plan.",
+      trade: "Closed. No trade.",
+      skipIf: "Holiday.",
+      pathNote: "Thanksgiving. Sunday under-PWL story holds. No cash session.",
+    },
+    {
+      date: "2026-11-27",
+      weekday: "Fri",
+      dailyBias: "Selective / early close",
+      kind: "selective",
+      news: [{ timeEt: "08:30", name: "Advance Goods Trade Balance (Oct)", impact: "medium", note: "Early close 13:00" }],
+      likelyTape: "Half session. Thin. Stand unless clear A+. Flatten into close.",
+      trade: "A+ only if structure. Flatten by 12:45.",
+      skipIf: "No multi-day. Thin liquidity. Early close.",
+      pathNote: "Early close. Sunday post-breakdown under-PWL holds. Live CWH/CWL from bars. No HTF trend invented.",
+    },
+  ],
+};
+
+const WEEK_PLANS: WeekPlan[] = [WEEK_NOV23_NOV27, WEEK_NOV16_NOV20, WEEK_NOV9_NOV13, WEEK_NOV2_NOV6, WEEK_OCT26_OCT30];
 
 function addDays(dateKey: string, n: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);

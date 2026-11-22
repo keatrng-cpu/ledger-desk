@@ -407,7 +407,7 @@ export const MONTH_NOV_2026: MonthPlan = {
     "Conditional two-way. Oct FOMC already held. NFP hot (+165k). CPI Oct +0.4% m/m / core +0.3%, PPI +0.3% m/m / +6.5% y/y printed. Opens after post-CPI under-PWL. Minutes Wed is next delivery.",
   htfBias:
     "Prior weeks cash broke NQ PWL (Oct 30 session ~28,272–29,180; Nov 2–6 stayed ~26.4k–29.0k under). ES similarly under prior. Do not invent CMH/CML.",
-  fed: "Funds 3.75–4.00% after Oct 28 hold (10-2, Cook/Hammack for 25bp). Dec 8–9 is next decision. Post-CPI/PPI FedWatch ~87-90% 25bp / ~10-14% 50bp (Nov 13); ~95% 25bp by Nov 17-18. Base case hike; minutes Wed is the next look.",
+  fed: "Funds 3.75–4.00% after Oct 28 hold (10-2, Cook/Hammack for 25bp). Dec 8–9 is next decision. Post-minutes FedWatch ~90-95% 25bp / ~5-10% 50bp (as of Nov 22). Base case 25bp hike; PCE Wed is the next inflation look.",
   seasonality:
     "November tendency is mixed. Not a setup. Size down into NFP and CPI. Demand A / A+.",
   nq: {
@@ -509,9 +509,9 @@ export const MONTH_NOV_2026: MonthPlan = {
       pathQuota: "A+ only. Stand on holiday thin.",
       book: "MNQ primary.",
       strategy:
-        "Mon thin. Tue durables. Wed GDP 2nd + PCE 8:30 blackout. Thu holiday closed. Fri half. Hot PCE = Dec hike repricing.",
-      skipIf: "No MSS after print. Do not carry into holiday.",
-      blackouts: "Wed 8:30 GDP/PCE",
+        "Mon flash PMIs 9:45 medium. Tue Consumer Confidence 10:00. Wed GDP 2nd + PCE + Durable Goods + Claims all 8:30 blackout 8:00–8:45, Beige Book 14:00. Thu Thanksgiving closed. Fri early close 13:00. Hot PCE = Dec hike repricing. Thin liquidity.",
+      skipIf: "No MSS after print. Do not carry into holiday or thin Friday.",
+      blackouts: "Wed 8:30 GDP/PCE/Durable/Claims · Thu closed · Fri early close",
     },
   ],
   outcomes: [
