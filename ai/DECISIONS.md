@@ -662,3 +662,11 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Gave the trader the Mon Nov 23 premarket brief from `week-ahead.ts`/`news-calendar.json`: range-build/selective bias, Flash PMIs 09:45 ET medium, stand unless clean raid after PMIs, plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book, max 2/killzone, 2%/5% halts, A+ only after 10:00 ET).
 - No open position to check (narration-only; no live gateway/market data this session).
 - Supersedes: the stale 2026-11-18 snapshot in `ai/NOW.md` (main has since moved to `78acde1` with the Nov 23–27 week plan added; PRs #94/#95 both merged).
+
+## 2026-11-23 — NY AM session-partner run: 10:06 ET mid-session discipline check
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `wc -l` re-check, `git log` on `main` @ `bcbee5c`
+- Integrity canary re-checked: still clean, same line counts as the 08:06 ET run (`week-ahead.ts` 845, `month-ahead.ts` 675).
+- Reminded the trader A+ only is now live (post-10:00 ET), restated rest-the-limit-at-CE entry rule and the scale rule (50% off at T1, stop to BE, runner to T2 — coded and measured +0.50R/trade on 122 filled plans; deviations measured worse: banking at +1R −0.42R/t, BE at +1R MFE −0.07, trailing −0.30), and asked whether a position is open and matches that management.
+- Note: the scheduled prompt's own paraphrase of the scale-violation figures (−0.18R to −0.41R, drawdown 24%→45%) does not match what's committed in `CLAUDE.md`'s hard-rules table — reported the repo's actual figures instead, per "code wins."
+- No open position to check from here (narration-only; no live gateway/market data this session).
+- Supersedes: nothing (routine checkpoint, not a canon decision).

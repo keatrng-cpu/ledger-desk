@@ -12,7 +12,7 @@
 - HTF: prior week (Nov 16–20) extended under the Oct 26–30 seed PWL. Dec hike odds ~90–95% 25bp (CME FedWatch as of Nov 22). Sunday post-breakdown under-PWL story holds.
 
 ## Canary
-`week-ahead.ts` 845 lines, `month-ahead.ts` 675 lines at `78acde1` — no truncation signature (failure mode is <200 lines, docblock + imports only, body missing). Checked 2026-11-23 08:06 ET premarket run: clean.
+`week-ahead.ts` 845 lines, `month-ahead.ts` 675 lines at `78acde1` — no truncation signature (failure mode is <200 lines, docblock + imports only, body missing). Checked 2026-11-23 08:06 ET premarket run: clean. Re-checked 10:06 ET mid-session run: still clean, same line counts.
 
 ## Live constraints
 - If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents never change those numbers.
