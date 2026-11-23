@@ -1,20 +1,23 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-18 · **Maintainer:** Cursor agent · **Repo:** `keatrng-cpu/ledger-desk`
-**Tree:** `main` is `ea0b6d78` (PR #94 merged, prod live). Follow-up branch `cursor/accuracy-nov18-followup-ae23` is Accuracy Review's non-blocking fixes. Not merged. Issue #7.
+**As of:** 2026-11-23 · **Maintainer:** Claude (session-partner) · **Repo:** `keatrng-cpu/ledger-desk`
+**Tree:** `main` is `78acde1` (Restamp Nov 22: Nov 23–27 Thanksgiving week plan added). PRs #94 and #95 (Nov 18 restore + Accuracy Review follow-up) both merged. No open branch or Dual Desk issue tracked at this writing.
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 
-## Nov 18 prints, after Accuracy Review
-- Housing Starts (Oct) actual stays `1.309M +9.9%`. `vs` is `prior Sep rev 1.191M`. Note cites Census CB26-187. NQ session `~26.92k-27.33k` and the under-PWL line stay.
-- FOMC Minutes (Oct meeting): almost all participants see further hikes as likely, and a couple are open to more than 25bp in December. The earlier "nearly all expect Dec hike" overstated the minutes.
-- Dec hike odds on the Nov 16–20 in-line outcome and on the November `fed` line are `~95%` for 25bp (FedWatch), matching the week plan. The old `~87%` / `~87-88%` plus `~11-12%` 50bp pair is the stale one. The Nov 9–13 week's own `~87%` line was left as that week's text.
+## Current week — Nov 23–27, Thanksgiving short week
+- Mon 23: Range-build/selective. Flash PMIs 09:45 ET medium. Stand unless clean raid after PMIs.
+- Tue 24: Two-way/selective. Consumer Confidence 10:00 ET medium.
+- Wed 25: A+ only into prints — PCE/GDP/Durable/Claims 08:30 ET (PCE high), Beige Book 14:00 ET. Blackout 08:00–08:45. Flatten before holiday.
+- Thu 26: Markets closed (Thanksgiving). No trade.
+- Fri 27: Selective, early close 13:00 ET. Advance Goods Trade 08:30 ET medium.
+- HTF: prior week (Nov 16–20) extended under the Oct 26–30 seed PWL. Dec hike odds ~90–95% 25bp (CME FedWatch as of Nov 22). Sunday post-breakdown under-PWL story holds.
 
-## Guard
-`scripts/plan-file-guard.mjs` still refuses a stub token and a shrink of more than half. A `git push --delete` sends an all-zero local sha. That is a branch deletion, not a new blob, and pre-push lets it through. A content push still runs the stub guard.
+## Canary
+`week-ahead.ts` 845 lines, `month-ahead.ts` 675 lines at `78acde1` — no truncation signature (failure mode is <200 lines, docblock + imports only, body missing). Checked 2026-11-23 08:06 ET premarket run: clean.
 
 ## Live constraints
-- If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents do not change those numbers.
-- Do not lower the confluence floor. This patch places no order.
-- No invented fills. The 1.191M prior and the minutes sentence are Accuracy Review's correction, cited as Census CB26-187 and the minutes wording they supplied.
+- If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents never change those numbers.
+- No invented fills or prices. This session has no live gateway/market data — narration only.
+- `scripts/plan-file-guard.mjs` still refuses a stub token and a >50% shrink on the four plan files (`week-ahead.ts`, `month-ahead.ts`, `week-prints.json`, `news-calendar.json`).
 
 ## Owners
-Issue #7: Accuracy Review then Release Watch then Design Atelier merge to `main`. This follow-up does not merge itself.
+No open Dual Desk issue tracked right now. Next restamp: Sunday night (week-ahead/month-ahead) or the Wed Nov 25 cash close (PCE/GDP/Durable/Claims + Beige Book prints).

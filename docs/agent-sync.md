@@ -2,36 +2,39 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `58d3594`. Fetched origin. Local main matches origin.
+HEAD `78acde1`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `84f4277`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `58d3594`.
+Bookmark was `58d3594`. 15 commit(s) landed after it.
+Bookmark after this run: `claude` → `78acde1`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
-| `58d3594` | 2026-11-17T14:08 | session-partner: 09:06 ET premarket — CANARY STILL FAILED one hour later, Retail Sales already printed | M ai/DECISIONS.md, M ai/NOW.md |
-| `84f4277` | 2026-11-17T07:38 | Stamp Retail Sales (Oct) actual: +0.2% vs prior +0.8% | M src/data/week-prints.json |
-| `cfd651d` | 2026-11-17T13:08 | agent-sync: bookmark claude at f7f2370 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `f7f2370` | 2026-11-17T13:08 | session-partner: 08:06 ET premarket — CANARY FAILED, week-ahead.ts/week-prints.json truncated since f056566, not self-healed | M ai/DECISIONS.md, M ai/NOW.md |
-| `22a2dce` | 2026-11-16T15:51 | Restamp Nov 16 cash close: no high-impact prints (Empire 7.8 medium); under-PWL holds | M src/data/week-prints.json |
-| `669a852` | 2026-11-16T15:51 | Fix restamp: add Nov 16 no-high-impact entry (Empire 7.8 medium) | M src/data/week-prints.json |
-| `f056566` | 2026-11-16T15:51 | Restamp Nov 16 cash close: Empire 7.8 (medium, no high-impact ISM/JOLTS/ADP/claims/NFP). NQ session ~27.2-27.7k under seed PWL 29904; Sunday under-PWL plan holds. No HTF trend invented. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `82d2b6f` | 2026-11-16T15:09 | agent-sync: bookmark claude post-push | M docs/agent-sync.json, M docs/agent-sync.md |
-| `c855119` | 2026-11-16T15:08 | session-partner: 10:06 ET mid-session — canary clean, A+-only discipline reminder given | M ai/DECISIONS.md, M ai/NOW.md |
-| `c3233f5` | 2026-11-16T14:08 | agent-sync: bookmark claude at 3ad104c (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `3ad104c` | 2026-11-16T14:08 | session-partner: 09:06 ET premarket — duplicate firing, canary clean, no new content | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `30fbe5a` | 2026-11-16T13:08 | agent-sync: bookmark claude at a910f6d (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
-| `a910f6d` | 2026-11-16T13:08 | session-partner: 08:06 ET premarket — canary clean, today's Empire Manufacturing/A+-only brief given | M ai/DECISIONS.md, M ai/NOW.md |
-| `1d7b286` | 2026-11-15T16:22 | Sunday restamp Nov 15: restamp Nov month Fed path post-CPI/PPI | M src/lib/trading/month-ahead.ts |
-| `28b393a` | 2026-11-15T16:21 | Sunday restamp Nov 15: add Nov 16-20 week plan; restamp Nov month Fed path post-CPI | M src/lib/trading/week-ahead.ts |
+| `78acde1` | 2026-11-22T22:17 | Restamp Nov 22: add Nov 23-27 Thanksgiving week plan; fix pce phase; calendar entries | M src/data/news-calendar.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `63c9f1b` | 2026-11-20T21:51 | Restamp Nov 20: no ISM/JOLTS/ADP/claims/NFP; UMich 51.5 in-line; NQ/ES extended under seed PWL; Sunday plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `88209af` | 2026-11-20T13:14 | Restamp Nov 20 odds and weekly range after Waller 50bp lift | M src/lib/trading/week-ahead.ts |
+| `2f065cf` | 2026-11-19T21:55 | Restamp Nov 19 claims print and confirm Sunday under-PWL plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `0e29037` | 2026-11-18T17:15 | Merge pull request #95 from keatrng-cpu/cursor/accuracy-nov18-followup-ae23 | — |
+| `8ab00bf` | 2026-11-18T23:10 | Correct the November FedWatch line and the minutes condition | M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `03e2de7` | 2026-11-18T23:02 | Test the deletion skip without historical git objects | M scripts/plan-file-guard.test.mjs |
+| `9dbd128` | 2026-11-18T23:00 | Apply Accuracy Review notes on the Nov 18 restamp | M ai/DECISIONS.md, M ai/NOW.md, M scripts/hooks/pre-push, M scripts/plan-file-guard.mjs, M scripts/plan-file-guard.test.mjs, M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `ea0b6d7` | 2026-11-18T16:54 | Restore Nov 18 week plan and refuse restamp stubs (#94) | M .ai/prompt_rules.md, M .github/workflows/ci.yml, M CLAUDE.md, M ai/DECISIONS.md, M ai/NOW.md, A scripts/hooks/pre-commit, M scripts/hooks/pre-push, A scripts/plan-file-guard.mjs, A scripts/plan-file-guard.test.mjs, M scripts/stamp-actuals.mjs, A scripts/verify-plan-stubs.mjs, M scripts/verify-repo-guards.mjs, M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `31a330f` | 2026-11-18T15:52 | Restamp Nov 18 cash close: Housing Starts 1.309M +9.9%, FOMC Minutes nearly all expect Dec hike. Sunday post-breakdown under-PWL holds (NQ session ~26.92k-27.33k). Dec hike odds ~95% 25bp. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `cf4089c` | 2026-11-18T15:52 | Restamp Nov 18 cash close: Housing Starts 1.309M +9.9%, FOMC Minutes nearly all expect Dec hike. Sunday post-breakdown under-PWL holds (NQ session ~26.92k-27.33k). Dec hike odds ~95% 25bp. | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
+| `5cb85d1` | 2026-11-18T09:42 | Merge pull request #93 from keatrng-cpu/fix/restore-week-month-exports-1118 | — |
+| `c7bd4d2` | 2026-11-18T09:36 | Restore week-ahead and month-ahead exports after restamp rewrite | M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
+| `16af122` | 2026-11-17T21:51 | Restamp Nov 17 cash close: Retail Sales (Oct) +0.2% m/m / $748.2B / +6.8% y/y (Census). NQ session ~26.66k–27.50k under seed PWL 29904; Sunday under-PWL plan holds. Dec hike odds ~95-96% 25bp. No HTF trend invented. | M src/lib/trading/week-ahead.ts |
+| `ccc9793` | 2026-11-17T14:09 | agent-sync: bookmark claude at 58d3594 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
-None.
+- `scripts/hooks/pre-commit` in `ea0b6d7`
+- `scripts/plan-file-guard.mjs` in `ea0b6d7`
+- `scripts/plan-file-guard.test.mjs` in `ea0b6d7`
+- `scripts/verify-plan-stubs.mjs` in `ea0b6d7`
 
 ## Before you edit
 

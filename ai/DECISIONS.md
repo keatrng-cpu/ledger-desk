@@ -654,3 +654,11 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Why: Accuracy Review marked these non-blocking. The minutes sentence overstated the release. The housing row had no prior and no source. The new pre-push treated `git push --delete` (local sha 40 zeros) as the plan files being deleted. The ~87% lines were the pre-minutes FedWatch, while the rest of the Nov 16–20 plan already says ~95%.
 - Refused: a new 50bp probability to replace the dropped ~11-12% (not supplied; leaving it beside ~95% would not add up). Changing the Nov 9–13 week's own ~87% outcome. A housing SAAR or MoM label. Any other plan field. `src/lib/aplus/config.ts`.
 - Supersedes: the "vs is —" and "nearly all expect Dec hike" lines in the 2026-11-18 restore entry above, once this branch is on `main`. Not superseded until then.
+
+## 2026-11-23 — NY AM session-partner run: 08:06 ET premarket, Thanksgiving week — canary clean
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log` on `main` @ `78acde1`
+- Ran agent-sync first: bookmark was `58d3594`, 15 commits landed since (Grok's Nov 17–22 restamps plus PR #95 merge). Read the brief; nothing redone.
+- Integrity canary: clean. `week-ahead.ts` 845 lines, `month-ahead.ts` 675 lines — no truncation signature (failure mode is <200 lines).
+- Gave the trader the Mon Nov 23 premarket brief from `week-ahead.ts`/`news-calendar.json`: range-build/selective bias, Flash PMIs 09:45 ET medium, stand unless clean raid after PMIs, plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book, max 2/killzone, 2%/5% halts, A+ only after 10:00 ET).
+- No open position to check (narration-only; no live gateway/market data this session).
+- Supersedes: the stale 2026-11-18 snapshot in `ai/NOW.md` (main has since moved to `78acde1` with the Nov 23–27 week plan added; PRs #94/#95 both merged).
