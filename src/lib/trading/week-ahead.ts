@@ -651,11 +651,12 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
       weekday: "Mon",
       dailyBias: "Range-build / selective",
       kind: "range_build",
-      news: [{ timeEt: "09:45", name: "S&P Global Flash PMIs (Nov)", impact: "medium", note: "Manufacturing / Services flash" }],
-      likelyTape: "Flash PMIs. Prior week extended under seed PWL. Opens inside post-breakdown range. Sunday under-PWL story holds. Stand unless clean raid.",
-      trade: "Stand unless clear structure after 10:00. No multi-day.",
-      skipIf: "No raid of prior extremes. Thin open.",
-      pathNote: "Thanksgiving week open. Live CWH/CWL from bars. No HTF trend invented. Sunday post-breakdown under-PWL holds.",
+      news: [{ timeEt: "09:45", name: "S&P Global Flash PMIs (Nov)", impact: "medium", note: "Printed Composite 54.6", actual: "54.6", vs: "prev 55.9 / Mfg 54.5 Svc 54.7" }],
+      likelyTape: "Flash PMI Composite 54.6 (from 55.9). NQ session high ~27,137 / low ~25,427; ES high ~7,313 / low ~6,992. Both well under seed PWL. Bounce inside post-breakdown. Sunday under-PWL story holds. Stand unless clean raid.",
+      trade: "Stand unless clear structure after 10:00. No multi-day. Do not chase the bounce.",
+      skipIf: "No raid of prior extremes. Thin open. No fade without structure.",
+      pathNote: "Thanksgiving week open. Flash PMI softened but expansion. Live CWH/CWL from bars. No HTF trend invented. Sunday post-breakdown under-PWL holds.",
+      printed: true,
     },
     {
       date: "2026-11-24",
@@ -843,3 +844,4 @@ export function overlayWeekAhead(
     refreshedAt: now.toISOString(),
   };
 }
+
