@@ -27,6 +27,7 @@ const ok = (name, cond) => check(name, !!cond, true);
 const F = await import("../src/lib/news/feed.ts");
 const S = await import("../src/lib/news/schedule.ts");
 const I = await import("../src/lib/invest/ipo.ts");
+const calendarJson = (await import("../src/data/news-calendar.json", { with: { type: "json" } })).default;
 
 console.log("\nparsing");
 const rss = `<?xml version="1.0"?><rss><channel><title>X</title>
@@ -79,6 +80,7 @@ ok("heavyweight earnings carry their QQQ weight", S.timeline("2026-10-29", "2026
 check("Alphabet appears once, not per share class", S.timeline("2026-11-04", "2026-11-04").filter((e) => e.ticker === "GOOG").length, 0);
 ok("density counts shocks in a window", S.eventDensity("2026-10-26", "2026-10-30").high >= 3);
 ok("the coverage line names the end date", S.coverageLine("2026-09-27").includes(S.calendarEnds()));
+check("calendarEnds matches the latest news-calendar.json date", S.calendarEnds(), calendarJson.map((e) => e.date).sort().at(-1));
 ok("a calendar ending within a week warns", /blind/.test(S.coverageLine("2026-11-22")));
 
 console.log("\nIPOs");
