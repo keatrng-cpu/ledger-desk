@@ -678,3 +678,11 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Gave the trader the Tue Nov 24 premarket brief from `week-ahead.ts`/`news-calendar.json`: two-way/selective bias, Consumer Confidence (Nov) 10:00 ET medium, A+ only after clear structure, do not chase, plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book/day, max 2/killzone, 2%/5% halts, A+ only after 10:00 ET).
 - No open position to check (narration-only; no live gateway/market data this session).
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-24 — NY AM session-partner run: 09:06 ET premarket re-check — canary clean, Grok macro sync read
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log` on `main` @ `b42734d`
+- Ran agent-sync first: bookmark was `1cb7bf5`, 2 commits landed since (Grok's `b42734d` macro sync to `week-ahead.ts` — Dec hike odds to ~96% 25bp, 50bp erased, this-week range stamped — plus this session's own prior bookmark-sync commit). Read the diff; nothing redone.
+- Integrity canary: clean. `week-ahead.ts` 847 lines, `month-ahead.ts` 675 lines — no truncation signature.
+- Gave the trader the Tue Nov 24 premarket brief (unchanged bias from 08:06 ET run, odds figure updated): two-way/selective, Consumer Confidence (Nov) 10:00 ET medium, A+ only after clear structure, do not chase, plus the standing CLAUDE.md session constraints.
+- No open position to check (narration-only; no live gateway/market data this session).
+- Supersedes: nothing (routine checkpoint, not a canon decision).
