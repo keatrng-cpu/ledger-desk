@@ -35,15 +35,19 @@ test("slow fetch serves last-good flagged stale; the in-flight result lands for 
   __resetDeskBudgetCache();
   // Injected clock: the fresh path stamps fetchedAtMs with a second clock()
   // call after last-good is stored, which can drift 1ms under Date.now (CI flake).
-  const now = () => 1_760_000_000_000;
+  // Advance after the first fetch so a stale serve that re-stamps with now()
+  // cannot still equal first.fetchedAtMs.
+  let nowMs = 1_760_000_000_000;
+  const now = () => nowMs;
   const opts = { waitMs: 100, maxStaleMs: 60_000, now };
   const first = await budgetedLeg("c", "k:c", () => sleep(5, 1), opts);
+  nowMs += 2_000;
   let calls = 0;
   const slow = () => { calls++; return sleep(150, 2); };
   const r = await budgetedLeg("c", "k:c", slow, { waitMs: 30, maxStaleMs: 60_000, now });
   assert.equal(r.value, 1);
   assert.equal(r.leg.status, "stale");
-  assert.equal(typeof r.leg.ageSec, "number");
+  assert.equal(r.leg.ageSec, 2);
   // (1) last-good serve reuses the original fetch time
   assert.equal(r.fetchedAtMs, first.fetchedAtMs);
   // A second build while the first fetch is still in flight joins it.
