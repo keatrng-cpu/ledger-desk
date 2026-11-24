@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `a1d7be5`. Fetched origin. Local main matches origin.
+HEAD `1cb7bf5`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `a3db8ea`. 4 commit(s) landed after it.
-Bookmark after this run: `claude` → `a1d7be5`.
+Bookmark was `a1d7be5`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `1cb7bf5`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `1cb7bf5` | 2026-11-24T13:07 | Nov 24 premarket (08:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `a1d7be5` | 2026-11-23T21:54 | restamp 2026-11-23: Flash PMI 54.6; NQ/ES under seed PWL; Sunday plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `ce10baf` | 2026-11-23T15:53 | restamp 2026-11-23: no ISM/JOLTS/ADP/claims/NFP; Flash PMI 54.6; session under PWL | M src/data/week-prints.json |
 | `be935b1` | 2026-11-23T15:52 | restamp 2026-11-23: no ISM/JOLTS/ADP/claims/NFP; Flash PMI 54.6; session under PWL | M src/data/week-prints.json |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `a1d7be5`.
 | `0e29037` | 2026-11-18T17:15 | Merge pull request #95 from keatrng-cpu/cursor/accuracy-nov18-followup-ae23 | — |
 | `8ab00bf` | 2026-11-18T23:10 | Correct the November FedWatch line and the minutes condition | M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 | `03e2de7` | 2026-11-18T23:02 | Test the deletion skip without historical git objects | M scripts/plan-file-guard.test.mjs |
-| `9dbd128` | 2026-11-18T23:00 | Apply Accuracy Review notes on the Nov 18 restamp | M ai/DECISIONS.md, M ai/NOW.md, M scripts/hooks/pre-push, M scripts/plan-file-guard.mjs, M scripts/plan-file-guard.test.mjs, M src/data/week-prints.json, M src/lib/trading/month-ahead.ts, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
