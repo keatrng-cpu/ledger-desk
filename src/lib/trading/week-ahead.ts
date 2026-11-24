@@ -598,10 +598,10 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
   headline:
     "Thanksgiving week. Flash PMIs Mon 9:45, Consumer Confidence Tue 10:00, PCE + GDP + Durable + Claims Wed 8:30 + Beige Book 14:00. Markets closed Thu, early close Fri 13:00. Thin. No multi-day swing. Post-CPI/PPI/minutes under-PWL context.",
   htfBias:
-    "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~90-95% 25bp / ~5-10% 50bp (CME FedWatch as of Nov 22). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
+    "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~96% 25bp (50bp erased; CME FedWatch as of Nov 23-24). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
   po3: "Mon range-build on flash PMIs. Tue confidence. Wed PCE/GDP distribute. Thu closed. Fri half-session.",
   macro:
-    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~90-95% 25bp. Live CWH/CWL from bars. Prior-week range still under seed PWL.",
+    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~96% 25bp (50bp erased). Live CWH/CWL from bars. This-week so far NQ ~25,427–27,137 / ES ~6,992–7,313, still under seed PWL.",
   asymmetry:
     "A+ into the Wed prints. Flatten before holiday. blake_mech longs stay paper. Thin liquidity after Wed.",
   nq: {
