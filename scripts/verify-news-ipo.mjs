@@ -78,7 +78,7 @@ ok("the calendar's Oct 28 FOMC is on the timeline", tl.some((e) => e.kind === "f
 ok("heavyweight earnings carry their QQQ weight", S.timeline("2026-10-29", "2026-10-29").some((e) => e.ticker === "AAPL" && e.qqqWeight > 0.07));
 check("Alphabet appears once, not per share class", S.timeline("2026-11-04", "2026-11-04").filter((e) => e.ticker === "GOOG").length, 0);
 ok("density counts shocks in a window", S.eventDensity("2026-10-26", "2026-10-30").high >= 3);
-ok("the coverage line names the end date", S.coverageLine("2026-09-27").includes("2026-11-25"));
+ok("the coverage line names the end date", S.coverageLine("2026-09-27").includes(S.calendarEnds()));
 ok("a calendar ending within a week warns", /blind/.test(S.coverageLine("2026-11-22")));
 
 console.log("\nIPOs");
