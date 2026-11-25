@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `f8fe79d`. Fetched origin. Local main matches origin.
+HEAD `b417fae`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `8fffae3`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `f8fe79d`.
+Bookmark was `f8fe79d`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `b417fae`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `b417fae` | 2026-11-25T14:08 | Nov 25 premarket (09:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `f8fe79d` | 2026-11-25T13:08 | agent-sync: bookmark claude at 8fffae3 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `8fffae3` | 2026-11-25T13:08 | Nov 25 premarket (08:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md |
 | `602ed4f` | 2026-11-24T21:51 | restamp Nov 24: Confidence 103.3 surge; NQ/ES still under seed PWL | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `f8fe79d`.
 | `7df1487` | 2026-11-24T13:07 | agent-sync: bookmark claude at 1cb7bf5 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `1cb7bf5` | 2026-11-24T13:07 | Nov 24 premarket (08:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `a1d7be5` | 2026-11-23T21:54 | restamp 2026-11-23: Flash PMI 54.6; NQ/ES under seed PWL; Sunday plan holds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `ce10baf` | 2026-11-23T15:53 | restamp 2026-11-23: no ISM/JOLTS/ADP/claims/NFP; Flash PMI 54.6; session under PWL | M src/data/week-prints.json |
 
 ## New files in those commits
 
