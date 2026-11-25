@@ -732,3 +732,105 @@ export function resolveWeekAhead(now = new Date()): WeekAheadRead {
     refreshedAt: new Date().toISOString(),
   };
 }
+
+const PLANS = WEEK_PLANS;
+
+export function weekDayFor(dateKey: string): WeekDayPlan | null {
+  for (const plan of PLANS) {
+    const hit = plan.days.find((d) => d.date === dateKey);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export function weekAheadFocusLine(read: WeekAheadRead | null): string | null {
+  if (!read || !read.focus) return null;
+  const tag = read.today ? "TODAY" : "NEXT";
+  return `${tag} · ${read.focus.weekday} · ${read.focus.dailyBias}`;
+}
+
+export function currentWeekPlan(now = new Date()): WeekPlan | null {
+  const key = etDateKey(now);
+  for (const p of WEEK_PLANS) {
+    if (key >= p.weekStart && key <= p.weekEnd) return p;
+  }
+  return WEEK_PLANS[0] ?? null;
+}
+
+function barInWeek(t: number, weekStart: string, weekEnd: string, today: string): boolean {
+  const d = etDateKey(new Date(t));
+  return d >= weekStart && d <= weekEnd && d <= today;
+}
+
+export function weekRangeFromBars(
+  bars: OhlcBar[],
+  weekStart: string,
+  weekEnd: string,
+  now = new Date(),
+): { high: number; low: number } | null {
+  const today = etDateKey(now);
+  let high = -Infinity;
+  let low = Infinity;
+  let n = 0;
+  for (const b of bars) {
+    if (!barInWeek(b.t, weekStart, weekEnd, today)) continue;
+    if (b.h > high) high = b.h;
+    if (b.l < low) low = b.l;
+    n++;
+  }
+  return n > 0 ? { high, low } : null;
+}
+
+function overlayBook(seed: WeekBookLevels, range: { high: number; low: number } | null): WeekBookLevels {
+  if (!range) return seed;
+  const cwh = +range.high.toFixed(2);
+  const cwl = +range.low.toFixed(2);
+  const liveEq = +((cwh + cwl) / 2).toFixed(2);
+  const tookPwh = cwh >= seed.pwh - 0.25;
+  const tookPwl = cwl <= seed.pwl + 0.25;
+  return {
+    ...seed,
+    cwh,
+    cwl,
+    live: true,
+    eq: liveEq,
+    drawUp: tookPwh
+      ? `CWH ${cwh.toFixed(2)} took PWH ${seed.pwh.toFixed(2)} — next ${seed.drawUp}`
+      : `CWH ${cwh.toFixed(2)} then PWH ${seed.pwh.toFixed(2)} · ${seed.drawUp}`,
+    drawDown: tookPwl
+      ? `CWL ${cwl.toFixed(2)} took PWL ${seed.pwl.toFixed(2)} — next ${seed.drawDown}`
+      : `CWL ${cwl.toFixed(2)} then PWL ${seed.pwl.toFixed(2)} · ${seed.drawDown}`,
+    note: `${seed.note} LIVE CWH ${cwh.toFixed(2)} / CWL ${cwl.toFixed(2)} from this week’s tape (no lookahead).`,
+  };
+}
+
+function isNq(symbol: string): boolean {
+  return /NQ/i.test(symbol);
+}
+function isEs(symbol: string): boolean {
+  return /ES/i.test(symbol);
+}
+
+/** Stamp live weekly range onto the Sunday seed. Prior PWH/PWL stay. */
+export function overlayWeekAhead(
+  read: WeekAheadRead | null,
+  books: { symbol: string; bars: OhlcBar[] }[],
+  now = new Date(),
+): WeekAheadRead | null {
+  if (!read) return null;
+  const { plan } = read;
+  let nq = plan.nq;
+  let es = plan.es;
+  for (const b of books) {
+    const range = weekRangeFromBars(b.bars, plan.weekStart, plan.weekEnd, now);
+    if (isNq(b.symbol)) nq = overlayBook(nq, range);
+    if (isEs(b.symbol)) es = overlayBook(es, range);
+  }
+  return {
+    ...read,
+    plan: { ...plan, nq, es },
+    live: Boolean(nq.live || es.live),
+    refreshedAt: now.toISOString(),
+  };
+}
+
