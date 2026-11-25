@@ -686,3 +686,12 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Gave the trader the Tue Nov 24 premarket brief (unchanged bias from 08:06 ET run, odds figure updated): two-way/selective, Consumer Confidence (Nov) 10:00 ET medium, A+ only after clear structure, do not chase, plus the standing CLAUDE.md session constraints.
 - No open position to check (narration-only; no live gateway/market data this session).
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-25 — NY AM session-partner run: 08:06 ET premarket, Thanksgiving week day 3 — canary clean
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log` on `main` @ `602ed4f`
+- Ran agent-sync first: bookmark was `f621621`, 7 commits landed since (Tue Nov 24 Confidence restamp of `week-ahead.ts`/`week-prints.json`, merged PR #96 flaky-test fixes to `scripts/desk-budget.test.mjs` and `scripts/verify-news-ipo.mjs`, plus this session's own prior bookmark-sync commits). Read the brief; nothing redone.
+- Integrity canary: clean. `week-ahead.ts` 848 lines, `month-ahead.ts` 675 lines — no truncation signature.
+- Gave the trader the Wed Nov 25 premarket brief from `week-ahead.ts`/`news-calendar.json`: A+-only-into-prints bias, PCE/Personal Income (Oct, HIGH) + GDP Q3 2nd est + Durable Goods + Initial Claims all 08:30 ET, Beige Book 14:00 ET, blackout 08:00–08:45, A+ only after 10:00, flatten before Thursday's holiday close, plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book/day, max 2/killzone, 2%/5% halts).
+- Pushed a notification to the trader given the high-impact PCE print was ~24 minutes out at run time and today carries the pre-holiday flatten reminder.
+- No open position to check (narration-only; no live gateway/market data this session).
+- Supersedes: nothing (routine checkpoint, not a canon decision).
