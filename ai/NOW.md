@@ -1,5 +1,5 @@
 # NOW — ledger-desk current truth
-**As of:** 2026-11-25 08:06 ET · **Maintainer:** Claude (session-partner) · **Repo:** `keatrng-cpu/ledger-desk`
+**As of:** 2026-11-25 09:06 ET · **Maintainer:** Claude (session-partner) · **Repo:** `keatrng-cpu/ledger-desk`
 **Tree:** `main` is `602ed4f` (restamp Nov 24: Confidence 103.3 surge; NQ/ES still under seed PWL). No open branch or Dual Desk issue tracked at this writing.
 > Current truth only. History is `ai/DECISIONS.md`. Keep under 150 lines.
 
@@ -12,7 +12,7 @@
 - HTF: prior week (Nov 16–20) extended under the Oct 26–30 seed PWL (NQ Fri high ~26,603.50/low ~25,241.50; ES high ~7,216.75/low ~6,938). Dec hike odds ~96% 25bp, 50bp erased (CME FedWatch Nov 23-24). Sunday post-breakdown under-PWL story holds through Tue's hot Confidence print.
 
 ## Canary
-`week-ahead.ts` 848 lines, `month-ahead.ts` 675 lines at `602ed4f` — no truncation signature (failure mode is <200 lines, docblock + imports only, body missing). Checked 2026-11-25 08:06 ET premarket run: clean.
+`week-ahead.ts` 848 lines, `month-ahead.ts` 675 lines at `602ed4f` — no truncation signature (failure mode is <200 lines, docblock + imports only, body missing). Checked again 2026-11-25 09:06 ET premarket run: clean.
 
 ## Live constraints
 - If copy and `src/lib/aplus/config.ts` disagree, code wins. Agents never change those numbers.

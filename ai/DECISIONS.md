@@ -695,3 +695,12 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Pushed a notification to the trader given the high-impact PCE print was ~24 minutes out at run time and today carries the pre-holiday flatten reminder.
 - No open position to check (narration-only; no live gateway/market data this session).
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-25 — NY AM session-partner run: 09:06 ET premarket re-check — canary clean
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log` on `main` @ `f8fe79d`
+- Ran agent-sync first: bookmark was `8fffae3`, 1 commit landed after it (this session's own prior bookmark-sync commit from the 08:06 ET run). No new Grok work; nothing to redo.
+- Integrity canary re-checked: still clean. `week-ahead.ts` 848 lines, `month-ahead.ts` 675 lines — no truncation signature, unchanged from the 08:06 ET run.
+- Gave the trader the Wed Nov 25 premarket brief again from `week-ahead.ts`/`news-calendar.json` (unchanged since 08:06 ET): A+-only-into-prints bias, PCE/Personal Income (Oct, HIGH) + GDP Q3 2nd est + Durable Goods + Initial Claims all 08:30 ET (already printed by this run's 09:06 ET clock — no live gateway to confirm the outcome), Beige Book 14:00 ET, blackout 08:00–08:45 (elapsed), A+ only after 10:00, flatten before Thursday's holiday close, plus the standing CLAUDE.md session constraints (Judas fails closed, ±15m news blackout, one book/day, max 2/killzone, 2%/5% halts).
+- No push notification sent: content is an unchanged repeat of the 08:06 ET brief with no canary issue and no new figure to report; the trader already received the same information this morning.
+- No open position to check (narration-only; no live gateway/market data this session).
+- Supersedes: nothing (routine checkpoint, not a canon decision).
