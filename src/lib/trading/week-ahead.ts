@@ -593,10 +593,10 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
   headline:
     "Thanksgiving week. Flash PMIs Mon 9:45, Consumer Confidence Tue 10:00, PCE + GDP + Durable + Claims Wed 8:30 + Beige Book 14:00. Markets closed Thu, early close Fri 13:00. Thin. No multi-day swing. Post-CPI/PPI/minutes under-PWL context.",
   htfBias:
-    "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~96% 25bp (50bp erased; CME FedWatch as of Nov 23-24). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
+    "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~98% 25bp (CME FedWatch as of Nov 25-26). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
   po3: "Mon range-build on flash PMIs. Tue confidence. Wed PCE/GDP distribute. Thu closed. Fri half-session.",
   macro:
-    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~96% 25bp (50bp erased). Live CWH/CWL from bars. This-week so far NQ ~25,427–27,137 / ES ~6,992–7,313, still under seed PWL.",
+    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~98% 25bp (CME FedWatch as of Nov 25-26). Live CWH/CWL from bars. This-week so far NQ ~25,027–27,137 / ES ~6,982–7,313, still under seed PWL.",
   asymmetry:
     "A+ into the Wed prints. Flatten before holiday. blake_mech longs stay paper. Thin liquidity after Wed.",
   nq: {
@@ -675,7 +675,7 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
         { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "Printed 189k", actual: "189k", vs: "exp ~200k / prev 202k rev" },
         { timeEt: "14:00", name: "Fed Beige Book", impact: "medium", note: "Last before Dec FOMC" },
       ],
-      likelyTape: "PCE core y/y 3.3% (hotter), GDP revised to +4.3%, claims 189k soft, durables +0.2% soft. Session stayed well under seed PWL (NQ ~25.0k-26.35k). Post-breakdown under-PWL holds. Dec hike odds ~97-98% 25bp.",
+      likelyTape: "PCE core y/y 3.3% (hotter), GDP revised to +4.3%, claims 189k soft, durables +0.2% soft. Session took the week low (NQ ~25,027–26,351). Post-breakdown under-PWL holds. Dec hike odds ~98% 25bp.",
       trade: "Blackout 8:00–8:45. A+ only after 10:00. Flatten before holiday.",
       skipIf: "Anything open into holiday. No MSS after print.",
       pathNote: "Prints stamped. Sunday post-breakdown under-PWL holds. Live CWH/CWL from bars. No HTF trend invented. Flatten into Thanksgiving.",

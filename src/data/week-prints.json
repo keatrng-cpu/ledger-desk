@@ -509,5 +509,12 @@
     "actual": "+0.2%",
     "vs": "exp ~0.4-0.7% / prev +2.0% rev",
     "note": "Census. Soft headline. Ex-trans +0.5%. Core capital goods +1.2%. Machinery-led."
+  },
+  {
+    "date": "2026-11-26",
+    "name": "Thanksgiving Day (markets closed)",
+    "actual": "\u2014",
+    "vs": "no releases",
+    "note": "Thu. Cash closed. Futures early halt. This-week range so far NQ ~25,027\u201327,137 / ES ~6,982\u20137,313, still under seed PWL (NQ 29,904 / ES 7,707.25). Wed prints already stamped (PCE hot core, GDP +4.3%, claims 189k). Dec hike odds ~98% 25bp. Next hard: Advance Goods Trade Fri 08:30, early close 13:00. No ISM/JOLTS/ADP/NFP."
   }
 ]
