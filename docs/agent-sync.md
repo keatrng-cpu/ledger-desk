@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `75a5ebf`. Fetched origin. Local main matches origin.
+HEAD `5a2309e`. Fetched origin. Local main is not origin. Push or rebase before you treat this as shared.
 
 ## Since claude last looked
 
-Bookmark was `826c6c6`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `75a5ebf`.
+Bookmark was `75a5ebf`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `5a2309e`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `5a2309e` | 2026-11-26T15:07 | Nov 26 10:06 ET session-partner run: Thanksgiving holiday confirmed, no trade, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `75a5ebf` | 2026-11-26T14:07 | agent-sync: bookmark claude at 826c6c6 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `826c6c6` | 2026-11-26T14:07 | Nov 26 premarket (09:06 ET) session-partner run: Thanksgiving closure, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `c19891a` | 2026-11-26T13:13 | Restamp Thanksgiving week range and Dec hike odds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `75a5ebf`.
 | `b417fae` | 2026-11-25T14:08 | Nov 25 premarket (09:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `f8fe79d` | 2026-11-25T13:08 | agent-sync: bookmark claude at 8fffae3 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `8fffae3` | 2026-11-25T13:08 | Nov 25 premarket (08:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md |
-| `602ed4f` | 2026-11-24T21:51 | restamp Nov 24: Confidence 103.3 surge; NQ/ES still under seed PWL | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 
 ## New files in those commits
 
