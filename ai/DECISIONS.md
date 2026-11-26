@@ -706,3 +706,10 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - Supersedes: nothing (routine checkpoint, not a canon decision).
 
 ## 2026-11-26 — NY AM session-partner run: 09:06 ET premarket — canary clean, Thanksgiving holiday closure confirmed, no trade
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log`, `TZ=America/New_York date` on `main` @ `826c6c6`
+- Ran agent-sync first: bookmark was `75a5ebf` pre-fetch; after fetch+rebase-equivalent, 1 commit (own prior bookmark-sync) was the only thing since the last real bookmark. Nothing new from Grok to read or redo.
+- Integrity canary: clean. `week-ahead.ts` 836 lines, `month-ahead.ts` 675 lines — no truncation signature.
+- Clock: Thu 2026-11-26 10:06 ET. `src/data/news-calendar.json` and `ai/NOW.md` confirm today is Thanksgiving — markets closed, no cash session. The task's branch logic (premarket ~09:00 / mid-session discipline ~10:00 / close-out ~11:00) assumes a trading day, so none of those branches applied; said so instead of narrating a session that isn't happening.
+- No open position to check (narration-only; no live gateway/market data this session; also moot today with markets closed).
+- No push notification sent: canary clean, no trading day, nothing for the trader to act on.
+- Supersedes: nothing (routine checkpoint, not a canon decision).

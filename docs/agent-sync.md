@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `826c6c6`. Fetched origin. Local main matches origin.
+HEAD `75a5ebf`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `c19891a`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `826c6c6`.
+Bookmark was `826c6c6`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `75a5ebf`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `75a5ebf` | 2026-11-26T14:07 | agent-sync: bookmark claude at 826c6c6 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `826c6c6` | 2026-11-26T14:07 | Nov 26 premarket (09:06 ET) session-partner run: Thanksgiving closure, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `c19891a` | 2026-11-26T13:13 | Restamp Thanksgiving week range and Dec hike odds | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
 | `f99ba36` | 2026-11-25T16:54 | Merge pull request #97 from keatrng-cpu/fix/week-ahead-exports-1125 | — |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `826c6c6`.
 | `f8fe79d` | 2026-11-25T13:08 | agent-sync: bookmark claude at 8fffae3 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `8fffae3` | 2026-11-25T13:08 | Nov 25 premarket (08:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md |
 | `602ed4f` | 2026-11-24T21:51 | restamp Nov 24: Confidence 103.3 surge; NQ/ES still under seed PWL | M src/data/week-prints.json, M src/lib/trading/week-ahead.ts |
-| `4c04244` | 2026-11-24T10:11 | Merge pull request #96 from keatrng-cpu/fix/slow-fetch-test-1124 | — |
 
 ## New files in those commits
 
