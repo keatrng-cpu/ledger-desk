@@ -704,3 +704,5 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - No push notification sent: content is an unchanged repeat of the 08:06 ET brief with no canary issue and no new figure to report; the trader already received the same information this morning.
 - No open position to check (narration-only; no live gateway/market data this session).
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-26 — NY AM session-partner run: 09:06 ET premarket — canary clean, Thanksgiving holiday closure confirmed, no trade
