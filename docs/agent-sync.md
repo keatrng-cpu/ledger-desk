@@ -2,17 +2,18 @@
 
 Grok and Claude share one `main`. Read this before editing. Regenerate it with `node scripts/agent-sync.mjs --agent grok` or `--agent claude`.
 
-HEAD `0fda0b9`. Fetched origin. Local main matches origin.
+HEAD `6142377`. Fetched origin. Local main matches origin.
 
 ## Since claude last looked
 
-Bookmark was `5a2309e`. 1 commit(s) landed after it.
-Bookmark after this run: `claude` → `0fda0b9`.
+Bookmark was `0fda0b9`. 1 commit(s) landed after it.
+Bookmark after this run: `claude` → `6142377`.
 
 ## Last 15 commits
 
 | SHA | When (UTC) | What | Files |
 |---|---|---|---|
+| `6142377` | 2026-11-27T13:07 | Nov 27 premarket (08:06 ET) session-partner run: Friday early-close brief, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `0fda0b9` | 2026-11-26T15:07 | agent-sync: bookmark claude post-push | M docs/agent-sync.json, M docs/agent-sync.md |
 | `5a2309e` | 2026-11-26T15:07 | Nov 26 10:06 ET session-partner run: Thanksgiving holiday confirmed, no trade, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
 | `75a5ebf` | 2026-11-26T14:07 | agent-sync: bookmark claude at 826c6c6 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
@@ -27,7 +28,6 @@ Bookmark after this run: `claude` → `0fda0b9`.
 | `164c45f` | 2026-11-25T15:51 | Restamp Nov 25 prints: claims 189k, PCE core 3.3% y/y, GDP +4.3%, durables +0.2% | M src/data/week-prints.json |
 | `f1247b5` | 2026-11-25T14:08 | agent-sync: bookmark claude at b417fae (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 | `b417fae` | 2026-11-25T14:08 | Nov 25 premarket (09:06 ET) session-partner run: update memory, sync bookmark | M ai/DECISIONS.md, M ai/NOW.md, M docs/agent-sync.json, M docs/agent-sync.md |
-| `f8fe79d` | 2026-11-25T13:08 | agent-sync: bookmark claude at 8fffae3 (post-push) | M docs/agent-sync.json, M docs/agent-sync.md |
 
 ## New files in those commits
 
