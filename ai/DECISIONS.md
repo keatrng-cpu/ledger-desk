@@ -723,3 +723,7 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - No open position to check (narration-only; no live gateway/market data this session).
 - No push notification sent: canary clean, brief matches the committed plan with no new figure or anomaly to flag.
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-27 — Integrity canary tripped: week-ahead.ts and news-calendar.json fully deleted on main
+Status: OPEN LOCK (needs trader decision/action)
+Session-partner run at 09:06 ET found `src/lib/trading/week-ahead.ts` (836→0 lines) and `src/data/news-calendar.json` (476→0 lines) both empty at HEAD (`5d55d66`), already pushed to `origin/main`. Commit message claims additions ("stamp this-week ES high... extend news-calendar for ISM/JOLTS/ADP/claims/NFP"); actual diff is pure deletion of both files — worse than the known 2026-09 truncation bug (that left a docblock+imports; this leaves nothing). `scripts/plan-file-guard.mjs`, which should refuse any write shrinking these files by more than half, did not block it. Trader notified by push at time of discovery. Not restored by this session — restore is the trader's call (narration/discipline only per CLAUDE.md). Restore commands: `git checkout c19891a -- src/lib/trading/week-ahead.ts` and `git checkout 78acde1 -- src/data/news-calendar.json`. Premarket brief for Fri Nov 27 could not be produced from the required source files this run; no guess was substituted. Follow-up needed: why plan-file-guard.mjs let a full-file deletion through.
