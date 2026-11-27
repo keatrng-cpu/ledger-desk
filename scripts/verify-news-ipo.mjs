@@ -81,7 +81,7 @@ check("Alphabet appears once, not per share class", S.timeline("2026-11-04", "20
 ok("density counts shocks in a window", S.eventDensity("2026-10-26", "2026-10-30").high >= 3);
 ok("the coverage line names the end date", S.coverageLine("2026-09-27").includes(S.calendarEnds()));
 check("calendarEnds matches the latest news-calendar.json date", S.calendarEnds(), calendarJson.map((e) => e.date).sort().at(-1));
-ok("a calendar ending within a week warns", /blind/.test(S.coverageLine("2026-11-22")));
+ok("a calendar ending within a week warns", /blind/.test(S.coverageLine("2026-11-28")));
 
 console.log("\nIPOs");
 check("an ETF share class is not a company", I.isOperatingCompany("DFA Investment Dimensions Group Inc."), false);
