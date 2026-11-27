@@ -713,3 +713,13 @@ Second premarket firing of the scheduled task on the same day, one hour after th
 - No open position to check (narration-only; no live gateway/market data this session; also moot today with markets closed).
 - No push notification sent: canary clean, no trading day, nothing for the trader to act on.
 - Supersedes: nothing (routine checkpoint, not a canon decision).
+
+## 2026-11-27 — NY AM session-partner run: 08:06 ET premarket — canary clean, Friday early-close brief given
+- Status: ADOPTED (routine, no action needed) · Decided by: Claude, scheduled session-partner run · Source: `agent-sync --agent claude`, `wc -l`, `git log`, `TZ=America/New_York date` on `main` @ `0fda0b9`
+- Ran agent-sync first: bookmark was `5a2309e`; 1 commit landed after it, and it was this session's own prior post-push bookmark commit (`0fda0b9`). Nothing new from Grok to read or redo.
+- Integrity canary: clean. `week-ahead.ts` 836 lines, `month-ahead.ts` 675 lines — no truncation signature.
+- Clock: Fri 2026-11-27 08:06 ET — before the open, premarket branch.
+- Gave the trader the Fri Nov 27 premarket brief from `week-ahead.ts`/`news-calendar.json`: Selective/early-close day (close 13:00 ET), Advance Goods Trade Balance (Oct) 08:30 ET medium (blackout 08:15–08:45 ET), no multi-day swing into a thin Friday, flatten by 12:45 ET, Sunday post-breakdown under-PWL story still holds post-Wed prints (PCE core 3.3% y/y hot, GDP +4.3%, Dec hike odds ~98% 25bp). Plus standing CLAUDE.md constraints (Judas fails closed, ±15m news blackout, one book/day, max 2/killzone, 2%/5% halts, A+ only after 10:00 ET).
+- No open position to check (narration-only; no live gateway/market data this session).
+- No push notification sent: canary clean, brief matches the committed plan with no new figure or anomaly to flag.
+- Supersedes: nothing (routine checkpoint, not a canon decision).
