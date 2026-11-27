@@ -596,7 +596,7 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
     "Prior week (Nov 16–20) tape extended under Oct 26–30 seed PWL (NQ session Fri high ~26,603.50 / low ~25,241.50; ES high ~7,216.75 / low ~6,938). Opens inside the post-breakdown range. Dec hike odds ~98% 25bp (CME FedWatch as of Nov 25-26). Sunday post-breakdown under-PWL story holds. Do not invent CWH/CWL.",
   po3: "Mon range-build on flash PMIs. Tue confidence. Wed PCE/GDP distribute. Thu closed. Fri half-session.",
   macro:
-    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~98% 25bp (CME FedWatch as of Nov 25-26). Live CWH/CWL from bars. This-week so far NQ ~25,027–27,137 / ES ~6,982–7,334, still under seed PWL.",
+    "Mon S&P Global Flash PMIs (Nov) 9:45 medium. Tue Consumer Confidence (Nov) 10:00 medium. Wed PCE / Personal Income (Oct) 8:30 high + GDP Q3 (2nd est) 8:30 + Durable Goods (Oct P) 8:30 + Initial Jobless Claims 8:30 + Beige Book 14:00. Thu Thanksgiving closed. Fri Advance Goods Trade (Oct) 8:30 medium, early close 13:00. No NFP/CPI. Dec hike odds ~98% 25bp (CME FedWatch as of Nov 25-26). Live CWH/CWL from bars. This-week so far NQ ~25,027–27,137 / ES ~6,982–7,343, still under seed PWL.",
   asymmetry:
     "A+ into the Wed prints. Flatten before holiday. blake_mech longs stay paper. Thin liquidity after Wed.",
   nq: {
@@ -706,19 +706,19 @@ export const WEEK_NOV23_NOV27: WeekPlan = {
   ],
 };
 
-/** Week of Nov 30 – Dec 4 2026. ISM/JOLTS Tue → ADP Wed → claims Thu → NFP Fri. */
+/** Week of Nov 30 – Dec 4 2026. ISM/JOLTS Tue → ADP Wed → claims + ISM Services Thu → NFP Fri. */
 export const WEEK_NOV30_DEC4: WeekPlan = {
   id: "2026-11-30",
   weekLabel: "Nov 30 – Dec 4, 2026",
   weekStart: "2026-11-30",
   weekEnd: "2026-12-04",
   headline:
-    "NFP week. ISM Mfg Tue 10:00, JOLTS Tue 10:00, ADP Wed 8:15, claims Thu 8:30, NFP Fri 8:30. No multi-day swing into Friday.",
+    "NFP week. ISM Mfg Tue 10:00, JOLTS Tue 10:00, ADP Wed 8:15, claims Thu 8:30, ISM Services Thu 10:00, NFP Fri 8:30. No multi-day swing into Friday.",
   htfBias:
-    "Prior week (Nov 23–27) tape stayed under Oct 26–30 seed PWL (NQ ~25,027–27,137 / ES ~6,982–7,334). Opens inside the post-breakdown range. Dec hike odds last stamped ~98% 25bp (CME FedWatch as of Nov 25-26). Do not invent CWH/CWL.",
-  po3: "Mon range-build. Tue ISM/JOLTS. Wed ADP. Thu claims. Fri NFP is the week’s event.",
+    "Prior week (Nov 23–27) tape stayed under Oct 26–30 seed PWL (NQ ~25,027–27,137 / ES ~6,982–7,343). Opens inside the post-breakdown range. Dec hike odds last stamped ~98% 25bp (CME FedWatch as of Nov 25-26). Do not invent CWH/CWL.",
+  po3: "Mon range-build. Tue ISM/JOLTS. Wed ADP. Thu claims + ISM Services. Fri NFP is the week’s event.",
   macro:
-    "Mon no high-impact. Tue ISM Manufacturing PMI (Nov) 10:00 high + JOLTS Job Openings (Oct) 10:00 high. Wed ADP Employment (Nov) 08:15 high. Thu Initial Jobless Claims 08:30 medium. Fri NFP / Employment Situation (Nov) 08:30 high. No prints yet. Dec hike odds last stamped ~98% 25bp (CME FedWatch as of Nov 25-26). Live CWH/CWL from bars. Prior week NQ ~25,027–27,137 / ES ~6,982–7,334, still under seed PWL.",
+    "Mon no high-impact. Tue ISM Manufacturing PMI (Nov) 10:00 high + JOLTS Job Openings (Oct) 10:00 high. Wed ADP Employment (Nov) 08:15 high. Thu Initial Jobless Claims 08:30 medium + ISM Services PMI (Nov) 10:00 high. Fri NFP / Employment Situation (Nov) 08:30 high. No prints yet. Dec hike odds last stamped ~98% 25bp (CME FedWatch as of Nov 25-26). Live CWH/CWL from bars. Prior week NQ ~25,027–27,137 / ES ~6,982–7,343, still under seed PWL.",
   asymmetry:
     "A+ into the prints. Flatten before NFP unless already BE. blake_mech longs stay paper.",
   nq: {
@@ -741,10 +741,10 @@ export const WEEK_NOV30_DEC4: WeekPlan = {
     eq: 7778,
     drawUp: "Prior seed 7,848.50",
     drawDown: "Prior-week lows under ~6,982 then next SSL",
-    note: "PWH/PWL = Oct 26–30 seed. Prior week (Nov 23–27) ES ~6,982–7,334. Live CWH/CWL from bars. No fake live prints.",
+    note: "PWH/PWL = Oct 26–30 seed. Prior week (Nov 23–27) ES ~6,982–7,343. Live CWH/CWL from bars. No fake live prints.",
   },
   filters: [
-    "±15 min: ISM Mfg Tue 10:00 · JOLTS Tue 10:00 · ADP Wed 08:15 · claims Thu 08:30 · NFP Fri 08:30",
+    "±15 min: ISM Mfg Tue 10:00 · JOLTS Tue 10:00 · ADP Wed 08:15 · claims Thu 08:30 · ISM Svc Thu 10:00 · NFP Fri 08:30",
     "No entry 8:00–8:45 Fri",
     "No multi-day swing into Fri NFP",
     "Judas on. One book. PATH floor 0.65.",
@@ -753,7 +753,7 @@ export const WEEK_NOV30_DEC4: WeekPlan = {
     "Mon stand unless clean raid of prior extremes",
     "Tue stand 9:45–10:15",
     "Wed ADP blackout 8:00–8:45",
-    "Thu claims; stand unless clear structure; no multi-day into Fri",
+    "Thu claims; ISM Services stand 9:45–10:15; no multi-day into Fri",
     "Fri NFP blackout 8:15–9:00; A+ only after 10:00",
   ],
   outcomes: [
@@ -803,9 +803,12 @@ export const WEEK_NOV30_DEC4: WeekPlan = {
       weekday: "Thu",
       dailyBias: "Two-way / selective",
       kind: "two_way",
-      news: [{ timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "" }],
-      likelyTape: "Claims 8:30. Post-breakdown selective. Do not invent the print. No multi-day into NFP.",
-      trade: "A+ only after 8:30. Stand unless clear structure.",
+      news: [
+        { timeEt: "08:30", name: "Initial Jobless Claims", impact: "medium", note: "" },
+        { timeEt: "10:00", name: "ISM Services PMI (Nov)", impact: "high", note: "" },
+      ],
+      likelyTape: "Claims 8:30, ISM Services 10:00. Post-breakdown selective. Do not invent the print. No multi-day into NFP.",
+      trade: "A+ only after 8:30. ISM Services stand 9:45–10:15. Stand unless clear structure.",
       skipIf: "No multi-day into Fri.",
       pathNote: "Prior week stayed under seed PWL. Live CWH/CWL from bars. No HTF trend invented. Do not swing into NFP.",
     },
